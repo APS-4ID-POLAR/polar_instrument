@@ -2,13 +2,10 @@
 Simulated fourc
 """
 
-from ophyd import Component, Device
-from ophyd.sim import SynAxis
-
-
 __all__ = ['fourc']
 
-from ophyd import (Component, PseudoSingle, Kind, Signal)
+from ophyd import Component, PseudoSingle, Kind, Signal
+from ophyd.sim import SynAxis
 from ..framework import sd
 import gi
 gi.require_version('Hkl', '5.0')
