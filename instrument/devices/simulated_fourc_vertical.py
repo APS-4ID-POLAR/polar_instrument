@@ -63,4 +63,3 @@ fourc.phi.setpoint.put(0)
 fourc.tth.setpoint.put(2)
 select_diffractometer(fourc)
 sd.baseline.append(fourc)
-
