@@ -10,13 +10,13 @@ from ..framework import sd
 import gi
 gi.require_version('Hkl', '5.0')
 # MUST come before `import hkl`
-from hkl.geometries import E4CV
+from hkl.geometries import Petra3_p09_eh2
 from hkl.user import select_diffractometer
 from ..session_logs import logger
 logger.info(__file__)
 
 
-class FourCircleDiffractometer(E4CV):
+class FourCircleDiffractometer(Petra3_p09_eh2):
     """
     E4CV: huber diffractometer in 4-circle vertical geometry with energy.
 
