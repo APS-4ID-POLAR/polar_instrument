@@ -4,8 +4,7 @@ Simulated diffract
 
 __all__ = ['diffract']
 
-from ophyd import Component, PseudoSingle, Kind, Signal
-from ophyd.sim import SynAxis
+from ophyd import Component, PseudoSingle, Kind, Signal, EpicsMotor
 from ..framework import sd
 import gi
 gi.require_version('Hkl', '5.0')
@@ -28,12 +27,12 @@ class FourCircleDiffractometer(Petra3_p09_eh2):
     k = Component(PseudoSingle, '', labels=("hkl", "diffract"))
     l = Component(PseudoSingle, '', labels=("hkl", "diffract"))
 
-    mu = Component(SynAxis, name="mu", labels=("motor", "diffract"))
-    omega = Component(SynAxis, name="omega", labels=("motor", "diffract"))
-    chi = Component(SynAxis, name="chi", labels=("motor", "diffract"))
-    phi = Component(SynAxis, name="phi", labels=("motor", "diffract"))
-    delta = Component(SynAxis, name="delta", labels=("motor", "diffract"))
-    gamma = Component(SynAxis, name="gamma", labels=("motor", "diffract"))
+    mu = Component(EpicsMotor, "m9", labels=("motor", "diffract"))
+    omega = Component(EpicsMotor, "m10", labels=("motor", "diffract"))
+    chi = Component(EpicsMotor, "m11", labels=("motor", "diffract"))
+    phi = Component(EpicsMotor, "m12", labels=("motor", "diffract"))
+    delta = Component(EpicsMotor, "m13", labels=("motor", "diffract"))
+    gamma = Component(EpicsMotor, "m14", labels=("motor", "diffract"))
 
     # Explicitly selects the real motors
     # _real = ['theta', 'chi', 'phi', 'tth']
@@ -55,12 +54,7 @@ class FourCircleDiffractometer(Petra3_p09_eh2):
         return {'fields': fields}
 
 
-diffract = FourCircleDiffractometer("", name='diffract')
-diffract.mu.setpoint.put(0)
-diffract.omega.setpoint.put(1)
-diffract.chi.setpoint.put(0)
-diffract.phi.setpoint.put(0)
-diffract.delta.setpoint.put(2)
-diffract.gamma.setpoint.put(2)
+diffract = FourCircleDiffractometer("4idsoftmotors:", name='diffract')
 select_diffractometer(diffract)
 sd.baseline.append(diffract)
+

@@ -4,8 +4,7 @@ Simulated fourc
 
 __all__ = ['fourc']
 
-from ophyd import Component, PseudoSingle, Kind, Signal
-from ophyd.sim import SynAxis
+from ophyd import Component, PseudoSingle, Kind, Signal, EpicsMotor
 from ..framework import sd
 import gi
 gi.require_version('Hkl', '5.0')
@@ -28,10 +27,10 @@ class FourCircleDiffractometer(E4CV):
     k = Component(PseudoSingle, '', labels=("hkl", "fourc"))
     l = Component(PseudoSingle, '', labels=("hkl", "fourc"))
 
-    omega = Component(SynAxis, name="omega", labels=("motor", "fourc"))
-    chi = Component(SynAxis, name="chi", labels=("motor", "fourc"))
-    phi = Component(SynAxis, name="phi", labels=("motor", "fourc"))
-    tth = Component(SynAxis, name="tth", labels=("motor", "fourc"))
+    omega = Component(EpicsMotor, "m1", labels=("motor", "fourc"))
+    chi = Component(EpicsMotor, "m2", labels=("motor", "fourc"))
+    phi = Component(EpicsMotor, "m3", labels=("motor", "fourc"))
+    tth = Component(EpicsMotor, "m4", labels=("motor", "fourc"))
 
     # Explicitly selects the real motors
     # _real = ['theta', 'chi', 'phi', 'tth']
@@ -53,10 +52,7 @@ class FourCircleDiffractometer(E4CV):
         return {'fields': fields}
 
 
-fourc = FourCircleDiffractometer("", name='fourc')
-fourc.omega.setpoint.put(1)
-fourc.chi.setpoint.put(0)
-fourc.phi.setpoint.put(0)
-fourc.tth.setpoint.put(2)
+fourc = FourCircleDiffractometer("4idsoftmotors:", name='fourc')
 select_diffractometer(fourc)
 sd.baseline.append(fourc)
+
