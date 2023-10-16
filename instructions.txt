@@ -21,3 +21,4 @@ git add . --> add all new/modified files to the commit, can change "." to be spe
 git commit --> Creates the commit request. It will open a vi file where you can add the description of the changes made. To save and exit vi press esc and then :wq
 git push origin NAME_OF_BRANCH --> Sends the commit to GitHub. This will ask for your user and password.
 
+
