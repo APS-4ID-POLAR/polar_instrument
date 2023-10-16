@@ -313,8 +313,9 @@ def ascan(*args, time=None, detectors=None, lockin=False, dichro=False,
     if detectors is None:
         detectors = counters.detectors
 
+    # TODO: why yield from!?
     # extras = yield from _collect_extras(energy in args, "fourc" in str(args))
-    extras = yield from _collect_extras(
+    extras = _collect_extras(
         False, "fourc" in str(args), "diffract" in str(args)
     )
 
