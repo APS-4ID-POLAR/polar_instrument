@@ -104,6 +104,7 @@ from polartools.load_data import (
     show_meta,
     collect_meta,
     lookup_position,
+    load_catalog
 )
 
 from polartools.pressure_calibration import (
