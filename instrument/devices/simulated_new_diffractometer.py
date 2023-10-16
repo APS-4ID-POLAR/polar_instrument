@@ -45,7 +45,7 @@ class FourCircleDiffractometer(Petra3_p09_eh2):
 
     # TODO: This is needed to prevent busy plotting.
     @property
-    def hints_test(self):
+    def hints(self):
         fields = []
         for _, component in self._get_components_of_kind(Kind.hinted):
             if (~Kind.normal & Kind.hinted) & component.kind:
