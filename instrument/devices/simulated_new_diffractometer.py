@@ -57,4 +57,3 @@ class FourCircleDiffractometer(Petra3_p09_eh2):
 diffract = FourCircleDiffractometer("4idsoftmotors:", name='diffract')
 select_diffractometer(diffract)
 sd.baseline.append(diffract)
-
