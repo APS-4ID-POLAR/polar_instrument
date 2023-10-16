@@ -508,7 +508,7 @@ def grid_scan(*args, time=None, detectors=None, snake_axes=None, lockin=False,
         detectors = counters.detectors
 
     # extras = yield from _collect_extras(energy in args, "fourc" in str(args))
-    extras = yield from _collect_extras(
+    extras = _collect_extras(
         False, "fourc" in str(args), "diffract" in str(args)
     )
 
