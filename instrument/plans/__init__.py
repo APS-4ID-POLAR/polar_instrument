@@ -15,4 +15,4 @@ from .local_scans import (
     abs_set
 )
 
-from center_maximum import maxi, cen
+from .center_maximum import maxi, cen

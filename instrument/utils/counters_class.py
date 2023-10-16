@@ -1,4 +1,4 @@
-from ..devices import scalerd
+from ..devices import scaler
 from ..session_logs import logger
 logger.info(__file__)
 
@@ -18,14 +18,14 @@ class CountersClass:
         scan. Keep in mind that it will "trigger and read", so if this takes a
         long time to trigger, it will slow down the scan.
     monitor : str
-        Name of the scalerd channel that is used as monitor.
+        Name of the scaler channel that is used as monitor.
     """
 
     def __init__(self):
         super().__init__()
         # This will hold the devices instances.
-        self._dets = [scalerd]
-        self._mon = scalerd.monitor
+        self._dets = [scaler]
+        self._mon = scaler.monitor
         self._extra_devices = []
 
     def __repr__(self):
@@ -53,20 +53,20 @@ class CountersClass:
         """
         Selects the plotting detector and monitor.
 
-        For now both monitor and detector has to be in scalerd.
+        For now both monitor and detector has to be in scaler.
 
         Parameters
         ----------
         detectors : str or iterable
-            Name(s) of the scalerd channels, or the detector instance to plot,
+            Name(s) of the scaler channels, or the detector instance to plot,
             if None it will not be changedd.
         monitor : str or int, optional
-            Name or number of the scalerd channel to use as monitor, uses the
+            Name or number of the scaler channel to use as monitor, uses the
             same number convention as in SPEC. If None, it will not be changed.
         counts : int or float, optional
             Counts in the monitor to be used. If monitor = 'Time', then this is
             the time per point. If None, it will read the preset count for the
-            monitor in the EPICS scalerd.
+            monitor in the EPICS scaler.
         Example
         -------
         This selects the "Ion Ch 4" as detector, and "Ion Ch 1" as monitor:
@@ -115,27 +115,27 @@ class CountersClass:
                 value = [value]
 
             # self._dets will hold the device instance.
-            # scalerd is always a detector even if it's not plotted.
-            self._dets = [scalerd]
-            scalerd_list = []
+            # scaler is always a detector even if it's not plotted.
+            self._dets = [scaler]
+            scaler_list = []
             for item in value:
                 if isinstance(item, str):
-                    scalerd_list.append(item)
+                    scaler_list.append(item)
                 elif isinstance(item, int):
                     if isinstance(item, int):
                         ch = getattr(
-                            scalerd.channels, 'chan{:02d}'.format(item+1)
+                            scaler.channels, 'chan{:02d}'.format(item+1)
                         )
-                        scalerd_list.append(ch.s.name)
+                        scaler_list.append(ch.s.name)
                 else:
                     # item.select_plot_channels(True) This needs to be improved
                     self._dets.append(item)
 
-            # This is needed to select no scalerd channel.
-            if len(scalerd_list) == 0:
-                scalerd_list = ['']
+            # This is needed to select no scaler channel.
+            if len(scaler_list) == 0:
+                scaler_list = ['']
 
-            scalerd.select_plot_channels(scalerd_list)
+            scaler.select_plot_channels(scaler_list)
 
     @property
     def monitor(self):
@@ -145,10 +145,10 @@ class CountersClass:
     def monitor(self, value):
         if value is not None:
             if isinstance(value, int):
-                ch = getattr(scalerd.channels, 'chan{:02d}'.format(value+1))
+                ch = getattr(scaler.channels, 'chan{:02d}'.format(value+1))
                 value = ch.s.name
-            scalerd.monitor = value
-            self._mon = scalerd.monitor
+            scaler.monitor = value
+            self._mon = scaler.monitor
 
     @property
     def extra_devices(self):
@@ -172,7 +172,7 @@ class CountersClass:
 
     @property
     def monitor_counts(self):
-        return scalerd.preset_monitor.get()
+        return scaler.preset_monitor.get()
 
     @monitor_counts.setter
     def monitor_counts(self, value):
