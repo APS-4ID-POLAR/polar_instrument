@@ -53,5 +53,5 @@ class FourCircleDiffractometer(E4CV):
 
 
 fourc = FourCircleDiffractometer("4idsoftmotors:", name='fourc')
-select_diffractometer(fourc)
+# select_diffractometer(fourc)
 sd.baseline.append(fourc)
