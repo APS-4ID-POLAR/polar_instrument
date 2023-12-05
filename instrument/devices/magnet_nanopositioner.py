@@ -1,8 +1,8 @@
 '''
-Nanopositioner motors
+Magnet Nanopositioner motors
 '''
 
-__all__ = ['diff_nano']
+__all__ = ['magnet_nano']
 
 from ophyd import Component, MotorBundle, EpicsMotor
 from ..framework import sd
@@ -16,5 +16,5 @@ class NanoPositioner(MotorBundle):
     nanoz = Component(EpicsMotor, 'm3', labels=('motor', 'nanopositioner'))
 
 
-diff_nano = NanoPositioner('4idIF:', name='diff_nano')
-sd.baseline.append(diff_nano)
+magnet_nano = NanoPositioner('cpscIOC:', name='magnet_nano')
+sd.baseline.append(magnet_nano)
