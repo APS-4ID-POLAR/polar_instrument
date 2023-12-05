@@ -8,3 +8,5 @@ from .simulated_detector import simdet
 from .nanopositioner import nanopositioner
 from .interferometers_4IDG import interferometer
 from .simulated_scaler import scaler
+from .magnet_nanopositioner import magnet_nano
+from .nanopositioner import nano
