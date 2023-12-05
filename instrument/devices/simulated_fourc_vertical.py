@@ -43,7 +43,7 @@ class FourCircleDiffractometer(E4CV):
 
     # TODO: This is needed to prevent busy plotting.
     @property
-    def hints_test(self):
+    def hints(self):
         fields = []
         for _, component in self._get_components_of_kind(Kind.hinted):
             if (~Kind.normal & Kind.hinted) & component.kind:
@@ -53,6 +53,5 @@ class FourCircleDiffractometer(E4CV):
 
 
 fourc = FourCircleDiffractometer("4idsoftmotors:", name='fourc')
-select_diffractometer(fourc)
+# select_diffractometer(fourc)
 sd.baseline.append(fourc)
-

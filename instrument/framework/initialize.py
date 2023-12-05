@@ -21,7 +21,7 @@ from bluesky import SupplementalData
 from bluesky.callbacks.best_effort import BestEffortCallback
 # from bluesky.callbacks.broker import verify_files_saved
 # Will use local magics now, which have to be loaded in the collections file.
-# from .local_magics import LocalMagics
+# from ..utils import LocalMagics
 from bluesky.simulators import summarize_plan
 from bluesky.utils import PersistentDict
 from bluesky.utils import ProgressBarManager
