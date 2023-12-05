@@ -119,8 +119,8 @@ from polartools.process_images import (
 )
 
 # from IPython import get_ipython
-# from .utils.local_magics import LocalMagics
-# get_ipython().register_magics(LocalMagics)
+from .utils.local_magics import LocalMagics
+get_ipython().register_magics(LocalMagics)
 
 # qxscan_params.load_from_scan(-1)
 
