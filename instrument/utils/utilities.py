@@ -27,8 +27,9 @@ from hkl.user import (
     select_diffractometer,
 )
 
-from instrument.collection import RE, diffract, fourc, scaler, counters
-from instrument.collection import psic
+from ..framework import RE
+from .counters_class import counters
+from ..devices import psic, diffract, fourc, scaler
 from inspect import getmembers, isfunction
 from polartools import (
     hkl_utils,
