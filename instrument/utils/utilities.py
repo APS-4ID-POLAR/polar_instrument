@@ -53,7 +53,7 @@ import pathlib
 import sys
 
 path = pathlib.Path("startup_experiment.py")
-import counters_class
+import .counters_class
 
 path2 = pathlib.Path(counters_class.__file__).parent / "Be_refr_index.dat"
 
