@@ -443,13 +443,13 @@ def transfocator(distance=None, energy=None, experiment="diffractometer"):
     lens_types = [1000, 500, 200, 200, 200, 200, 100, 100]
     lenses = [1, 1, 1, 2, 4, 8, 8, 16]
     lenses_used = [0, 0, 0, 0, 0, 0, 0, 0]
-    radius_eff = []
+    iradius_eff = []
     focus = source_crl_distance * distance / (source_crl_distance + distance)
     for num, value in enumerate(lens_types):
-        radius_eff.append(lenses[num] / value)
+        iradius_eff.append(lenses[num] / value)
     iR_N = 1 / (2 * delta * focus)
     iR = 0
-    for num, value in enumerate(reversed(radius_eff)):
+    for num, value in enumerate(reversed(iradius_eff)):
         if value < iR_N and iR < iR_N:
             lenses_used[len(lenses) - num - 1] = 1
             iR += value
@@ -482,7 +482,7 @@ def transfocator(distance=None, energy=None, experiment="diffractometer"):
     )  # convert rms source size to FWHM
     fv = distance_new / (source_sample_distance - distance_new) * 4.1 * 2.35
     print(
-        "Aproximate focus size in brightness mode {:.3f} \u03bcm x {:.3f} \u03bcm".format(
+        "Approximate focus size in brightness mode {:.3f} \u03bcm x {:.3f} \u03bcm".format(
             fh, fv
         )
     )
