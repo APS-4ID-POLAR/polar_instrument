@@ -55,7 +55,9 @@ import sys
 path = pathlib.Path("startup_experiment.py")
 
 path2 = pathlib.Path("Be_refr_index.dat")
-ref_index = loadtxt(path2, skiprows=2)
+print(path2)
+ref_index = loadtxt("Be_refr_index.dat", skiprows=2)
+
 
 def setaz(*args):
     """
