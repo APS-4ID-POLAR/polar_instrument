@@ -53,9 +53,8 @@ import pathlib
 import sys
 
 path = pathlib.Path("startup_experiment.py")
-import local_magics
 
-path2 = pathlib.Path(local_magics.__file__).parent / "Be_refr_index.dat"
+path2 = pathlib.Path("Be_refr_index.dat")
 ref_index = loadtxt(path2, skiprows=2)
 
 def setaz(*args):
