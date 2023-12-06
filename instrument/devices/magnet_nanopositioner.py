@@ -11,9 +11,9 @@ logger.info(__file__)
 
 
 class NanoPositioner(MotorBundle):
-    nanoy = Component(EpicsMotor, 'm1', labels=('motor', 'nanopositioner'))
-    nanox = Component(EpicsMotor, 'm2', labels=('motor', 'nanopositioner'))
-    nanoz = Component(EpicsMotor, 'm3', labels=('motor', 'nanopositioner'))
+    x = Component(EpicsMotor, 'm1', labels=('motor', 'nanopositioner'))
+    y = Component(EpicsMotor, 'm2', labels=('motor', 'nanopositioner'))
+    z = Component(EpicsMotor, 'm3', labels=('motor', 'nanopositioner'))
 
 
 magnet_nano = NanoPositioner('cpscIOC:', name='magnet_nano')
