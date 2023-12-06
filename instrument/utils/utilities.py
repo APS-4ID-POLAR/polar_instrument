@@ -53,7 +53,8 @@ import pathlib
 import sys
 
 path = pathlib.Path("startup_experiment.py")
-
+import counters_class
+path2 = pathlib.Path(counters_class.__file__).parent / 'Be_refr_index.dat'
 
 def setaz(*args):
     """
@@ -390,8 +391,8 @@ def read_delta(energy=None):
     if energy < 2700 or energy > 27000:
         raise ValueError("Energy {} out of range [2700, 27000].".format(energy))
     stop = 0
-    with open("./Be_refr_index.dat", "r") as f:
-        ref_index = loadtxt("./Be_refr_index.dat", skiprows=2)
+    with open(path2, "r") as f:
+        ref_index = loadtxt(path2, skiprows=2)
         for item in ref_index:
             if item[0] > energy and stop == 0:
                 stop = 1
