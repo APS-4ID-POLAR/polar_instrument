@@ -390,7 +390,7 @@ def list_functions(select=None):
             print(funct[0])
 
 
-def read_delta(energy=None, path="/Users/strempfer/Documents/GitHub/polar_instrument/instrument/utils/Be_refr_index.dat"):
+def read_delta(energy=None, path="/home/beams/POLAR/polar_instrument/instrument/utils/Be_refr_index.dat"):
     if energy < 2700 or energy > 27000:
         raise ValueError("Energy {} out of range [2700, 27000].".format(energy))
     stop = 0
