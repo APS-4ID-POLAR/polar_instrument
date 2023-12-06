@@ -54,7 +54,9 @@ import sys
 
 path = pathlib.Path("startup_experiment.py")
 import counters_class
-path2 = pathlib.Path(counters_class.__file__).parent / 'Be_refr_index.dat'
+
+path2 = pathlib.Path(counters_class.__file__).parent / "Be_refr_index.dat"
+
 
 def setaz(*args):
     """
@@ -440,7 +442,11 @@ def transfocator(distance=None, energy=None, experiment="diffractometer"):
 
     source_crl_distance = source_sample_distance - distance
     delta = read_delta(energy)
+    # 4-ID: [1000, 500, 200, 200, 200, 200, 100, 100]
+    # 6-ID-B: [1000, 500, 200, 200, 200, 200, 200, 200, 200]
     lens_types = [1000, 500, 200, 200, 200, 200, 100, 100]
+    # 4-ID: [1, 1, 1, 2, 4, 8, 8, 16]
+    # 6-ID: [1, 1, 1, 2, 4, 8, 12, 16, 32]
     lenses = [1, 1, 1, 2, 4, 8, 8, 16]
     lenses_used = [0, 0, 0, 0, 0, 0, 0, 0]
     iradius_eff = []
@@ -473,7 +479,7 @@ def transfocator(distance=None, energy=None, experiment="diffractometer"):
         )
     )
     print(
-        "Absolute sample position {:6.3f} m from source at {}".format(
+        "Absolute sample position {:6.1f} m from source at {}".format(
             source_sample_distance / 1e6, experiment
         )
     )
