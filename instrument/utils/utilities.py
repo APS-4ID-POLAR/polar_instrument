@@ -54,6 +54,7 @@ import sys
 
 path = pathlib.Path("startup_experiment.py")
 
+
 def setaz(*args):
     """
     Set azimuth in constant Psi geometry
@@ -385,7 +386,10 @@ def list_functions(select=None):
             print(funct[0])
 
 
-def read_delta(energy=None, path="/home/beams/POLAR/polar_instrument/instrument/utils/Be_refr_index.dat"):
+def read_delta(
+    energy=None,
+    path="/home/beams/POLAR/polar_instrument/instrument/utils/Be_refr_index.dat",
+):
     if energy < 2700 or energy > 27000:
         raise ValueError("Energy {} out of range [2700, 27000].".format(energy))
     stop = 0
@@ -393,9 +397,7 @@ def read_delta(energy=None, path="/home/beams/POLAR/polar_instrument/instrument/
     for item in ref_index:
         if item[0] > energy and stop == 0:
             stop = 1
-            refr_index = interp(
-                energy, [last[0], item[0]], [last[1], item[1]]
-            )
+            refr_index = interp(energy, [last[0], item[0]], [last[1], item[1]])
         last = item
     return refr_index
 
