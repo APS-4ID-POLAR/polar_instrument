@@ -53,9 +53,9 @@ import pathlib
 import sys
 
 path = pathlib.Path("startup_experiment.py")
-import .counters_class
+import local_magics
 
-path2 = pathlib.Path(counters_class.__file__).parent / "Be_refr_index.dat"
+path2 = pathlib.Path(local_magics.__file__).parent / "Be_refr_index.dat"
 
 
 def setaz(*args):
