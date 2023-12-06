@@ -56,7 +56,7 @@ path = pathlib.Path("startup_experiment.py")
 import local_magics
 
 path2 = pathlib.Path(local_magics.__file__).parent / "Be_refr_index.dat"
-
+ref_index = loadtxt(path2, skiprows=2)
 
 def setaz(*args):
     """
@@ -393,15 +393,15 @@ def read_delta(energy=None):
     if energy < 2700 or energy > 27000:
         raise ValueError("Energy {} out of range [2700, 27000].".format(energy))
     stop = 0
-    with open(path2, "r") as f:
-        ref_index = loadtxt(path2, skiprows=2)
-        for item in ref_index:
-            if item[0] > energy and stop == 0:
-                stop = 1
-                refr_index = interp(
-                    energy, [last[0], item[0]], [last[1], item[1]]
-                )
-            last = item
+    #with open(path2, "r") as f:
+    #ref_index = loadtxt(path2, skiprows=2)
+    for item in ref_index:
+        if item[0] > energy and stop == 0:
+            stop = 1
+            refr_index = interp(
+                energy, [last[0], item[0]], [last[1], item[1]]
+            )
+        last = item
     return refr_index
 
 
