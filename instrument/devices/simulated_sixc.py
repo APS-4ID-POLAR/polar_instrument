@@ -78,11 +78,5 @@ class SixcPSI(E6C):
 
 sixcpsi = SixcPSI("", name="sixcpsi", engine="psi")
 
-
-def sixcpsi_name():
-    """Return the currently-selected diffractometer (or ``None``)."""
-    return sixcpsi
-
-
 select_diffractometer(psic)
 sd.baseline.append(psic)

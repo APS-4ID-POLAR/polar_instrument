@@ -5,6 +5,7 @@ Auxilary HKL functions.
     ~setaz
     ~freeze
     ~show_constraints
+    ~reset_constraints
     ~set_constraints
     ~change_diffractometer
     ~plotselect
@@ -275,9 +276,6 @@ def set_counting_time(time=None, monitor=False):
                         monitor, time
                     )
                 )
-                # raise ValueError(
-                #    "Counting time of {} too high.".format(time)
-                # )
 
     else:
 
@@ -388,6 +386,8 @@ def list_functions(select=None):
 
 
 def read_delta(energy=None):
+    if energy < 2700 or energy > 27000:
+        raise ValueError("Energy {} out of range [2700, 27000].".format(energy))
     stop = 0
     with open("Be_refr_index.dat", "r") as f:
         ref_index = loadtxt("Be_refr_index.dat", skiprows=2)
@@ -401,17 +401,42 @@ def read_delta(energy=None):
     return refr_index
 
 
-def transfocator(distance=None, energy=None):
-    if distance > 200 and distance < 10000:
-        distance = distance * 1e3
-    else:
-        distance = 2
+def transfocator(distance=None, energy=None, experiment="diffractometer"):
+    _geom_ = current_diffractometer()
+    if not distance:
+        distance = 1800
         distance = float(
             input("Distance to sample in mm [{}]: ".format(distance))
             or distance
         )
         distance = distance * 1e3
-    source_crl_distance = 67e6 - distance
+    elif distance > 200 and distance < 10000:
+        distance = distance * 1e3
+    else:
+        raise ValueError(
+            "Distance {} out of range [200, 10000].".format(energy)
+        )
+
+    if not energy:
+        energy = _geom_.energy.get() * 1e3
+    elif energy < 2600 or energy > 20000:
+        raise ValueError(
+            "Photon energy {} out of range [2600, 20000].".format(energy)
+        )
+    else:
+        pass
+    if experiment == "diffractometer":
+        source_sample_distance = 67.2e6
+    elif experiment == "magnet":
+        source_sample_distance = 73.3e6
+    else:
+        raise ValueError(
+            "Calculation limited to focus positions at 67.2 m (diffractometer) or 73.3 m (magnet).".format(
+                energy
+            )
+        )
+
+    source_crl_distance = source_sample_distance - distance
     delta = read_delta(energy)
     lens_types = [1000, 500, 200, 200, 200, 200, 100, 100]
     lenses = [1, 1, 1, 2, 4, 8, 8, 16]
@@ -421,16 +446,17 @@ def transfocator(distance=None, energy=None):
     for num, value in enumerate(lens_types):
         radius_eff.append(lenses[num] / value)
     iR_N = 1 / (2 * delta * focus)
-    R = 0
+    iR = 0
     for num, value in enumerate(reversed(radius_eff)):
-        if value < iR_N and R < iR_N:
+        if value < iR_N and iR < iR_N:
             lenses_used[len(lenses) - num - 1] = 1
-            R += value
-            if R > iR_N + 0.001:
-                R -= value
+            iR += value
+            if iR > iR_N + 0.001:
+                iR -= value
                 lenses_used[len(lenses) - num - 1] = 0
     print("Inserted lens packages = {}".format(lenses_used))
-    focus_new = 1 / (2 * delta * R)
+    print("Effective radius = {:3.1f} \u03bcm".format(1 / iR))
+    focus_new = 1 / (2 * delta * iR)
     distance_new = (
         focus_new * source_crl_distance / (source_crl_distance - focus_new)
     )
@@ -440,7 +466,21 @@ def transfocator(distance=None, energy=None):
         )
     )
     print(
-        "Distance = {:6.3f} mm at photon energy of {} eV".format(
+        "Distance CRLs to sample = {:6.3f} mm at photon energy of {} eV".format(
             distance_new / 1e3, energy
+        )
+    )
+    print(
+        "Absolute sample position {:6.3f} m from source at {}".format(
+            source_sample_distance / 1e6, experiment
+        )
+    )
+    fh = (
+        distance_new / (source_sample_distance - distance_new) * 21.8 * 2.35
+    )  # convert rms source size to FWHM
+    fv = distance_new / (source_sample_distance - distance_new) * 4.1 * 2.35
+    print(
+        "Aproximate focus size in brightness mode {:.3f} \u03bcm x {:.3f} \u03bcm".format(
+            fh, fv
         )
     )
