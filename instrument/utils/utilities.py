@@ -390,8 +390,8 @@ def read_delta(energy=None):
     if energy < 2700 or energy > 27000:
         raise ValueError("Energy {} out of range [2700, 27000].".format(energy))
     stop = 0
-    with open("Be_refr_index.dat", "r") as f:
-        ref_index = loadtxt("Be_refr_index.dat", skiprows=2)
+    with open("./Be_refr_index.dat", "r") as f:
+        ref_index = loadtxt("./Be_refr_index.dat", skiprows=2)
         for item in ref_index:
             if item[0] > energy and stop == 0:
                 stop = 1
