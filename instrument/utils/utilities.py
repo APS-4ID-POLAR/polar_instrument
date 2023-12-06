@@ -402,7 +402,9 @@ def read_delta(
     return refr_index
 
 
-def transfocator(distance=None, energy=None, experiment="diffractometer"):
+def transfocator(
+    distance=None, energy=None, experiment="diffractometer", beamline="polar"
+):
     _geom_ = current_diffractometer()
     if not distance:
         distance = 1800
@@ -426,26 +428,35 @@ def transfocator(distance=None, energy=None, experiment="diffractometer"):
         )
     else:
         pass
-    if experiment == "diffractometer":
-        source_sample_distance = 67.2e6
-    elif experiment == "magnet":
+
+    if beamline == "polar":
+        if experiment == "diffractometer":
+            source_sample_distance = 67.2e6
+        elif experiment == "magnet":
+            source_sample_distance = 73.3e6
+        else:
+            raise ValueError(
+                "Calculation limited to focus positions at 67.2 m (diffractometer) or 73.3 m (magnet).".format(
+                    energy
+                )
+            )
+        # 4-ID: [1000, 500, 200, 200, 200, 200, 100, 100]
+        # 6-ID-B: [1000, 500, 200, 200, 200, 200, 200, 200, 200]
+        lens_types = [1000, 500, 200, 200, 200, 200, 100, 100]
+        # 4-ID: [1, 1, 1, 2, 4, 8, 8, 16]
+        # 6-ID: [1, 1, 1, 2, 4, 8, 12, 16, 32]
+        lenses = [1, 1, 1, 2, 4, 8, 8, 16]
+        lenses_used = [0, 0, 0, 0, 0, 0, 0, 0]
+    elif beamline == "6-ID-B":
+        lens_types = [1000, 500, 200, 200, 200, 200, 200, 200, 200]
+        lenses = [1, 1, 1, 2, 4, 8, 12, 16, 32]
+        lenses_used = [0, 0, 0, 0, 0, 0, 0, 0, 0]
         source_sample_distance = 73.3e6
     else:
-        raise ValueError(
-            "Calculation limited to focus positions at 67.2 m (diffractometer) or 73.3 m (magnet).".format(
-                energy
-            )
-        )
+        raise ValueError("Beamline {} not supported.".format(beamline))
 
     source_crl_distance = source_sample_distance - distance
     delta = read_delta(energy)
-    # 4-ID: [1000, 500, 200, 200, 200, 200, 100, 100]
-    # 6-ID-B: [1000, 500, 200, 200, 200, 200, 200, 200, 200]
-    lens_types = [1000, 500, 200, 200, 200, 200, 100, 100]
-    # 4-ID: [1, 1, 1, 2, 4, 8, 8, 16]
-    # 6-ID: [1, 1, 1, 2, 4, 8, 12, 16, 32]
-    lenses = [1, 1, 1, 2, 4, 8, 8, 16]
-    lenses_used = [0, 0, 0, 0, 0, 0, 0, 0]
     iradius_eff = []
     focus = source_crl_distance * distance / (source_crl_distance + distance)
     for num, value in enumerate(lens_types):
@@ -476,7 +487,7 @@ def transfocator(distance=None, energy=None, experiment="diffractometer"):
         )
     )
     print(
-        "Absolute sample position {:6.1f} m from source at {}".format(
+        "Absolute sample position {:.1f} m from source at {}".format(
             source_sample_distance / 1e6, experiment
         )
     )
