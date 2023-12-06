@@ -390,12 +390,12 @@ def list_functions(select=None):
             print(funct[0])
 
 
-def read_delta(energy=None):
+def read_delta(energy=None, path="/Users/strempfer/Documents/GitHub/polar_instrument/instrument/utils/Be_refr_index.dat"):
     if energy < 2700 or energy > 27000:
         raise ValueError("Energy {} out of range [2700, 27000].".format(energy))
     stop = 0
     #with open(path2, "r") as f:
-    #ref_index = loadtxt(path2, skiprows=2)
+    ref_index = loadtxt(path, skiprows=2)
     for item in ref_index:
         if item[0] > energy and stop == 0:
             stop = 1
