@@ -54,11 +54,6 @@ import sys
 
 path = pathlib.Path("startup_experiment.py")
 
-#path2 = pathlib.Path("Be_refr_index.dat")
-#print(path2)
-#ref_index = loadtxt("Be_refr_index.dat", skiprows=2)
-
-
 def setaz(*args):
     """
     Set azimuth in constant Psi geometry
@@ -394,7 +389,6 @@ def read_delta(energy=None, path="/home/beams/POLAR/polar_instrument/instrument/
     if energy < 2700 or energy > 27000:
         raise ValueError("Energy {} out of range [2700, 27000].".format(energy))
     stop = 0
-    #with open(path2, "r") as f:
     ref_index = loadtxt(path, skiprows=2)
     for item in ref_index:
         if item[0] > energy and stop == 0:
