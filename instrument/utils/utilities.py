@@ -420,9 +420,9 @@ def transfocator(distance=None, energy=None, experiment="diffractometer"):
 
     if not energy:
         energy = _geom_.energy.get() * 1e3
-    elif energy < 2600 or energy > 20000:
+    elif energy < 2600 or energy > 27000:
         raise ValueError(
-            "Photon energy {} out of range [2600, 20000].".format(energy)
+            "Photon energy {} out of range [2600, 27000].".format(energy)
         )
     else:
         pass
