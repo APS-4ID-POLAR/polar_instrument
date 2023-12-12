@@ -203,7 +203,7 @@ def count(detectors=None, num=1, time=None, delay=0, lockin=False,
     flag.fixq = fixq
     per_shot = one_local_shot if fixq or dichro else None
 
-    extras = yield from _collect_extras(False, False, False)
+    extras = _collect_extras(False, False, False)
 
     # for det in detectors + extras:
     #     if isinstance(det, EIGER_DETECTORS):
