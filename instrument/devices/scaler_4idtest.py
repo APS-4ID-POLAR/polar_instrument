@@ -203,7 +203,7 @@ class LocalScalerCH(ScalerCH):
 scaler_4tst = LocalScalerCH(
     '4tst:scaler1', name='scaler_4tst', labels=('detectors',)
 )
-#scaler_4tst.monitor = 'Time'
+scaler_4tst.monitor = 'chan01'
 scaler_4tst.select_read_channels()
 scaler_4tst.select_plot_channels()
 sd.baseline.append(scaler_4tst)
