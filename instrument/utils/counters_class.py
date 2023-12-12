@@ -108,7 +108,7 @@ class CountersClass:
         return self._default_scaler
 
     @default_scaler.setter
-    def default_scaler(self, value=None):
+    def default_scaler(self, value):
         available = {0: scaler, 1: scaler_4tst}
         if value is not None:
             if value in available:
@@ -130,6 +130,11 @@ class CountersClass:
                         break
                 except ValueError:
                     print(f"Option {selected} is invalid.")
+
+        self.__call__(1)
+
+    def set_default_scaler(self, value=None):
+        self.default_scaler = value
 
     @property
     def detectors(self):
