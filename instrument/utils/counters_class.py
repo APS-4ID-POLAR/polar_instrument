@@ -131,7 +131,7 @@ class CountersClass:
                 except ValueError:
                     print(f"Option {selected} is invalid.")
 
-        self.__call__(1)
+        self.__call__(1, 0, 0.1)
 
     def set_default_scaler(self, value=None):
         self.default_scaler = value

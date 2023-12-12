@@ -55,7 +55,8 @@ class PresetMonitorSignal(Signal):
         if float(value) <= 0:
             raise ValueError('preset_value has to be > 0.')
 
-        if self.parent._monitor.s.name == 'Time':
+        # if self.parent._monitor.s.name == 'Time':
+        if "chan01" in self.parent._monitor.name:
             value_put = 1e7*value  # convert to seconds
         else:
             value_put = value
