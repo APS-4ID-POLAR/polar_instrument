@@ -171,7 +171,7 @@ class CountersClass:
             if len(scaler_list) == 0:
                 scaler_list = ['']
 
-            scaler.select_plot_channels(scaler_list)
+            self.default_scaler.select_plot_channels(scaler_list)
 
     @property
     def monitor(self):
