@@ -131,7 +131,8 @@ class CountersClass:
                 except ValueError:
                     print(f"Option {selected} is invalid.")
 
-        self.__call__(1, 0, 0.1)
+        all_channels = list(self.default_scaler.channels_name_map.keys())
+        self.__call__(all_channels, 0, 0.1)
 
     def set_default_scaler(self, value=None):
         self.default_scaler = value
