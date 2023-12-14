@@ -105,11 +105,13 @@ def transfocator(
             (distance - distance_new) / 1e3
         )
     )
+    print("-" * 30)
     print(
         "Distance CRLs to sample = {:6.1f} mm at photon energy of {} eV".format(
             distance_new / 1e3, energy
         )
     )
+    print("-" * 30)
     print(
         "Absolute sample position {:.1f} m from source at {}".format(
             source_sample_distance / 1e6, experiment
