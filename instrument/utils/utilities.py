@@ -41,7 +41,7 @@ from polartools import (
 )
 from apstools import utils
 
-from hklpy.hkl import user, util
+from hkl import user, util
 from hkl.util import Constraint
 
 import fileinput
