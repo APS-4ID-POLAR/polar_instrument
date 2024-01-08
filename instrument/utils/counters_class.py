@@ -1,4 +1,4 @@
-from ..devices import scaler
+from ..devices import scaler, scaler_4tst
 from ..session_logs import logger
 logger.info(__file__)
 
@@ -24,9 +24,11 @@ class CountersClass:
     def __init__(self):
         super().__init__()
         # This will hold the devices instances.
-        self._dets = [scaler]
+        self._default_scaler = scaler
+        self._dets = [self._default_scaler]
         self._mon = scaler.monitor
         self._extra_devices = []
+        self._default_scaler = scaler
 
     def __repr__(self):
 
@@ -102,6 +104,40 @@ class CountersClass:
         self.monitor_counts = counts
 
     @property
+    def default_scaler(self):
+        return self._default_scaler
+
+    @default_scaler.setter
+    def default_scaler(self, value):
+        available = {0: scaler, 1: scaler_4tst}
+        if value is not None:
+            if value in [item for _, item in available.items()]:
+                self._default_scaler = value
+            else:
+                print("Invalid entry!")
+        else:
+            print("Available scaler:")
+            for i, item in available.items():
+                print(f"Option {i} - {item.name}")
+            while True:
+                selected = input("Enter scaler number: ")
+                try:
+                    selected = int(selected)
+                    if len(available) < selected:
+                        print(f"Option {selected} is invalid.")
+                    else:
+                        self._default_scaler = available[selected]
+                        break
+                except ValueError:
+                    print(f"Option {selected} is invalid.")
+
+        all_channels = list(self.default_scaler.channels_name_map.keys())
+        self.__call__(all_channels, 0, 0.1)
+
+    def set_default_scaler(self, value=None):
+        self.default_scaler = value
+
+    @property
     def detectors(self):
         return self._dets
 
@@ -115,8 +151,8 @@ class CountersClass:
                 value = [value]
 
             # self._dets will hold the device instance.
-            # scaler is always a detector even if it's not plotted.
-            self._dets = [scaler]
+            # default scaler is always a detector even if it's not plotted.
+            self._dets = [self._default_scaler]
             scaler_list = []
             for item in value:
                 if isinstance(item, str):
@@ -124,7 +160,8 @@ class CountersClass:
                 elif isinstance(item, int):
                     if isinstance(item, int):
                         ch = getattr(
-                            scaler.channels, 'chan{:02d}'.format(item+1)
+                            self._default_scaler.channels,
+                            'chan{:02d}'.format(item+1)
                         )
                         scaler_list.append(ch.s.name)
                 else:
@@ -135,7 +172,7 @@ class CountersClass:
             if len(scaler_list) == 0:
                 scaler_list = ['']
 
-            scaler.select_plot_channels(scaler_list)
+            self.default_scaler.select_plot_channels(scaler_list)
 
     @property
     def monitor(self):
@@ -145,10 +182,12 @@ class CountersClass:
     def monitor(self, value):
         if value is not None:
             if isinstance(value, int):
-                ch = getattr(scaler.channels, 'chan{:02d}'.format(value+1))
+                ch = getattr(
+                    self._default_scaler.channels, 'chan{:02d}'.format(value+1)
+                )
                 value = ch.s.name
-            scaler.monitor = value
-            self._mon = scaler.monitor
+            self._default_scaler.monitor = value
+            self._mon = self._default_scaler.monitor
 
     @property
     def extra_devices(self):
@@ -172,7 +211,7 @@ class CountersClass:
 
     @property
     def monitor_counts(self):
-        return scaler.preset_monitor.get()
+        return self._default_scaler.preset_monitor.get()
 
     @monitor_counts.setter
     def monitor_counts(self, value):
