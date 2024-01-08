@@ -201,7 +201,8 @@ class LocalScalerCH(ScalerCH):
 
 
 scaler = LocalScalerCH(
-    '4idsoftmotors:scaler1', name='scaler', labels=('detectors',)
+    #'4idsoftmotors:scaler1', name='scaler', labels=('detectors',)
+    '4tst:scaler1', name='scaler', labels=('detectors',)
 )
 scaler.monitor = 'Time'
 scaler.select_read_channels()
