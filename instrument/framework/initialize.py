@@ -53,7 +53,7 @@ def get_md_path():
     else:
         profile = environ.get("IPYTHON_PROFILE", "dev")
         if environ["IPYTHON_PROFILE"] != "bluesky"
-            path = pathlib.Path(path + profile)
+            path = pathlib.Path(path + "_" + profile)
     logger.info("RunEngine metadata saved in directory: %s", str(path))
     return str(path)
 
