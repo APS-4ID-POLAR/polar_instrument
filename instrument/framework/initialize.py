@@ -17,6 +17,7 @@ logger.info(__file__)
 
 import pathlib
 import sys
+from os import environ
 
 sys.path.append(str(pathlib.Path(__file__).absolute().parent.parent.parent))
 
@@ -50,7 +51,9 @@ def get_md_path():
     if path is None:
         path = pathlib.Path.home() / "Bluesky_RunEngine_md"
     else:
-        path = pathlib.Path(path)
+        profile = environ.get("IPYTHON_PROFILE", "dev")
+        if environ["IPYTHON_PROFILE"] != "bluesky"
+            path = pathlib.Path(path + profile)
     logger.info("RunEngine metadata saved in directory: %s", str(path))
     return str(path)
 
