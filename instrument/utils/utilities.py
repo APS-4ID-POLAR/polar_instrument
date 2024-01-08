@@ -181,7 +181,7 @@ def set_constraints():
 
 def change_diffractometer(*args):
     _geom_ = current_diffractometer()
-    list = ["diffract", "fourc", "psic"]
+    list = ["diffract", "fourc", "psic", "sixcpsi"]
     print("Available diffractometers {}".format(list))
     diff = input("Diffractometer ({}): ".format(_geom_.name)) or _geom_.name
     if diff == "diffract":
@@ -189,6 +189,8 @@ def change_diffractometer(*args):
     elif diff == "fourc":
         select_diffractometer(fourc)
     elif diff == "psic":
+        select_diffractometer(psic)
+    elif diff == "sixcpsi":
         select_diffractometer(psic)
     else:
         raise ValueError("Diffractometer type {} not existing.".format(diff))

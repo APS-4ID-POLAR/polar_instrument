@@ -94,6 +94,7 @@ def transfocator(
             if iR > iR_N + 0.001:
                 iR -= value
                 lenses_used[len(lenses) - num - 1] = 0
+    print("-" * 65)
     print("Inserted lens packages = {}".format(lenses_used))
     print("Effective radius = {:3.1f} \u03bcm".format(1 / iR))
     focus_new = 1 / (2 * delta * iR)
@@ -105,13 +106,13 @@ def transfocator(
             (distance - distance_new) / 1e3
         )
     )
-    print("-" * 30)
+    print("-" * 65)
     print(
         "Distance CRLs to sample = {:6.1f} mm at photon energy of {} eV".format(
             distance_new / 1e3, energy
         )
     )
-    print("-" * 30)
+    print("-" * 65)
     print(
         "Absolute sample position {:.1f} m from source at {}".format(
             source_sample_distance / 1e6, experiment
@@ -126,3 +127,4 @@ def transfocator(
             fh, fv
         )
     )
+    print("-" * 65)
