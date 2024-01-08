@@ -10,7 +10,7 @@ from apstools.utils import cleanupText
 from datetime import datetime
 from os import getcwd
 from os.path import join, exists
-from .initialize import RE, callback_db
+from .initialize import RE
 from ..session_logs import logger
 logger.info(__file__)
 
