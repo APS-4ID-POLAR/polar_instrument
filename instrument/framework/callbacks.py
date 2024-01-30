@@ -10,7 +10,7 @@ from apstools.utils import cleanupText
 from datetime import datetime
 from os import getcwd
 from os.path import join, exists
-from .initialize import RE, callback_db
+from .initialize import RE
 from ..session_logs import logger
 logger.info(__file__)
 
@@ -28,7 +28,8 @@ specwriter = SpecWriterCallback()
 # make the SPEC file in current working directory (assumes is writable)
 _path = getcwd()
 specwriter.newfile(join(_path, specwriter.spec_filename))
-callback_db['specwriter'] = RE.subscribe(specwriter.receiver)
+# callback_db['specwriter'] = RE.subscribe(specwriter.receiver)
+RE.subscribe(specwriter.receiver)
 
 logger.info(f"writing to SPEC file: {specwriter.spec_filename}")
 logger.info("   >>>>   Using default SPEC file name   <<<<")

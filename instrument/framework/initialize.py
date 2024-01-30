@@ -2,33 +2,38 @@
 initialize the bluesky framework
 """
 
-__all__ = [
-    "bec",
-    "bp",
-    "bpp",
-    "bps",
-    "callback_db",
-    "cat",
-    "np",
-    "peaks",
-    "RE",
-    "sd",
-    "summarize_plan",
-]
+__all__ = """
+    RE  cat  sd  bec  peaks
+    bp  bps  bpp
+    summarize_plan
+    np
+    """.split()
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+logger.info(__file__)
+
+import pathlib
+import sys
+from os import environ
+
+sys.path.append(str(pathlib.Path(__file__).absolute().parent.parent.parent))
+
+from .. import iconfig
 from bluesky import RunEngine
 from bluesky import SupplementalData
 from bluesky.callbacks.best_effort import BestEffortCallback
-# from bluesky.callbacks.broker import verify_files_saved
-# Will use local magics now, which have to be loaded in the collections file.
-# from ..utils import LocalMagics
+from bluesky.magics import BlueskyMagics
 from bluesky.simulators import summarize_plan
 from bluesky.utils import PersistentDict
 from bluesky.utils import ProgressBarManager
-# from bluesky.utils import ts_msg_hook
-# from IPython import get_ipython
+from bluesky.utils import ts_msg_hook
+from IPython import get_ipython
 from ophyd.signal import EpicsSignalBase
-import os
+import databroker
+import ophyd
 import warnings
 
 # convenience imports
@@ -40,67 +45,112 @@ import numpy as np
 # This already setup the handlers
 from polartools.load_data import load_catalog
 
-from ..session_logs import logger
-logger.info(__file__)
 
-# Set up a RunEngine and use metadata-backed PersistentDict
+def get_md_path():
+    path = iconfig.get("RUNENGINE_MD_PATH")
+    if path is None:
+        path = pathlib.Path.home() / "Bluesky_RunEngine_md"
+    else:
+        profile = environ.get("IPYTHON_PROFILE", "dev")
+        if environ["IPYTHON_PROFILE"] != "bluesky":
+            path = pathlib.Path(path + "_" + profile)
+    logger.info("RunEngine metadata saved in directory: %s", str(path))
+    return str(path)
+
+
+# Set up a RunEngine and use metadata backed PersistentDict
 RE = RunEngine({})
-RE.md = PersistentDict(
-    os.path.join(os.environ["HOME"], ".config", "Bluesky_RunEngine_md")
-)
+RE.md = PersistentDict(get_md_path())
 
-# keep track of callback subscriptions
-callback_db = {}
 
-# Connect with mongodb database.
-# db = databroker.catalog["mongodb_config"]
-cat = load_catalog("4id_polar")
+# Connect with our mongodb database
+catalog_name = iconfig.get("DATABROKER_CATALOG", "training")
+# databroker v2 api
+try:
+    cat = load_catalog(catalog_name)
+    logger.info("using databroker catalog '%s'", cat.name)
+except KeyError:
+    cat = databroker.temp().v2
+    logger.info("using TEMPORARY databroker catalog '%s'", cat.name)
+
 
 # Subscribe metadatastore to documents.
 # If this is removed, data is not saved to metadatastore.
-callback_db["db"] = RE.subscribe(cat.v1.insert)
+RE.subscribe(cat.v1.insert)
 
 # Set up SupplementalData.
 sd = SupplementalData()
 RE.preprocessors.append(sd)
 
-# Add a progress bar.
-pbar_manager = ProgressBarManager()
-RE.waiting_hook = pbar_manager
+if iconfig.get("USE_PROGRESS_BAR", False):
+    # Add a progress bar.
+    pbar_manager = ProgressBarManager()
+    RE.waiting_hook = pbar_manager
 
 # Register bluesky IPython magics.
-# get_ipython().register_magics(LocalMagics)
+_ipython = get_ipython()
+if _ipython is not None:
+    _ipython.register_magics(BlueskyMagics)
 
 # Set up the BestEffortCallback.
 bec = BestEffortCallback()
-callback_db["bec"] = RE.subscribe(bec)
-peaks = bec.peaks  # just an alias, for less typing
+RE.subscribe(bec)
+peaks = bec.peaks  # just as alias for less typing
 bec.disable_baseline()
-# bec.noplot_streams.append("dichro_monitor")
 
 # At the end of every run, verify that files were saved and
 # print a confirmation message.
-# _prv_ = RE.subscribe(post_run(verify_files_saved), 'stop')
-# callback_db['post_run_verify'] = _prv_
+# from bluesky.callbacks.broker import verify_files_saved
+# RE.subscribe(post_run(verify_files_saved), 'stop')
 
 # Uncomment the following lines to turn on
 # verbose messages for debugging.
 # ophyd.logger.setLevel(logging.DEBUG)
 
+ophyd.set_cl(iconfig.get("OPHYD_CONTROL_LAYER", "PyEpics").lower())
+logger.info(f"using ophyd control layer: {ophyd.cl.name}")
+
 # diagnostics
 # RE.msg_hook = ts_msg_hook
 
 # set default timeout for all EpicsSignal connections & communications
-try:
+TIMEOUT = 60
+if not EpicsSignalBase._EpicsSignalBase__any_instantiated:
     EpicsSignalBase.set_defaults(
         auto_monitor=True,
-        timeout=60,
-        write_timeout=60,
-        connection_timeout=5,
+        timeout=iconfig.get("PV_READ_TIMEOUT", TIMEOUT),
+        write_timeout=iconfig.get("PV_WRITE_TIMEOUT", TIMEOUT),
+        connection_timeout=iconfig.get("PV_CONNECTION_TIMEOUT", TIMEOUT),
     )
-except Exception:
-    warnings.warn(
-        "ophyd version is old, upgrade to 1.6.0+ "
-        "to get set_defaults() method"
-    )
-    EpicsSignalBase.set_default_timeout(timeout=10, connection_timeout=5)
+
+_pv = iconfig.get("RUN_ENGINE_SCAN_ID_PV")
+if _pv is None:
+    logger.info("Using RunEngine metadata for scan_id")
+else:
+    from ophyd import EpicsSignal
+
+    logger.info("Using EPICS PV %s for scan_id", _pv)
+    scan_id_epics = EpicsSignal(_pv, name="scan_id_epics")
+
+    def epics_scan_id_source(_md):
+        """
+        Callback function for RunEngine.  Returns *next* scan_id to be used.
+
+        * Ignore metadata dictionary passed as argument.
+        * Get current scan_id from PV.
+        * Apply lower limit of zero.
+        * Increment (so that scan_id numbering starts from 1).
+        * Set PV with new value.
+        * Return new value.
+
+        Exception will be raised if PV is not connected when next
+        ``bps.open_run()`` is called.
+        """
+        new_scan_id = max(scan_id_epics.get(), 0) + 1
+        scan_id_epics.put(new_scan_id)
+        return new_scan_id
+
+    # tell RunEngine to use the EPICS PV to provide the scan_id.
+    RE.scan_id_source = epics_scan_id_source
+    scan_id_epics.wait_for_connection()
+    RE.md["scan_id"] = scan_id_epics.get()
