@@ -16,11 +16,21 @@ logger.info(__file__)
 
 class LocalPreAmp(SRS570_PreAmplifier):
 
-    def __init__(self, *args, scaler_channel=None, **kwargs):
+    def __init__(self, *args, scaler_channel=None, shutter=None, **kwargs):
         super().__init__(*args, **kwargs)
         self._scaler_channel = scaler_channel
-        self._shutter = None
+        self._shutter = shutter
         self._shutter_vals = dict(on=1, off=0)
+
+    @property
+    def shutter(self):
+        return self._shutter
+
+    @shutter.setter
+    def shutter(self, device):
+        if not hasattr(device, "set"):
+            raise ValueError("device must have a 'set' attribute.")
+        self._shutter = device
 
     @property
     def _offset_current_table(self):
@@ -46,7 +56,7 @@ class LocalPreAmp(SRS570_PreAmplifier):
                 ))
         return DataFrame(convert).set_index("mags").sort_index()
 
-    def set_sensitivity(self, scaler_channel=None, time=0.1, delay=1):
+    def opt_sens_plan(self, scaler_channel=None, time=0.1, delay=1):
 
         table = self._sensitivity_table
         if scaler_channel is None:
@@ -106,7 +116,7 @@ class LocalPreAmp(SRS570_PreAmplifier):
                 )
             yield from mv(self.set_all, 1)
 
-    def set_offset_current(self, scaler_channel=None, time=0.1, delay=1):
+    def opt_offset_plan(self, scaler_channel=None, time=0.1, delay=1):
 
         gain_pv_conversion = self._offset_current_table
         if scaler_channel is None:
@@ -170,7 +180,7 @@ class LocalPreAmp(SRS570_PreAmplifier):
             )
         yield from mv(self.set_all, 1)
 
-    def set_fine_preamp(
+    def opt_fine_plan(
             self,
             scaler_channel=None,
             start=None,
@@ -215,59 +225,58 @@ class LocalPreAmp(SRS570_PreAmplifier):
         yield from mv(self.offset_fine, pos)
         yield from mv(self.set_all, 1)
 
-    def setup_preamp(self, scaler_channel=None, time=0.1):
+    def optimize_plan(self, scaler_channel=None, time=0.1, delay=1):
 
         if self._shutter is None:
             raise ValueError("Shutter is not configured.")
 
-        
+        if scaler_channel is None:
+            scaler_channel = self._scaler_channel
+        scaler_channel.root.monitor = "Time"
+        yield from mv(scaler_channel.root.preset_monitor, time)
 
-
-        ### self.shutter
-
-        yield from mv(preamp.set_all, 1)
-        yield from sleep(0.5)
+        yield from mv(self.set_all, 1)
+        yield from sleep(delay)
         # normally this would be the beam shutter, and not a argument.
-        yield from mv(keith.output, "Off")
+        yield from mv(self.shutter, self._shutter_vals["off"])
 
         # If initial dark current is too high, then get it roughly right
-        yield from trigger(counters.default_scaler, wait=True)
+        yield from trigger(scaler_channel.root, wait=True)
         zero = yield from rd(scaler_channel.s)
 
         if zero/time > 5e4:
-            yield from set_offset_current(preamp, name, time)
+            yield from self.opt_offset_plan(scaler_channel, time, delay)
 
         yield from checkpoint()
 
-        yield from mv(keith.output, "On")
-        yield from set_sensitivity(preamp, name, time=time)
+        yield from mv(self.shutter, self._shutter_vals["on"])
+        yield from self.opt_sens_plan(scaler_channel, time, delay)
 
         yield from checkpoint()
 
-        yield from mv(keith.output, "Off")
-        for func in [set_offset_current, set_fine_preamp]:
-            yield from func(preamp, name, time=time)
+        yield from mv(self.shutter, self._shutter_vals["off"])
+        for func in [self.opt_offset_plan, self.opt_offset_plan]:
+            yield from func(scaler_channel, time=time, delay=delay)
             yield from checkpoint()
 
-        yield from mv(keith.output, "On")
-        yield from sleep(0.5)
-        yield from trigger(counters.default_scaler, wait=True)
+        yield from mv(self.shutter, self._shutter_vals["on"])
+        yield from sleep(delay)
+        yield from trigger(scaler_channel.root, wait=True)
         value = yield from rd(scaler_channel.s)
 
         if (value/time > 6e5) or (value/time < 3e5):
 
-            yield from mv(keith.output, "On")
-            yield from set_sensitivity(preamp, name, time=time)
+            yield from mv(self.shutter, self._shutter_vals["on"])
+            yield from self.opt_sens_plan(scaler_channel, time, delay)
             yield from checkpoint()
 
-            yield from mv(keith.output, "Off")
-            for func in [set_offset_current, set_fine_preamp]:
-                yield from func(preamp, name, time=time)
+            yield from mv(self.shutter, self._shutter_vals["off"])
+            for func in [self.opt_offset_plan, self.opt_offset_plan]:
+                yield from func(scaler_channel, time=time, delay=delay)
                 yield from checkpoint()
 
-        yield from mv(keith.output, "On")
-
-
+        yield from mv(self.shutter, self._shutter_vals["on"])
+        yield from mv(self.set_all, 1)
 
 
 preamp1 = LocalPreAmp(
