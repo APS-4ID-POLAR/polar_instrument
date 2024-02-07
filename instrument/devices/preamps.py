@@ -255,7 +255,7 @@ class LocalPreAmp(SRS570_PreAmplifier):
         yield from checkpoint()
 
         yield from mv(self.shutter, self._shutter_vals["off"])
-        for func in [self.opt_offset_plan, self.opt_offset_plan]:
+        for func in [self.opt_offset_plan, self.opt_fine_plan]:
             yield from func(scaler_channel, time=time, delay=delay)
             yield from checkpoint()
 
@@ -271,7 +271,7 @@ class LocalPreAmp(SRS570_PreAmplifier):
             yield from checkpoint()
 
             yield from mv(self.shutter, self._shutter_vals["off"])
-            for func in [self.opt_offset_plan, self.opt_offset_plan]:
+            for func in [self.opt_offset_plan, self.opt_fine_plan]:
                 yield from func(scaler_channel, time=time, delay=delay)
                 yield from checkpoint()
 
