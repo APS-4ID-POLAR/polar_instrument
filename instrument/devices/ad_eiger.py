@@ -26,6 +26,11 @@ class LocalEigerCam(EigerDetectorCam):
     file_number_sync = None
     file_number_write = None
     pool_max_buffers = None
+    fw_clear = None
+    link_0 = None
+    link_1 = None
+    link_2 = None
+    link_3 = None
 
     wait_for_plugins = ADComponent(EpicsSignal, 'WaitForPlugins', string=True)
     file_path = ADComponent(EpicsSignal, 'FilePath', string=True)
@@ -321,9 +326,11 @@ class LocalEigerDetectorBase(DetectorBase):
             "file_number_sync",  # Removed from EPICS
             "file_number_write",  # Removed from EPICS
             "pool_max_buffers",  # Removed from EPICS
-            "fw_clear",
-            "link_0",
-            "link_1",
+            "fw_clear",  # Removed from EPICS
+            "link_0",  # Removed from EPICS
+            "link_1",  # Removed from EPICS
+            "link_2",  # Removed from EPICS
+            "link_3",  # Removed from EPICS
             # all below are numpy.ndarray
             "configuration_names",
             "stream_hdr_appendix",
