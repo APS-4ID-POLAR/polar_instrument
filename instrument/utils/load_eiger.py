@@ -29,8 +29,8 @@ def load_eiger(
     logger.info("-- Loading Eiger detector --")
     eiger = detector(
         pv,
-        write_image_path=write_image_path,
-        read_image_path=read_image_path,
+        write_path_template=write_image_path,
+        read_path_template=read_image_path,
         name="eiger"
     )
 
