@@ -42,11 +42,12 @@ def load_eiger(
         if "roi" in name:
             roi = getattr(eiger, name)
             roi.wait_for_connection(timeout=10)
-            roi.nd_array_port.put("EIG")
+            roi.nd_array_port.put("cam1")
         if "stats" in name:
             stat = getattr(eiger, name)
             stat.wait_for_connection(timeout=10)
-            stat.nd_array_port.put(f"ROI{stat.port_name.get()[-1]}")
+            if "5" not in name:
+                stat.nd_array_port.put(f"ROI{stat.port_name.get()[-1]}")
     logger.info("Done!")
 
     # logger.info("Setting up defaults kinds ...")
