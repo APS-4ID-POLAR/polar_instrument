@@ -37,7 +37,7 @@ def load_eiger(
     eiger.wait_for_connection(timeout=10)
     # This is needed otherwise .get may fail!!!
 
-    logger.info("Setting up ROI and STATS defaults ...", end=" ")
+    logger.info("Setting up ROI and STATS defaults ...")
     for name in eiger.component_names:
         if "roi" in name:
             roi = getattr(eiger, name)
@@ -49,10 +49,10 @@ def load_eiger(
             stat.nd_array_port.put(f"ROI{stat.port_name.get()[-1]}")
     logger.info("Done!")
 
-    logger.info("Setting up defaults kinds ...", end=" ")
+    logger.info("Setting up defaults kinds ...")
     eiger.default_kinds()
     logger.info("Done!")
-    logger.info("Setting up default settings ...", end=" ")
+    logger.info("Setting up default settings ...")
     eiger.default_settings()
     logger.info("Done!")
     logger.info("All done!")
