@@ -321,6 +321,7 @@ class LocalEigerDetectorBase(DetectorBase):
             "file_number_sync",  # Removed from EPICS
             "file_number_write",  # Removed from EPICS
             "pool_max_buffers",  # Removed from EPICS
+            "fw_clear",
             # all below are numpy.ndarray
             "configuration_names",
             "stream_hdr_appendix",
