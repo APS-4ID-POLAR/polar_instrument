@@ -52,8 +52,8 @@ def load_eiger(
     logger.info("Setting up defaults kinds ...")
     eiger.default_kinds()
     logger.info("Done!")
-    # logger.info("Setting up default settings ...")
-    # eiger.default_settings()
+    logger.info("Setting up default settings ...")
+    eiger.default_settings()
     logger.info("Done!")
     logger.info("All done!")
     return eiger

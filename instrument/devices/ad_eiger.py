@@ -323,6 +323,7 @@ class LocalEigerDetectorBase(DetectorBase):
             "pool_max_buffers",  # Removed from EPICS
             "fw_clear",
             "link_0",
+            "link_1",
             # all below are numpy.ndarray
             "configuration_names",
             "stream_hdr_appendix",
