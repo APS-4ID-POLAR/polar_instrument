@@ -31,6 +31,7 @@ class LocalEigerCam(EigerDetectorCam):
     link_1 = None
     link_2 = None
     link_3 = None
+    dcu_buff_free = None
 
     wait_for_plugins = ADComponent(EpicsSignal, 'WaitForPlugins', string=True)
     file_path = ADComponent(EpicsSignal, 'FilePath', string=True)
@@ -331,6 +332,7 @@ class LocalEigerDetectorBase(DetectorBase):
             "link_1",  # Removed from EPICS
             "link_2",  # Removed from EPICS
             "link_3",  # Removed from EPICS
+            "dcu_buff_free",  # Removed from EPICS
             # all below are numpy.ndarray
             "configuration_names",
             "stream_hdr_appendix",
