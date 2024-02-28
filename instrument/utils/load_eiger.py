@@ -49,9 +49,9 @@ def load_eiger(
             stat.nd_array_port.put(f"ROI{stat.port_name.get()[-1]}")
     logger.info("Done!")
 
-    logger.info("Setting up defaults kinds ...")
-    eiger.default_kinds()
-    logger.info("Done!")
+    # logger.info("Setting up defaults kinds ...")
+    # eiger.default_kinds()
+    # logger.info("Done!")
     logger.info("Setting up default settings ...")
     eiger.default_settings()
     logger.info("Done!")
