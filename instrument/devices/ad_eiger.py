@@ -233,7 +233,7 @@ class EigerSimulatedFilePlugin(Device, FileStoreBase):
         _base_name = self.base_name.format(self.seq_id.get() + 1)
         write_path = join(self.write_path_template, _base_name + "/")
         read_path = join(
-            self.read_path_template, self.base_name, _base_name
+            self.read_path_template, _base_name, _base_name
         )
         return _base_name, write_path, read_path
 
