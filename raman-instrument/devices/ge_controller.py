@@ -48,17 +48,13 @@ class GEController(PVPositionerSoftDoneWithStop):
             self.setpoint.put(self._position)
         super().stop(success=success)
 
-#--------------------#
-# Where to add this? #
-# soft ioc? 4tst?    #
-#--------------------#
 
 ge_apply = GEController(
-    "4idd:PC1:", name="ge_apply", readback_pv="Pressure_RBV",
+    "4tst:PC1:", name="ge_apply", readback_pv="Pressure_RBV",
     setpoint_pv="Setpoint", tolerance=0.01, labels=('ge_controller',)
 )
 ge_release = GEController(
-    "4idd:PC2:", name="ge_release", readback_pv="Pressure_RBV",
+    "4tst:PC2:", name="ge_release", readback_pv="Pressure_RBV",
     setpoint_pv="Setpoint", tolerance=0.01, labels=('ge_controller',)
 )
 
