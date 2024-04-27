@@ -19,8 +19,8 @@ class VentusLaser(Device):
     current_setpoint = Component(EpicsSignal, "CurrentOut", kind="normal")
     current_readback = Component(EpicsSignal, "CurrentIn", kind="normal")
 
-    laser_on = Component(EpicsSignal, "On", kind="ommited")
-    laser_off = Component(EpicsSignal, "Off", kind="ommited")
+    laser_on = Component(EpicsSignal, "On", kind="omitted")
+    laser_off = Component(EpicsSignal, "Off", kind="omitted")
 
     laser_temperature = Component(EpicsSignal, "LaserTemp", kind="config")
     psu_temperature = Component(EpicsSignal, "PSUTemp", kind="config")
