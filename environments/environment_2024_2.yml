@@ -111,6 +111,8 @@ dependencies:
   - twine
   - versioneer
 
+  - stdlogpj
+
   # if not using this environment at APS, then comment these (and apsbss below)
   - aps-dm-api >=5   # linux-64  osx-64
   # - c2dataviewer  # --- linux-64
