@@ -150,7 +150,7 @@ class LightFieldFilePlugin(Device, FileStoreBase):
             int(self.parent.cam.num_images.get())*
             int(self.parent.cam.num_exposures.get())
         )
-        res_kwargs = {'frames_per_point': ipf}
+        res_kwargs = {'frame_per_point': ipf}
         self._generate_resource(res_kwargs)
 
     def generate_datum(self, key, timestamp, datum_kwargs):
