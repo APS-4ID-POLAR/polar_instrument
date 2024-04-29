@@ -165,7 +165,9 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
         kind='normal'
     )
 
-    file = ADComponent(LightFieldFilePlugin)
+    file = ADComponent(
+        LightFieldFilePlugin, write_path_template="", read_path_template=""
+    )
 
     # roi1 = ADComponent(ROIPlugin_V34, 'ROI1:')
     # stats1 = ADComponent(StatsPlugin_V34, 'Stats1:')
