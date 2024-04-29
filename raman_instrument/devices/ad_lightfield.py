@@ -22,7 +22,7 @@ import time as ttime
 
 
 LIGHTFIELD_FILES_ROOT = r"Z:\4idd\bluesky_images\raman"
-BLUESKY_FILES_ROOT = "/home/sector4/4idd/bluesky_images\raman"
+BLUESKY_FILES_ROOT = "/home/sector4/4idd/bluesky_images/raman"
 IMAGE_DIR_UNIX = "%Y/%m/%d/"
 IMAGE_DIR_WINDOWS = r"%Y\%m\%d\\"
 
@@ -147,7 +147,7 @@ class MyHDF5Plugin(FileStoreHDF5SingleIterativeWrite, HDF5Plugin_V34):
 class LightFieldDetector(MySingleTrigger, DetectorBase):
 
     _default_read_attrs = (
-        'cam', 'hdf1', 'stats1',
+        'cam', 'hdf1'
     )
 
     cam = ADComponent(LightFieldDetectorCam, 'cam1:', kind='normal')
@@ -159,8 +159,8 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
         kind='normal'
     )
 
-    roi1 = ADComponent(ROIPlugin_V34, 'ROI1:')
-    stats1 = ADComponent(StatsPlugin_V34, 'Stats1:')
+    # roi1 = ADComponent(ROIPlugin_V34, 'ROI1:')
+    # stats1 = ADComponent(StatsPlugin_V34, 'Stats1:')
 
     @property
     def preset_monitor(self):
