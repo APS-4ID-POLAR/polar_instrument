@@ -4,7 +4,6 @@ from bluesky.utils import make_decorator
 from bluesky.preprocessors import finalize_wrapper
 from bluesky.plan_stubs import mv, rd, null
 from ophyd import Kind
-from ..devices import scaler
 from ..session_logs import logger
 logger.info(__file__)
 
@@ -62,22 +61,9 @@ def configure_counts_wrapper(plan, detectors, count_time):
 
     def setup():
         if count_time < 0:
-            if detectors != [scaler]:
-                raise ValueError('count_time can be < 0 only if the scaler '
-                                 'is only detector used.')
-            else:
-                if scaler.monitor == 'Time':
-                    raise ValueError('count_time can be < 0 only if '
-                                     'scaler.monitor is not "Time".')
-                original_times[scaler] = yield from rd(scaler.preset_monitor)
-                yield from mv(scaler.preset_monitor, abs(count_time))
-
+            raise ValueError('count_time cannot be < 0.')
         elif count_time > 0:
             for det in detectors:
-                if det == scaler:
-                    original_monitor.append(scaler.monitor)
-                    det.monitor = 'Time'
-                original_times[det] = yield from rd(det.preset_monitor)
                 yield from mv(det.preset_monitor, count_time)
         else:
             raise ValueError('count_time cannot be zero.')
@@ -85,8 +71,6 @@ def configure_counts_wrapper(plan, detectors, count_time):
     def reset():
         for det, time in original_times.items():
             yield from mv(det.preset_monitor, time)
-            if det == scaler and len(original_monitor) == 1:
-                det.monitor = original_monitor[0]
 
     def _inner_plan():
         yield from setup()
