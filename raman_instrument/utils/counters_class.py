@@ -135,7 +135,7 @@ class CountersClass:
             if len(scaler_list) == 0:
                 scaler_list = ['']
 
-            self.default_scaler.select_plot_channels(scaler_list)
+            # self.default_scaler.select_plot_channels(scaler_list)
 
     @property
     def extra_devices(self):
@@ -158,8 +158,12 @@ class CountersClass:
                 self._extra_devices.append(item)
 
     @property
+    def monitor(self):
+        return "Time"
+
+    @property
     def monitor_counts(self):
-        return self._default_scaler.preset_monitor.get()
+        return self.detectors[0].preset_monitor.get()
 
     @monitor_counts.setter
     def monitor_counts(self, value):

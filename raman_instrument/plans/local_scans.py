@@ -64,6 +64,9 @@ def count(detectors=None, num=1, time=None, delay=None, md=None, per_shot=None):
     the plan will raise a ``ValueError`` during iteration.
     """
 
+    if detectors is None:
+        detectors = counters.detectors
+
     extras = _collect_extras()
 
     # TODO: The md handling might go well in a decorator.
