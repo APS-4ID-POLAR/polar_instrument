@@ -14,7 +14,7 @@ class VentusLaser(Device):
 
     #TODO: Should power and current be PVPositioners?
     power_setpoint = Component(EpicsSignal, "PowerOut", kind="normal")
-    power_readback = Component(EpicsSignal, "PowerIn", kind="hinted")
+    power_readback = Component(EpicsSignal, "PowerIn", kind="normal")
 
     current_setpoint = Component(EpicsSignal, "CurrentOut", kind="normal")
     current_readback = Component(EpicsSignal, "CurrentIn", kind="normal")
