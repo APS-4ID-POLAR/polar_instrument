@@ -10,7 +10,6 @@ from .local_scans import (
     mvr,
     grid_scan,
     rel_grid_scan,
-    # 'qxscan',
     count,
     abs_set
 )
