@@ -1,4 +1,4 @@
-from ..devices import scaler, scaler_4tst
+from ..devices import spectrometer, laser
 from ..session_logs import logger
 logger.info(__file__)
 
@@ -24,11 +24,10 @@ class CountersClass:
     def __init__(self):
         super().__init__()
         # This will hold the devices instances.
-        self._default_scaler = scaler
-        self._dets = [self._default_scaler]
-        self._mon = scaler.monitor
-        self._extra_devices = []
-        self._default_scaler = scaler
+        self._dets = [spectrometer]
+        self._extra_devices = [laser]
+        # self._mon = None
+        self._default_scaler = None
 
     def __repr__(self):
 
@@ -42,7 +41,7 @@ class CountersClass:
 
         return ("Counters settings\n"
                 " Monitor:\n"
-                f"  Scaler channel = '{self._mon}'\n"
+                f"  Scaler channel = Time\n"
                 f"  Preset counts = '{self.monitor_counts}'\n"
                 " Detectors:\n"
                 f"  Read devices = {read_names}\n"
@@ -51,7 +50,7 @@ class CountersClass:
     def __str__(self):
         return self.__repr__()
 
-    def __call__(self, detectors, monitor=None, counts=None):
+    def __call__(self, detectors, counts=None):
         """
         Selects the plotting detector and monitor.
 
@@ -100,42 +99,7 @@ class CountersClass:
         """
 
         self.detectors = detectors
-        self.monitor = monitor
         self.monitor_counts = counts
-
-    @property
-    def default_scaler(self):
-        return self._default_scaler
-
-    @default_scaler.setter
-    def default_scaler(self, value):
-        available = {0: scaler, 1: scaler_4tst}
-        if value is not None:
-            if value in [item for _, item in available.items()]:
-                self._default_scaler = value
-            else:
-                print("Invalid entry!")
-        else:
-            print("Available scaler:")
-            for i, item in available.items():
-                print(f"Option {i} - {item.name}")
-            while True:
-                selected = input("Enter scaler number: ")
-                try:
-                    selected = int(selected)
-                    if len(available) < selected:
-                        print(f"Option {selected} is invalid.")
-                    else:
-                        self._default_scaler = available[selected]
-                        break
-                except ValueError:
-                    print(f"Option {selected} is invalid.")
-
-        all_channels = list(self.default_scaler.channels_name_map.keys())
-        self.__call__(all_channels, 0, 0.1)
-
-    def set_default_scaler(self, value=None):
-        self.default_scaler = value
 
     @property
     def detectors(self):
@@ -151,8 +115,7 @@ class CountersClass:
                 value = [value]
 
             # self._dets will hold the device instance.
-            # default scaler is always a detector even if it's not plotted.
-            self._dets = [self._default_scaler]
+            self._dets = []
             scaler_list = []
             for item in value:
                 if isinstance(item, str):
@@ -173,21 +136,6 @@ class CountersClass:
                 scaler_list = ['']
 
             self.default_scaler.select_plot_channels(scaler_list)
-
-    @property
-    def monitor(self):
-        return self._mon
-
-    @monitor.setter
-    def monitor(self, value):
-        if value is not None:
-            if isinstance(value, int):
-                ch = getattr(
-                    self._default_scaler.channels, 'chan{:02d}'.format(value+1)
-                )
-                value = ch.s.name
-            self._default_scaler.monitor = value
-            self._mon = self._default_scaler.monitor
 
     @property
     def extra_devices(self):
