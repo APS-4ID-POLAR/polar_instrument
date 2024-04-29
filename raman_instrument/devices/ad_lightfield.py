@@ -4,7 +4,7 @@ LightField based area detector
 
 __all__ = ["spectrometer"]
 
-from ophyd import ADComponent, EpicsSignalRO, Kind, Staged, Device
+from ophyd import ADComponent, EpicsSignalRO, Kind, Staged, Device, Signal
 from ophyd.areadetector import (
     CamBase, EpicsSignalWithRBV, EpicsSignal, DetectorBase, TriggerBase, LightFieldDetectorCam
 
@@ -95,10 +95,12 @@ class LightFieldFilePlugin(Device, FileStoreBase):
 
     # Note: all PVs are defined in cam.
 
+    enable = ADComponent(Signal, value=True, kind="config")
+
     def __init__(self, *args, **kwargs):
         self.filestore_spec = "AD_SPE"
         super().__init__(*args, **kwargs)
-
+        self.enable.subscribe(self._set_kind)
         # This is a workaround to enable setting these values in the detector
         # startup. Needed because we don't have a stable solution on where
         # these images would be.
@@ -106,6 +108,12 @@ class LightFieldFilePlugin(Device, FileStoreBase):
         self.write_path_template = rf"{LIGHTFIELD_FILES_ROOT}\{IMAGE_DIR_WINDOWS}"
         self.read_path_template = join(BLUESKY_FILES_ROOT, IMAGE_DIR_UNIX)
 
+    def _set_kind(self, value, **kwargs):
+        if value in (True, 1, "on", "enable"):
+            self.kind = "normal"
+        else:
+            self.kind = "omitted"
+    
     @property
     def base_name(self):
         return self.parent.cam.file_name_base.get()
