@@ -4,20 +4,20 @@ LightField based area detector
 
 __all__ = ["spectrometer"]
 
-from ophyd import ADComponent, EpicsSignalRO, Kind, Staged
+from ophyd import ADComponent, EpicsSignalRO, Kind, Staged, Device
 from ophyd.areadetector import (
     CamBase, EpicsSignalWithRBV, DetectorBase, TriggerBase, LightFieldDetectorCam
 
 )
 from ophyd.areadetector.trigger_mixins import ADTriggerStatus
 from ophyd.areadetector.filestore_mixins import (
-    FileStoreHDF5SingleIterativeWrite
+    FileStoreHDF5SingleIterativeWrite, FileStoreBase
 )
 from ophyd.areadetector.plugins import (
         ROIPlugin_V34, StatsPlugin_V34, HDF5Plugin_V34, CodecPlugin_V34,
         ProcessPlugin_V34
 )
-from os.path import join
+from os.path import join, isdir
 import time as ttime
 
 
@@ -85,10 +85,69 @@ class MyHDF5Plugin(FileStoreHDF5SingleIterativeWrite, HDF5Plugin_V34):
     #     self.filestore_spec = 'AD_HDF5_Lambda250k_APSPolar'
 
 
+# Based on Eiger
+# class LightFieldFilePlugin(Device, FileStoreBase):
+#     """
+#     Using the filename from EPICS.
+#     """
+
+#     # Note: all PVs are defined in cam.
+
+#     def __init__(self, *args, **kwargs):
+#         self.filestore_spec = "AD_SPE"
+#         super().__init__(*args, **kwargs)
+
+#         # This is a workaround to enable setting these values in the detector
+#         # startup. Needed because we don't have a stable solution on where
+#         # these images would be.
+#         self.write_path_template = self.parent._write_path_template
+#         self.read_path_template = self.parent._read_path_template
+
+#     @property
+#     def base_name(self):
+#         return self.parent.cam.file_name.get()
+
+#     @base_name.setter
+#     def base_name(self, value):
+#         self._base_name = value.replace("$id", "{}")
+
+#     # This is the part to change if a different file scheme is chosen.
+#     def make_write_read_paths(self):
+#         _base_name = self.base_name.format(self.seq_id.get() + 1)
+#         write_path = join(self.write_path_template, _base_name + "/")
+#         read_path = join(
+#             self.read_path_template, self.base_name, _base_name
+#         )
+#         return _base_name, write_path, read_path
+
+#     def stage(self):
+#         # Only save images if the enable is on...
+#         if self.enable.get() in (True, 1, "on", "enable"):
+#             _base_name, write_path, read_path = self.make_write_read_paths()
+#             if isdir(write_path):
+#                 raise OSError(f"{write_path} exists! Please be sure that"
+#                               f"{self.base_name} has not been used!")
+#             self.file_write_name_pattern.put(_base_name)
+#             self.file_path.put(write_path)
+#             self._fn = PurePath(read_path)
+
+#             self.parent.save_images_on()
+#             super().stage()
+
+#             ipf = int(self.file_write_images_per_file.get())
+#             res_kwargs = {'images_per_file': ipf}
+#             self._generate_resource(res_kwargs)
+
+#     def generate_datum(self, key, timestamp, datum_kwargs):
+#         """Using the num_images_counter to pick image from scan."""
+#         datum_kwargs.update({'image_num': self.num_images_counter.get()})
+#         return super().generate_datum(key, timestamp, datum_kwargs)
+
+
 class LightFieldDetector(MySingleTrigger, DetectorBase):
 
     _default_read_attrs = (
-        'cam', 'hdf1'
+        'cam', 'hdf1', 'stats1',
     )
 
     cam = ADComponent(LightFieldDetectorCam, 'cam1:', kind='normal')
@@ -99,6 +158,9 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
         read_path_template=join(BLUESKY_FILES_ROOT, IMAGE_DIR_UNIX),
         kind='normal'
     )
+
+    roi1 = ADComponent(ROIPlugin_V34, 'ROI1:')
+    stats1 = ADComponent(StatsPlugin_V34, 'Stats1:')
 
     @property
     def preset_monitor(self):
