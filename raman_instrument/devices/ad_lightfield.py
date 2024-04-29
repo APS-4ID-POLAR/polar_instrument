@@ -167,7 +167,7 @@ class MyLightFieldCam(LightFieldDetectorCam):
 class LightFieldDetector(MySingleTrigger, DetectorBase):
 
     _default_read_attrs = (
-        'cam',# 'hdf1'
+        'cam', 'file', # 'hdf1'
     )
 
     cam = ADComponent(MyLightFieldCam, 'cam1:', kind='normal')
