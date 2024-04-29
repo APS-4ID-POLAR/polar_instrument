@@ -128,7 +128,7 @@ class LightFieldFilePlugin(Device, FileStoreBase):
                 f"{write_path} exists! Please be sure that {write_path} has not"
                 "been used!"
             )
-        self.file_path.put(write_path)
+        self.parent.cam.file_path.put(write_path)
         self._fn = PurePath(read_path)
 
         super().stage()
