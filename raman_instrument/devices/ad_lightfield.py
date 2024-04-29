@@ -22,7 +22,7 @@ import time as ttime
 
 
 LIGHTFIELD_FILES_ROOT = r"Z:\4idd\bluesky_images\raman"
-BLUESKY_FILES_ROOT = "/home/sector4/4idd/bluesky_images"
+BLUESKY_FILES_ROOT = "/home/sector4/4idd/bluesky_images\raman"
 IMAGE_DIR_UNIX = "%Y/%m/%d/"
 IMAGE_DIR_WINDOWS = r"%Y\%m\%d\\"
 
@@ -166,7 +166,12 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
     #             comp.total.kind = Kind.hinted
     #             comp.read_attrs += ["max_value", "min_value"]
 
-    # def default_settings(self):
-    #     self.stage_sigs['cam.num_images'] = 1
+    def default_settings(self):
+        self.stage_sigs['cam.num_images'] = 1
+        self.stage_sigs['cam.image_mode'] = 0
+
+        #TODO: not sure works well here
+        self.cam.trigger_mode.put(0)
+
 
 spectrometer = LightFieldDetector("4LF1:", name="spectrometer")
