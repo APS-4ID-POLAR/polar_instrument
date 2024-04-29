@@ -147,8 +147,9 @@ class LightFieldFilePlugin(Device, FileStoreBase):
 
         super().stage()
 
-        fname = self.parent.cam.file_template.get() % (
-            self.parent.cam.file_name_base.get(), self.parent.cam.file_number.get()
+        fname = self.parent.cam.file_template.get(as_string=True) % (
+            self.parent.cam.file_name_base.get(as_string=True),
+            self.parent.cam.file_number.get()
             )
 
         ipf = (
