@@ -17,7 +17,7 @@ from ophyd.areadetector.plugins import (
         ROIPlugin_V34, StatsPlugin_V34, HDF5Plugin_V34, CodecPlugin_V34,
         ProcessPlugin_V34
 )
-from os.path import join, isdir
+from os.path import join, isfile, isdir
 import time as ttime
 from pathlib import PurePath
 from datetime import datetime
@@ -26,7 +26,7 @@ from datetime import datetime
 LIGHTFIELD_FILES_ROOT = r"Z:\4idd\bluesky_images\raman"
 BLUESKY_FILES_ROOT = "/home/sector4/4idd/bluesky_images/raman"
 IMAGE_DIR_UNIX = "%Y/%m/%d/"
-IMAGE_DIR_WINDOWS = r"%Y\%m\%d\\"
+IMAGE_DIR_WINDOWS = r"%Y\%m\%d"
 
 
 class MySingleTrigger(TriggerBase):
@@ -131,11 +131,16 @@ class LightFieldFilePlugin(Device, FileStoreBase):
 
     def stage(self):
         write_path, read_path = self.make_write_read_paths()
-        if isdir(write_path):
-            raise OSError(
-                f"{write_path} exists! Please be sure that {write_path} has not"
-                "been used!"
-            )
+
+        # if not isdir(write_path):
+            
+
+        # fname = self.parent.cam.file_name.get()
+        # if isfile(rf"{write_path}\{fname}"):
+        #     raise OSError(
+        #         f"{write_path} exists! Please be sure that {write_path} has not"
+        #         "been used!"
+        #     )
         self.parent.cam.file_path.put(write_path)
         self._fn = PurePath(read_path)
 
