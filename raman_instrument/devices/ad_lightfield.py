@@ -133,7 +133,6 @@ class LightFieldFilePlugin(Device, FileStoreBase):
         write_path, read_path = self.make_write_read_paths()
 
         # if not isdir(write_path):
-            
 
         # fname = self.parent.cam.file_name.get()
         # if isfile(rf"{write_path}\{fname}"):
@@ -141,16 +140,27 @@ class LightFieldFilePlugin(Device, FileStoreBase):
         #         f"{write_path} exists! Please be sure that {write_path} has not"
         #         "been used!"
         #     )
+
+
         self.parent.cam.file_path.put(write_path)
         self._fn = PurePath(read_path)
 
         super().stage()
 
+        fname = self.parent.cam.file_template.get() % (
+            self.parent.cam.file_name_base.get(), self.parent.cam.file_number.get()
+            )
+
         ipf = (
             int(self.parent.cam.num_images.get())*
             int(self.parent.cam.num_exposures.get())
         )
-        res_kwargs = {'frame_per_point': ipf}
+    
+        res_kwargs = {
+            'template' : read_path,
+            'filename' : fname,
+            'frame_per_point' : ipf,
+            }
         self._generate_resource(res_kwargs)
 
     def generate_datum(self, key, timestamp, datum_kwargs):
@@ -162,6 +172,9 @@ class LightFieldFilePlugin(Device, FileStoreBase):
 class MyLightFieldCam(LightFieldDetectorCam):
     file_name_base = ADComponent(EpicsSignal, "FileName", kind="config")
     file_path = ADComponent(EpicsSignalWithRBV, "FilePath", kind="config")
+    file_number = ADComponent(EpicsSignalWithRBV, "FileNumber", kind="config")
+    file_template = ADComponent(EpicsSignalWithRBV, "FileTemplate", kind="config")
+    file_template = ADComponent(EpicsSignalWithRBV, "FileTemplate", kind="config")
 
 
 class LightFieldDetector(MySingleTrigger, DetectorBase):
