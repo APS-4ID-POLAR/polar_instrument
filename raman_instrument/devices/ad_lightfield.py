@@ -166,7 +166,7 @@ class LightFieldFilePlugin(Device, FileStoreBase):
 
     def generate_datum(self, key, timestamp, datum_kwargs):
         """Using the num_images_counter to pick image from scan."""
-        # datum_kwargs.update({'image_num': self.num_images_counter.get()})
+        datum_kwargs.update({'point_number': self.cam.num_images_counter.get()})
         return super().generate_datum(key, timestamp, datum_kwargs)
 
 
@@ -176,6 +176,7 @@ class MyLightFieldCam(LightFieldDetectorCam):
     file_number = ADComponent(EpicsSignalWithRBV, "FileNumber", kind="config")
     file_template = ADComponent(EpicsSignalWithRBV, "FileTemplate", kind="config")
     file_template = ADComponent(EpicsSignalWithRBV, "FileTemplate", kind="config")
+    num_images_counter = ADComponent(EpicsSignalRO, 'NumImagesCounter_RBV')
 
 
 class LightFieldDetector(MySingleTrigger, DetectorBase):
