@@ -148,6 +148,7 @@ class LightFieldFilePlugin(Device, FileStoreBase):
 
 class MyLightFieldCam(LightFieldDetectorCam):
     file_name_base = ADComponent(EpicsSignal, "FileName", kind="config")
+    file_path = ADComponent(EpicsSignalWithRBV, "FilePath", kind="config")
 
 
 class LightFieldDetector(MySingleTrigger, DetectorBase):
