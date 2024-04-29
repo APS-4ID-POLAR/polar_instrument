@@ -154,20 +154,20 @@ class MyLightFieldCam(LightFieldDetectorCam):
 class LightFieldDetector(MySingleTrigger, DetectorBase):
 
     _default_read_attrs = (
-        'cam', 'hdf1'
+        'cam',# 'hdf1'
     )
 
     cam = ADComponent(MyLightFieldCam, 'cam1:', kind='normal')
-    hdf1 = ADComponent(
-        MyHDF5Plugin,
-        "HDF1:",
-        write_path_template=rf"{LIGHTFIELD_FILES_ROOT}\{IMAGE_DIR_WINDOWS}" ,  #TODO: not sure how to handle windows paths...
-        read_path_template=join(BLUESKY_FILES_ROOT, IMAGE_DIR_UNIX),
-        kind='normal'
-    )
+    # hdf1 = ADComponent(
+    #     MyHDF5Plugin,
+    #     "HDF1:",
+    #     write_path_template=rf"{LIGHTFIELD_FILES_ROOT}\{IMAGE_DIR_WINDOWS}" ,  #TODO: not sure how to handle windows paths...
+    #     read_path_template=join(BLUESKY_FILES_ROOT, IMAGE_DIR_UNIX),
+    #     kind='normal'
+    # )
 
     file = ADComponent(
-        LightFieldFilePlugin, write_path_template="", read_path_template=""
+        LightFieldFilePlugin, "cam1:", write_path_template="", read_path_template=""
     )
 
     # roi1 = ADComponent(ROIPlugin_V34, 'ROI1:')
