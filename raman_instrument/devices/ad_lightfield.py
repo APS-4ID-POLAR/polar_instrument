@@ -24,7 +24,7 @@ import time as ttime
 LIGHTFIELD_FILES_ROOT = r"Z:\4idd\bluesky_images\raman"
 BLUESKY_FILES_ROOT = "/home/sector4/4idd/bluesky_images"
 IMAGE_DIR_UNIX = "%Y/%m/%d/"
-IMAGE_DIR_WINDOWS = r"%Y\%m\%d"
+IMAGE_DIR_WINDOWS = r"%Y\%m\%d\\"
 
 
 class MyHDF5Plugin(FileStoreHDF5SingleIterativeWrite, HDF5Plugin_V34):
