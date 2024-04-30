@@ -141,16 +141,15 @@ class LightFieldFilePlugin(Device, FileStoreBase):
         #         "been used!"
         #     )
 
-
-        self.parent.cam.file_path.put(write_path)
-        self._fn = PurePath(read_path)
-
-        super().stage()
-
         base_name = self.parent.cam.file_name_base.get(as_string=True)
         next_scan = self.parent.cam.file_number.get()
-        fname_template = self.parent.cam.file_template.get(as_string=True)
+        fname_template = self.parent.cam.file_template.get(as_string=True) + ".spe"
         fname = fname_template % (base_name, next_scan)
+
+        self.parent.cam.file_path.put(write_path)
+        self._fn = PurePath(join(read_path, fname))
+
+        super().stage()
 
         ipf = (
             int(self.parent.cam.num_images.get())*
@@ -158,15 +157,15 @@ class LightFieldFilePlugin(Device, FileStoreBase):
         )
     
         res_kwargs = {
-            'template' : read_path,
-            'filename' : fname,
+            'template' : join(read_path, fname_template),
+            'filename' : self.cam.file_name_base.get(as_string=True),
             'frame_per_point' : ipf,
             }
         self._generate_resource(res_kwargs)
 
     def generate_datum(self, key, timestamp, datum_kwargs):
         """Using the num_images_counter to pick image from scan."""
-        datum_kwargs.update({'point_number': self.parent.cam.num_images_counter.get()})
+        datum_kwargs.update({'point_number': self.parent.cam.file_number.get()})
         return super().generate_datum(key, timestamp, datum_kwargs)
 
 
@@ -174,7 +173,6 @@ class MyLightFieldCam(LightFieldDetectorCam):
     file_name_base = ADComponent(EpicsSignal, "FileName", kind="config")
     file_path = ADComponent(EpicsSignalWithRBV, "FilePath", kind="config")
     file_number = ADComponent(EpicsSignalWithRBV, "FileNumber", kind="config")
-    file_template = ADComponent(EpicsSignalWithRBV, "FileTemplate", kind="config")
     file_template = ADComponent(EpicsSignalWithRBV, "FileTemplate", kind="config")
     num_images_counter = ADComponent(EpicsSignalRO, 'NumImagesCounter_RBV')
 
