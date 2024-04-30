@@ -5,7 +5,7 @@ from imageio.v3 import imread
 from os.path import join
 
 
-class AreaDetectorSPEHandler(HandlerBase):
+class SPEHandler(HandlerBase):
     specs = {"AD_SPE_APSPOLAR"} | HandlerBase.specs
 
     def __init__(self, fpath, template, filename, frame_per_point=1):
