@@ -93,6 +93,8 @@ class LightFieldFilePlugin(Device, FileStoreBase):
     Using the filename from EPICS.
     """
 
+    ##### MOSTLY WORKS, BUT AD_SPE NEEDS A NEW SPE READER! #######
+
     # Note: all PVs are defined in cam.
 
     enable = ADComponent(Signal, value=True, kind="config")
