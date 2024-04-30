@@ -144,11 +144,11 @@ class LightFieldFilePlugin(Device, FileStoreBase):
         base_name = self.parent.cam.file_name_base.get(as_string=True)
         next_scan = self.parent.cam.file_number.get()
         fname_template = self.parent.cam.file_template.get(as_string=True) + ".spe"
-        fname = fname_template % (base_name, next_scan)
+        # fname = fname_template % (base_name, next_scan)
 
         self.parent.cam.file_path.put(write_path)
-        self._fn = PurePath(join(read_path, fname))
-
+        self._fn = PurePath(read_path)
+    
         super().stage()
 
         ipf = (
@@ -157,7 +157,8 @@ class LightFieldFilePlugin(Device, FileStoreBase):
         )
     
         res_kwargs = {
-            'template' : join(read_path, fname_template),
+            # 'template' : join(read_path, fname_template),
+            'template' : join('%s', fname_template),
             'filename' : self.parent.cam.file_name_base.get(as_string=True),
             'frame_per_point' : ipf,
             }
@@ -165,7 +166,7 @@ class LightFieldFilePlugin(Device, FileStoreBase):
 
     def generate_datum(self, key, timestamp, datum_kwargs):
         """Using the num_images_counter to pick image from scan."""
-        datum_kwargs.update({'point_number': self.parent.cam.file_number.get()})
+        datum_kwargs.update({'point_number': int(self.parent.cam.file_number.get())})
         return super().generate_datum(key, timestamp, datum_kwargs)
 
 
