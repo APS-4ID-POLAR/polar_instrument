@@ -64,6 +64,7 @@ dependencies:
   - pysumreg
   - scikit-image
   - xlrd
+  - imageio
 
   # --- Bluesky framework packages
   - apstools
