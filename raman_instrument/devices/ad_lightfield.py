@@ -158,7 +158,7 @@ class LightFieldFilePlugin(Device, FileStoreBase):
     
         res_kwargs = {
             'template' : join(read_path, fname_template),
-            'filename' : self.cam.file_name_base.get(as_string=True),
+            'filename' : self.parent.cam.file_name_base.get(as_string=True),
             'frame_per_point' : ipf,
             }
         self._generate_resource(res_kwargs)
