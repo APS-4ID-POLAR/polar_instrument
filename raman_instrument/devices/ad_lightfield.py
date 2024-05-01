@@ -162,7 +162,7 @@ class MyLightFieldCam(LightFieldDetectorCam):
     file_path = ADComponent(EpicsSignalWithRBV, "FilePath", string=True, kind="normal")
     file_name = ADComponent(EpicsSignalRO, "LFFileName_RBV", string=True, kind="normal")
     file_number = ADComponent(EpicsSignalWithRBV, "FileNumber")
-    file_template = ADComponent(EpicsSignalWithRBV, "FileTemplate", string=True)
+    file_template = ADComponent(EpicsSignalWithRBV, "FileTemplate")
     num_images_counter = ADComponent(EpicsSignalRO, 'NumImagesCounter_RBV')
     grating_wavelength = ADComponent(EpicsSignalWithRBV, "LFGratingWL")
     pool_max_buffers = None
