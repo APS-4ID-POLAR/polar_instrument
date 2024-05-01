@@ -71,7 +71,7 @@ catalog_name = iconfig.get("DATABROKER_CATALOG", "training")
 try:
     cat = load_catalog(catalog_name)
     logger.info("using databroker catalog '%s'", cat.name)
-    cat.register_handler("AD_SPE_APSPolar", SPEHandler, overwrite=True)
+    # cat.register_handler("AD_SPE_APSPolar", SPEHandler, overwrite=True)
 except KeyError:
     cat = databroker.temp().v2
     logger.info("using TEMPORARY databroker catalog '%s'", cat.name)
