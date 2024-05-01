@@ -131,6 +131,7 @@ class LightFieldFilePlugin(Device, FileStoreBase):
         fname_number = self.parent.cam.file_number.get()
         fname = fname_template % (fname_base, fname_number)
 
+        print(join(read_path, fname))
         if isfile(join(read_path, fname)):
             raise FileExistsError(
                 f"The file {join(read_path, fname)} already exists! Please change the "
