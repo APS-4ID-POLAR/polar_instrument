@@ -60,7 +60,7 @@ class MySingleTrigger(TriggerBase):
 
         self._status = self._status_type(self)
         self._acquisition_signal.put(1, wait=False)
-        self.dispatch(self._image_name, ttime.time())
+        self.generate_datum(self._image_name, ttime.time(), {})
         return self._status
 
     def _acquire_changed(self, value=None, old_value=None, **kwargs):
@@ -131,7 +131,6 @@ class LightFieldFilePlugin(Device, FileStoreBase):
         fname_number = self.parent.cam.file_number.get()
         fname = fname_template % (fname_base, fname_number)
 
-        print(join(read_path, fname))
         if isfile(join(read_path, fname)):
             raise FileExistsError(
                 f"The file {join(read_path, fname)} already exists! Please change the "
