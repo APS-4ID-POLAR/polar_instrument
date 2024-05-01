@@ -46,7 +46,7 @@ import numpy as np
 from polartools.load_data import load_catalog
 
 # SPE handler
-from ...raman_instrument.framework.spe_handler import SPEHandler
+from .spe_handler import SPEHandler
 
 def get_md_path():
     path = iconfig.get("RUNENGINE_MD_PATH")

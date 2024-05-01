@@ -153,10 +153,7 @@ class LightFieldFilePlugin(Device, FileStoreBase):
     
         super().stage()
 
-        ipf = (
-            int(self.parent.cam.num_images.get())*
-            int(self.parent.cam.num_exposures.get())
-        )
+        ipf = int(self.parent.cam.num_images.get())
     
         res_kwargs = {
             # 'template' : join(read_path, fname_template),
@@ -174,7 +171,8 @@ class LightFieldFilePlugin(Device, FileStoreBase):
 
 class MyLightFieldCam(LightFieldDetectorCam):
     file_name_base = ADComponent(EpicsSignal, "FileName", kind="config")
-    file_path = ADComponent(EpicsSignalWithRBV, "FilePath", kind="config")
+    file_path = ADComponent(EpicsSignalWithRBV, "FilePath", string=True, kind="normal")
+    file_name = ADComponent(EpicsSignalRO, "LFFileName_RBV", string=True, kind="normal")
     file_number = ADComponent(EpicsSignalWithRBV, "FileNumber", kind="config")
     file_template = ADComponent(EpicsSignalWithRBV, "FileTemplate", kind="config")
     num_images_counter = ADComponent(EpicsSignalRO, 'NumImagesCounter_RBV')
@@ -269,11 +267,15 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
     #             comp.read_attrs += ["max_value", "min_value"]
 
     def default_settings(self):
-        self.stage_sigs['cam.num_images'] = 1
         self.stage_sigs['cam.image_mode'] = 0
 
         #TODO: not sure works well here
         self.cam.trigger_mode.put(0)
 
+        self.cam.file_path.kind = "normal"
+        self.cam.file_name.kind = "normal"
+
+
 
 spectrometer = LightFieldDetector("4LF1:", name="spectrometer")
+spectrometer.default_settings()
