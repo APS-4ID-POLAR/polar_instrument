@@ -164,6 +164,8 @@ class MyLightFieldCam(LightFieldDetectorCam):
     file_number = ADComponent(EpicsSignalWithRBV, "FileNumber", kind="config")
     file_template = ADComponent(EpicsSignalWithRBV, "FileTemplate", kind="config")
     num_images_counter = ADComponent(EpicsSignalRO, 'NumImagesCounter_RBV')
+    grating_wavelength = ADComponent(EpicsSignalWithRBV, "LFGratingWL")
+    pool_max_buffers = None
 
 
 class LightFieldDetector(MySingleTrigger, DetectorBase):
@@ -202,10 +204,10 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
         # be revised at some point.
 
         # Some of the attributes return numpy arrays which Bluesky doesn't accept.
-        _remove_from_config = (
-            "file_number_sync",  # Removed from EPICS
-            "file_number_write",  # Removed from EPICS
-            "pool_max_buffers",  # Removed from EPICS
+        _remove_from_config = [
+            # "file_number_sync",  # Removed from EPICS
+            # "file_number_write",  # Removed from EPICS
+            # "pool_max_buffers",  # Removed from EPICS
             # # all below are numpy.ndarray
             # "configuration_names",
             # "stream_hdr_appendix",
@@ -234,7 +236,7 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
             # 'ts_eccentricity',
             # 'ts_orientation',
             # 'histogram_x',
-        )
+        ]
 
         self.cam.configuration_attrs += [
             item for item in MyLightFieldCam.component_names if item not in
