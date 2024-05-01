@@ -6,7 +6,7 @@ from os.path import join
 
 
 class SPEHandler(HandlerBase):
-    specs = {"AD_SPE_APSPOLAR"} | HandlerBase.specs
+    specs = {"AD_SPE_APSPolar"} | HandlerBase.specs
 
     def __init__(self, fpath, template, filename, frame_per_point=1):
         self._path = join(fpath, "")

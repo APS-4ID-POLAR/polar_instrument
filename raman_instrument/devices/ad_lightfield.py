@@ -90,7 +90,7 @@ class LightFieldFilePlugin(Device, FileStoreBase):
     enable = ADComponent(Signal, value=True, kind="config")
 
     def __init__(self, *args, **kwargs):
-        self.filestore_spec = "AD_SPE_APSPOLAR"
+        self.filestore_spec = "AD_SPE_APSPolar"
         super().__init__(*args, **kwargs)
         self.enable.subscribe(self._set_kind)
         # This is a workaround to enable setting these values in the detector
