@@ -127,7 +127,7 @@ class LightFieldFilePlugin(Device, FileStoreBase):
         write_path, read_path = self.make_write_read_paths()
         fname_template = self.parent.cam.file_template.get(as_string=True) + ".spe"
 
-        fname_base = self.parent.cam.file_name_base.get(as_string=True)
+        fname_base = self.parent.cam.file_name_base.get()
         fname_number = self.parent.cam.file_number.get()
         fname = fname_template % (fname_base, fname_number)
 
@@ -146,7 +146,7 @@ class LightFieldFilePlugin(Device, FileStoreBase):
     
         res_kwargs = {
             'template' : join('%s', fname_template),
-            'filename' : self.parent.cam.file_name_base.get(as_string=True),
+            'filename' : self.parent.cam.file_name_base.get(),
             'frame_per_point' : ipf,
             }
         self._generate_resource(res_kwargs)
@@ -158,14 +158,19 @@ class LightFieldFilePlugin(Device, FileStoreBase):
 
 
 class MyLightFieldCam(LightFieldDetectorCam):
-    file_name_base = ADComponent(EpicsSignal, "FileName", kind="config")
+    file_name_base = ADComponent(EpicsSignal, "FileName", string=True)
     file_path = ADComponent(EpicsSignalWithRBV, "FilePath", string=True, kind="normal")
     file_name = ADComponent(EpicsSignalRO, "LFFileName_RBV", string=True, kind="normal")
-    file_number = ADComponent(EpicsSignalWithRBV, "FileNumber", kind="config")
-    file_template = ADComponent(EpicsSignalWithRBV, "FileTemplate", kind="config")
+    file_number = ADComponent(EpicsSignalWithRBV, "FileNumber")
+    file_template = ADComponent(EpicsSignalWithRBV, "FileTemplate", string=True)
     num_images_counter = ADComponent(EpicsSignalRO, 'NumImagesCounter_RBV')
     grating_wavelength = ADComponent(EpicsSignalWithRBV, "LFGratingWL")
     pool_max_buffers = None
+    background_file = ADComponent(EpicsSignalWithRBV, "LFBackgroundFile", string=True)
+    background_full_file = ADComponent(
+        EpicsSignalRO, "LFBackgroundFullFile_RBV", string=True
+    )
+    background_path = ADComponent(EpicsSignalWithRBV, "LFBackgroundPath", string=True)
 
 
 class LightFieldDetector(MySingleTrigger, DetectorBase):
