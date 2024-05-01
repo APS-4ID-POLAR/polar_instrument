@@ -200,9 +200,6 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
 
     def default_kinds(self):
 
-        # TODO: This is setting A LOT of stuff as "configuration_attrs", should
-        # be revised at some point.
-
         self.cam.configuration_attrs += [
             item for item in MyLightFieldCam.component_names
         ]
