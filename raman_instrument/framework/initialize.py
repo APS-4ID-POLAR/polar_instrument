@@ -71,6 +71,7 @@ catalog_name = iconfig.get("DATABROKER_CATALOG", "training")
 try:
     cat = load_catalog(catalog_name)
     logger.info("using databroker catalog '%s'", cat.name)
+    # TODO: remove this when polartools > 0.4.0
     cat.register_handler("AD_SPE_APSPolar", SPEHandler, overwrite=True)
 except KeyError:
     cat = databroker.temp().v2
