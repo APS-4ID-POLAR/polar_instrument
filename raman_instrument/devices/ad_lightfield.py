@@ -203,48 +203,12 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
         # TODO: This is setting A LOT of stuff as "configuration_attrs", should
         # be revised at some point.
 
-        # Some of the attributes return numpy arrays which Bluesky doesn't accept.
-        _remove_from_config = [
-            # "file_number_sync",  # Removed from EPICS
-            # "file_number_write",  # Removed from EPICS
-            # "pool_max_buffers",  # Removed from EPICS
-            # # all below are numpy.ndarray
-            # "configuration_names",
-            # "stream_hdr_appendix",
-            # "stream_img_appendix",
-            # "dim0_sa",
-            # "dim1_sa",
-            # "dim2_sa",
-            # "nd_attributes_macros",
-            # "dimensions",
-            # 'asyn_pipeline_config',
-            # 'dim0_sa',
-            # 'dim1_sa',
-            # 'dim2_sa',
-            # 'dimensions',
-            # 'histogram',
-            # 'ts_max_value',
-            # 'ts_mean_value',
-            # 'ts_min_value',
-            # 'ts_net',
-            # 'ts_sigma',
-            # 'ts_sigma_xy',
-            # 'ts_sigma_y',
-            # 'ts_total',
-            # 'ts_timestamp',
-            # 'ts_centroid_total',
-            # 'ts_eccentricity',
-            # 'ts_orientation',
-            # 'histogram_x',
-        ]
-
         self.cam.configuration_attrs += [
-            item for item in MyLightFieldCam.component_names if item not in
-            _remove_from_config
+            item for item in MyLightFieldCam.component_names
         ]
 
-        # self.cam.read_attrs += ["num_images_counter"]
-
+        # TODO: I will leave this here in case we want to use ROIs/Stats later. Note
+        # that will probably need to redefine _remove_from_config, see the lambda setup.
         # for name in self.component_names:
         #     comp = getattr(self, name)
         #     if isinstance(
@@ -270,3 +234,4 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
 
 spectrometer = LightFieldDetector("4LF1:", name="spectrometer")
 spectrometer.default_settings()
+spectrometer.default_kinds()
