@@ -4,20 +4,14 @@ LightField based area detector
 
 __all__ = ["spectrometer"]
 
-from ophyd import ADComponent, EpicsSignalRO, Kind, Staged, Device, Signal
+from ophyd import ADComponent, EpicsSignalRO, Staged, Device, Signal
 from ophyd.areadetector import (
-    CamBase, EpicsSignalWithRBV, EpicsSignal, DetectorBase, TriggerBase, LightFieldDetectorCam
-
+    EpicsSignalWithRBV, EpicsSignal, DetectorBase, TriggerBase, LightFieldDetectorCam
 )
 from ophyd.areadetector.trigger_mixins import ADTriggerStatus
-from ophyd.areadetector.filestore_mixins import (
-    FileStoreHDF5SingleIterativeWrite, FileStoreBase
-)
-from ophyd.areadetector.plugins import (
-        ROIPlugin_V34, StatsPlugin_V34, HDF5Plugin_V34, CodecPlugin_V34,
-        ProcessPlugin_V34
-)
-from os.path import join, isfile, isdir
+from ophyd.areadetector.filestore_mixins import FileStoreBase
+
+from os.path import join, isfile
 import time as ttime
 from pathlib import PurePath
 from datetime import datetime
@@ -80,11 +74,9 @@ class MySingleTrigger(TriggerBase):
             self._status = None
 
 
-class MyHDF5Plugin(FileStoreHDF5SingleIterativeWrite, HDF5Plugin_V34):
-    pass
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-    #     self.filestore_spec = 'AD_HDF5_Lambda250k_APSPolar'
+# TODO: I will leave this here for now in case we switch to HDF5.
+# class MyHDF5Plugin(FileStoreHDF5SingleIterativeWrite, HDF5Plugin_V34):
+#     pass
 
 
 # Based on Eiger
@@ -92,8 +84,6 @@ class LightFieldFilePlugin(Device, FileStoreBase):
     """
     Using the filename from EPICS.
     """
-
-    ##### MOSTLY WORKS, BUT AD_SPE NEEDS A NEW SPE READER! #######
 
     # Note: all PVs are defined in cam.
 
@@ -124,7 +114,6 @@ class LightFieldFilePlugin(Device, FileStoreBase):
     def base_name(self, value):
         self.parent.cam.file_name_base.put(value)
 
-    # This is the part to change if a different file scheme is chosen.
     def make_write_read_paths(self):
         formatter = datetime.now().strftime
         write_path = formatter(self.write_path_template)
@@ -132,21 +121,21 @@ class LightFieldFilePlugin(Device, FileStoreBase):
         return write_path, read_path
 
     def stage(self):
+
+        # TODO: is there a way to check if the file already exists? The issue is that
+        # the IOC is in another windows machine.
         write_path, read_path = self.make_write_read_paths()
-
-        # if not isdir(write_path):
-
-        # fname = self.parent.cam.file_name.get()
-        # if isfile(rf"{write_path}\{fname}"):
-        #     raise OSError(
-        #         f"{write_path} exists! Please be sure that {write_path} has not"
-        #         "been used!"
-        #     )
-
-        base_name = self.parent.cam.file_name_base.get(as_string=True)
-        next_scan = self.parent.cam.file_number.get()
         fname_template = self.parent.cam.file_template.get(as_string=True) + ".spe"
-        # fname = fname_template % (base_name, next_scan)
+
+        fname_base = self.parent.cam.file_name_base.get(as_string=True)
+        fname_number = self.parent.cam.file_number.get()
+        fname = fname_template % (fname_base, fname_number)
+
+        if isfile(join(read_path, fname)):
+            raise FileExistsError(
+                f"The file {join(read_path, fname)} already exists! Please change the "
+                "file name."
+            )
 
         self.parent.cam.file_path.put(write_path)
         self._fn = PurePath(read_path)
@@ -156,7 +145,6 @@ class LightFieldFilePlugin(Device, FileStoreBase):
         ipf = int(self.parent.cam.num_images.get())
     
         res_kwargs = {
-            # 'template' : join(read_path, fname_template),
             'template' : join('%s', fname_template),
             'filename' : self.parent.cam.file_name_base.get(as_string=True),
             'frame_per_point' : ipf,
@@ -181,100 +169,101 @@ class MyLightFieldCam(LightFieldDetectorCam):
 class LightFieldDetector(MySingleTrigger, DetectorBase):
 
     _default_read_attrs = (
-        'cam', 'file', # 'hdf1'
+        'cam', 'file'
     )
 
     cam = ADComponent(MyLightFieldCam, 'cam1:', kind='normal')
+
+    # TODO: I will leave this here in case we switch to HDF5 at some point. Note that
+    # 'hdf1' needs to be added to the _default_read_attrs.
     # hdf1 = ADComponent(
     #     MyHDF5Plugin,
     #     "HDF1:",
-    #     write_path_template=rf"{LIGHTFIELD_FILES_ROOT}\{IMAGE_DIR_WINDOWS}" ,  #TODO: not sure how to handle windows paths...
+    #     write_path_template=rf"{LIGHTFIELD_FILES_ROOT}\{IMAGE_DIR_WINDOWS}" ,  
     #     read_path_template=join(BLUESKY_FILES_ROOT, IMAGE_DIR_UNIX),
     #     kind='normal'
     # )
 
     file = ADComponent(
-        LightFieldFilePlugin, "cam1:", write_path_template="", read_path_template=""
+        LightFieldFilePlugin,
+        "cam1:",
+        write_path_template="",
+        read_path_template="",
+        kind="normal"
     )
-
-    # roi1 = ADComponent(ROIPlugin_V34, 'ROI1:')
-    # stats1 = ADComponent(StatsPlugin_V34, 'Stats1:')
 
     @property
     def preset_monitor(self):
         return self.cam.acquire_time
 
-    # def default_kinds(self):
+    def default_kinds(self):
 
-    #     # TODO: This is setting A LOT of stuff as "configuration_attrs", should
-    #     # be revised at some point.
+        # TODO: This is setting A LOT of stuff as "configuration_attrs", should
+        # be revised at some point.
 
-    #     # Some of the attributes return numpy arrays which Bluesky doesn't
-    #     # accept: configuration_names, stream_hdr_appendix,
-    #     # stream_img_appendix.
-    #     _remove_from_config = (
-    #         "file_number_sync",  # Removed from EPICS
-    #         "file_number_write",  # Removed from EPICS
-    #         "pool_max_buffers",  # Removed from EPICS
-    #         # all below are numpy.ndarray
-    #         "configuration_names",
-    #         "stream_hdr_appendix",
-    #         "stream_img_appendix",
-    #         "dim0_sa",
-    #         "dim1_sa",
-    #         "dim2_sa",
-    #         "nd_attributes_macros",
-    #         "dimensions",
-    #         'asyn_pipeline_config',
-    #         'dim0_sa',
-    #         'dim1_sa',
-    #         'dim2_sa',
-    #         'dimensions',
-    #         'histogram',
-    #         'ts_max_value',
-    #         'ts_mean_value',
-    #         'ts_min_value',
-    #         'ts_net',
-    #         'ts_sigma',
-    #         'ts_sigma_xy',
-    #         'ts_sigma_y',
-    #         'ts_total',
-    #         'ts_timestamp',
-    #         'ts_centroid_total',
-    #         'ts_eccentricity',
-    #         'ts_orientation',
-    #         'histogram_x',
-    #     )
+        # Some of the attributes return numpy arrays which Bluesky doesn't accept.
+        _remove_from_config = (
+            "file_number_sync",  # Removed from EPICS
+            "file_number_write",  # Removed from EPICS
+            "pool_max_buffers",  # Removed from EPICS
+            # # all below are numpy.ndarray
+            # "configuration_names",
+            # "stream_hdr_appendix",
+            # "stream_img_appendix",
+            # "dim0_sa",
+            # "dim1_sa",
+            # "dim2_sa",
+            # "nd_attributes_macros",
+            # "dimensions",
+            # 'asyn_pipeline_config',
+            # 'dim0_sa',
+            # 'dim1_sa',
+            # 'dim2_sa',
+            # 'dimensions',
+            # 'histogram',
+            # 'ts_max_value',
+            # 'ts_mean_value',
+            # 'ts_min_value',
+            # 'ts_net',
+            # 'ts_sigma',
+            # 'ts_sigma_xy',
+            # 'ts_sigma_y',
+            # 'ts_total',
+            # 'ts_timestamp',
+            # 'ts_centroid_total',
+            # 'ts_eccentricity',
+            # 'ts_orientation',
+            # 'histogram_x',
+        )
 
-    #     self.cam.configuration_attrs += [
-    #         item for item in Lambda250kCam.component_names if item not in
-    #         _remove_from_config
-    #     ]
+        self.cam.configuration_attrs += [
+            item for item in MyLightFieldCam.component_names if item not in
+            _remove_from_config
+        ]
 
-    #     self.cam.read_attrs += ["num_images_counter"]
+        # self.cam.read_attrs += ["num_images_counter"]
 
-    #     for name in self.component_names:
-    #         comp = getattr(self, name)
-    #         if isinstance(
-    #             comp, (ROIPlugin_V34, StatsPlugin_V34, ProcessPlugin_V34)
-    #         ):
-    #             comp.configuration_attrs += [
-    #                 item for item in comp.component_names if item not in
-    #                 _remove_from_config
-    #             ]
-    #         if isinstance(comp, StatsPlugin_V34):
-    #             comp.total.kind = Kind.hinted
-    #             comp.read_attrs += ["max_value", "min_value"]
+        # for name in self.component_names:
+        #     comp = getattr(self, name)
+        #     if isinstance(
+        #         comp, (ROIPlugin_V34, StatsPlugin_V34, ProcessPlugin_V34)
+        #     ):
+        #         comp.configuration_attrs += [
+        #             item for item in comp.component_names if item not in
+        #             _remove_from_config
+        #         ]
+        #     if isinstance(comp, StatsPlugin_V34):
+        #         comp.total.kind = Kind.hinted
+        #         comp.read_attrs += ["max_value", "min_value"]
 
     def default_settings(self):
         self.stage_sigs['cam.image_mode'] = 0
 
-        #TODO: not sure works well here
-        self.cam.trigger_mode.put(0)
+        # Default to preview mode
+        self.cam.trigger_mode.put(1)
 
         self.cam.file_path.kind = "normal"
         self.cam.file_name.kind = "normal"
-
 
 
 spectrometer = LightFieldDetector("4LF1:", name="spectrometer")
