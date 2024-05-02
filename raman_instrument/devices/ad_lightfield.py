@@ -164,7 +164,9 @@ class MyLightFieldCam(LightFieldDetectorCam):
     file_number = ADComponent(EpicsSignalWithRBV, "FileNumber")
     file_template = ADComponent(EpicsSignalWithRBV, "FileTemplate")
     num_images_counter = ADComponent(EpicsSignalRO, 'NumImagesCounter_RBV')
-    grating_wavelength = ADComponent(EpicsSignalWithRBV, "LFGratingWL")
+    # The PV below works better as an EpicsSignal as it gets reported done after the
+    # grating reached the target.
+    grating_wavelength = ADComponent(EpicsSignal, "LFGratingWL")
     pool_max_buffers = None
     background_file = ADComponent(EpicsSignalWithRBV, "LFBackgroundFile", string=True)
     background_full_file = ADComponent(
