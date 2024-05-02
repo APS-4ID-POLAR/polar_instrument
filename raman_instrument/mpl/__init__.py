@@ -27,4 +27,4 @@ if isnotebook():
 else:
     from .console import *
 
-# from .plot_absorption import *
+from .plot_raman import *
