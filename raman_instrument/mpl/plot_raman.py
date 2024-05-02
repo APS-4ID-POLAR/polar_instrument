@@ -43,7 +43,7 @@ def plot_raman(scans=-1, roi=None, label=None, ax=None, time_norm=False):
     """
     Plot the Raman spectrum.
 
-    This assumes that the energy calibration did not change 
+    This assumes that the energy calibration did not change during one Bluesky scan.
 
     Parameters
     ----------
