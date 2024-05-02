@@ -85,7 +85,7 @@ def plot_raman(scans=-1, roi=None, label=None, ax=None, time_norm=False):
                 break
 
         path = Path(resources["root"]) / Path(resources["resource_path"])
-        fnames = cat[-1].primary.read()["spectrometer_cam_file_name"].values
+        fnames = f"{cat[-1].primary.read()["spectrometer_cam_file_name"].values}.spe"
 
         xi = []
         yi = []
