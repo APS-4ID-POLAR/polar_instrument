@@ -85,12 +85,12 @@ def plot_raman(scans=-1, roi=None, label=None, ax=None, time_norm=False):
                 break
 
         path = Path(resources["root"]) / Path(resources["resource_path"])
-        fnames = f"{cat[-1].primary.read()["spectrometer_cam_file_name"].values}.spe"
+        fnames = cat[-1].primary.read()["spectrometer_cam_file_name"].values
 
         xi = []
         yi = []
         for fname in fnames:
-            imgfile = imopen(path / fname, "r")
+            imgfile = imopen(path / f"{fname}.spe", "r")
             dom = parseString(imgfile.metadata()["__xml"])
             calibration = _read_calibration(dom)
             norm = _read_exposure_time(dom) if time_norm else 1.
