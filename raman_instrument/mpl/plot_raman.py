@@ -9,7 +9,7 @@ from scipy.interpolate import interp1d
 
 logger.info(__file__)
 
-__all__ = ['plot_xas', 'plot_dichro', 'plot_lockin']
+__all__ = ['plot_raman']
 
 
 def _read_exposure_time(dom):

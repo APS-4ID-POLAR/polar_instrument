@@ -27,4 +27,4 @@ if isnotebook():
 else:
     from .console import *
 
-from .plot_raman import *
+from .plot_raman import plot_raman
