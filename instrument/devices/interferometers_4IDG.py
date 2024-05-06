@@ -1,7 +1,10 @@
+""" Interferometer setup """
+
 __all__ = ["interferometer"]
 
 from ophyd import Device, Component, EpicsSignalRO
-
+from ..session_logs import logger
+logger.info(__file__)
 
 class InterferometerDevice(Device):
   mhor_up = Component(EpicsSignalRO, "pixelTrig-1_POS1")
