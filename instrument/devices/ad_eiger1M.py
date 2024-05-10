@@ -66,7 +66,7 @@ class EigerDetectorCam_V34(CamMixin_V34, EigerDetectorCam):
     offset = None
 
 
-class XpcsAD_EpicsFileNameHDF5Plugin(PluginMixin, AD_EpicsFileNameHDF5Plugin):
+class EpicsFileNameHDF5Plugin(PluginMixin, AD_EpicsFileNameHDF5Plugin):
     """Remove property attribute not found in AD IOCs now."""
 
     @property
@@ -110,7 +110,7 @@ class Eiger1MDetector(SingleTrigger, DetectorBase):
     pva = ADComponent(PvaPlugin, "Pva1:")
 
     hdf1 = ADComponent(
-        XpcsAD_EpicsFileNameHDF5Plugin,
+        EpicsFileNameHDF5Plugin,
         "HDF1:",
         write_path_template=f"{IOC_FILES_ROOT / IMAGE_DIR}/",
         read_path_template=f"{BLUESKY_FILES_ROOT / IMAGE_DIR}/",
@@ -118,7 +118,7 @@ class Eiger1MDetector(SingleTrigger, DetectorBase):
     )
 
 
-def load_eiger1m(prefix="PV"):
+def load_eiger1m(prefix="4idEiger:"):
 
     t0 = time()
     try:
