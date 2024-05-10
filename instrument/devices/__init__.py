@@ -10,3 +10,4 @@ from .simulated_detector import simdet
 from .nanopositioner import diff_nano
 from .interferometers_4IDG import interferometer
 from .magnet_nanopositioner import magnet_nano
+from .ad_eiger1M import load_eiger1m
