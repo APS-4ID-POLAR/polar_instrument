@@ -12,7 +12,7 @@ from ophyd.areadetector.plugins import(
     CodecPlugin_V34
 )
 from apstools.devices import (
-    AD_EpicsFileNameHDF5Plugin, AD_plugin_primed, AD_prime_plugin2, CamMixin_V34
+    AD_EpicsFileNameHDF5Plugin, AD_plugin_primed, AD_prime_plugin2, CamMixin_V34, AD_EpicsHdf5FileName
 )
 from pathlib import PurePath
 from time import time
@@ -64,6 +64,17 @@ class EigerDetectorCam_V34(CamMixin_V34, EigerDetectorCam):
     link_3 = None
     dcu_buff_free = None
     offset = None
+
+
+from ophyd.areadetector.plugins import HDF5Plugin_V34 as HDF5Plugin
+from ophyd.areadetector.filestore_mixins import FileStoreHDF5SingleIterativeWrite
+
+
+class AD_EpicsHDF5IterativeWriter(AD_EpicsHdf5FileName, FileStoreHDF5SingleIterativeWrite):
+    pass
+
+class AD_EpicsFileNameHDF5Plugin(HDF5Plugin, AD_EpicsHDF5IterativeWriter):
+    pass
 
 
 class EpicsFileNameHDF5Plugin(PluginMixin, AD_EpicsFileNameHDF5Plugin):

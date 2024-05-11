@@ -45,8 +45,7 @@ AREA_DETECTOR:
   EIGER_1M:
     # IOC host: beryl:/net/s8iddserv/xorApps/epics/synApps_6_2_1/ioc/8idEiger4m/iocBoot/ioc8idEiger4m/softioc/8idEiger4m.pl status
     # Same filesystem
-    # IOC_FILES_ROOT: *BLUESKY_DATA_ROOT
-    IOC_FILES_ROOT: "CHANGE THIS!!!"
+    IOC_FILES_ROOT: *BLUESKY_DATA_ROOT
     # NAME: eiger4M
     # PV_PREFIX: "8idEiger4m:"
 
