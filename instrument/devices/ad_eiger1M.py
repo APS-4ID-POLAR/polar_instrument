@@ -86,24 +86,24 @@ class TriggerTime(TriggerBase):
     """
     _status_type = ADTriggerStatus
 
-    def __init__(self, *args, image_name=None, delay=0.001, **kwargs):
+    def __init__(self, *args, image_name=None, min_period=0.2, **kwargs):
         super().__init__(*args, **kwargs)
         if image_name is None:
             image_name = '_'.join([self.name, 'image'])
         self._image_name = image_name
         self._acquisition_signal = self.cam.special_trigger_button
-        self._delay = delay
+        self._min_period = min_period
 
     @property
-    def delay(self):
-        return self._delay
+    def min_period(self):
+        return self._min_period
 
-    @delay.setter
-    def delay(self, value):
+    @min_period.setter
+    def min_period(self, value):
         try:
-            self._delay = float(value)
+            self._min_period = float(value)
         except ValueError:
-            raise ValueError("delay must be a number.")
+            raise ValueError("min_period must be a number.")
 
     def setup_manual_trigger(self):
         # Stage signals
@@ -146,15 +146,16 @@ class TriggerTime(TriggerBase):
                                "Call the stage() method before triggering.")
 
         @run_in_thread
-        def add_delay(status_obj, delay):
-            total_sleep = self.cam.trigger_exposure.get() + delay
+        def add_delay(status_obj, min_period):
+            count_time = self.cam.acquire_time.get()
+            total_sleep = count_time if count_time > min_period else min_period
             sleep(total_sleep)
             status_obj.set_finished()
 
         self._status = self._status_type(self)
         self._acquisition_signal.put(1, wait=False)
         self.dispatch(self._image_name, ttime())
-        add_delay(self._status, self._delay)
+        add_delay(self._status, self._min_period)
         return self._status
 
 
@@ -199,7 +200,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
     codec1 = ADComponent(CodecPlugin_V34, "Codec1:")
     image = ADComponent(ImagePlugin, "image1:")
     roi1 = ADComponent(ROIPlugin, "ROI1:")
-    stats1 = ADComponent(StatsPlugin, "Stats1:")
+    stats1 = ADComponent(StatsPlugin, "Stats1:", kind="normal")
     pva = ADComponent(PvaPlugin, "Pva1:")
 
     hdf1 = ADComponent(
@@ -209,6 +210,45 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         read_path_template=f"{BLUESKY_FILES_ROOT / IMAGE_DIR}/",
         kind="normal",
     )
+
+    # Make this compatible with other detectors
+    @property
+    def preset_monitor(self):
+        return self.cam.acquire_time
+
+    def align_on(self, time=0.1):
+        """Start detector in alignment mode"""
+        self.save_images_off()
+        self.cam.manual_trigger.set("Disable").wait(timeout=10)
+        self.cam.num_triggers.set(int(1e6)).wait(timeout=10)
+        self.cam.trigger_mode.set("Internal Enable").wait(timeout=10)
+        self.cam.trigger_exposure.set(time).wait(timeout=10)
+        self.cam.acquire.set(1).wait(timeout=10)
+
+    def align_off(self):
+        """Stop detector"""
+        self.cam.acquire.set(0).wait(timeout=10)
+
+    def save_images_on(self):
+        self.hdf1.kind = "normal"
+        self.hdf1.enable.set("Enable").wait(timeout=10)
+
+    def save_images_off(self):
+        self.hdf1.kind = "omitted"
+        self.hdf1.enable.set("Disable").wait(timeout=10)
+            
+    def default_settings(self):
+        self.cam.num_triggers.put(1)
+        self.cam.manual_trigger.put("Disable")
+        self.cam.trigger_mode.put("Internal Enable")
+        self.cam.acquire.put(0)
+        self.cam.wait_for_plugins.put("Yes")
+        self.cam.create_directory.put(-1)
+        self.cam.fw_compression.put("Enable")
+        self.cam.fw_num_images_per_file.put(1)
+        self.file.enable.put(True)
+        self.setup_manual_trigger()
+        self.save_images_off()
 
 
 def load_eiger1m(prefix="4idEiger:"):
