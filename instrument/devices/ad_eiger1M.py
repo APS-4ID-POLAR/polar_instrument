@@ -242,7 +242,6 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.cam.manual_trigger.put("Disable")
         self.cam.trigger_mode.put("Internal Enable")
         self.cam.acquire.put(0)
-        self.file.enable.put(True)
         self.setup_manual_trigger()
         self.save_images_off()
         self.plot_roi1()
