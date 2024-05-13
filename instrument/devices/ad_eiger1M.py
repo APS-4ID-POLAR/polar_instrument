@@ -137,7 +137,7 @@ class TriggerTime(TriggerBase):
         )
         # This has to be here to ensure it happens after stopping the
         # acquisition.
-        # self.save_images_off()
+        self.save_images_off()
 
     def trigger(self):
         "Trigger one acquisition."
