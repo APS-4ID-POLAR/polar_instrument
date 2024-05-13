@@ -286,6 +286,6 @@ def load_eiger1m(prefix="4idEiger:"):
                 if not AD_plugin_primed(plugin):
                     AD_prime_plugin2(plugin)
 
-        eiger1m.default_settings()
+        # eiger1m.default_settings()
 
     return eiger1m
