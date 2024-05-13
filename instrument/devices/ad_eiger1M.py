@@ -69,15 +69,15 @@ class EigerDetectorCam_V34(CamMixin_V34, EigerDetectorCam):
     offset = None
 
 
-from ophyd.areadetector.plugins import HDF5Plugin_V34 as HDF5Plugin
-from ophyd.areadetector.filestore_mixins import FileStoreHDF5SingleIterativeWrite, FileStoreHDF5Single
+# from ophyd.areadetector.plugins import HDF5Plugin_V34 as HDF5Plugin
+# from ophyd.areadetector.filestore_mixins import FileStoreHDF5SingleIterativeWrite, FileStoreHDF5Single
 
 
-class AD_EpicsHDF5IterativeWriter(AD_EpicsHdf5FileName, FileStoreHDF5Single):
-    pass
+# class AD_EpicsHDF5IterativeWriter(AD_EpicsHdf5FileName, FileStoreHDF5Single):
+#     pass
 
-class AD_EpicsFileNameHDF5Plugin(HDF5Plugin, AD_EpicsHDF5IterativeWriter):
-    pass
+# class AD_EpicsFileNameHDF5Plugin(HDF5Plugin, AD_EpicsHDF5IterativeWriter):
+#     pass
 
 
 class TriggerTime(TriggerBase):
