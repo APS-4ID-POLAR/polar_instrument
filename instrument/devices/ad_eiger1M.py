@@ -222,7 +222,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.cam.manual_trigger.set("Disable").wait(timeout=10)
         self.cam.num_triggers.set(int(1e6)).wait(timeout=10)
         self.cam.trigger_mode.set("Internal Enable").wait(timeout=10)
-        self.cam.trigger_exposure.set(time).wait(timeout=10)
+        self.preset_monitor.set(time).wait(timeout=10)
         self.cam.acquire.set(1).wait(timeout=10)
 
     def align_off(self):
@@ -242,13 +242,13 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.cam.manual_trigger.put("Disable")
         self.cam.trigger_mode.put("Internal Enable")
         self.cam.acquire.put(0)
-        self.cam.wait_for_plugins.put("Yes")
-        self.cam.create_directory.put(-1)
-        self.cam.fw_compression.put("Enable")
-        self.cam.fw_num_images_per_file.put(1)
         self.file.enable.put(True)
         self.setup_manual_trigger()
         self.save_images_off()
+        self.plot_roi1()
+
+    def plot_roi1(self):
+        self.stats1.total.kind="hinted"
 
 
 def load_eiger1m(prefix="4idEiger:"):
@@ -276,13 +276,17 @@ def load_eiger1m(prefix="4idEiger:"):
             if "blocking_callbacks" in dir(obj):  # is it a plugin?
                 obj.stage_sigs["blocking_callbacks"] = "No"
 
-        plugin = eiger1m.hdf1  # for convenience below
-        plugin.kind = Kind.config | Kind.normal  # Ensure plugin's read is called.
-        plugin.stage_sigs.move_to_end("capture", last=True)
+        for plugin in "hdf1 stats1".split():
+            # Ensure plugin's read is called.
+            getattr(eiger1m, plugin).kind = Kind.config | Kind.normal  
+
+        eiger1m.hdf1.stage_sigs.move_to_end("capture", last=True)
 
         if iconfig.get("ALLOW_AREA_DETECTOR_WARMUP", False):
             if eiger1m.connected:
                 if not AD_plugin_primed(plugin):
                     AD_prime_plugin2(plugin)
+
+        eiger1m.default_settings()
 
     return eiger1m
