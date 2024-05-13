@@ -283,9 +283,9 @@ def load_eiger1m(prefix="4idEiger:"):
 
         if iconfig.get("ALLOW_AREA_DETECTOR_WARMUP", False):
             if eiger1m.connected:
-                if not AD_plugin_primed(plugin):
-                    AD_prime_plugin2(plugin)
+                if not AD_plugin_primed(eiger1m.hdf1):
+                    AD_prime_plugin2(eiger1m.hdf1)
 
-        # eiger1m.default_settings()
+        eiger1m.default_settings()
 
     return eiger1m
