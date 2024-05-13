@@ -1,6 +1,6 @@
 """ Eiger 1M setup """
 
-from ophyd import ADComponent, EpicsSignal, Kind
+from ophyd import ADComponent, EpicsSignal, Kind, Staged
 from ophyd.status import Status
 from ophyd.areadetector import DetectorBase, EigerDetectorCam, SingleTrigger
 from ophyd.areadetector.plugins import(
@@ -11,11 +11,14 @@ from ophyd.areadetector.plugins import(
     StatsPlugin_V34,
     CodecPlugin_V34
 )
+from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
+from ophyd.status import wait as status_wait, SubscriptionStatus
 from apstools.devices import (
     AD_EpicsFileNameHDF5Plugin, AD_plugin_primed, AD_prime_plugin2, CamMixin_V34, AD_EpicsHdf5FileName
 )
+from apstools.utils import run_in_thread
 from pathlib import PurePath
-from time import time
+from time import time as ttime, sleep
 from .. import iconfig  # noqa
 from ..session_logs import logger
 logger.info(__file__)
@@ -77,6 +80,84 @@ class EigerDetectorCam_V34(CamMixin_V34, EigerDetectorCam):
 #     pass
 
 
+class TriggerTime(TriggerBase):
+    """
+    This trigger mixin class takes one acquisition per trigger.
+    """
+    _status_type = ADTriggerStatus
+
+    def __init__(self, *args, image_name=None, delay=0.001, **kwargs):
+        super().__init__(*args, **kwargs)
+        if image_name is None:
+            image_name = '_'.join([self.name, 'image'])
+        self._image_name = image_name
+        self._acquisition_signal = self.cam.special_trigger_button
+        self._delay = delay
+
+    @property
+    def delay(self):
+        return self._delay
+
+    @delay.setter
+    def delay(self, value):
+        try:
+            self._delay = float(value)
+        except ValueError:
+            raise ValueError("delay must be a number.")
+
+    def setup_manual_trigger(self):
+        # Stage signals
+        self.cam.stage_sigs["trigger_mode"] = "Internal Enable"
+        self.cam.stage_sigs["manual_trigger"] = "Enable"
+        self.cam.stage_sigs["num_images"] = 1
+        self.cam.stage_sigs["num_exposures"] = 1
+        # TODO: I don't like this too much, would prefer that we set this for each scan.
+        self.cam.stage_sigs["num_triggers"] = int(1e5)
+
+    def stage(self):
+        # Make sure that detector is not armed.
+        self.cam.acquire.set(0).wait(timeout=10)
+        super().stage()
+        self.cam.acquire.set(1).wait(timeout=10)
+
+    def unstage(self):
+        super().unstage()
+        self.cam.acquire.set(0).wait(timeout=10)
+
+        def check_value(*, old_value, value, **kwargs):
+            "Return True when detector is done"
+            return (value == "Ready" or value == "Acquisition aborted")
+
+        # When stopping the detector, it may take some time processing the
+        # images. This will block until it's done.
+        status_wait(
+            SubscriptionStatus(
+                self.cam.status_message, check_value, timeout=10
+            )
+        )
+        # This has to be here to ensure it happens after stopping the
+        # acquisition.
+        self.save_images_off()
+
+    def trigger(self):
+        "Trigger one acquisition."
+        if self._staged != Staged.yes:
+            raise RuntimeError("This detector is not ready to trigger."
+                               "Call the stage() method before triggering.")
+
+        @run_in_thread
+        def add_delay(status_obj, delay):
+            total_sleep = self.cam.trigger_exposure.get() + delay
+            sleep(total_sleep)
+            status_obj.set_finished()
+
+        self._status = self._status_type(self)
+        self._acquisition_signal.put(1, wait=False)
+        self.dispatch(self._image_name, ttime())
+        add_delay(self._status, self._delay)
+        return self._status
+
+
 class EpicsFileNameHDF5Plugin(PluginMixin, AD_EpicsFileNameHDF5Plugin):
     """Remove property attribute not found in AD IOCs now."""
 
@@ -111,7 +192,8 @@ class EpicsFileNameHDF5Plugin(PluginMixin, AD_EpicsFileNameHDF5Plugin):
         return trigger_status
 
 
-class Eiger1MDetector(SingleTrigger, DetectorBase):
+# class Eiger1MDetector(SingleTrigger, DetectorBase):
+class Eiger1MDetector(TriggerTime, DetectorBase):
     
     cam = ADComponent(EigerDetectorCam_V34, "cam1:")
     codec1 = ADComponent(CodecPlugin_V34, "Codec1:")
@@ -131,7 +213,7 @@ class Eiger1MDetector(SingleTrigger, DetectorBase):
 
 def load_eiger1m(prefix="4idEiger:"):
 
-    t0 = time()
+    t0 = ttime()
     try:
         connection_timeout = iconfig.get("PV_CONNECTION_TIMEOUT", 15)
         eiger1m = Eiger1MDetector(prefix, name="eiger1m")
@@ -140,7 +222,7 @@ def load_eiger1m(prefix="4idEiger:"):
         # fmt: off
         logger.warning(
             "Error connecting with PV='%s in %.2fs, %s",
-            prefix, time() - t0, str(exinfo),
+            prefix, ttime() - t0, str(exinfo),
         )
         logger.warning("Setting eiger1m to 'None'.")
         eiger1m = None
