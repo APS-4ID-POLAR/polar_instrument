@@ -137,11 +137,10 @@ class EigerNamedHDF5FileStore(FileStoreHDF5IterativeWrite):
 
     autosave = ADComponent(Signal, value="off", kind="config")
 
-    def __init__(self, *args, write_path_template="", **kwargs):
+    def __init__(self, write_path_template="", **kwargs):
         # self.filestore_spec = "AD_EIGER_APSPolar"
-        super().__init__(*args, write_path_template, **kwargs)
+        super().__init__(write_path_template, **kwargs)
         self.enable.subscribe(self._set_kind)
-        self._base_name = None
 
         # This is a workaround to enable setting these values in the detector
         # startup. Needed because we don't have a stable solution on where
