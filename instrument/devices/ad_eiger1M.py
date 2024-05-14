@@ -137,7 +137,7 @@ class EigerNamedHDF5FileStore(FileStoreHDF5IterativeWrite):
 
     autosave = ADComponent(Signal, value="off", kind="config")
 
-    def __init__(self, *args, write_path_template="", read_path_template="", **kwargs):
+    def __init__(self, *args, **kwargs):
         # self.filestore_spec = "AD_EIGER_APSPolar"
         super().__init__(*args, **kwargs)
         self.enable.subscribe(self._set_kind)
@@ -146,9 +146,6 @@ class EigerNamedHDF5FileStore(FileStoreHDF5IterativeWrite):
         # This is a workaround to enable setting these values in the detector
         # startup. Needed because we don't have a stable solution on where
         # these images would be.
-        self.write_path_template = write_path_template
-        self.read_path_template = read_path_template
-        self._status_stash = None
 
     def _set_kind(self, value, **kwargs):
         if value in (True, 1, "on", "Enable"):
@@ -302,7 +299,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
     hdf1 = ADComponent(
         EigerHDF5Plugin,
         "HDF1:",
-        write_path_template=f"{IOC_FILES_ROOT / IMAGE_DIR}/",
+        f"{IOC_FILES_ROOT / IMAGE_DIR}/",
         read_path_template=f"{BLUESKY_FILES_ROOT / IMAGE_DIR}/",
     )
 
