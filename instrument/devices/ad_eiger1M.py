@@ -137,7 +137,7 @@ class EigerNamedHDF5FileStore(FileStoreHDF5IterativeWrite):
 
     autosave = ADComponent(Signal, value="off", kind="config")
 
-    def __init__(self, *args, write_path_template, read_path_template, **kwargs):
+    def __init__(self, *args, write_path_template="", read_path_template="", **kwargs):
         # self.filestore_spec = "AD_EIGER_APSPolar"
         super().__init__(*args, **kwargs)
         self.enable.subscribe(self._set_kind)
