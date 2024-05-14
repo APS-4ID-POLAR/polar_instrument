@@ -80,6 +80,123 @@ class EigerDetectorCam_V34(CamMixin_V34, EigerDetectorCam):
 #     pass
 
 
+# class EpicsFileNameHDF5Plugin(PluginMixin, AD_EpicsFileNameHDF5Plugin):
+#     """Remove property attribute not found in AD IOCs now."""
+
+#     @property
+#     def _plugin_enabled(self):
+#         return self.stage_sigs.get("enable") in (1, "Enable")
+
+#     def generate_datum(self, *args, **kwargs):
+#         if self._plugin_enabled:
+#             super().generate_datum(*args, **kwargs)
+
+#     def read(self):
+#         if self._plugin_enabled:
+#             readings = super().read()
+#         else:
+#             readings = {}
+#         return readings
+
+#     def stage(self):
+#         if self._plugin_enabled:
+#             staged_objects = super().stage()
+#         else:
+#             staged_objects = []
+#         return staged_objects
+
+#     def trigger(self):
+#         if self._plugin_enabled:
+#             trigger_status = super().trigger()
+#         else:
+#             trigger_status = Status(self)
+#             trigger_status.set_finished()
+#         return trigger_status
+
+
+from ophyd.areadetector.filestore_mixins import FileStoreHDF5IterativeWrite
+from os.path import isdir, join
+from ophyd.areadetector.plugins import HDF5Plugin_V34
+from ophyd import Signal
+
+class EigerNamedHDF5FileStore(FileStoreHDF5IterativeWrite):
+    """
+    Using the filename from EPICS.
+    """
+    # seq_id = ADComponent(EpicsSignalRO, "SequenceId")
+    # file_path = ADComponent(EpicsSignalWithRBV, 'FilePath', string=True,
+    #                         put_complete=True)
+    # file_write_name_pattern = ADComponent(EpicsSignalWithRBV, 'FWNamePattern',
+    #                                       string=True, put_complete=True)
+    # file_write_images_per_file = ADComponent(EpicsSignalWithRBV,
+    #                                          'FWNImagesPerFile')
+    # current_run_start_uid = Component(Signal, value='', add_prefix=())
+    # num_images_counter = ADComponent(EpicsSignalRO, 'NumImagesCounter_RBV')
+    # enable = Component(Signal, value=False, kind="omitted")
+
+    autosave = ADComponent(Signal, value="off", kind="config")
+
+    def __init__(self, *args, write_path_template, read_path_template, **kwargs):
+        # self.filestore_spec = "AD_EIGER_APSPolar"
+        super().__init__(*args, **kwargs)
+        self.enable.subscribe(self._set_kind)
+        self._base_name = None
+
+        # This is a workaround to enable setting these values in the detector
+        # startup. Needed because we don't have a stable solution on where
+        # these images would be.
+        self.write_path_template = write_path_template
+        self.read_path_template = read_path_template
+        self._status_stash = None
+
+    def _set_kind(self, value, **kwargs):
+        if value in (True, 1, "on", "Enable"):
+            self.kind = "normal"
+        else:
+            self.kind = "omitted"
+
+    # This is the part to change if a different file scheme is chosen.
+    def make_write_read_paths(self):
+        _base_name = NEW PV
+        write_path = join(self.write_path_template, _base_name)
+        read_path = join(self.read_path_template, _base_name)
+        return write_path, read_path
+
+    def stage(self):
+
+        if self.autosave in (True, 1, "on", "Enable"):
+            self.parent.save_image_on()
+
+        # Only save images if the enable is on...
+        if self.enable.get() in (True, 1, "on", "Enable"):
+            write_path, read_path = self.make_write_read_paths()
+            if isdir(write_path):
+                raise OSError(
+                    f"{write_path} exists! Please be sure that {self.base_name} has "
+                    "been used!"
+                )
+            self.file_path.put(write_path)
+            self._fn = PurePath(read_path)
+
+            super().stage()
+
+            # TODO: This is only needed if we have multiple files for 1 scan.
+            # ipf = int(self.file_write_images_per_file.get())
+            # res_kwargs = {'images_per_file': ipf}
+            # self._generate_resource(res_kwargs)
+
+    def unstage(self):
+        if self.autosave in (True, 1, "on", "Enable"):
+            self.parent.save_image_off()
+
+class HDF5Plugin(PluginMixin, HDF5Plugin_V34):
+    pass
+
+
+class EigerHDF5Plugin(HDF5Plugin, EigerNamedHDF5FileStore):
+    pass
+
+
 class TriggerTime(TriggerBase):
     """
     This trigger mixin class takes one acquisition per trigger.
@@ -159,42 +276,10 @@ class TriggerTime(TriggerBase):
         return self._status
 
 
-class EpicsFileNameHDF5Plugin(PluginMixin, AD_EpicsFileNameHDF5Plugin):
-    """Remove property attribute not found in AD IOCs now."""
-
-    @property
-    def _plugin_enabled(self):
-        return self.stage_sigs.get("enable") in (1, "Enable")
-
-    def generate_datum(self, *args, **kwargs):
-        if self._plugin_enabled:
-            super().generate_datum(*args, **kwargs)
-
-    def read(self):
-        if self._plugin_enabled:
-            readings = super().read()
-        else:
-            readings = {}
-        return readings
-
-    def stage(self):
-        if self._plugin_enabled:
-            staged_objects = super().stage()
-        else:
-            staged_objects = []
-        return staged_objects
-
-    def trigger(self):
-        if self._plugin_enabled:
-            trigger_status = super().trigger()
-        else:
-            trigger_status = Status(self)
-            trigger_status.set_finished()
-        return trigger_status
-
-
-# class Eiger1MDetector(SingleTrigger, DetectorBase):
 class Eiger1MDetector(TriggerTime, DetectorBase):
+
+    _default_configuration_attrs = ('roi1', 'codec1', 'image', 'pva')
+    _default_read_attrs = ('cam', 'hdf1', 'stats1')
     
     cam = ADComponent(EigerDetectorCam_V34, "cam1:")
     codec1 = ADComponent(CodecPlugin_V34, "Codec1:")
@@ -204,11 +289,10 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
     pva = ADComponent(PvaPlugin, "Pva1:")
 
     hdf1 = ADComponent(
-        EpicsFileNameHDF5Plugin,
+        EigerHDF5Plugin,
         "HDF1:",
         write_path_template=f"{IOC_FILES_ROOT / IMAGE_DIR}/",
         read_path_template=f"{BLUESKY_FILES_ROOT / IMAGE_DIR}/",
-        kind="normal",
     )
 
     # Make this compatible with other detectors
@@ -230,12 +314,13 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.cam.acquire.set(0).wait(timeout=10)
 
     def save_images_on(self):
-        self.hdf1.kind = "normal"
         self.hdf1.enable.set("Enable").wait(timeout=10)
 
     def save_images_off(self):
-        self.hdf1.kind = "omitted"
         self.hdf1.enable.set("Disable").wait(timeout=10)
+
+    def auto_save_on(self):
+
             
     def default_settings(self):
         self.cam.num_triggers.put(1)
@@ -274,12 +359,6 @@ def load_eiger1m(prefix="4idEiger:"):
             obj = getattr(eiger1m, nm)
             if "blocking_callbacks" in dir(obj):  # is it a plugin?
                 obj.stage_sigs["blocking_callbacks"] = "No"
-
-        for plugin in "hdf1 stats1".split():
-            # Ensure plugin's read is called.
-            getattr(eiger1m, plugin).kind = Kind.config | Kind.normal  
-
-        eiger1m.hdf1.stage_sigs.move_to_end("capture", last=True)
 
         if iconfig.get("ALLOW_AREA_DETECTOR_WARMUP", False):
             if eiger1m.connected:
