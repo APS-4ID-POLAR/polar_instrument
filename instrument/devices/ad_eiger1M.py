@@ -118,6 +118,7 @@ from ophyd.areadetector.filestore_mixins import FileStoreHDF5IterativeWrite
 from os.path import isdir, join
 from ophyd.areadetector.plugins import HDF5Plugin_V34
 from ophyd import Signal
+from datetime import datetime
 
 class EigerNamedHDF5FileStore(FileStoreHDF5IterativeWrite):
     """
@@ -157,10 +158,19 @@ class EigerNamedHDF5FileStore(FileStoreHDF5IterativeWrite):
 
     # This is the part to change if a different file scheme is chosen.
     def make_write_read_paths(self):
-        _base_name = NEW PV
-        write_path = join(self.write_path_template, _base_name)
-        read_path = join(self.read_path_template, _base_name)
-        return write_path, read_path
+        # Folders - this allows for using dates for folders.
+        formatter = datetime.now().strftime
+        write_path = formatter(self.write_path_template)
+        read_path = formatter(self.read_path_template)
+
+        # File name -- assumes some sort of %s%s_5.5%d.h5 format
+        file_name = self.file_template.get() % (
+            self.file_path.get(),
+            self.file_name.get(),
+            int(self.file_number.get())
+        )
+
+        return write_path, join(read_path, file_name)
 
     def stage(self):
 
@@ -169,14 +179,14 @@ class EigerNamedHDF5FileStore(FileStoreHDF5IterativeWrite):
 
         # Only save images if the enable is on...
         if self.enable.get() in (True, 1, "on", "Enable"):
-            write_path, read_path = self.make_write_read_paths()
+            write_path, read_filepath = self.make_write_read_paths()
             if isdir(write_path):
                 raise OSError(
                     f"{write_path} exists! Please be sure that {self.base_name} has "
                     "been used!"
                 )
             self.file_path.put(write_path)
-            self._fn = PurePath(read_path)
+            self._fn = PurePath(read_filepath)
 
             super().stage()
 
@@ -188,6 +198,7 @@ class EigerNamedHDF5FileStore(FileStoreHDF5IterativeWrite):
     def unstage(self):
         if self.autosave in (True, 1, "on", "Enable"):
             self.parent.save_image_off()
+
 
 class HDF5Plugin(PluginMixin, HDF5Plugin_V34):
     pass
@@ -320,8 +331,11 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.hdf1.enable.set("Disable").wait(timeout=10)
 
     def auto_save_on(self):
-
-            
+        self.hdf1.autosave.put("on")
+    
+    def auto_save_off(self):
+        self.hdf1.autosave.put("off")
+      
     def default_settings(self):
         self.cam.num_triggers.put(1)
         self.cam.manual_trigger.put("Disable")
