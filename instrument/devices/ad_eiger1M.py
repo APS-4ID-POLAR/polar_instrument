@@ -114,7 +114,7 @@ class EigerDetectorCam_V34(CamMixin_V34, EigerDetectorCam):
 #         return trigger_status
 
 
-from ophyd.areadetector.filestore_mixins import FileStoreHDF5IterativeWrite
+from ophyd.areadetector.filestore_mixins import FileStoreHDF5IterativeWrite, FileStoreBase
 from os.path import isdir, join, isfile
 from ophyd.areadetector.plugins import HDF5Plugin_V34
 from ophyd import Signal, Device
@@ -142,10 +142,6 @@ class EigerNamedHDF5FileStore(Device, FileStoreHDF5IterativeWrite):
         # self.filestore_spec = "AD_EIGER_APSPolar"
         super().__init__(*args, write_path_template=write_path_template, **kwargs)
         self.enable.subscribe(self._setup_kind)
-
-        # This is a workaround to enable setting these values in the detector
-        # startup. Needed because we don't have a stable solution on where
-        # these images would be.
 
     def _setup_kind(self, value, **kwargs):
         if value in (True, 1, "on", "Enable"):
@@ -177,7 +173,8 @@ class EigerNamedHDF5FileStore(Device, FileStoreHDF5IterativeWrite):
         # Only save images if the enable is on...
         if self.enable.get() in (True, 1, "on", "Enable"):
 
-            super().stage()
+            self._point_counter = count()
+            FileStoreBase.stage(self)
             
             write_path, write_filepath, read_filepath = self.make_write_read_paths()
             if isfile(write_filepath):
@@ -345,6 +342,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.save_images_off()
         self.plot_roi1()
         self.hdf1.stage_sigs.pop("enable")
+        self.hdf1.stage_sigs["num_capture"] = 1e6
 
     def plot_roi1(self):
         self.stats1.total.kind="hinted"
