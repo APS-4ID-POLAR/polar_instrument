@@ -115,12 +115,13 @@ class EigerDetectorCam_V34(CamMixin_V34, EigerDetectorCam):
 
 
 from ophyd.areadetector.filestore_mixins import FileStoreHDF5IterativeWrite
-from os.path import isdir, join
+from os.path import isdir, join, isfile
 from ophyd.areadetector.plugins import HDF5Plugin_V34
-from ophyd import Signal
+from ophyd import Signal, Device
 from datetime import datetime
+from itertools import count
 
-class EigerNamedHDF5FileStore(FileStoreHDF5IterativeWrite):
+class EigerNamedHDF5FileStore(Device, FileStoreHDF5IterativeWrite):
     """
     Using the filename from EPICS.
     """
@@ -137,16 +138,16 @@ class EigerNamedHDF5FileStore(FileStoreHDF5IterativeWrite):
 
     autosave = ADComponent(Signal, value="off", kind="config")
 
-    def __init__(self, write_path_template="", **kwargs):
+    def __init__(self, *args, write_path_template="", **kwargs):
         # self.filestore_spec = "AD_EIGER_APSPolar"
-        super().__init__(write_path_template, **kwargs)
-        self.enable.subscribe(self._set_kind)
+        super().__init__(*args, write_path_template=write_path_template, **kwargs)
+        self.enable.subscribe(self._setup_kind)
 
         # This is a workaround to enable setting these values in the detector
         # startup. Needed because we don't have a stable solution on where
         # these images would be.
 
-    def _set_kind(self, value, **kwargs):
+    def _setup_kind(self, value, **kwargs):
         if value in (True, 1, "on", "Enable"):
             self.kind = "normal"
         else:
@@ -166,25 +167,26 @@ class EigerNamedHDF5FileStore(FileStoreHDF5IterativeWrite):
             int(self.file_number.get())
         )
 
-        return write_path, join(read_path, file_name)
+        return write_path, join(write_path, file_name), join(read_path, file_name)
 
     def stage(self):
 
-        if self.autosave in (True, 1, "on", "Enable"):
+        if self.autosave.get() in (True, 1, "on", "Enable"):
             self.parent.save_image_on()
 
         # Only save images if the enable is on...
         if self.enable.get() in (True, 1, "on", "Enable"):
-            write_path, read_filepath = self.make_write_read_paths()
-            if isdir(write_path):
+
+            super().stage()
+            
+            write_path, write_filepath, read_filepath = self.make_write_read_paths()
+            if isfile(write_filepath):
                 raise OSError(
-                    f"{write_path} exists! Please be sure that {self.base_name} has "
-                    "been used!"
+                    f"{write_filepath} exists! Cannot overwrite it, so please change the "
+                    "file name."
                 )
             self.file_path.put(write_path)
             self._fn = PurePath(read_filepath)
-
-            super().stage()
 
             # TODO: This is only needed if we have multiple files for 1 scan.
             # ipf = int(self.file_write_images_per_file.get())
@@ -192,8 +194,9 @@ class EigerNamedHDF5FileStore(FileStoreHDF5IterativeWrite):
             # self._generate_resource(res_kwargs)
 
     def unstage(self):
-        if self.autosave in (True, 1, "on", "Enable"):
+        if self.autosave.get() in (True, 1, "on", "Enable"):
             self.parent.save_image_off()
+        super().unstage()
 
 
 class HDF5Plugin(PluginMixin, HDF5Plugin_V34):
@@ -261,7 +264,7 @@ class TriggerTime(TriggerBase):
         )
         # This has to be here to ensure it happens after stopping the
         # acquisition.
-        self.save_images_off()
+        # self.save_images_off()
 
     def trigger(self):
         "Trigger one acquisition."
@@ -278,7 +281,8 @@ class TriggerTime(TriggerBase):
 
         self._status = self._status_type(self)
         self._acquisition_signal.put(1, wait=False)
-        self.generate_datum(self._image_name, ttime())
+        if self.hdf1.enable.get() in (True, 1, "on", "Enable"):
+            self.generate_datum(self._image_name, ttime(), {})
         add_delay(self._status, self._min_period)
         return self._status
 
@@ -340,6 +344,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.setup_manual_trigger()
         self.save_images_off()
         self.plot_roi1()
+        self.hdf1.stage_sigs.pop("enable")
 
     def plot_roi1(self):
         self.stats1.total.kind="hinted"
