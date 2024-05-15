@@ -176,6 +176,10 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
                 self.capture.set(0).wait()
             
             write_path, file_write, read_path, file_read = self.make_write_read_paths()
+
+            for i in [write_path, file_write, read_path, file_read]:
+                print(i)
+
             if isfile(file_write):
                 raise OSError(
                     f"{file_write} already exists! Cannot overwrite it, so please change the "
@@ -434,13 +438,13 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.cam.acquire.put(0)
 
         self.hdf1.file_template.put("%s%s_%6.6d.h5")
-        self.hdf1.num_capture.put(1e6)
+        self.hdf1.num_capture.put(0)
 
         self.setup_manual_trigger()
         self.save_images_off()
         self.plot_roi1()
         self.hdf1.stage_sigs.pop("enable")
-        self.hdf1.stage_sigs["num_capture"] = 1e6
+        self.hdf1.stage_sigs["num_capture"] = 0
 
     def plot_roi1(self):
         self.stats1.total.kind="hinted"
