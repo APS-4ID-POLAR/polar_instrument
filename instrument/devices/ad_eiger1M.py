@@ -1,24 +1,26 @@
 """ Eiger 1M setup """
 
-from ophyd import ADComponent, EpicsSignal, Kind, Staged
-from ophyd.status import Status
-from ophyd.areadetector import DetectorBase, EigerDetectorCam, SingleTrigger
+from ophyd import ADComponent, EpicsSignal, Staged, Signal
+from ophyd.status import wait as status_wait, SubscriptionStatus
+from ophyd.areadetector import DetectorBase, EigerDetectorCam
 from ophyd.areadetector.plugins import(
     PluginBase_V34,
     ImagePlugin_V34,
     PvaPlugin_V34,
     ROIPlugin_V34,
     StatsPlugin_V34,
-    CodecPlugin_V34
+    CodecPlugin_V34,
+    HDF5Plugin_V34
 )
+from ophyd.areadetector.filestore_mixins import FileStoreBase
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
-from ophyd.status import wait as status_wait, SubscriptionStatus
-from apstools.devices import (
-    AD_EpicsFileNameHDF5Plugin, AD_plugin_primed, AD_prime_plugin2, CamMixin_V34, AD_EpicsHdf5FileName
-)
+from apstools.devices import AD_plugin_primed, AD_prime_plugin2, CamMixin_V34
 from apstools.utils import run_in_thread
 from pathlib import PurePath
 from time import time as ttime, sleep
+from os.path import isfile
+from datetime import datetime
+from itertools import count
 from .. import iconfig  # noqa
 from ..session_logs import logger
 logger.info(__file__)
@@ -67,62 +69,6 @@ class EigerDetectorCam_V34(CamMixin_V34, EigerDetectorCam):
     link_3 = None
     dcu_buff_free = None
     offset = None
-
-
-# from ophyd.areadetector.plugins import HDF5Plugin_V34 as HDF5Plugin
-# from ophyd.areadetector.filestore_mixins import FileStoreHDF5SingleIterativeWrite, FileStoreHDF5Single
-
-
-# class AD_EpicsHDF5IterativeWriter(AD_EpicsHdf5FileName, FileStoreHDF5Single):
-#     pass
-
-# class AD_EpicsFileNameHDF5Plugin(HDF5Plugin, AD_EpicsHDF5IterativeWriter):
-#     pass
-
-
-# class EpicsFileNameHDF5Plugin(PluginMixin, AD_EpicsFileNameHDF5Plugin):
-#     """Remove property attribute not found in AD IOCs now."""
-
-#     @property
-#     def _plugin_enabled(self):
-#         return self.stage_sigs.get("enable") in (1, "Enable")
-
-#     def generate_datum(self, *args, **kwargs):
-#         if self._plugin_enabled:
-#             super().generate_datum(*args, **kwargs)
-
-#     def read(self):
-#         if self._plugin_enabled:
-#             readings = super().read()
-#         else:
-#             readings = {}
-#         return readings
-
-#     def stage(self):
-#         if self._plugin_enabled:
-#             staged_objects = super().stage()
-#         else:
-#             staged_objects = []
-#         return staged_objects
-
-#     def trigger(self):
-#         if self._plugin_enabled:
-#             trigger_status = super().trigger()
-#         else:
-#             trigger_status = Status(self)
-#             trigger_status.set_finished()
-#         return trigger_status
-
-
-from ophyd.areadetector.filestore_mixins import (
-    FileStoreHDF5, FileStoreHDF5IterativeWrite, FileStoreBase, FileStoreIterativeWrite,
-    FileStorePluginBase
-)
-from os.path import isdir, join, isfile
-from ophyd.areadetector.plugins import HDF5Plugin_V34
-from ophyd import Signal, Device
-from datetime import datetime
-from itertools import count
 
 
 class FileStorePluginBaseEpicsName(FileStoreBase):
@@ -178,19 +124,9 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
             write_path, file_write, read_path, file_read = self.make_write_read_paths()
             if isfile(file_write):
                 raise OSError(
-                    f"{file_write} already exists! Cannot overwrite it, so please change the "
-                    "file name."
+                    f"{file_write} already exists! Cannot overwrite it, so please "
+                    "change the file name."
                 )
-
-            # TODO: I don't know why this doesn't work. So need to get the name, and put it back because
-            # the super().stage() will change the name.
-            # self._point_counter = count()
-            # FileStoreBase.stage(self)
-        
-            # TODO: this is a workaround...
-            # _fname = self.file_name.get()
-            # super().stage()
-            # self.file_name.set(_fname).wait()
 
             self.file_path.set(write_path).wait()
             super().stage()
@@ -198,12 +134,9 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
             self._fn = file_read
             self._fp = read_path
             if not self.file_path_exists.get():
-                raise IOError("Path %s does not exist on IOC." "" % self.file_path.get())
-
-            # TODO: This is only needed if we have multiple files for 1 scan.
-            # ipf = int(self.file_write_images_per_file.get())
-            # res_kwargs = {'images_per_file': ipf}
-            # self._generate_resource(res_kwargs)
+                raise IOError(
+                    "Path %s does not exist on IOC." "" % self.file_path.get()
+                )
 
     def unstage(self):
         if self.autosave.get() in (True, 1, "on", "Enable"):
