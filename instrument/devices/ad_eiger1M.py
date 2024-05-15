@@ -114,7 +114,10 @@ class EigerDetectorCam_V34(CamMixin_V34, EigerDetectorCam):
 #         return trigger_status
 
 
-from ophyd.areadetector.filestore_mixins import FileStoreHDF5, FileStoreHDF5IterativeWrite, FileStoreBase, FileStoreIterativeWrite
+from ophyd.areadetector.filestore_mixins import (
+    FileStoreHDF5, FileStoreHDF5IterativeWrite, FileStoreBase, FileStoreIterativeWrite,
+    FileStorePluginBase
+)
 from os.path import isdir, join, isfile
 from ophyd.areadetector.plugins import HDF5Plugin_V34
 from ophyd import Signal, Device
@@ -122,7 +125,22 @@ from datetime import datetime
 from itertools import count
 
 
-class EpicsNameFileStore(FileStoreBase):
+class FileStorePluginBaseEpicsName(FileStoreBase):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if hasattr(self, "create_directory"):
+            self.stage_sigs.update({"create_directory": -3})
+        self.stage_sigs.update(
+            [
+                ("auto_increment", "Yes"),
+                ("array_counter", 0),
+                ("auto_save", "Yes"),
+                ("num_capture", 0),
+            ]
+        )
+        self._fn = None
+        self._fp = None
 
     # This is the part to change if a different file scheme is chosen.
     def make_write_read_paths(self):
@@ -144,7 +162,7 @@ class EpicsNameFileStore(FileStoreBase):
             int(self.file_number.get())
         )
 
-        return write_path, file_write, file_read
+        return write_path, file_write, read_path, file_read
 
     def stage(self):
 
@@ -153,32 +171,34 @@ class EpicsNameFileStore(FileStoreBase):
 
         # Only save images if the enable is on...
         if self.enable.get() in (True, 1, "on", "Enable"):
+
+            if self.file_write_mode.get(as_string=True) != "Single":
+                self.capture.set(0).wait()
             
-            write_path, file_write, file_read = self.make_write_read_paths()
+            write_path, file_write, read_path, file_read = self.make_write_read_paths()
             if isfile(file_write):
                 raise OSError(
                     f"{file_write} already exists! Cannot overwrite it, so please change the "
                     "file name."
                 )
-            
-            print(self.file_name.get())
 
             # TODO: I don't know why this doesn't work. So need to get the name, and put it back because
             # the super().stage() will change the name.
-            self._point_counter = count()
-            FileStoreBase.stage(self)
-            
-
-            print(self.file_name.get())
+            # self._point_counter = count()
+            # FileStoreBase.stage(self)
+        
             # TODO: this is a workaround...
-
             # _fname = self.file_name.get()
             # super().stage()
             # self.file_name.set(_fname).wait()
 
             self.file_path.set(write_path).wait()
-            # self.file_name.set(file_name)
-            self._fn = PurePath(file_read)
+            super().stage()
+
+            self._fn = file_read
+            self._fp = read_path
+            if not self.file_path_exists.get():
+                raise IOError("Path %s does not exist on IOC." "" % self.file_path.get())
 
             # TODO: This is only needed if we have multiple files for 1 scan.
             # ipf = int(self.file_write_images_per_file.get())
@@ -191,24 +211,65 @@ class EpicsNameFileStore(FileStoreBase):
         super().unstage()
 
 
-class EpicsNameFilestoreIteractiveWrite(FileStoreHDF5IterativeWrite, EpicsNameFileStore):
-    pass
+class FileStoreHDF5IterativeWriteEpicsName(FileStorePluginBaseEpicsName):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.filestore_spec = "AD_HDF5"  # spec name stored in resource doc
+        self.stage_sigs.update(
+            [
+                ("file_template", "%s%s_%6.6d.h5"),
+                ("file_write_mode", "Stream"),
+                ("capture", 1),
+            ]
+        )
+        self._point_counter = None
 
-class MyFileStoreHDF5(FileStoreHDF5):
+    def get_frames_per_point(self):
+        num_capture = self.num_capture.get()
+        # If num_capture is 0, then the plugin will capture however many frames
+        # it is sent. We can get how frames it will be sent (unless
+        # interrupted) by consulting num_images on the detector's camera.
+        if num_capture == 0:
+            return self.parent.cam.num_images.get()
+        # Otherwise, a nonzero num_capture will cut off capturing at the
+        # specified number.
+        return num_capture
+
     def stage(self):
+        super().stage()
         res_kwargs = {"frame_per_point": self.get_frames_per_point()}
         self._generate_resource(res_kwargs)
+        self._point_counter = count()
+
+    def unstage(self):
+        self._point_counter = None
+        super().unstage()
+
+    def generate_datum(self, key, timestamp, datum_kwargs):
+        i = next(self._point_counter)
+        datum_kwargs = datum_kwargs or {}
+        datum_kwargs.update({"point_number": i})
+        return super().generate_datum(key, timestamp, datum_kwargs)
 
 
-class EpicsNameHDF5FileStore(EpicsNameFilestoreIteractiveWrite, MyFileStoreHDF5):
-    pass
+# class EpicsNameFilestoreIteractiveWrite(FileStoreHDF5IterativeWrite, EpicsNameFileStore):
+#     pass
+
+# class MyFileStoreHDF5(FileStoreHDF5):
+#     def stage(self):
+#         res_kwargs = {"frame_per_point": self.get_frames_per_point()}
+#         self._generate_resource(res_kwargs)
+
+
+# class EpicsNameHDF5FileStore(EpicsNameFilestoreIteractiveWrite, MyFileStoreHDF5):
+#     pass
 
 
 class HDF5Plugin(PluginMixin, HDF5Plugin_V34):
     pass
 
 
-class EigerHDF5Plugin(HDF5Plugin, EpicsNameHDF5FileStore):
+class EigerHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
 
     """
     Using the filename from EPICS.
