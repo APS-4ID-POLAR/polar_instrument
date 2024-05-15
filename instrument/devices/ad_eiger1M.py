@@ -114,14 +114,90 @@ class EigerDetectorCam_V34(CamMixin_V34, EigerDetectorCam):
 #         return trigger_status
 
 
-from ophyd.areadetector.filestore_mixins import FileStoreHDF5IterativeWrite, FileStoreBase
+from ophyd.areadetector.filestore_mixins import FileStoreHDF5, FileStoreHDF5IterativeWrite, FileStoreBase, FileStoreIterativeWrite
 from os.path import isdir, join, isfile
 from ophyd.areadetector.plugins import HDF5Plugin_V34
 from ophyd import Signal, Device
 from datetime import datetime
 from itertools import count
 
-class EigerNamedHDF5FileStore(Device, FileStoreHDF5IterativeWrite):
+
+class EpicsNameFileStore(FileStoreIterativeWrite):
+
+    # This is the part to change if a different file scheme is chosen.
+    def make_write_read_paths(self):
+        # Folders - this allows for using dates for folders.
+        formatter = datetime.now().strftime
+        write_path = formatter(self.write_path_template)
+        read_path = formatter(self.read_path_template)
+
+        # File name -- assumes some sort of %s%s_5.5%d.h5 format
+        file_read = self.file_template.get() % (
+            read_path,
+            self.file_name.get(),
+            int(self.file_number.get())
+        )
+
+        file_write = self.file_template.get() % (
+            write_path + "/",
+            self.file_name.get(),
+            int(self.file_number.get())
+        )
+
+        return write_path, file_write, file_read
+
+    def stage(self):
+
+        if self.autosave.get() in (True, 1, "on", "Enable"):
+            self.parent.save_image_on()
+
+        # Only save images if the enable is on...
+        if self.enable.get() in (True, 1, "on", "Enable"):
+            
+            write_path, file_write, file_read = self.make_write_read_paths()
+            if isfile(file_write):
+                raise OSError(
+                    f"{file_write} already exists! Cannot overwrite it, so please change the "
+                    "file name."
+                )
+            
+
+            # TODO: I don't know why this doesn't work. So need to get the name, and put it back because
+            # the super().stage() will change the name.
+            self._point_counter = count()
+            FileStoreBase.stage(self)
+
+            # TODO: this is a workaround...
+
+            # _fname = self.file_name.get()
+            # super().stage()
+            # self.file_name.set(_fname).wait()
+
+            self.file_path.set(write_path).wait()
+            # self.file_name.set(file_name)
+            self._fn = PurePath(file_read)
+
+            # TODO: This is only needed if we have multiple files for 1 scan.
+            # ipf = int(self.file_write_images_per_file.get())
+            # res_kwargs = {'images_per_file': ipf}
+            # self._generate_resource(res_kwargs)
+
+    def unstage(self):
+        if self.autosave.get() in (True, 1, "on", "Enable"):
+            self.parent.save_image_off()
+        super().unstage()
+
+
+class EpicsNameHDF5FileStore(FileStoreHDF5, EpicsNameFileStore):
+    pass
+
+
+class HDF5Plugin(PluginMixin, HDF5Plugin_V34):
+    pass
+
+
+class EigerHDF5Plugin(HDF5Plugin, EpicsNameHDF5FileStore):
+
     """
     Using the filename from EPICS.
     """
@@ -135,7 +211,6 @@ class EigerNamedHDF5FileStore(Device, FileStoreHDF5IterativeWrite):
     # current_run_start_uid = Component(Signal, value='', add_prefix=())
     # num_images_counter = ADComponent(EpicsSignalRO, 'NumImagesCounter_RBV')
     # enable = Component(Signal, value=False, kind="omitted")
-
     autosave = ADComponent(Signal, value="off", kind="config")
 
     def __init__(self, *args, write_path_template="", **kwargs):
@@ -148,60 +223,6 @@ class EigerNamedHDF5FileStore(Device, FileStoreHDF5IterativeWrite):
             self.kind = "normal"
         else:
             self.kind = "omitted"
-
-    # This is the part to change if a different file scheme is chosen.
-    def make_write_read_paths(self):
-        # Folders - this allows for using dates for folders.
-        formatter = datetime.now().strftime
-        write_path = formatter(self.write_path_template)
-        read_path = formatter(self.read_path_template)
-
-        # File name -- assumes some sort of %s%s_5.5%d.h5 format
-        file_name = self.file_template.get() % (
-            self.file_path.get(),
-            self.file_name.get(),
-            int(self.file_number.get())
-        )
-
-        return write_path, join(write_path, file_name), join(read_path, file_name)
-
-    def stage(self):
-
-        if self.autosave.get() in (True, 1, "on", "Enable"):
-            self.parent.save_image_on()
-
-        # Only save images if the enable is on...
-        if self.enable.get() in (True, 1, "on", "Enable"):
-
-            self._point_counter = count()
-            FileStoreBase.stage(self)
-            
-            write_path, write_filepath, read_filepath = self.make_write_read_paths()
-            if isfile(write_filepath):
-                raise OSError(
-                    f"{write_filepath} exists! Cannot overwrite it, so please change the "
-                    "file name."
-                )
-            self.file_path.put(write_path)
-            self._fn = PurePath(read_filepath)
-
-            # TODO: This is only needed if we have multiple files for 1 scan.
-            # ipf = int(self.file_write_images_per_file.get())
-            # res_kwargs = {'images_per_file': ipf}
-            # self._generate_resource(res_kwargs)
-
-    def unstage(self):
-        if self.autosave.get() in (True, 1, "on", "Enable"):
-            self.parent.save_image_off()
-        super().unstage()
-
-
-class HDF5Plugin(PluginMixin, HDF5Plugin_V34):
-    pass
-
-
-class EigerHDF5Plugin(HDF5Plugin, EigerNamedHDF5FileStore):
-    pass
 
 
 class TriggerTime(TriggerBase):
@@ -338,6 +359,10 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.cam.manual_trigger.put("Disable")
         self.cam.trigger_mode.put("Internal Enable")
         self.cam.acquire.put(0)
+
+        self.hdf1.file_template.put("%s%s_%6.6d.h5")
+        self.hdf1.num_capture.put(1e6)
+
         self.setup_manual_trigger()
         self.save_images_off()
         self.plot_roi1()
