@@ -178,19 +178,6 @@ class FileStoreHDF5IterativeWriteEpicsName(FileStorePluginBaseEpicsName):
         return super().generate_datum(key, timestamp, datum_kwargs)
 
 
-# class EpicsNameFilestoreIteractiveWrite(FileStoreHDF5IterativeWrite, EpicsNameFileStore):
-#     pass
-
-# class MyFileStoreHDF5(FileStoreHDF5):
-#     def stage(self):
-#         res_kwargs = {"frame_per_point": self.get_frames_per_point()}
-#         self._generate_resource(res_kwargs)
-
-
-# class EpicsNameHDF5FileStore(EpicsNameFilestoreIteractiveWrite, MyFileStoreHDF5):
-#     pass
-
-
 class HDF5Plugin(PluginMixin, HDF5Plugin_V34):
     pass
 
@@ -200,16 +187,7 @@ class EigerHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
     """
     Using the filename from EPICS.
     """
-    # seq_id = ADComponent(EpicsSignalRO, "SequenceId")
-    # file_path = ADComponent(EpicsSignalWithRBV, 'FilePath', string=True,
-    #                         put_complete=True)
-    # file_write_name_pattern = ADComponent(EpicsSignalWithRBV, 'FWNamePattern',
-    #                                       string=True, put_complete=True)
-    # file_write_images_per_file = ADComponent(EpicsSignalWithRBV,
-    #                                          'FWNImagesPerFile')
-    # current_run_start_uid = Component(Signal, value='', add_prefix=())
-    # num_images_counter = ADComponent(EpicsSignalRO, 'NumImagesCounter_RBV')
-    # enable = Component(Signal, value=False, kind="omitted")
+
     autosave = ADComponent(Signal, value="off", kind="config")
 
     def __init__(self, *args, write_path_template="", **kwargs):
@@ -282,16 +260,13 @@ class TriggerTime(TriggerBase):
             "Return True when detector is done"
             return (value == "Ready" or value == "Acquisition aborted")
 
-        # When stopping the detector, it may take some time processing the
-        # images. This will block until it's done.
+        # When stopping the detector, it may take some time processing the images.
+        # This will block until it's done.
         status_wait(
             SubscriptionStatus(
                 self.cam.status_message, check_value, timeout=10
             )
         )
-        # This has to be here to ensure it happens after stopping the
-        # acquisition.
-        # self.save_images_off()
 
     def trigger(self):
         "Trigger one acquisition."
@@ -372,11 +347,12 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.hdf1.file_template.put("%s%s_%6.6d.h5")
         self.hdf1.num_capture.put(0)
 
+        self.hdf1.stage_sigs.pop("enable")
+        self.hdf1.stage_sigs["num_capture"] = 0
+    
         self.setup_manual_trigger()
         self.save_images_off()
         self.plot_roi1()
-        self.hdf1.stage_sigs.pop("enable")
-        self.hdf1.stage_sigs["num_capture"] = 0
 
     def plot_roi1(self):
         self.stats1.total.kind="hinted"
