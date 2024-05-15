@@ -122,7 +122,7 @@ from datetime import datetime
 from itertools import count
 
 
-class EpicsNameFileStore(FileStoreIterativeWrite):
+class EpicsNameFileStore(FileStoreBase):
 
     # This is the part to change if a different file scheme is chosen.
     def make_write_read_paths(self):
@@ -161,12 +161,15 @@ class EpicsNameFileStore(FileStoreIterativeWrite):
                     "file name."
                 )
             
+            print(self.file_name.get())
 
             # TODO: I don't know why this doesn't work. So need to get the name, and put it back because
             # the super().stage() will change the name.
             self._point_counter = count()
             FileStoreBase.stage(self)
+            
 
+            print(self.file_name.get())
             # TODO: this is a workaround...
 
             # _fname = self.file_name.get()
@@ -188,7 +191,16 @@ class EpicsNameFileStore(FileStoreIterativeWrite):
         super().unstage()
 
 
-class EpicsNameHDF5FileStore(FileStoreHDF5, EpicsNameFileStore):
+class EpicsNameFilestoreIteractiveWrite(FileStoreHDF5IterativeWrite, EpicsNameFileStore):
+    pass
+
+class MyFileStoreHDF5(FileStoreHDF5):
+    def stage(self):
+        res_kwargs = {"frame_per_point": self.get_frames_per_point()}
+        self._generate_resource(res_kwargs)
+
+
+class EpicsNameHDF5FileStore(EpicsNameFilestoreIteractiveWrite, MyFileStoreHDF5):
     pass
 
 
