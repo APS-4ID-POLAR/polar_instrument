@@ -78,8 +78,9 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
                 ("num_capture", 0),
             ]
         )
-        self._fn = ""
-        self._fp = ""
+        # This is needed if you want to start bluesky and run a no-image scan first.
+        self._fn = None
+        self._fp = None
 
     # This is the part to change if a different file scheme is chosen.
     def make_write_read_paths(self):
@@ -157,6 +158,8 @@ class FileStoreHDF5IterativeWriteEpicsName(FileStorePluginBaseEpicsName):
     def stage(self):
         super().stage()
         res_kwargs = {"frame_per_point": self.get_frames_per_point()}
+        if self._fn is None:
+            self._fn = self.hdf1.reg_root
         self._generate_resource(res_kwargs)
         self._point_counter = count()
 
