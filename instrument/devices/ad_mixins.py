@@ -17,13 +17,8 @@ from pathlib import PurePath
 from os.path import isfile
 from datetime import datetime
 from itertools import count
-from .. import iconfig  # noqa
 from ..session_logs import logger
 logger.info(__file__)
-
-BLUESKY_FILES_ROOT = PurePath(iconfig["AREA_DETECTOR"]["BLUESKY_FILES_ROOT"])
-IOC_FILES_ROOT = PurePath(iconfig["AREA_DETECTOR"]["EIGER_1M"]["IOC_FILES_ROOT"])
-IMAGE_DIR = iconfig["AREA_DETECTOR"].get("IMAGE_DIR", "%Y/%m/%d/")
 
 
 class PluginMixin(PluginBase_V34):
@@ -83,8 +78,8 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
                 ("num_capture", 0),
             ]
         )
-        self._fn = None
-        self._fp = None
+        self._fn = ""
+        self._fp = ""
 
     # This is the part to change if a different file scheme is chosen.
     def make_write_read_paths(self):
