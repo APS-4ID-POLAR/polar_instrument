@@ -166,9 +166,6 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
 
     def stage(self):
 
-        if self.autosave.get() in (True, 1, "on", "Enable"):
-            self.parent.save_image_on()
-
         # Only save images if the enable is on...
         if self.enable.get() in (True, 1, "on", "Enable"):
 
@@ -176,9 +173,6 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
                 self.capture.set(0).wait()
             
             write_path, file_write, read_path, file_read = self.make_write_read_paths()
-
-            for i in [write_path, file_write, read_path, file_read]:
-                print(i)
 
             if isfile(file_write):
                 raise OSError(
@@ -208,11 +202,6 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
             # ipf = int(self.file_write_images_per_file.get())
             # res_kwargs = {'images_per_file': ipf}
             # self._generate_resource(res_kwargs)
-
-    def unstage(self):
-        if self.autosave.get() in (True, 1, "on", "Enable"):
-            self.parent.save_image_off()
-        super().unstage()
 
 
 class FileStoreHDF5IterativeWriteEpicsName(FileStorePluginBaseEpicsName):
@@ -300,6 +289,16 @@ class EigerHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
             self.kind = "normal"
         else:
             self.kind = "omitted"
+
+    def stage(self):
+        if self.autosave.get() in (True, 1, "on", "Enable"):
+            self.parent.save_images_on()
+        super().stage()
+
+    def unstage(self):
+        if self.autosave.get() in (True, 1, "on", "Enable"):
+            self.parent.save_images_off()
+        super().unstage()
 
 
 class TriggerTime(TriggerBase):
