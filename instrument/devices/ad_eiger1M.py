@@ -112,9 +112,6 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
 
     def stage(self):
 
-        if self.autosave.get() in (True, 1, "on", "Enable"):
-            self.parent.save_image_on()
-
         # Only save images if the enable is on...
         if self.enable.get() in (True, 1, "on", "Enable"):
 
@@ -122,6 +119,7 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
                 self.capture.set(0).wait()
             
             write_path, file_write, read_path, file_read = self.make_write_read_paths()
+
             if isfile(file_write):
                 raise OSError(
                     f"{file_write} already exists! Cannot overwrite it, so please "
@@ -137,11 +135,6 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
                 raise IOError(
                     "Path %s does not exist on IOC." "" % self.file_path.get()
                 )
-
-    def unstage(self):
-        if self.autosave.get() in (True, 1, "on", "Enable"):
-            self.parent.save_image_off()
-        super().unstage()
 
 
 class FileStoreHDF5IterativeWriteEpicsName(FileStorePluginBaseEpicsName):
@@ -229,6 +222,16 @@ class EigerHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
             self.kind = "normal"
         else:
             self.kind = "omitted"
+
+    def stage(self):
+        if self.autosave.get() in (True, 1, "on", "Enable"):
+            self.parent.save_images_on()
+        super().stage()
+
+    def unstage(self):
+        if self.autosave.get() in (True, 1, "on", "Enable"):
+            self.parent.save_images_off()
+        super().unstage()
 
 
 class TriggerTime(TriggerBase):
@@ -367,13 +370,13 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.cam.acquire.put(0)
 
         self.hdf1.file_template.put("%s%s_%6.6d.h5")
-        self.hdf1.num_capture.put(1e6)
+        self.hdf1.num_capture.put(0)
 
         self.setup_manual_trigger()
         self.save_images_off()
         self.plot_roi1()
         self.hdf1.stage_sigs.pop("enable")
-        self.hdf1.stage_sigs["num_capture"] = 1e6
+        self.hdf1.stage_sigs["num_capture"] = 0
 
     def plot_roi1(self):
         self.stats1.total.kind="hinted"
