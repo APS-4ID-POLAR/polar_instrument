@@ -159,7 +159,7 @@ class FileStoreHDF5IterativeWriteEpicsName(FileStorePluginBaseEpicsName):
         super().stage()
         res_kwargs = {"frame_per_point": self.get_frames_per_point()}
         if self._fn is None:
-            self._fn = self.hdf1.reg_root
+            self._fn = self.reg_root
         self._generate_resource(res_kwargs)
         self._point_counter = count()
 
