@@ -80,4 +80,4 @@ class SoftGlueZynqDevice(Device):
 
 
 sgz = SoftGlueZynqDevice('4idIF:SG:', name='sgz')
-# sd.baseline.append(sgz)
+sd.baseline.append(sgz)
