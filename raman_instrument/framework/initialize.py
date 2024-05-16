@@ -45,6 +45,8 @@ import numpy as np
 # This already setup the handlers
 from polartools.load_data import load_catalog
 
+# SPE handler
+from .spe_handler import SPEHandler
 
 def get_md_path():
     path = iconfig.get("RUNENGINE_MD_PATH")
@@ -69,9 +71,12 @@ catalog_name = iconfig.get("DATABROKER_CATALOG", "training")
 try:
     cat = load_catalog(catalog_name)
     logger.info("using databroker catalog '%s'", cat.name)
+    # TODO: remove this when polartools > 0.4.0
+    cat.register_handler("AD_SPE_APSPolar", SPEHandler, overwrite=True)
 except KeyError:
     cat = databroker.temp().v2
     logger.info("using TEMPORARY databroker catalog '%s'", cat.name)
+
 
 # Subscribe metadatastore to documents.
 # If this is removed, data is not saved to metadatastore.
