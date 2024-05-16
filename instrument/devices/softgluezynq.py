@@ -31,7 +31,7 @@ def _buffer_fields(num=4):
     for i in range(num):
         defn[f"in{i}"] = (EpicsSignal, f"{i}_IN_SIGNAL", {"kind": "config"})
         defn[f"out{i}"] = (EpicsSignal, f"{i}_OUT_SIGNAL", {"kind": "config"})
-
+    return defn
 # class SoftGlueZynqBuffers(Device):
 #     in1 = Component(EpicsSignal, "1_IN_SIGNAL", kind="config")
 #     out1 = Component(EpicsSignal, "1_OUT_SIGNAL", kind="config")
@@ -59,6 +59,7 @@ def _dma_fields(num=8, first_letter="I"):
         defn[f"channel_{i}_scale"] = (
             EpicsSignal, f"1acquireDma.{chr(ord(first_letter)+i)}", {"kind": "config"}
         )
+    return defn
 
 # class SoftGlueZynqDma(Device):
 #     enable = Component(EpicsSignal, "1acquireDmaEnable", kind="config")
