@@ -29,8 +29,8 @@ class SoftGlueZynqUpCounter(Device):
 def _buffer_fields(num=4):
     defn = OrderedDict()
     for i in range(num):
-        defn[f"in{i}"] = (EpicsSignal, f"{i}_IN_SIGNAL", {"kind": "config"})
-        defn[f"out{i}"] = (EpicsSignal, f"{i}_OUT_SIGNAL", {"kind": "config"})
+        defn[f"in{i}"] = (EpicsSignal, f"SG:{i}_IN_SIGNAL", {"kind": "config"})
+        defn[f"out{i}"] = (EpicsSignal, f"SG:{i}_OUT_SIGNAL", {"kind": "config"})
     return defn
 # class SoftGlueZynqBuffers(Device):
 #     in1 = Component(EpicsSignal, "1_IN_SIGNAL", kind="config")
@@ -75,10 +75,10 @@ class SoftGlueZynqDevice(Device):
     # buffers = Component(SoftGlueZynqBuffers, "BUFFER-")
     buffers = DynamicDeviceComponent(_buffer_fields())
     # Using channel #1 of up counter
-    up_counter = Component(SoftGlueZynqUpCounter, "UpCntr-1_", kind="config")
+    up_counter = Component(SoftGlueZynqUpCounter, "SG:UpCntr-1_", kind="config")
     # Using the channel #3 of divide by N
-    div_by_n = Component(SoftGlueZynqDevideByN, "DivByN-3_", kind="config")
+    div_by_n = Component(SoftGlueZynqDevideByN, "SG:DivByN-3_", kind="config")
 
 
-sgz = SoftGlueZynqDevice('4idIF:SG:', name='sgz')
+sgz = SoftGlueZynqDevice('4idIF:', name='sgz')
 sd.baseline.append(sgz)
