@@ -29,8 +29,8 @@ class SoftGlueZynqUpCounter(Device):
 def _buffer_fields(num=4):
     defn = OrderedDict()
     for i in range(1, num+1):
-        defn[f"in{i}"] = (EpicsSignal, f"SG:{i}_IN_SIGNAL", {"kind": "config"})
-        defn[f"out{i}"] = (EpicsSignal, f"SG:{i}_OUT_SIGNAL", {"kind": "config"})
+        defn[f"in{i}"] = (EpicsSignal, f"SG:BUFFER-{i}_IN_SIGNAL", {"kind": "config"})
+        defn[f"out{i}"] = (EpicsSignal, f"SG:BUFFER-{i}_OUT_SIGNAL", {"kind": "config"})
     return defn
 # class SoftGlueZynqBuffers(Device):
 #     in1 = Component(EpicsSignal, "1_IN_SIGNAL", kind="config")
@@ -50,7 +50,7 @@ def _dma_fields(num=8, first_letter="I"):
     defn = OrderedDict()
     defn["enable"] = (EpicsSignal, "1acquireDmaEnable", {"kind":"config"})
     defn["clear_buffer"] = (EpicsSignal, "1acquireDma.F", {"kind":"omitted"})
-    defn["words_in_buffer"] = (EpicsSignalRO, "1acquireDma.VALj", {"kind":"config"})
+    defn["words_in_buffer"] = (EpicsSignalRO, "1acquireDma.VALJ", {"kind":"config"})
     defn["events"] = (EpicsSignalRO, "1acquireDma.VALI", {"kind":"config"})
     for i in range(1, num+1):
         defn[f"channel_{i}_name"] = (
