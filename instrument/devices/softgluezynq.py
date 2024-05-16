@@ -28,7 +28,7 @@ class SoftGlueZynqUpCounter(Device):
 
 def _buffer_fields(num=4):
     defn = OrderedDict()
-    for i in range(num):
+    for i in range(1, num+1):
         defn[f"in{i}"] = (EpicsSignal, f"SG:{i}_IN_SIGNAL", {"kind": "config"})
         defn[f"out{i}"] = (EpicsSignal, f"SG:{i}_OUT_SIGNAL", {"kind": "config"})
     return defn
@@ -52,12 +52,12 @@ def _dma_fields(num=8, first_letter="I"):
     defn["clear_buffer"] = (EpicsSignal, "1acquireDma.F", {"kind":"omitted"})
     defn["words_in_buffer"] = (EpicsSignalRO, "1acquireDma.VALj", {"kind":"config"})
     defn["events"] = (EpicsSignalRO, "1acquireDma.VALI", {"kind":"config"})
-    for i in range(num):
+    for i in range(1, num+1):
         defn[f"channel_{i}_name"] = (
             EpicsSignal, f"1s{i}name", {"kind": "config"}
         )
         defn[f"channel_{i}_scale"] = (
-            EpicsSignal, f"1acquireDma.{chr(ord(first_letter)+i)}", {"kind": "config"}
+            EpicsSignal, f"1acquireDma.{chr(ord(first_letter)+i-1)}", {"kind": "config"}
         )
     return defn
 
