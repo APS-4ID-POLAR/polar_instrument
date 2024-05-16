@@ -29,8 +29,8 @@ class SoftGlueZynqUpCounter(Device):
 def _buffer_fields(num=4):
     defn = OrderedDict()
     for i in range(1, num+1):
-        defn[f"in{i}"] = (EpicsSignal, f"SG:BUFFER-{i}_IN_SIGNAL", {"kind": "config"})
-        defn[f"out{i}"] = (EpicsSignal, f"SG:BUFFER-{i}_OUT_SIGNAL", {"kind": "config"})
+        defn[f"in{i}"] = (EpicsSignal, f"SG:BUFFER-{i}_IN_Signal", {"kind": "config"})
+        defn[f"out{i}"] = (EpicsSignal, f"SG:BUFFER-{i}_OUT_Signal", {"kind": "config"})
     return defn
 # class SoftGlueZynqBuffers(Device):
 #     in1 = Component(EpicsSignal, "1_IN_SIGNAL", kind="config")
