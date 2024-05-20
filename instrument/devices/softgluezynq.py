@@ -6,6 +6,7 @@ __all__ = ['sgz']
 
 from ophyd import Component, Device, EpicsSignal, EpicsSignalRO, DynamicDeviceComponent
 from collections import OrderedDict
+from bluesky.plan_stubs import mv
 from ..framework import sd
 from ..session_logs import logger
 logger.info(__file__)
@@ -57,6 +58,16 @@ class SoftGlueZynqDevice(Device):
     up_counter = Component(SoftGlueZynqUpCounter, "SG:UpCntr-1_", kind="config")
     # Using the channel #3 of divide by N
     div_by_n = Component(SoftGlueZynqDevideByN, "SG:DivByN-3_", kind="config")
+
+    def start_plan(self):
+        yield from mv(self.buffers.in4, 1)
+
+    def stop_plan(self):
+        yield from mv(self.buffers.in4, 0)
+
+    def setup_trigger_time_plan(self, time):
+        # We are using the 10 MHz clock as a refence
+        yield from mv(self.div_by_n.n, 1e7/(1/time))
 
 
 sgz = SoftGlueZynqDevice('4idIF:', name='sgz')
