@@ -62,6 +62,16 @@ class TriggerTime(TriggerBase):
         # TODO: I don't like this too much, would prefer that we set this for each scan.
         self.cam.stage_sigs["num_triggers"] = int(1e5)
 
+    def setup_external_trigger(self):
+        # Stage signals
+        self.cam.stage_sigs["trigger_mode"] = "External Enable"
+        self.cam.stage_sigs["manual_trigger"] = "Disable"
+        self.cam.stage_sigs["num_images"] = 1
+        self.cam.stage_sigs["num_exposures"] = 1
+        # TODO: We may not need this.
+        # self.cam.stage_sigs["num_triggers"] = int(1e5)
+        self.cam.stage_sigs.pop("num_triggers")
+
     def stage(self):
         # Make sure that detector is not armed.
         self.cam.acquire.set(0).wait(timeout=10)
