@@ -37,6 +37,20 @@ WRITE_SPEC_DATA_FILES: true
 
 # ----------------------------------
 
+AREA_DETECTOR:
+  # TODO: switch to the Voyager-based path structure: "/gdata/..."
+  BLUESKY_FILES_ROOT: &BLUESKY_DATA_ROOT "/home/beams/POLAR/data/bluesky_images/eiger1M_test"
+  IMAGE_DIR: "%Y/%m/%d/"
+  HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
+  EIGER_1M:
+    # IOC host: beryl:/net/s8iddserv/xorApps/epics/synApps_6_2_1/ioc/8idEiger4m/iocBoot/ioc8idEiger4m/softioc/8idEiger4m.pl status
+    # Same filesystem
+    IOC_FILES_ROOT: *BLUESKY_DATA_ROOT
+    # NAME: eiger4M
+    # PV_PREFIX: "8idEiger4m:"
+
+# ----------------------------------
+
 # Directory to "autosave" the RE.md dictionary (uses PersistentDict)
 # Uncomment and modify to change from the default.
 RUNENGINE_MD_PATH: /home/beams/POLAR/.config/Bluesky_RunEngine_md
