@@ -70,7 +70,10 @@ class TriggerTime(TriggerBase):
         self.cam.stage_sigs["num_exposures"] = 1
         # TODO: We may not need this.
         # self.cam.stage_sigs["num_triggers"] = int(1e5)
-        self.cam.stage_sigs.pop("num_triggers")
+        try:
+            self.cam.stage_sigs.pop("num_triggers")
+        except KeyError:
+            pass
 
     def stage(self):
         # Make sure that detector is not armed.

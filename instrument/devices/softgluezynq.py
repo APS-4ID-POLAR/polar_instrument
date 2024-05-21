@@ -60,10 +60,10 @@ class SoftGlueZynqDevice(Device):
     div_by_n = Component(SoftGlueZynqDevideByN, "SG:DivByN-3_", kind="config")
 
     def start_plan(self):
-        yield from mv(self.buffers.in4, 1)
+        yield from mv(self.buffers.in4, "1")
 
     def stop_plan(self):
-        yield from mv(self.buffers.in4, 0)
+        yield from mv(self.buffers.in4, "0")
 
     def setup_trigger_time_plan(self, time):
         # We are using the 10 MHz clock as a refence
