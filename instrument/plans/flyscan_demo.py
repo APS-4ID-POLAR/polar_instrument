@@ -52,6 +52,8 @@ def flyscan_1d(
     # Changes the stage_sigs to the external trigger mode
     # Staging already clicks the acquire button.
     detectors[0].setup_external_trigger()
+    # Make sure eiger will save image
+    detectors[0].auto_save_on()
 
     # Stop softglue just in case
     yield from sgz.stop_plan()
