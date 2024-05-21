@@ -26,7 +26,7 @@ def flyscan_cycler(
 
     # Metadata
     # TODO: More mds!
-    motors = cycler.keys()
+    motors = cycler.keys
     _md = dict(
         detectors = [det.name for det in detectors],
         motors = motors, # presumably we can have more later
