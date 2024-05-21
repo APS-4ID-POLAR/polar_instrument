@@ -67,7 +67,7 @@ def flyscan_1d(
     _motor_speed_stash = yield from rd(motor.velocity)
     yield from mv(motor.velocity, speed)
 
-    @stage_decorator(list(detectors) + list(motor))
+    @stage_decorator(list(detectors) + [motor])
     @run_decorator(md=_md)
     def inner_fly():
         yield from sgz.start_plan()
@@ -81,4 +81,4 @@ def flyscan_1d(
     yield from mv(motor.velocity, _motor_speed_stash)  
 
     # Returns to manual trigger
-    yield from detectors[0].setup_manual_trigger()
+    detectors[0].setup_manual_trigger()
