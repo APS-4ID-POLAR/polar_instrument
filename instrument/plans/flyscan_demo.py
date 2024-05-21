@@ -8,7 +8,7 @@ from ..devices import sgz
 from .local_scans import mv
 
 
-def flyscan_linear(
+def flyscan_1d(
         detectors,
         motor,
         start,
@@ -29,9 +29,17 @@ def flyscan_linear(
 
     # Metadata
     _md = dict(
+        detectors = [det.name for det in detectors],
+        motors = [motor.name], # presumably we can have more later
+        plan_name = "flyscan_1d",
         # This assumes the first detector is the eiger.
-        eiger_file_path = detectors[0].hdf1.make_write_read_paths()[1]
+        eiger_file_path = detectors[0].hdf1.make_write_read_paths()[1],
+        # TODO: a similar scan with a monitor (scaler...)
+        hints = dict(monitor=None, detectors=[], scan_type="flyscan")
     )
+    for item in detectors:
+        _md['hints']['detectors'].extend(item.hints['fields'])
+
     _md.update(md)
 
     # Setup detectors
@@ -53,6 +61,7 @@ def flyscan_linear(
     yield from mv(motor, start)
 
     # Change motor speed
+    # For the PI stages, seems like the velocity has to be [6, 150] microns/sec
     _motor_speed_stash = yield from rd(motor.velocity)
     yield from mv(motor.velocity, speed)
 

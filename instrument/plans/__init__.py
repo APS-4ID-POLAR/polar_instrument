@@ -16,4 +16,4 @@ from .local_scans import (
 )
 
 from .center_maximum import maxi, cen
-from .flyscan_demo import flyscan_linear
+from .flyscan_demo import flyscan_1d
