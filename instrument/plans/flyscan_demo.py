@@ -51,7 +51,7 @@ def flyscan_1d(
     # This again assumes the eiger is the first (and only detector)
     # Changes the stage_sigs to the external trigger mode
     # Staging already clicks the acquire button.
-    yield from detectors[0].setup_external_trigger()
+    detectors[0].setup_external_trigger()
 
     # Stop softglue just in case
     yield from sgz.stop_plan()
