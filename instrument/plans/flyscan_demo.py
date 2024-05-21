@@ -13,9 +13,9 @@ def flyscan_1d(
         motor,
         start,
         end,
-        speed,
-        trigger_time,
-        collection_time,
+        speed: float = 10,
+        trigger_time: float = 0.02,
+        collection_time: float = 0.01,
         md: dict = {}
     ):
 
@@ -25,9 +25,8 @@ def flyscan_1d(
             f"between triggers ({trigger_time})."
         )
 
-    ### Setup ###
-
     # Metadata
+    # TODO: More mds!
     _md = dict(
         detectors = [det.name for det in detectors],
         motors = [motor.name], # presumably we can have more later
@@ -39,6 +38,9 @@ def flyscan_1d(
     )
     for item in detectors:
         _md['hints']['detectors'].extend(item.hints['fields'])
+    
+    dimensions = [(motor.hints["fields"], "primary")]
+    _md["hints"].setdefault("dimensions", dimensions)
 
     _md.update(md)
 
