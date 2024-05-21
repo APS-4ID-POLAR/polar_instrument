@@ -4,7 +4,7 @@ Flyscan using area detector
 
 from bluesky.preprocessors import stage_decorator, run_decorator
 from bluesky.plan_stubs import rd, null
-from ..devices import diff_nano, sgz
+from ..devices import sgz
 from .local_scans import mv
 
 
