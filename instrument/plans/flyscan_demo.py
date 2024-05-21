@@ -29,7 +29,7 @@ def flyscan_cycler(
     motors = list(cycler.keys)
     _md = dict(
         detectors = [det.name for det in detectors],
-        motors = motors, # presumably we can have more later
+        motors = [motor.name for motor in motors], # presumably we can have more later
         plan_name = "flyscan_cycler",
         # This assumes the first detector is the eiger.
         eiger_file_path = detectors[0].hdf1.make_write_read_paths()[1],
