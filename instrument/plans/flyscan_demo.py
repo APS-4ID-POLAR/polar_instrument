@@ -4,10 +4,62 @@ Flyscan using area detector
 
 from bluesky.preprocessors import stage_decorator, run_decorator
 from bluesky.plan_stubs import rd, null, move_per_step
+from bluesky.plan_patterns import outer_product
 from collections import defaultdict
 from ..devices import sgz
 from .local_scans import mv
 
+
+def flyscan_snake(
+        eiger,
+        *args,
+        speed: float = 10,
+        trigger_time: float = 0.02,
+        collection_time: float = 0.01,
+        md: dict = {}
+    ):
+    """
+    Flyscan using a "snake" trajectory.
+
+    Note the first motor in *args will step and the second will fly (by doing a two
+    point step).
+
+    Parameters
+    ----------
+    eiger : Eiger detector instance
+        Currently sort of hardwired for the Eiger, but this will be removed in the
+        future to match with the POLAR standard of defaulting to our `counters` class.
+    *args :
+        The first motor is the outer loop that will step, with the second motor flying
+        between the ends. Thus the first motor needs a number of steps.
+        .. code-block:: python
+            motor1, start1, stop1, number of point, motor2, start2, stop
+    speed : float, default to 10
+        Velocity of the flying motor. This will be passed to `motor2.velocity`.
+    trigger_time : float, default to 0.02 seconds
+        Time between detector triggers.
+    collection_time : float, default to 0.01 seconds
+        Time that detector spend collecting the image. It must be smaller or equal to
+        the trigger_time otherwise a ValueError is raised.
+    md : dictionary, optional
+        Metadata to be added to the run start.
+
+    See Also
+    --------
+    :func:`bluesky.plan_patterns.outter_product`
+    :func:`flyscan_cycler`
+    """
+
+    detectors = [eiger]
+    cycler = outer_product(args + (2, True))
+    yield from flyscan_cycler(
+        detectors,
+        cycler,
+        speed=speed,
+        trigger_time=trigger_time,
+        collection_time=collection_time,
+        md=md
+        )
 
 def flyscan_cycler(
         detectors,
