@@ -103,7 +103,7 @@ def flyscan_cycler(
     # This again assumes the eiger is the first (and only detector)
     # Changes the stage_sigs to the external trigger mode
     # Staging already clicks the acquire button.
-    detectors[0].setup_external_trigger()
+    # detectors[0].setup_external_trigger()
     # Make sure eiger will save image
     detectors[0].auto_save_on()
 
@@ -118,10 +118,18 @@ def flyscan_cycler(
 
     # Change motor speed
     # For the PI stages, seems like the velocity has to be [6, 150] microns/sec
-    _motor_speed_stash = {}
+    # TODO: Is there a better way to handle this? If the scan is aborted, then the speed
+    # will stay wrong.
+    # _motor_speed_stash = {}
+    # for motor in motors:
+    #     _motor_speed_stash[motor] = yield from rd(motor.velocity)
+    #     yield from mv(motor.velocity, speed)
+
+    # Testing...
     for motor in motors:
-        _motor_speed_stash[motor] = yield from rd(motor.velocity)
-        yield from mv(motor.velocity, speed)
+        motor.stage_sigs["velocity"] = speed
+
+    detectors[0]._flysetup = True
 
     @stage_decorator(list(detectors) + list(motors))
     @run_decorator(md=_md)
@@ -137,11 +145,11 @@ def flyscan_cycler(
     yield from inner_fly()
 
     # Put speed back
-    for motor, _speed in _motor_speed_stash.items():
-        yield from mv(motor.velocity, _speed)
+    # for motor, _speed in _motor_speed_stash.items():
+    #     yield from mv(motor.velocity, _speed)
 
-    # Returns to manual trigger
-    detectors[0].setup_manual_trigger()
+    # # Returns to manual trigger
+    # detectors[0].setup_manual_trigger()
 
 def flyscan_1d(
         detectors,
@@ -186,7 +194,7 @@ def flyscan_1d(
     # This again assumes the eiger is the first (and only detector)
     # Changes the stage_sigs to the external trigger mode
     # Staging already clicks the acquire button.
-    detectors[0].setup_external_trigger()
+    # detectors[0].setup_external_trigger()
     # Make sure eiger will save image
     detectors[0].auto_save_on()
 
@@ -201,8 +209,13 @@ def flyscan_1d(
 
     # Change motor speed
     # For the PI stages, seems like the velocity has to be [6, 150] microns/sec
-    _motor_speed_stash = yield from rd(motor.velocity)
-    yield from mv(motor.velocity, speed)
+    # _motor_speed_stash = yield from rd(motor.velocity)
+    # yield from mv(motor.velocity, speed)
+
+    # Testing...
+    # for motor in motors:
+    motor.stage_sigs["velocity"] = speed
+    detectors[0]._flysetup = True
 
     @stage_decorator(list(detectors) + [motor])
     @run_decorator(md=_md)
@@ -215,7 +228,7 @@ def flyscan_1d(
     yield from inner_fly()
 
     # Put speed back
-    yield from mv(motor.velocity, _motor_speed_stash)  
+    # yield from mv(motor.velocity, _motor_speed_stash)  
 
-    # Returns to manual trigger
-    detectors[0].setup_manual_trigger()
+    # # Returns to manual trigger
+    # detectors[0].setup_manual_trigger()

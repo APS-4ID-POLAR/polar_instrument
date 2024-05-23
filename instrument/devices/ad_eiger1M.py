@@ -41,6 +41,7 @@ class TriggerTime(TriggerBase):
         self._image_name = image_name
         self._acquisition_signal = self.cam.special_trigger_button
         self._min_period = min_period
+        self._flysetup = False
 
     @property
     def min_period(self):
@@ -76,6 +77,9 @@ class TriggerTime(TriggerBase):
             pass
 
     def stage(self):
+        if self._flysetup:
+            self.setup_external_trigger()
+
         # Make sure that detector is not armed.
         self.cam.acquire.set(0).wait(timeout=10)
         super().stage()
@@ -96,6 +100,8 @@ class TriggerTime(TriggerBase):
                 self.cam.status_message, check_value, timeout=10
             )
         )
+        self._flysetup = False
+        self.setup_manual_trigger()
 
     def trigger(self):
         "Trigger one acquisition."
