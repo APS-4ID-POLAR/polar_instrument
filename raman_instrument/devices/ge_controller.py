@@ -50,11 +50,11 @@ class GEController(PVPositionerSoftDoneWithStop):
 
 
 ge_apply = GEController(
-    "4tst:PC1:", name="ge_apply", readback_pv="Pressure_RBV",
+    "4idPace:PC1:", name="ge_apply", readback_pv="Pressure_RBV",
     setpoint_pv="Setpoint", tolerance=0.01, labels=('ge_controller',)
 )
 ge_release = GEController(
-    "4tst:PC2:", name="ge_release", readback_pv="Pressure_RBV",
+    "4idPace:PC2:", name="ge_release", readback_pv="Pressure_RBV",
     setpoint_pv="Setpoint", tolerance=0.01, labels=('ge_controller',)
 )
 
