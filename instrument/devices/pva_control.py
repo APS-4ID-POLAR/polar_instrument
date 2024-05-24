@@ -49,4 +49,3 @@ class PositionerStream():
 		self.stop_pva.putInt(1)
 
 positioner_stream = PositionerStream()
-
