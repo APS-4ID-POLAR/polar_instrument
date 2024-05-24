@@ -1,7 +1,13 @@
 
+"""
+PVA server that reads the softglue
+"""
+
 __all__ = ["positioner_stream"]
 
 from pvapy import Channel
+from ..session_logs import logger
+logger.info(__file__)
 
 
 class PositionerStream():
