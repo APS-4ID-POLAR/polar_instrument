@@ -14,7 +14,6 @@ class PositionerStream(Device):
 	
 	_status_obj = None
 	_done_signal = None
-	# _old_value = ""
 	
 	@property
 	def file_path(self):
