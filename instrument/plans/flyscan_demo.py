@@ -6,7 +6,7 @@ from bluesky.preprocessors import stage_decorator, run_decorator
 from bluesky.plan_stubs import rd, null, move_per_step
 from bluesky.plan_patterns import outer_product
 from collections import defaultdict
-from ..devices import sgz
+from ..devices import sgz, positioner_stream
 from .local_scans import mv
 
 
@@ -131,6 +131,10 @@ def flyscan_cycler(
 
     detectors[0]._flysetup = True
 
+    # Positioner stream file path
+    positioner_stream.file_path = ""
+    positioner_stream.file_name = ""
+
     @stage_decorator(list(detectors) + list(motors))
     @run_decorator(md=_md)
     def inner_fly():
@@ -167,6 +171,9 @@ def flyscan_1d(
             f"The collection time ({collection_time}) cannot be larger than the time "
             f"between triggers ({trigger_time})."
         )
+    
+    # TODO: For now we assume the eiger is the first detector
+    eiger_paths = detectors[0].hdf1.make_write_read_paths()
 
     # Metadata
     # TODO: More mds!
@@ -175,7 +182,7 @@ def flyscan_1d(
         motors = [motor.name], # presumably we can have more later
         plan_name = "flyscan_1d",
         # This assumes the first detector is the eiger.
-        eiger_file_path = detectors[0].hdf1.make_write_read_paths()[1],
+        eiger_file_path = eiger_paths[1],
         # TODO: a similar scan with a monitor (scaler...)
         hints = dict(monitor=None, detectors=[], scan_type="flyscan")
     )
@@ -217,12 +224,21 @@ def flyscan_1d(
     motor.stage_sigs["velocity"] = speed
     detectors[0]._flysetup = True
 
+    # Setup names in positioner_stream
+    positioner_stream.file_path = eiger_paths[0]
+    # TODO: Need a better way to handle this file name....
+    positioner_stream.file_name = "positionstream_" + eiger_paths[1].split("/")[-1]
+
     @stage_decorator(list(detectors) + [motor])
     @run_decorator(md=_md)
     def inner_fly():
+        yield from mv(positioner_stream, 1)
         yield from sgz.start_plan()
         yield from mv(motor, end)
         yield from sgz.stop_plan()
+        # TODO: May need to add some logic here to be sure that we captured all data
+        # from buffer.
+        yield from mv(positioner_stream, 0)
         return (yield from null()) # Is there something better to do here?
 
     yield from inner_fly()
