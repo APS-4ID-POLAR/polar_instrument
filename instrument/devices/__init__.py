@@ -12,6 +12,7 @@ from .interferometers_4IDG import interferometer
 from .magnet_nanopositioner import magnet_nano
 from .ad_eiger1M import load_eiger1m
 from .softgluezynq import sgz
+from .pva_control import positioner_stream
 
 # TODO: this is useful while we are doing pre-commissioning tests
 # Remove everything from baseline.
