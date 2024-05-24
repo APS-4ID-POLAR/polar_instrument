@@ -1,13 +1,8 @@
 
-"""
-PVA server that reads the softglue
-"""
-
 __all__ = ["positioner_stream"]
 
 from pvapy import Channel
-from ..session_logs import logger
-logger.info(__file__)
+from ophyd.status import Status
 
 
 class PositionerStream():
@@ -15,6 +10,10 @@ class PositionerStream():
 	status_pva = Channel("4idSoftGluePVA:status")
 	start_pva = Channel("4idSoftGluePVA:start")
 	stop_pva = Channel("4idSoftGluePVA:stop")
+	
+	_status_obj = None
+	_done_signal = None
+	# _old_value = ""
 	
 	@property
 	def file_path(self):
@@ -40,12 +39,49 @@ class PositionerStream():
 	def status(self):
 		return self.status_pva.get().toDict()["value"]
 
-	@property
-	def start(self):
+	def start_signal(self):
 		self.start_pva.putInt(1)
 
-	@property
-	def stop(self):
+	def stop_signal(self):
 		self.stop_pva.putInt(1)
+		
+	def start(self):
+		def _status_sub(inp):
+			if inp["value"] == "Acquiring":
+				self._status_obj.set_finished()
+				self.status_pva.stopMonitor()
+
+		self._done_signal = False
+		self.start_pva.stopMonitor()
+		self._status_obj = Status()
+
+		self.start_signal()
+
+		self.status_pva.monitor(_status_sub, "field(value, alarm, timeStamp)")
+		
+		return self._status_obj
+
+	def stop(self):
+		def _status_sub(inp):
+			if inp["value"] == "Idle":
+				self._status_obj.set_finished()
+				self.status_pva.stopMonitor()
+
+		self._done_signal = False
+		self.start_pva.stopMonitor()
+		self._status_obj = Status()
+
+		self.stop_signal()
+
+		self.status_pva.monitor(_status_sub, "field(value, alarm, timeStamp)")
+		
+		return self._status_obj
+
+	def set(self, value, **kwargs):
+		if value not in [1, 0]:
+			raise ValueError ("Value must be 1 or 0.")
+		
+		return self.start() if value == 1 else self.stop()
 
 positioner_stream = PositionerStream()
+
