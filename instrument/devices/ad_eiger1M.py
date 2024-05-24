@@ -70,11 +70,7 @@ class TriggerTime(TriggerBase):
         self.cam.stage_sigs["num_images"] = 1
         self.cam.stage_sigs["num_exposures"] = 1
         # TODO: We may not need this.
-        # self.cam.stage_sigs["num_triggers"] = int(1e5)
-        try:
-            self.cam.stage_sigs.pop("num_triggers")
-        except KeyError:
-            pass
+        self.cam.stage_sigs["num_triggers"] = int(1e6)
 
     def stage(self):
         if self._flysetup:
