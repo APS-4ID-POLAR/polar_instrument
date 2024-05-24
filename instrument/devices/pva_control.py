@@ -3,9 +3,10 @@ __all__ = ["positioner_stream"]
 
 from pvapy import Channel
 from ophyd.status import Status
+from ophyd import Device
 
 
-class PositionerStream():
+class PositionerStream(Device):
 	file_pva = Channel("4idSoftGluePVA:outputFile")
 	status_pva = Channel("4idSoftGluePVA:status")
 	start_pva = Channel("4idSoftGluePVA:start")
@@ -45,7 +46,7 @@ class PositionerStream():
 	def stop_signal(self):
 		self.stop_pva.putInt(1)
 		
-	def start(self):
+	def start_stream(self):
 		def _status_sub(inp):
 			if inp["value"] == "Acquiring":
 				self._status_obj.set_finished()
@@ -61,7 +62,7 @@ class PositionerStream():
 		
 		return self._status_obj
 
-	def stop(self):
+	def stop_stream(self):
 		def _status_sub(inp):
 			if inp["value"] == "Idle":
 				self._status_obj.set_finished()
@@ -81,7 +82,7 @@ class PositionerStream():
 		if value not in [1, 0]:
 			raise ValueError ("Value must be 1 or 0.")
 		
-		return self.start() if value == 1 else self.stop()
+		return self.start_stream() if value == 1 else self.stop_stream()
 
-positioner_stream = PositionerStream()
+positioner_stream = PositionerStream("", name="positioner_stream")
 
