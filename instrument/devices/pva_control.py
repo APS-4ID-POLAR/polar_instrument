@@ -82,6 +82,11 @@ class PositionerStream(Device):
 			raise ValueError ("Value must be 1 or 0.")
 		
 		return self.start_stream() if value == 1 else self.stop_stream()
+	
+	def stop(self):
+		super().stop()
+		self.stop_signal()
+
 
 positioner_stream = PositionerStream("", name="positioner_stream")
 
