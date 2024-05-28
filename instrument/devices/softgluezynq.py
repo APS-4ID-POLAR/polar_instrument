@@ -6,7 +6,7 @@ __all__ = ['sgz']
 
 from ophyd import Component, Device, EpicsSignal, EpicsSignalRO, DynamicDeviceComponent
 from collections import OrderedDict
-from bluesky.plan_stubs import mv
+from bluesky.plan_stubs import mv, sleep
 from ..framework import sd
 from ..session_logs import logger
 logger.info(__file__)
@@ -61,6 +61,10 @@ class SoftGlueZynqDevice(Device):
     div_by_n_interf = Component(SoftGlueZynqDevideByN, "SG:DivByN-1_", kind="config")
     div_by_n_eiger = Component(SoftGlueZynqDevideByN, "SG:DivByN-2_", kind="config")
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._reset_sleep_time = 0.2
+
     def start_plan(self):
         yield from mv(self.buffers.in4, "1")
 
@@ -69,6 +73,7 @@ class SoftGlueZynqDevice(Device):
 
     def reset_plan(self):
         yield from mv(self.buffers.in1, "1")
+        yield from sleep(self._reset_sleep_time)
         yield from mv(self.buffers.in1, "0")
 
     def setup_eiger_trigger_plan(self, time):
