@@ -173,10 +173,17 @@ def flyscan_1d(
         )
     
     # TODO: For now we assume the eiger is the first detector
-    eiger_paths = detectors[0].hdf1.make_write_read_paths()
+    eiger_paths = detectors[0].hdf1.make_write_read_paths()    
+    # This again assumes the eiger is the first (and only detector)
+    # Changes the stage_sigs to the external trigger mode
+    # Staging already clicks the acquire button.
+    # detectors[0].setup_external_trigger()
+    # Make sure eiger will save image
+    detectors[0].auto_save_on()
+    detectors[0]._flysetup = True
 
     # Metadata
-    # TODO: More mds!
+    # TODO: More mds?
     _md = dict(
         detectors = [det.name for det in detectors],
         motors = [motor.name], # presumably we can have more later
@@ -197,19 +204,15 @@ def flyscan_1d(
     # Setup detectors
     for det in detectors:
         yield from mv(det.preset_monitor, collection_time)
-    
-    # This again assumes the eiger is the first (and only detector)
-    # Changes the stage_sigs to the external trigger mode
-    # Staging already clicks the acquire button.
-    # detectors[0].setup_external_trigger()
-    # Make sure eiger will save image
-    detectors[0].auto_save_on()
 
-    # Stop softglue just in case
+    # Stop and reset softglue just in case
     yield from sgz.stop_plan()
+    yield from sgz.reset_plan()
 
     # Setup the frequency
-    yield from sgz.setup_trigger_time_plan(trigger_time)
+    yield from sgz.setup_eiger_trigger_plan(trigger_time)
+    # TODO: Should we change the speed of the interferometer?
+    # yield from sgz.setup_interf_trigger_plan(trigger_time/1000)
 
     # Move motor to start position using "normal speed"
     yield from mv(motor, start)
@@ -222,7 +225,6 @@ def flyscan_1d(
     # Testing...
     # for motor in motors:
     motor.stage_sigs["velocity"] = speed
-    detectors[0]._flysetup = True
 
     # Setup names in positioner_stream
     positioner_stream.file_path = eiger_paths[0]
