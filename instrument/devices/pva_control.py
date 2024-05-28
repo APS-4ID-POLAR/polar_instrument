@@ -83,8 +83,8 @@ class PositionerStream(Device):
 		
 		return self.start_stream() if value == 1 else self.stop_stream()
 	
-	def stop(self, *kwargs):
-		super().stop(*kwargs)
+	def stop(self, **kwargs):
+		super().stop(**kwargs)
 		self.stop_signal()
 
 
