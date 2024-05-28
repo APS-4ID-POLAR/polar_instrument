@@ -164,7 +164,6 @@ def flyscan_1d(
         trigger_time: float = 0.02,
         collection_time: float = 0.01,
         md: dict = {},
-        sleep_time = 5,
     ):
 
     if collection_time > trigger_time:
@@ -236,13 +235,20 @@ def flyscan_1d(
     @run_decorator(md=_md)
     def inner_fly():
         yield from mv(positioner_stream, 1)
-        yield from sleep(sleep_time)
         yield from sgz.start_plan()
+
         yield from mv(motor, end)
+
+        # This will wait for a full new set of packets.
+        # TODO: It's an overkill, maybe Keenan's code can broadcast a signal?
+        n = yield from rd(sgz.div_by_n_interf.n)
+        _time_per_point = n/1e7
+        _number_of_events_per_packet = 1e5/8
+        yield from sleep(_time_per_point*_number_of_events_per_packet+ 0.1)
+
         yield from sgz.stop_plan()
-        # TODO: May need to add some logic here to be sure that we captured all data
-        # from buffer.
         yield from mv(positioner_stream, 0)
+
         return (yield from null()) # Is there something better to do here?
 
     yield from inner_fly()
