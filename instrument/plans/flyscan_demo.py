@@ -3,7 +3,7 @@ Flyscan using area detector
 """
 
 from bluesky.preprocessors import stage_decorator, run_decorator
-from bluesky.plan_stubs import rd, null, move_per_step
+from bluesky.plan_stubs import rd, null, move_per_step, sleep
 from bluesky.plan_patterns import outer_product
 from collections import defaultdict
 from ..devices import sgz, positioner_stream
@@ -163,7 +163,8 @@ def flyscan_1d(
         speed: float = 10,
         trigger_time: float = 0.02,
         collection_time: float = 0.01,
-        md: dict = {}
+        md: dict = {},
+        sleep_time = 5,
     ):
 
     if collection_time > trigger_time:
@@ -235,6 +236,7 @@ def flyscan_1d(
     @run_decorator(md=_md)
     def inner_fly():
         yield from mv(positioner_stream, 1)
+        yield from sleep(sleep_time)
         yield from sgz.start_plan()
         yield from mv(motor, end)
         yield from sgz.stop_plan()
