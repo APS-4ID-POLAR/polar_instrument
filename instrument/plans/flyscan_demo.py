@@ -147,7 +147,7 @@ def flyscan_cycler(
 
     # Metadata
     # TODO: More mds?
-    motors = list(cycler.keys)
+    motors = list(cycler.keys)  # the cycler inverts the list.
     _md = dict(
         detectors = [det.name for det in detectors],
         motors = [motor.name for motor in motors], 
@@ -192,6 +192,7 @@ def flyscan_cycler(
 
     # Testing...
     # for motor in motors:
+    speeds = speeds[::-1]  # The cycler inverts the motor list.
     for motor, speed in zip(motors, speeds):
         if speed is not None:
             motor.stage_sigs["velocity"] = speed
