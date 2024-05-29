@@ -219,9 +219,9 @@ def flyscan_cycler(
             motor.stage_sigs["velocity"] = speed
 
     # Setup names in positioner_stream
-    positioner_stream.file_path = eiger_paths[0]
+    positioner_stream.file_path.put(eiger_paths[0])
     # TODO: Need a better way to handle this file name....
-    positioner_stream.file_name = "positionstream_" + eiger_paths[1].split("/")[-1]
+    positioner_stream.file_name.put("positionstream_" + eiger_paths[1].split("/")[-1])
 
     @stage_decorator(list(detectors) + motors)
     @run_decorator(md=_md)
