@@ -243,6 +243,8 @@ def flyscan_cycler(
         yield from sleep(_time_per_point*_number_of_events_per_packet+ 0.1)
 
         yield from sgz.stop_softglue()
+
+        print("Stopping the positioner stream, this can take time.")
         yield from mv(positioner_stream, 0)
 
         return (yield from null()) # Is there something better to do here?
