@@ -201,7 +201,7 @@ def flyscan_cycler(
     # TODO: Need a better way to handle this file name....
     positioner_stream.file_name = "positionstream_" + eiger_paths[1].split("/")[-1]
 
-    @stage_decorator(list(detectors) + list(motors))
+    @stage_decorator(list(detectors) + motors)
     @run_decorator(md=_md)
     def inner_fly():
         yield from mv(positioner_stream, 1)
