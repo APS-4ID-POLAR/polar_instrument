@@ -28,7 +28,7 @@ class PVASignal(Signal):
 			raise ValueError(
 				f"file_path needs to be a string, but {type(value)} was entered."
 			)
-		self.file_pva.putString(value, self._pva_label)
+		self._pva.putString(value, self._pva_label)
 
 	def set(self, value, **kwargs):
 		self.set(value, **kwargs)
