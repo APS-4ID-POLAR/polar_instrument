@@ -6,8 +6,13 @@ from bluesky.preprocessors import stage_decorator, run_decorator
 from bluesky.plan_stubs import rd, null, move_per_step, sleep
 from bluesky.plan_patterns import outer_product, inner_product
 from collections import defaultdict
-from ..devices import sgz, positioner_stream
 from .local_scans import mv
+from ..devices import sgz, positioner_stream
+from ..session_logs import logger
+logger.info(__file__)
+
+
+__all__ = "flyscan_snake flyscan_1d flyscan_cycler".split()
 
 
 def flyscan_snake(
