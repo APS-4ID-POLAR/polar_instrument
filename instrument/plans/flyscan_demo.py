@@ -160,7 +160,7 @@ def flyscan_cycler(
     for item in detectors:
         _md['hints']['detectors'].extend(item.hints['fields'])
     
-    dimensions = [(motor.hints["fields"], "primary")]
+    dimensions = [(motor.hints["fields"], "primary") for motor in motors]
     _md["hints"].setdefault("dimensions", dimensions)
 
     _md.update(md)
