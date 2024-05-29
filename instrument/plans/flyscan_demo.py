@@ -150,7 +150,7 @@ def flyscan_cycler(
     motors = list(cycler.keys)
     _md = dict(
         detectors = [det.name for det in detectors],
-        motors = [motor.name], # presumably we can have more later
+        motors = motors, # presumably we can have more later
         plan_name = "flyscan_1d",
         # This assumes the first detector is the eiger.
         eiger_file_path = eiger_paths[1],
