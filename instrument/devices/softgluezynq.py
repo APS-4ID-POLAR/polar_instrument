@@ -65,11 +65,17 @@ class SoftGlueZynqDevice(Device):
         super().__init__(*args, **kwargs)
         self._reset_sleep_time = 0.2
 
-    def start_plan(self):
+    def start_softglue(self):
         yield from mv(self.buffers.in4, "1")
 
-    def stop_plan(self):
+    def stop_softglue(self):
         yield from mv(self.buffers.in4, "0")
+
+    def start_eiger(self):
+        yield from mv(self.buffers.in2, "1")
+
+    def stop_eiger(self):
+        yield from mv(self.buffers.in2, "0")
 
     def reset_plan(self):
         yield from mv(self.buffers.in1, "1")

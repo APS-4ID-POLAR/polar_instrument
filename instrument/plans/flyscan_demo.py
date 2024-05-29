@@ -206,7 +206,8 @@ def flyscan_1d(
         yield from mv(det.preset_monitor, collection_time)
 
     # Stop and reset softglue just in case
-    yield from sgz.stop_plan()
+    yield from sgz.stop_eiger()
+    yield from sgz.stop_softglue()
     yield from sgz.reset_plan()
 
     # Setup the frequency
@@ -235,9 +236,11 @@ def flyscan_1d(
     @run_decorator(md=_md)
     def inner_fly():
         yield from mv(positioner_stream, 1)
-        yield from sgz.start_plan()
+        yield from sgz.start_softglue()
 
+        yield from sgz.start_eiger()
         yield from mv(motor, end)
+        yield from sgz.stop_eiger()
 
         # This will wait for a full new set of packets.
         # TODO: It's an overkill, maybe Keenan's code can broadcast a signal?
@@ -246,7 +249,7 @@ def flyscan_1d(
         _number_of_events_per_packet = 1e5/8
         yield from sleep(_time_per_point*_number_of_events_per_packet+ 0.1)
 
-        yield from sgz.stop_plan()
+        yield from sgz.stop_softglue()
         yield from mv(positioner_stream, 0)
 
         return (yield from null()) # Is there something better to do here?
