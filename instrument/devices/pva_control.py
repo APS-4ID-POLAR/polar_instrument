@@ -15,7 +15,7 @@ logger.info(__file__)
 
 
 class PVASignal(Signal):
-	def __init__(self, pva_channel, pva_label, *args, **kwargs):
+	def __init__(self, *args, pva_channel="", pva_label="", **kwargs):
 		super().__init__(*args, **kwargs)
 		self._pva = Channel(pva_channel)
 		self._pva_label = pva_label
@@ -44,32 +44,43 @@ class PositionerStream(Device):
 	start_pva = Channel("4idSoftGluePVA:start")
 	stop_pva = Channel("4idSoftGluePVA:stop")
 
-	file_pva_test = Component(
-		PVASignal, "4idSoftGluePVA:outputFile", "filePath", kind="normal"
-		)
-	
+	# These will be signals that Bluesky can read and save in the catalog.
+	file_path = Component(
+		PVASignal,
+		pva_channel="4idSoftGluePVA:outputFile",
+		pva_label="filePath",
+		kind="normal"
+	)
+
+	file_name = Component(
+		PVASignal,
+		pva_channel="4idSoftGluePVA:outputFile",
+		pva_label="fileName",
+		kind="normal"
+	)
+
 	_status_obj = None
 	_done_signal = None
 	
-	@property
-	def file_path(self):
-		return self.file_pva.get().toDict()["filePath"]
+	# @property
+	# def file_path(self):
+	# 	return self.file_pva.get().toDict()["filePath"]
 		
-	@file_path.setter
-	def file_path(self, value):
-		if not isinstance(value, str):
-			raise ValueError(f"file_path needs to be a string, but {type(value)} was entered.")
-		self.file_pva.putString(value, "filePath")
+	# @file_path.setter
+	# def file_path(self, value):
+	# 	if not isinstance(value, str):
+	# 		raise ValueError(f"file_path needs to be a string, but {type(value)} was entered.")
+	# 	self.file_pva.putString(value, "filePath")
 	
-	@property
-	def file_name(self):
-		return self.file_pva.get().toDict()["fileName"]
+	# @property
+	# def file_name(self):
+	# 	return self.file_pva.get().toDict()["fileName"]
 
-	@file_name.setter
-	def file_name(self, value):
-		if not isinstance(value, str):
-			raise ValueError(f"file_name needs to be a string, but {type(value)} was entered.")
-		self.file_pva.putString(value, "fileName")
+	# @file_name.setter
+	# def file_name(self, value):
+	# 	if not isinstance(value, str):
+	# 		raise ValueError(f"file_name needs to be a string, but {type(value)} was entered.")
+	# 	self.file_pva.putString(value, "fileName")
 
 	@property
 	def status(self):
