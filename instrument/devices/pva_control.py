@@ -4,6 +4,7 @@ __all__ = ["positioner_stream"]
 from pvapy import Channel
 from ophyd.status import Status
 from ophyd import Device
+from time import time
 
 
 class PositionerStream(Device):
@@ -87,6 +88,11 @@ class PositionerStream(Device):
 		super().stop(**kwargs)
 		self.stop_signal()
 
+	def read(self):
+		data = super().read()
+		data.update({
+			f"{self.name}_file_path": dict(value=self.file_path, timestamp=time()),
+			f"{self.name}_file_name": dict(value=self.file_name, timestamp=time())
+		})
 
 positioner_stream = PositionerStream("", name="positioner_stream")
-
