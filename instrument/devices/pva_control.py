@@ -1,10 +1,17 @@
 
+"""
+Device to control the PositionerStream
+"""
+
 __all__ = ["positioner_stream"]
 
 from pvapy import Channel
 from ophyd.status import Status
 from ophyd import Device
 from time import time
+from ..framework import sd
+from ..session_logs import logger
+logger.info(__file__)
 
 
 class PositionerStream(Device):
@@ -94,5 +101,7 @@ class PositionerStream(Device):
 			f"{self.name}_file_path": dict(value=self.file_path, timestamp=time()),
 			f"{self.name}_file_name": dict(value=self.file_name, timestamp=time())
 		})
+		return data
 
 positioner_stream = PositionerStream("", name="positioner_stream")
+sd.baseline.append(positioner_stream)
