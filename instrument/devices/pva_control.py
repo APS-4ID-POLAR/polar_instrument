@@ -6,12 +6,36 @@ Device to control the PositionerStream
 __all__ = ["positioner_stream"]
 
 from pvapy import Channel
+from ophyd import Device, Signal, Component
 from ophyd.status import Status
-from ophyd import Device
 from time import time
 from ..framework import sd
 from ..session_logs import logger
 logger.info(__file__)
+
+
+class PVASignal(Signal):
+	def __init__(self, pva_channel, pva_label, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self._pva = Channel(pva_channel)
+		self._pva_label = pva_label
+
+	def get(self, **kwargs):
+		return self._pva.get().toDict()[self._pva_label]
+	
+	def put(self, value, **kwargs):
+		if not isinstance(value, str):
+			raise ValueError(
+				f"file_path needs to be a string, but {type(value)} was entered."
+			)
+		self.file_pva.putString(value, self._pva_label)
+
+	def set(self, value, **kwargs):
+		self.set(value, **kwargs)
+		# Do not check completion.
+		st = Status()
+		st.set_finished()
+		return st
 
 
 class PositionerStream(Device):
@@ -19,6 +43,10 @@ class PositionerStream(Device):
 	status_pva = Channel("4idSoftGluePVA:status")
 	start_pva = Channel("4idSoftGluePVA:start")
 	stop_pva = Channel("4idSoftGluePVA:stop")
+
+	file_pva_test = Component(
+		PVASignal, "4idSoftGluePVA:outputFile", "filePath", kind="normal"
+		)
 	
 	_status_obj = None
 	_done_signal = None
@@ -95,13 +123,13 @@ class PositionerStream(Device):
 		super().stop(**kwargs)
 		self.stop_signal()
 
-	def read(self):
-		data = super().read()
-		data.update({
-			f"{self.name}_file_path": dict(value=self.file_path, timestamp=time()),
-			f"{self.name}_file_name": dict(value=self.file_name, timestamp=time())
-		})
-		return data
+	# def read(self):
+	# 	data = super().read()
+	# 	data.update({
+	# 		f"{self.name}_file_path": dict(value=self.file_path, timestamp=time()),
+	# 		f"{self.name}_file_name": dict(value=self.file_name, timestamp=time())
+	# 	})
+	# 	return data
 
 positioner_stream = PositionerStream("", name="positioner_stream")
 sd.baseline.append(positioner_stream)
