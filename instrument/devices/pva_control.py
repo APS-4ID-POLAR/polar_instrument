@@ -61,26 +61,6 @@ class PositionerStream(Device):
 
 	_status_obj = None
 	_done_signal = None
-	
-	# @property
-	# def file_path(self):
-	# 	return self.file_pva.get().toDict()["filePath"]
-		
-	# @file_path.setter
-	# def file_path(self, value):
-	# 	if not isinstance(value, str):
-	# 		raise ValueError(f"file_path needs to be a string, but {type(value)} was entered.")
-	# 	self.file_pva.putString(value, "filePath")
-	
-	# @property
-	# def file_name(self):
-	# 	return self.file_pva.get().toDict()["fileName"]
-
-	# @file_name.setter
-	# def file_name(self, value):
-	# 	if not isinstance(value, str):
-	# 		raise ValueError(f"file_name needs to be a string, but {type(value)} was entered.")
-	# 	self.file_pva.putString(value, "fileName")
 
 	@property
 	def status(self):
@@ -134,13 +114,6 @@ class PositionerStream(Device):
 		super().stop(**kwargs)
 		self.stop_signal()
 
-	# def read(self):
-	# 	data = super().read()
-	# 	data.update({
-	# 		f"{self.name}_file_path": dict(value=self.file_path, timestamp=time()),
-	# 		f"{self.name}_file_name": dict(value=self.file_name, timestamp=time())
-	# 	})
-	# 	return data
 
 positioner_stream = PositionerStream("", name="positioner_stream")
 sd.baseline.append(positioner_stream)
