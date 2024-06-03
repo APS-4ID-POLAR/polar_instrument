@@ -201,7 +201,7 @@ def flyscan_cycler(
     _ps_fname = (_fname_format + ".h5") % (_file_name_base, _scan_id)
     _ps_fullpath = _base_path / "positioner_stream" / _ps_fname
     # Setup path and file name in positioner_stream
-    positioner_stream.file_path.put(_base_path / "positioner_stream")
+    positioner_stream.file_path.put(str(_base_path / "positioner_stream"))
     positioner_stream.file_name.put(_ps_fname)
 
     # Check if any of these files exists
