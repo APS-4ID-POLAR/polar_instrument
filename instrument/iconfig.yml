@@ -35,6 +35,10 @@ ENABLE_CALCS: true
 USE_PROGRESS_BAR: false
 WRITE_SPEC_DATA_FILES: true
 
+# APS Data Management
+# Use bash shell, deactivate all conda environments, source this file:
+DM_SETUP_FILE: "/home/dm/etc/dm.setup.sh"
+
 # ----------------------------------
 
 AREA_DETECTOR:
