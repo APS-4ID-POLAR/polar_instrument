@@ -7,15 +7,14 @@ __all__ = """
 """.split()
 
 
-import logging
+# import logging
 import os
 import pathlib
 
 from .. import iconfig
-
-logger = logging.getLogger(__name__)
-
+from ..session_logs import logger
 logger.info(__file__)
+
 
 DM_SETUP_FILE = iconfig.get("DM_SETUP_FILE")
 DM_WORKFLOW_OWNER = os.environ.get("DM_STATION_NAME", "unknown").lower()
@@ -26,7 +25,7 @@ else:
     # parse environment variables from bash script
     setup_file = pathlib.Path(DM_SETUP_FILE)
     logger.info("APS DM environment file: %s", str(setup_file))
-    print(f"APS DM environment file '{setup_file}'")
+    # print(f"APS DM environment file '{setup_file}'")
     environment_variables = {}
     export_ = "export "
     for line in open(setup_file).readlines():
