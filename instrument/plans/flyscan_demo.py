@@ -6,9 +6,11 @@ from bluesky.preprocessors import stage_decorator, run_decorator
 from bluesky.plan_stubs import rd, null, move_per_step, sleep
 from bluesky.plan_patterns import outer_product, inner_product
 from collections import defaultdict
+from pathlib import Path
 from .local_scans import mv
 from ..devices import sgz, positioner_stream
 from ..session_logs import logger
+from ..framework import RE
 logger.info(__file__)
 
 
@@ -164,23 +166,45 @@ def flyscan_cycler(
             f"The collection time ({collection_time}) cannot be larger than the time "
             f"between triggers ({trigger_time})."
         )
+    
+    # Collect information to make file names
+    _file_name_base = "my_test"
+    _scan_id = RE.md["scan_id"] + 1
+    _base_path = Path("/home/beams/POLAR/data/2024_2/flyscan_demo_tests/data")
+    _fname_format = "%s_%6.6d"
 
+    # Setup area detector
     # TODO: For now we assume the eiger is the first detector
-    eiger_paths = detectors[0].hdf1.make_write_read_paths()
+    _eig = detectors[0]
+    _eig.hdf1.file_name.set(f"{_file_name_base}").wait()
+    _eig.hdf1.file_path.set(str(_base_path / "eiger")).wait()
+    _eig.hdf1.file_template.set(f"%s{_fname_format}.h5").wait()
+    _eig.hdf1.file_number.set(_scan_id).wait()
+
+    _eiger_paths = detectors[0].hdf1.make_write_read_paths()
     # Make sure eiger will save image
     detectors[0].auto_save_on()
     # Changes the stage_sigs to the external trigger mode
     detectors[0]._flysetup = True
 
-    # Metadata
-    # TODO: More mds?
+    _ps_fname = (_fname_format + ".h5") % (_file_name_base, _scan_id)
+    _ps_fullpath = _base_path / "positioner_stream" / _ps_fname
+    # Setup path and file name in positioner_stream
+    positioner_stream.file_path.put(_base_path / "positioner_stream")
+    positioner_stream.file_name.put(_ps_fname)
+
+    ############
+    # METADATA #
+    ############
+
     motors = list(cycler.keys)  # the cycler inverts the list.
     _md = dict(
         detectors = [det.name for det in detectors],
         motors = [motor.name for motor in motors], 
-        plan_name = "flyscan_1d",
+        plan_name = "flyscan_cycler",
         # This assumes the first detector is the eiger.
-        eiger_file_path = eiger_paths[1],
+        eiger_file_path = _eiger_paths[1],
+        positioner_stream_file_path = _ps_fullpath,
         # TODO: a similar scan with a monitor (scaler...)
         hints = dict(monitor=None, detectors=[], scan_type="flyscan")
     )
@@ -192,7 +216,11 @@ def flyscan_cycler(
 
     _md.update(md)
 
-    # Setup detectors
+    #################################
+    # MOVING DEVICES TO START POINT #
+    #################################
+
+    # Setup detectors count time
     for det in detectors:
         yield from mv(det.preset_monitor, collection_time)
 
@@ -201,7 +229,7 @@ def flyscan_cycler(
     yield from sgz.stop_softglue()
     yield from sgz.reset_plan()
 
-    # Setup the frequency
+    # Setup the eiger frequency
     yield from sgz.setup_eiger_trigger_plan(trigger_time)
     # TODO: Should we change the speed of the interferometer?
     # yield from sgz.setup_interf_trigger_plan(trigger_time/1000)
@@ -212,16 +240,15 @@ def flyscan_cycler(
         args += (motor, position)
     yield from mv(*args)
 
-    # Change motor speed
+    # Setup the motors stage signals
     speeds = speeds[::-1]  # The cycler inverts the motor list.
     for motor, speed in zip(motors, speeds):
         if speed is not None:
             motor.stage_sigs["velocity"] = speed
 
-    # Setup names in positioner_stream
-    positioner_stream.file_path.put(eiger_paths[0])
-    # TODO: Need a better way to handle this file name....
-    positioner_stream.file_name.put("positionstream_" + eiger_paths[1].split("/")[-1])
+    ################
+    # RUNNING SCAN #
+    ################
 
     @stage_decorator(list(detectors) + motors)
     @run_decorator(md=_md)
@@ -250,3 +277,5 @@ def flyscan_cycler(
         return (yield from null()) # Is there something better to do here?
 
     yield from inner_fly()
+
+
