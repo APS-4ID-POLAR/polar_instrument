@@ -84,10 +84,14 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
 
     # This is the part to change if a different file scheme is chosen.
     def make_write_read_paths(self):
-        # Folders - this allows for using dates for folders.
-        formatter = datetime.now().strftime
-        write_path = formatter(self.write_path_template)
-        read_path = formatter(self.read_path_template)
+        # Folders - this allows for using dates for folders, but we won't use it for now
+        # formatter = datetime.now().strftime
+        # write_path = formatter(self.write_path_template)
+        # read_path = formatter(self.read_path_template)
+
+        # Folders - uses whatever is defined in epics.
+        write_path = self.file_path.get()
+        read_path = write_path
 
         # File name -- assumes some sort of %s%s_5.5%d.h5 format
         file_read = self.file_template.get() % (
