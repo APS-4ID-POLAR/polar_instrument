@@ -206,7 +206,6 @@ def flyscan_cycler(
 
     # Check if any of these files exists
     for _fname in [_master_fullpath, _eiger_fullpath, _ps_fullpath]:
-        print(_fname)
         if _fname.is_file():
             raise FileExistsError(
                 f"The file {_fname} already exists! Will not overwrite, quitting."
