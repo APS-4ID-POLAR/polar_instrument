@@ -221,4 +221,9 @@ def load_eiger1m(prefix="4idEiger:"):
 
         eiger1m.default_settings()
 
+        # Sometimes we get errors that bluesky gets the wrong value (just the first)
+        # character. This should fix it.
+        for component in "file_path file_name file_template":
+            _ = getattr(eiger1m.hdf1, component).get(use_monitor=False)
+
     return eiger1m
