@@ -223,7 +223,7 @@ def flyscan_cycler(
         plan_name = "flyscan_cycler",
         # This assumes the first detector is the eiger.
         eiger_file_path = _eiger_paths[1],
-        positioner_stream_file_path = _ps_fullpath,
+        positioner_stream_file_path = str(_ps_fullpath),
         # TODO: a similar scan with a monitor (scaler...)
         hints = dict(monitor=None, detectors=[], scan_type="flyscan")
     )
