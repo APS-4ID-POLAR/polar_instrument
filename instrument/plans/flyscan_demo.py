@@ -167,11 +167,21 @@ def flyscan_cycler(
             f"between triggers ({trigger_time})."
         )
     
+
+    #####################
+    # Setup files names #
+    #####################
+
     # Collect information to make file names
     _file_name_base = "my_test"
     _scan_id = RE.md["scan_id"] + 1
     _base_path = Path("/home/beams/POLAR/data/2024_2/flyscan_demo_tests/data")
     _fname_format = "%s_%6.6d"
+
+    # Master file
+    _master_fullpath = (
+        _base_path / ((_fname_format % (_file_name_base, _scan_id)) + ".hdf")
+    )
 
     # Setup area detector
     # TODO: For now we assume the eiger is the first detector
@@ -182,6 +192,7 @@ def flyscan_cycler(
     _eig.hdf1.file_number.set(_scan_id).wait()
 
     _eiger_paths = detectors[0].hdf1.make_write_read_paths()
+    _eiger_fullpath = Path(_eiger_paths[1])
     # Make sure eiger will save image
     detectors[0].auto_save_on()
     # Changes the stage_sigs to the external trigger mode
@@ -192,6 +203,14 @@ def flyscan_cycler(
     # Setup path and file name in positioner_stream
     positioner_stream.file_path.put(_base_path / "positioner_stream")
     positioner_stream.file_name.put(_ps_fname)
+
+    # Check if any of these files exists
+    for _fname in [_master_fullpath, _eiger_fullpath, _ps_fullpath]:
+        print(_fname)
+        if _fname.is_file():
+            raise FileExistsError(
+                f"The file {_fname} already exists! Will not overwrite, quitting."
+            )
 
     ############
     # METADATA #
