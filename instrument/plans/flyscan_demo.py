@@ -5,11 +5,12 @@ Flyscan using area detector
 from bluesky.preprocessors import stage_decorator, run_decorator, subs_decorator
 from bluesky.plan_stubs import rd, null, move_per_step, sleep
 from bluesky.plan_patterns import outer_product, inner_product
+from apstools.utils import validate_experiment_dataDirectory
 from collections import defaultdict
 from pathlib import Path
 from json import dumps
 from .local_scans import mv
-from ..devices import sgz, positioner_stream
+from ..devices import sgz, positioner_stream, dm_experiment, dm_workflow
 from ..session_logs import logger
 from ..framework import RE
 from ..callbacks import nxwriter
@@ -164,12 +165,23 @@ def flyscan_cycler(
     :func:`bluesky.plan_patterns.inner_product`
     """
 
+    ############################
+    # Check potential problems #
+    ############################
+
+    try:
+        validate_experiment_dataDirectory(dm_experiment.get())
+    except:
+        raise ValueError(
+            f"Cannot find an experiment named: {dm_experiment.get()} in DM. Please see"
+            "and run the setup_user function."
+        )
+
     if collection_time > trigger_time:
         raise ValueError(
             f"The collection time ({collection_time}) cannot be larger than the time "
             f"between triggers ({trigger_time})."
         )
-    
 
     #####################
     # Setup files names #
@@ -219,8 +231,11 @@ def flyscan_cycler(
     #################################################
 
     # Relative paths are used in the master file so that data can be copied.
-    _rel_eiger_path = _eiger_fullpath.relative_to(_base_path)
-    _rel_ps_path = _ps_fullpath.relative_to(_base_path)
+    # _rel_eiger_path = _eiger_fullpath.relative_to(_base_path)
+    # _rel_ps_path = _ps_fullpath.relative_to(_base_path)
+
+    _rel_eiger_path = Path("bla")
+    _rel_ps_path = Path("bla")
 
     # Sets the file names
     nxwriter.ad_file_name = str(_rel_eiger_path)

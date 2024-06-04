@@ -6,7 +6,6 @@ from apstools.utils import (
     dm_start_daq,
     validate_experiment_dataDirectory,
     dm_get_experiment_datadir_active_daq,
-    dm_get_experiment_path,
     dm_api_ds
 )
 from ..devices import dm_experiment
@@ -49,7 +48,7 @@ def setup_user(dm_experiment_name: str, index: int = -1):
     data_directory = "@voyager"
 
     # Check DM DAQ is running for this experiment, if not then start it.
-    if dm_get_experiment_datadir_active_daq(dm_experiment_name) is None:
+    if dm_get_experiment_datadir_active_daq(dm_experiment_name, data_directory) is None:
         # Need another DAQ if also writing to a different directory (off voyager).
         # A single DAQ can be used to cover any subdirectories.
         # Anything in them will be uploaded.
