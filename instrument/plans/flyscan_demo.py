@@ -218,8 +218,9 @@ def flyscan_cycler(
     # nxwriter setup #
     ##################
 
-    _rel_eiger_path = _eiger_fullpath.relative_to(_master_fullpath)
-    _rel_ps_path = _ps_fullpath.relative_to(_master_fullpath)
+
+    _rel_eiger_path = _eiger_fullpath.relative_to(_base_path)
+    _rel_ps_path = _ps_fullpath.relative_to(_base_path)
 
     nxwriter.ad_file_name = str(_rel_eiger_path)
     nxwriter.position_file_name = str(_rel_ps_path)
