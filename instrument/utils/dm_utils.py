@@ -6,7 +6,8 @@ from apstools.utils import (
     dm_start_daq,
     validate_experiment_dataDirectory,
     dm_get_experiment_datadir_active_daq,
-    dm_get_experiment_path
+    dm_get_experiment_path,
+    dm_api_ds
 )
 from ..devices import dm_experiment
 from ..framework import RE
@@ -15,7 +16,12 @@ logger.info(__file__)
 
 __all__ = """
     setup_user
+    dm_get_experiment_data_path
 """.split()
+
+
+def dm_get_experiment_data_path(dm_experiment_name: str):
+    return dm_api_ds().getExperimentByName(dm_experiment_name)["dataDirectory"]
 
 
 def setup_user(dm_experiment_name: str, index: int = -1):
@@ -55,7 +61,7 @@ def setup_user(dm_experiment_name: str, index: int = -1):
         dm_start_daq(dm_experiment_name, data_directory)
 
     # Make sure that the subfolders are created.
-    path = dm_get_experiment_path(dm_experiment_name)
+    path = dm_get_experiment_data_path(dm_experiment_name)
     for subfolder in "eiger positioner_stream".split():
         subpath = path / subfolder
         if not subpath.is_dir():
