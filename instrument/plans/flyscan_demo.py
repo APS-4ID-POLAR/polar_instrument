@@ -260,8 +260,9 @@ def flyscan_cycler(
     _ps_fullpath = _ps_folder / _ps_fname
 
     # Setup path and file name in positioner_stream
-    positioner_stream.file_path.put(str(_ps_folder))
-    positioner_stream.file_name.put(_ps_fname)
+    # SOFTGLUE_PROBLEM
+    # positioner_stream.file_path.put(str(_ps_folder))
+    # positioner_stream.file_name.put(_ps_fname)
 
     # Check if any of these files exists
     for _fname in [_master_fullpath, _eiger_fullpath, _ps_fullpath]:
@@ -351,12 +352,18 @@ def flyscan_cycler(
         yield from mv(det.preset_monitor, collection_time)
 
     # Stop and reset softglue just in case
-    yield from sgz.stop_eiger()
-    yield from sgz.stop_softglue()
-    yield from sgz.reset_plan()
+    # SOFTGLUE_PROBLEM
+    # yield from sgz.stop_eiger()
+    # yield from sgz.stop_softglue()
+    # yield from sgz.reset_plan()
+
+    # Stop positioner stream just in case
+    # SOFTGLUE_PROBLEM
+    # yield from mv(positioner_stream, 0)
 
     # Setup the eiger frequency
-    yield from sgz.setup_eiger_trigger_plan(trigger_time)
+    # SOFTGLUE_PROBLEM
+    # yield from sgz.setup_eiger_trigger_plan(trigger_time)
     # TODO: Should we change the speed of the interferometer?
     # yield from sgz.setup_interf_trigger_plan(trigger_time/1000)
 
@@ -380,26 +387,28 @@ def flyscan_cycler(
     @stage_decorator(list(detectors) + motors)
     @run_decorator(md=_md)
     def inner_fly():
-        yield from mv(positioner_stream, 1)
-        yield from sgz.start_softglue()
+        # SOFTGLUE_PROBLEM
+        # yield from mv(positioner_stream, 1)
+        # yield from sgz.start_softglue()
 
-        yield from sgz.start_eiger()
+        # yield from sgz.start_eiger()
         pos_cache = defaultdict(lambda: None)
         for step in list(cycler):
             yield from move_per_step(step, pos_cache)
-        yield from sgz.stop_eiger()
+        # yield from sgz.stop_eiger()
 
         # This will wait for a full new set of packets.
         # TODO: It's an overkill, maybe Keenan's code can broadcast a signal?
-        n = yield from rd(sgz.div_by_n_interf.n)
-        _time_per_point = n/1e7
-        _number_of_events_per_packet = 1e5/8
-        yield from sleep(_time_per_point*_number_of_events_per_packet+ 0.1)
+        # n = yield from rd(sgz.div_by_n_interf.n)
+        # _time_per_point = n/1e7
+        # _number_of_events_per_packet = 1e5/8
+        # yield from sleep(_time_per_point*_number_of_events_per_packet+ 0.1)
+        yield from sleep(0.1)
 
-        yield from sgz.stop_softglue()
+        # yield from sgz.stop_softglue()
 
-        print("Stopping the positioner stream, this can take time.")
-        yield from mv(positioner_stream, 0)
+        # print("Stopping the positioner stream, this can take time.")
+        # yield from mv(positioner_stream, 0)
 
         return (yield from null()) # Is there something better to do here?
 
@@ -414,35 +423,35 @@ def flyscan_cycler(
     #############################
     # START THE APS DM WORKFLOW #
     #############################
+    # testing.
+    # logger.info(
+    #     "DM workflow %r, filePath=%r",
+    #     workflow_name,
+    #     _eiger_fullpath.name,
+    # )
+    # yield from dm_workflow.run_as_plan(
+    #     workflow=workflow_name,
+    #     wait=dm_wait,
+    #     timeout=dm_reporting_time_limit,
+    #     # all kwargs after this line are DM argsDict content
+    #     filePath=_eiger_fullpath.name,
+    #     experiment=dm_experiment.get(),
+    #     # from the plan's API
+    #     smooth=wf_smooth,
+    #     gpuID=wf_gpuID,
+    #     beginFrame=wf_beginFrame,
+    #     endFrame=wf_endFrame,
+    #     strideFrame=wf_strideFrame,
+    #     avgFrame=wf_avgFrame,
+    #     type=wf_type,
+    #     dq=wf_dq,
+    #     verbose=wf_verbose,
+    #     saveG2=wf_saveG2,
+    #     overwrite=wf_overwrite,
+    #     analysisMachine=analysis_machine,
+    # )
 
-    logger.info(
-        "DM workflow %r, filePath=%r",
-        workflow_name,
-        _eiger_fullpath.name,
-    )
-    yield from dm_workflow.run_as_plan(
-        workflow=workflow_name,
-        wait=dm_wait,
-        timeout=dm_reporting_time_limit,
-        # all kwargs after this line are DM argsDict content
-        filePath=_eiger_fullpath.name,
-        experiment=dm_experiment.get(),
-        # from the plan's API
-        smooth=wf_smooth,
-        gpuID=wf_gpuID,
-        beginFrame=wf_beginFrame,
-        endFrame=wf_endFrame,
-        strideFrame=wf_strideFrame,
-        avgFrame=wf_avgFrame,
-        type=wf_type,
-        dq=wf_dq,
-        verbose=wf_verbose,
-        saveG2=wf_saveG2,
-        overwrite=wf_overwrite,
-        analysisMachine=analysis_machine,
-    )
-
-    # upload bluesky run metadata to APS DM
-    share_bluesky_metadata_with_dm(dm_experiment.get(), workflow_name, run)
+    # # upload bluesky run metadata to APS DM
+    # share_bluesky_metadata_with_dm(dm_experiment.get(), workflow_name, run)
 
     logger.info("Finished!")
