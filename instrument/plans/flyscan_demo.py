@@ -212,7 +212,7 @@ def flyscan_cycler(
     # Sample metadata will be used to sort data
     if "sample" not in RE.md.keys():
         RE.md["sample"] = "sample01"
-        warn(f"'sample' metadata not found! Using {RE.md["sample"]}")
+        warn(f"'sample' metadata not found! Using {RE.md['sample']}")
 
     #####################
     # Setup files names #
