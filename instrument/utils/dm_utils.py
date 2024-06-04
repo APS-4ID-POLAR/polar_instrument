@@ -64,9 +64,13 @@ def setup_user(dm_experiment_name: str, sample_name: str, index: int = -1):
         )
         dm_start_daq(dm_experiment_name, data_directory)
 
+    sample_path = data_path / sample_name
+    if not sample_path.is_dir():
+        sample_path.mkdir()
+
     # Make sure that the subfolders are created.
     for subfolder in "eiger positioner_stream".split():
-        subpath = data_path / subfolder
+        subpath = sample_path / subfolder
         if not subpath.is_dir():
             subpath.mkdir()
 
