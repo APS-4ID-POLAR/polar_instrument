@@ -222,7 +222,7 @@ def flyscan_cycler(
     _base_path = (
         Path(dm_get_experiment_data_path(dm_experiment.get())) / RE.md["sample"]
     )
-    if not _base_path.is_folder():
+    if not _base_path.is_dir():
         _base_path.mkdir()
 
     _file_name_base = "my_test"
@@ -253,7 +253,7 @@ def flyscan_cycler(
     
     # Setup positioner stream
     _ps_folder = _base_path / "positioner_stream"
-    if not _ps_folder.is_folder():
+    if not _ps_folder.is_dir():
         _ps_folder.mkdir()
 
     _ps_fname = (_fname_format + ".h5") % (_file_name_base, _scan_id)
