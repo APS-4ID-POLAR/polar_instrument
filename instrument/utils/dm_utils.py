@@ -8,6 +8,8 @@ from apstools.utils import (
     dm_get_experiment_datadir_active_daq,
     dm_api_ds
 )
+from pathlib import Path
+from .. import iconfig
 from ..devices import dm_experiment
 from ..framework import RE
 from ..session_logs import logger

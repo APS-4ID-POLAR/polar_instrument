@@ -9,11 +9,13 @@ from apstools.utils import validate_experiment_dataDirectory
 from collections import defaultdict
 from pathlib import Path
 from json import dumps
+from warnings import warn
 from .local_scans import mv
 from ..devices import sgz, positioner_stream, dm_experiment, dm_workflow
 from ..session_logs import logger
 from ..framework import RE
 from ..callbacks import nxwriter
+from ..utils import dm_get_experiment_data_path
 logger.info(__file__)
 
 
@@ -182,12 +184,23 @@ def flyscan_cycler(
             f"The collection time ({collection_time}) cannot be larger than the time "
             f"between triggers ({trigger_time})."
         )
+    
+    # Sample metadata will be used to sort data
+    if "sample" not in RE.md.keys():
+        RE.md["sample"] = "sample01"
+        warn(f"'sample' metadata not found! Using {RE.md["sample"]}")
 
     #####################
     # Setup files names #
     #####################
 
     # Collect information to make file names
+    _base_path = (
+        Path(dm_get_experiment_data_path(dm_experiment.get())) / RE.md["sample"]
+    )
+    if not _base_path.is_folder():
+        _base_path.mkdir()
+
     _file_name_base = "my_test"
     _scan_id = RE.md["scan_id"] + 1
     _base_path = Path("/home/beams/POLAR/data/2024_2/flyscan_demo_tests/data")
@@ -199,24 +212,31 @@ def flyscan_cycler(
     )
 
     # Setup area detector
+    _eiger_folder = _base_path / "eiger"
+    _eiger_fullpath = Path(detectors[0].hdf1.make_write_read_paths()[1])
+
     # TODO: For now we assume the eiger is the first detector
     _eig = detectors[0]
     _eig.hdf1.file_name.set(f"{_file_name_base}").wait()
-    _eig.hdf1.file_path.set(str(_base_path / "eiger")).wait()
+    _eig.hdf1.file_path.set(_eiger_folder).wait()
     _eig.hdf1.file_template.set(f"%s{_fname_format}.h5").wait()
     _eig.hdf1.file_number.set(_scan_id).wait()
 
-    _eiger_paths = detectors[0].hdf1.make_write_read_paths()
-    _eiger_fullpath = Path(_eiger_paths[1])
     # Make sure eiger will save image
     detectors[0].auto_save_on()
     # Changes the stage_sigs to the external trigger mode
     detectors[0]._flysetup = True
+    
+    # Setup positioner stream
+    _ps_folder = _base_path / "positioner_stream"
+    if not _ps_folder.is_folder():
+        _ps_folder.mkdir()
 
     _ps_fname = (_fname_format + ".h5") % (_file_name_base, _scan_id)
-    _ps_fullpath = _base_path / "positioner_stream" / _ps_fname
+    _ps_fullpath = _ps_folder / _ps_fname
+
     # Setup path and file name in positioner_stream
-    positioner_stream.file_path.put(str(_base_path / "positioner_stream"))
+    positioner_stream.file_path.put(str(_ps_folder))
     positioner_stream.file_name.put(_ps_fname)
 
     # Check if any of these files exists
