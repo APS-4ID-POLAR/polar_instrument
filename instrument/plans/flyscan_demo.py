@@ -138,6 +138,7 @@ def flyscan_cycler(
         collection_time: float = 0.01,
         md: dict = {},
         templates: list = [],
+        file_name_base: str = "scan",
         # DM workflow kwargs ----------------------------------------
         wf_smooth: str = "sqmap",
         wf_gpuID: int = -1,
@@ -225,13 +226,12 @@ def flyscan_cycler(
     if not _base_path.is_dir():
         _base_path.mkdir()
 
-    _file_name_base = "my_test"
     _scan_id = RE.md["scan_id"] + 1
     _fname_format = "%s_%6.6d"
 
     # Master file
     _master_fullpath = (
-        _base_path / ((_fname_format % (_file_name_base, _scan_id)) + ".hdf")
+        _base_path / ((_fname_format % (file_name_base, _scan_id)) + ".hdf")
     )
 
     # Setup area detector
@@ -239,7 +239,7 @@ def flyscan_cycler(
 
     # TODO: For now we assume the eiger is the first detector
     _eig = detectors[0]
-    _eig.hdf1.file_name.set(f"{_file_name_base}").wait()
+    _eig.hdf1.file_name.set(f"{file_name_base}").wait()
     _eig.hdf1.file_path.set(_eiger_folder).wait()
     _eig.hdf1.file_template.set(f"%s{_fname_format}.h5").wait()
     _eig.hdf1.file_number.set(_scan_id).wait()
@@ -256,7 +256,7 @@ def flyscan_cycler(
     if not _ps_folder.is_dir():
         _ps_folder.mkdir()
 
-    _ps_fname = (_fname_format + ".h5") % (_file_name_base, _scan_id)
+    _ps_fname = (_fname_format + ".h5") % (file_name_base, _scan_id)
     _ps_fullpath = _ps_folder / _ps_fname
 
     # Setup path and file name in positioner_stream
