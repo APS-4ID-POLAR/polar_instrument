@@ -320,4 +320,4 @@ def flyscan_cycler(
 
     yield from inner_fly()
 
-
+    yield from nxwriter.wait_writer_plan_stub()
