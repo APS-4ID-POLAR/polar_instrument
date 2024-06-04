@@ -5,7 +5,11 @@ Flyscan using area detector
 from bluesky.preprocessors import stage_decorator, run_decorator, subs_decorator
 from bluesky.plan_stubs import rd, null, move_per_step, sleep
 from bluesky.plan_patterns import outer_product, inner_product
-from apstools.utils import validate_experiment_dataDirectory
+from apstools.utils import (
+    validate_experiment_dataDirectory,
+    build_run_metadata_dict,
+    share_bluesky_metadata_with_dm,
+)
 from collections import defaultdict
 from pathlib import Path
 from json import dumps
@@ -13,7 +17,7 @@ from warnings import warn
 from .local_scans import mv
 from ..devices import sgz, positioner_stream, dm_experiment, dm_workflow
 from ..session_logs import logger
-from ..framework import RE
+from ..framework import RE, cat
 from ..callbacks import nxwriter
 from ..utils import dm_get_experiment_data_path
 logger.info(__file__)
@@ -127,13 +131,33 @@ def flyscan_1d(
         )
 
 def flyscan_cycler(
-        detectors,
+        detectors: list,
         cycler,
-        speeds,
+        speeds: list,
         trigger_time: float = 0.02,
         collection_time: float = 0.01,
         md: dict = {},
-        templates: list = []
+        templates: list = [],
+        # DM workflow kwargs ----------------------------------------
+        wf_smooth: str = "sqmap",
+        wf_gpuID: int = -1,
+        wf_beginFrame: int = 1,
+        wf_endFrame: int = -1,
+        wf_strideFrame: int = 1,
+        wf_avgFrame: int = 1,
+        wf_type: str = "Multitau",
+        wf_dq: str = "all",
+        wf_verbose: bool = False,
+        wf_saveG2: bool = False,
+        wf_overwrite: bool = False,
+        analysis_machine: str = "artemis",  # TODO: change?
+        workflow_name: str = "idontknow",  # TODO: change.
+        # internal kwargs ----------------------------------------
+        dm_concise: bool = False,
+        dm_wait: bool = False,
+        dm_reporting_period: float = 10*60,  # TODO: change?
+        dm_reporting_time_limit: float = 10**6, # TODO: change?
+        nxwriter_warn_missing: bool = False,
     ):
 
     """
@@ -280,8 +304,10 @@ def flyscan_cycler(
         motors = [motor.name for motor in motors], 
         plan_name = "flyscan_cycler",
         # This assumes the first detector is the eiger.
-        eiger_file_path = _eiger_paths[1],
-        positioner_stream_file_path = str(_ps_fullpath),
+        eiger_relative_file_path = str(_rel_eiger_path),
+        eiger_full_file_path = str(_eiger_fullpath),
+        positioner_stream_full_file_path = str(_ps_fullpath),
+        positioner_stream_relative_file_path = str(_rel_ps_path),
         # TODO: a similar scan with a monitor (scaler...)
         hints = dict(monitor=None, detectors=[], scan_type="flyscan")
     )
@@ -291,11 +317,34 @@ def flyscan_cycler(
     dimensions = [(motor.hints["fields"], "primary") for motor in motors]
     _md["hints"].setdefault("dimensions", dimensions)
 
+    _md = build_run_metadata_dict(
+        _md,
+        # ALL following kwargs are stored under RE.md["data_management"]
+        smooth=wf_smooth,
+        gpuID=wf_gpuID,
+        beginFrame=wf_beginFrame,
+        endFrame=wf_endFrame,
+        strideFrame=wf_strideFrame,
+        avgFrame=wf_avgFrame,
+        type=wf_type,
+        dq=wf_dq,
+        verbose=wf_verbose,
+        saveG2=wf_saveG2,
+        overwrite=wf_overwrite,
+        analysisMachine=analysis_machine,
+    )
+
     _md.update(md)
 
     #################################
     # MOVING DEVICES TO START POINT #
     #################################
+
+    # DM workflow
+    yield from mv(
+        dm_workflow.concise_reporting, dm_concise,
+        dm_workflow.reporting_period, dm_reporting_period,
+    )
 
     # Setup detectors count time
     for det in detectors:
@@ -354,7 +403,46 @@ def flyscan_cycler(
 
         return (yield from null()) # Is there something better to do here?
 
-    yield from inner_fly()
+    uid = yield from inner_fly()
+
+    # Get the bluesky run
+    run = cat[uid]
 
     # Wait for the master file to finish writing.
     yield from nxwriter.wait_writer_plan_stub()
+
+    #############################
+    # START THE APS DM WORKFLOW #
+    #############################
+
+    logger.info(
+        "DM workflow %r, filePath=%r",
+        workflow_name,
+        _eiger_fullpath.name,
+    )
+    yield from dm_workflow.run_as_plan(
+        workflow=workflow_name,
+        wait=dm_wait,
+        timeout=dm_reporting_time_limit,
+        # all kwargs after this line are DM argsDict content
+        filePath=_eiger_fullpath.name,
+        experiment=dm_experiment.get(),
+        # from the plan's API
+        smooth=wf_smooth,
+        gpuID=wf_gpuID,
+        beginFrame=wf_beginFrame,
+        endFrame=wf_endFrame,
+        strideFrame=wf_strideFrame,
+        avgFrame=wf_avgFrame,
+        type=wf_type,
+        dq=wf_dq,
+        verbose=wf_verbose,
+        saveG2=wf_saveG2,
+        overwrite=wf_overwrite,
+        analysisMachine=analysis_machine,
+    )
+
+    # upload bluesky run metadata to APS DM
+    share_bluesky_metadata_with_dm(dm_experiment.get(), workflow_name, run)
+
+    logger.info("Finished!")
