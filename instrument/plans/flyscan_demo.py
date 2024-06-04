@@ -2,15 +2,17 @@
 Flyscan using area detector
 """
 
-from bluesky.preprocessors import stage_decorator, run_decorator
+from bluesky.preprocessors import stage_decorator, run_decorator, subs_decorator
 from bluesky.plan_stubs import rd, null, move_per_step, sleep
 from bluesky.plan_patterns import outer_product, inner_product
 from collections import defaultdict
 from pathlib import Path
+from json import dumps
 from .local_scans import mv
 from ..devices import sgz, positioner_stream
 from ..session_logs import logger
 from ..framework import RE
+from ..callbacks import nxwriter
 logger.info(__file__)
 
 
@@ -211,6 +213,27 @@ def flyscan_cycler(
                 f"The file {_fname} already exists! Will not overwrite, quitting."
             )
 
+
+    ##################
+    # nxwriter setup #
+    ##################
+
+    nxwriter.ad_file_name = str(_rel_eiger_path)
+    nxwriter.position_file_name = str(_rel_ps_path)
+    nxwriter.file_name = str(_master_fullpath)
+    nxwriter.file_path = str(_base_path)
+
+    md.update(dict(master_file=str(nxwriter.file_name)))
+
+    # For now this is here just to show how the templates works.
+    _rel_eiger_path = _eiger_fullpath.relative_to(_master_fullpath)
+    _rel_ps_path = _ps_fullpath.relative_to(_master_fullpath)
+    templates = [
+        ["/entry/detector/eiger/file_path=", _rel_eiger_path],
+        ["/entry/instrument/softglue/file_path=", _rel_ps_path],
+    ]
+    md[nxwriter.template_key] = dumps(templates)  # <-- adds the templates
+
     ############
     # METADATA #
     ############
@@ -270,6 +293,7 @@ def flyscan_cycler(
 
     @stage_decorator(list(detectors) + motors)
     @run_decorator(md=_md)
+    @subs_decorator(nxwriter.receiver)
     def inner_fly():
         yield from mv(positioner_stream, 1)
         yield from sgz.start_softglue()
