@@ -229,8 +229,8 @@ def flyscan_cycler(
 
     # For now this is here just to show how the templates works.
     templates = [
-        ["/entry/detector/eiger/file_path=", _rel_eiger_path],
-        ["/entry/instrument/softglue/file_path=", _rel_ps_path],
+        ["/entry/detector/eiger/file_path=", str(_rel_eiger_path)],
+        ["/entry/instrument/softglue/file_path=", str(_rel_ps_path)],
     ]
     md[nxwriter.template_key] = dumps(templates)  # <-- adds the templates
 
