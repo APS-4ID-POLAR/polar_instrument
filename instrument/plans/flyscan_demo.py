@@ -218,6 +218,9 @@ def flyscan_cycler(
     # nxwriter setup #
     ##################
 
+    _rel_eiger_path = _eiger_fullpath.relative_to(_master_fullpath)
+    _rel_ps_path = _ps_fullpath.relative_to(_master_fullpath)
+
     nxwriter.ad_file_name = str(_rel_eiger_path)
     nxwriter.position_file_name = str(_rel_ps_path)
     nxwriter.file_name = str(_master_fullpath)
@@ -226,8 +229,6 @@ def flyscan_cycler(
     md.update(dict(master_file=str(nxwriter.file_name)))
 
     # For now this is here just to show how the templates works.
-    _rel_eiger_path = _eiger_fullpath.relative_to(_master_fullpath)
-    _rel_ps_path = _ps_fullpath.relative_to(_master_fullpath)
     templates = [
         ["/entry/detector/eiger/file_path=", _rel_eiger_path],
         ["/entry/instrument/softglue/file_path=", _rel_ps_path],
