@@ -213,11 +213,9 @@ def flyscan_cycler(
                 f"The file {_fname} already exists! Will not overwrite, quitting."
             )
 
-
     ##################
     # nxwriter setup #
     ##################
-
 
     _rel_eiger_path = _eiger_fullpath.relative_to(_base_path)
     _rel_ps_path = _ps_fullpath.relative_to(_base_path)
