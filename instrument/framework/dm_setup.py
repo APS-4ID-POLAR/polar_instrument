@@ -10,6 +10,7 @@ __all__ = """
 # import logging
 import os
 import pathlib
+from apstools.utils import dm_setup
 
 from .. import iconfig
 from ..session_logs import logger
@@ -36,5 +37,7 @@ else:
         environment_variables[k] = v
 
     os.environ.update(environment_variables)
-    DM_WORKFLOW_OWNER = environment_variables.get("DM_STATION_NAME", "unknown").lower()
+    # DM_WORKFLOW_OWNER = environment_variables.get("DM_STATION_NAME", "unknown").lower()
+    DM_WORKFLOW_OWNER = dm_setup(DM_SETUP_FILE)
     logger.info("APS DM workflow owner: %s", DM_WORKFLOW_OWNER)
+

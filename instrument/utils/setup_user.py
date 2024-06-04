@@ -9,7 +9,6 @@ from apstools.utils import (
     dm_get_experiment_path
 )
 from ..devices import dm_experiment
-from ..plans import mv
 from ..framework import RE
 from ..session_logs import logger
 logger.info(__file__)
