@@ -49,7 +49,8 @@ def setup_user(dm_experiment_name: str, sample_name: str, index: int = -1):
     # XPCS new data is written to APS Voyager storage (path
     # starting with ``/gdata/``).  Use "@voyager" in this case.
     # DM sees this and knows not copy from voyager to voyager.
-    data_directory = "@voyager"
+    data_path = dm_get_experiment_data_path(dm_experiment_name)
+    data_directory = f"@voyager:{data_path}"
 
     # Check DM DAQ is running for this experiment, if not then start it.
     if dm_get_experiment_datadir_active_daq(dm_experiment_name, data_directory) is None:
@@ -64,9 +65,8 @@ def setup_user(dm_experiment_name: str, sample_name: str, index: int = -1):
         dm_start_daq(dm_experiment_name, data_directory)
 
     # Make sure that the subfolders are created.
-    path = dm_get_experiment_data_path(dm_experiment_name)
     for subfolder in "eiger positioner_stream".split():
-        subpath = path / subfolder
+        subpath = data_path / subfolder
         if not subpath.is_dir():
             subpath.mkdir()
 
