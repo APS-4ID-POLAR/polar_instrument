@@ -25,7 +25,7 @@ def dm_get_experiment_data_path(dm_experiment_name: str):
     return dm_api_ds().getExperimentByName(dm_experiment_name)["dataDirectory"]
 
 
-def setup_user(dm_experiment_name: str, index: int = -1):
+def setup_user(dm_experiment_name: str, sample_name: str, index: int = -1):
     """
     Configure bluesky session for this user.
 
@@ -38,6 +38,8 @@ def setup_user(dm_experiment_name: str, index: int = -1):
 
     validate_experiment_dataDirectory(dm_experiment_name)
     dm_experiment.put(dm_experiment_name)
+
+    RE.md["sample"] = sample_name
 
     if index >= 0:
         RE.md["scan_id"] = index
