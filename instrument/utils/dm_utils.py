@@ -46,7 +46,7 @@ def setup_user(dm_experiment_name: str, sample_name: str, index: int = -1):
 
     # Needed when data acquisition (Bluesky, EPICS, ...) writes to Voyager.
     # Full path to directory where new data will be written.
-    # XPCS new data is written to APS Voyager storage (path
+    # Data is written to APS Voyager storage (path
     # starting with ``/gdata/``).  Use "@voyager" in this case.
     # DM sees this and knows not copy from voyager to voyager.
     data_path = dm_get_experiment_data_path(dm_experiment_name)
