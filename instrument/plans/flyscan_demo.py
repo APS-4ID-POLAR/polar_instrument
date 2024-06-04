@@ -231,11 +231,8 @@ def flyscan_cycler(
     #################################################
 
     # Relative paths are used in the master file so that data can be copied.
-    # _rel_eiger_path = _eiger_fullpath.relative_to(_base_path)
-    # _rel_ps_path = _ps_fullpath.relative_to(_base_path)
-
-    _rel_eiger_path = Path("bla")
-    _rel_ps_path = Path("bla")
+    _rel_eiger_path = _eiger_fullpath.relative_to(_base_path)
+    _rel_ps_path = _ps_fullpath.relative_to(_base_path)
 
     # Sets the file names
     nxwriter.ad_file_name = str(_rel_eiger_path)
