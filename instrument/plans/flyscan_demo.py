@@ -227,7 +227,6 @@ def flyscan_cycler(
 
     _file_name_base = "my_test"
     _scan_id = RE.md["scan_id"] + 1
-    _base_path = Path("/home/beams/POLAR/data/2024_2/flyscan_demo_tests/data")
     _fname_format = "%s_%6.6d"
 
     # Master file
@@ -237,7 +236,6 @@ def flyscan_cycler(
 
     # Setup area detector
     _eiger_folder = _base_path / "eiger"
-    _eiger_fullpath = Path(detectors[0].hdf1.make_write_read_paths()[1])
 
     # TODO: For now we assume the eiger is the first detector
     _eig = detectors[0]
@@ -245,6 +243,8 @@ def flyscan_cycler(
     _eig.hdf1.file_path.set(_eiger_folder).wait()
     _eig.hdf1.file_template.set(f"%s{_fname_format}.h5").wait()
     _eig.hdf1.file_number.set(_scan_id).wait()
+
+    _eiger_fullpath = Path(detectors[0].hdf1.make_write_read_paths()[1])
 
     # Make sure eiger will save image
     detectors[0].auto_save_on()
@@ -425,35 +425,34 @@ def flyscan_cycler(
     #############################
     # START THE APS DM WORKFLOW #
     #############################
-    # testing.
-    # logger.info(
-    #     "DM workflow %r, filePath=%r",
-    #     workflow_name,
-    #     _eiger_fullpath.name,
-    # )
-    # yield from dm_workflow.run_as_plan(
-    #     workflow=workflow_name,
-    #     wait=dm_wait,
-    #     timeout=dm_reporting_time_limit,
-    #     # all kwargs after this line are DM argsDict content
-    #     filePath=_eiger_fullpath.name,
-    #     experiment=dm_experiment.get(),
-    #     # from the plan's API
-    #     smooth=wf_smooth,
-    #     gpuID=wf_gpuID,
-    #     beginFrame=wf_beginFrame,
-    #     endFrame=wf_endFrame,
-    #     strideFrame=wf_strideFrame,
-    #     avgFrame=wf_avgFrame,
-    #     type=wf_type,
-    #     dq=wf_dq,
-    #     verbose=wf_verbose,
-    #     saveG2=wf_saveG2,
-    #     overwrite=wf_overwrite,
-    #     analysisMachine=analysis_machine,
-    # )
+    logger.info(
+        "DM workflow %r, filePath=%r",
+        workflow_name,
+        _eiger_fullpath.name,
+    )
+    yield from dm_workflow.run_as_plan(
+        workflow=workflow_name,
+        wait=dm_wait,
+        timeout=dm_reporting_time_limit,
+        # all kwargs after this line are DM argsDict content
+        filePath=_eiger_fullpath.name,
+        experiment=dm_experiment.get(),
+        # from the plan's API
+        smooth=wf_smooth,
+        gpuID=wf_gpuID,
+        beginFrame=wf_beginFrame,
+        endFrame=wf_endFrame,
+        strideFrame=wf_strideFrame,
+        avgFrame=wf_avgFrame,
+        type=wf_type,
+        dq=wf_dq,
+        verbose=wf_verbose,
+        saveG2=wf_saveG2,
+        overwrite=wf_overwrite,
+        analysisMachine=analysis_machine,
+    )
 
-    # # upload bluesky run metadata to APS DM
-    # share_bluesky_metadata_with_dm(dm_experiment.get(), workflow_name, run)
+    # upload bluesky run metadata to APS DM
+    share_bluesky_metadata_with_dm(dm_experiment.get(), workflow_name, run)
 
     logger.info("Finished!")
