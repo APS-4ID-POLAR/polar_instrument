@@ -51,7 +51,7 @@ class MyNXWriter(NXWriterAPS):
         print(f"{nxentry=!r}")
       
         if self.ad_file_name is not None:
-            h5addr = "/entry/detector/eiger"  # TODO: final location to be decided
+            h5addr = "/entry/detectors/eiger"  # TODO: final location to be decided
             self.root[h5addr] = h5py.ExternalLink(
                 str(self.ad_file_name),
                 "/entry/instrument",  # link to the image dataset

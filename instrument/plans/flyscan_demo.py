@@ -130,7 +130,7 @@ def flyscan_cycler(
         trigger_time: float = 0.02,
         collection_time: float = 0.01,
         md: dict = {},
-        templates: dict = {}
+        templates: list = []
     ):
 
     """
@@ -229,12 +229,10 @@ def flyscan_cycler(
     md.update(dict(master_file=str(nxwriter.file_name)))
 
     # For now this is here just to show how the templates works.
-    _templates = [
+    templates += [
         ["/entry/eiger_file_path=", str(_rel_eiger_path)],
         ["/entry/softglue_file_path=", str(_rel_ps_path)],
     ]
-
-    templates.update(_templates)
 
     md[nxwriter.template_key] = dumps(templates)  # <-- adds the templates
 
