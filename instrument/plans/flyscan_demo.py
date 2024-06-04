@@ -392,9 +392,11 @@ def flyscan_cycler(
         # yield from sgz.start_softglue()
 
         # yield from sgz.start_eiger()
+        yield from mv(detectors[0].cam.acquire, 1)
         pos_cache = defaultdict(lambda: None)
         for step in list(cycler):
             yield from move_per_step(step, pos_cache)
+        yield from mv(detectors[0].cam.acquire, 0)
         # yield from sgz.stop_eiger()
 
         # This will wait for a full new set of packets.

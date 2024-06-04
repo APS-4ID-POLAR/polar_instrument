@@ -65,7 +65,9 @@ class TriggerTime(TriggerBase):
 
     def setup_external_trigger(self):
         # Stage signals
-        self.cam.stage_sigs["trigger_mode"] = "External Enable"
+        # SOFTGLUE_PROBLEM
+        # self.cam.stage_sigs["trigger_mode"] = "External Enable"
+        self.cam.stage_sigs["trigger_mode"] = "Internal Enable"
         self.cam.stage_sigs["manual_trigger"] = "Disable"
         self.cam.stage_sigs["num_images"] = 1
         self.cam.stage_sigs["num_exposures"] = 1
@@ -79,7 +81,8 @@ class TriggerTime(TriggerBase):
         # Make sure that detector is not armed.
         self.cam.acquire.set(0).wait(timeout=10)
         super().stage()
-        self.cam.acquire.set(1).wait(timeout=10)
+        # SOFTGLUE_PROBLEM
+        # self.cam.acquire.set(1).wait(timeout=10)
 
     def unstage(self):
         super().unstage()
