@@ -214,13 +214,15 @@ def flyscan_cycler(
                 f"The file {_fname} already exists! Will not overwrite, quitting."
             )
 
-    ##################
-    # nxwriter setup #
-    ##################
+    #################################################
+    # nxwriter - creates and setup the master file  #
+    #################################################
 
+    # Relative paths are used in the master file so that data can be copied.
     _rel_eiger_path = _eiger_fullpath.relative_to(_base_path)
     _rel_ps_path = _ps_fullpath.relative_to(_base_path)
 
+    # Sets the file names
     nxwriter.ad_file_name = str(_rel_eiger_path)
     nxwriter.position_file_name = str(_rel_ps_path)
     nxwriter.file_name = str(_master_fullpath)
@@ -322,4 +324,5 @@ def flyscan_cycler(
 
     yield from inner_fly()
 
+    # Wait for the master file to finish writing.
     yield from nxwriter.wait_writer_plan_stub()
