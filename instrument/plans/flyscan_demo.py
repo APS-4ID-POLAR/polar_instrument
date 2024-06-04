@@ -291,9 +291,9 @@ def flyscan_cycler(
     # RUNNING SCAN #
     ################
 
+    @subs_decorator(nxwriter.receiver)
     @stage_decorator(list(detectors) + motors)
     @run_decorator(md=_md)
-    @subs_decorator(nxwriter.receiver)
     def inner_fly():
         yield from mv(positioner_stream, 1)
         yield from sgz.start_softglue()
