@@ -462,14 +462,8 @@ def flyscan_cycler(
     yield from mv(_file_copy_device, 0)
 
     # Change to new data.
-    _base_path = (
-        Path(dm_get_experiment_data_path(dm_experiment.get())) / wf_sample
-    )
-
-    _master_fullpath = (
-        _base_path / ((_fname_format % (file_name_base, _scan_id)) + "_master.hdf")
-    )
-
+    _base_path = Path(dm_get_experiment_data_path(dm_experiment.get())) / wf_sample
+    _master_fullpath = _base_path / "fly001_master.h5"
     RE.md["sample"] = wf_sample
 
     print(_master_fullpath)
