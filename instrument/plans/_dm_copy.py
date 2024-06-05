@@ -20,4 +20,4 @@ def copy_previous_files(
         raise FileExistsError("Folder already exists, will not overwrite!")
 
     file_copy_device.start_copy(origin, destination)
-    print("Started data copy.")
+    logger.info(f"Started data copy. Origin: {origin}, destination: {destination}")
