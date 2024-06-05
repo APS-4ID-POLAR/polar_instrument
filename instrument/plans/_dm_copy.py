@@ -13,6 +13,8 @@ def copy_previous_files(
 ):
     if destination is None:
         destination = Path(dm_get_experiment_data_path(dm_experiment.get())) / "sample1"
+    elif isinstance(destination, str):
+        destination = Path(destination)
 
     if destination.is_dir():
         raise FileExistsError("Folder already exists, will not overwrite!")
