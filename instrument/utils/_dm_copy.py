@@ -1,7 +1,7 @@
 
 from pathlib import Path
 from ..devices import file_copy_device, dm_experiment
-from ..utils import dm_get_experiment_data_path
+from . import dm_get_experiment_data_path
 from ..session_logs import logger
 logger.info(__file__)
 

@@ -17,4 +17,3 @@ from .local_scans import (
 
 from .center_maximum import maxi, cen
 from .flyscan_demo import flyscan_1d, flyscan_snake, flyscan_cycler
-from ._dm_copy import copy_previous_files
