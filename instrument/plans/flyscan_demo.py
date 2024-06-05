@@ -319,19 +319,19 @@ def flyscan_cycler(
     _md["hints"].setdefault("dimensions", dimensions)
 
     _md = build_run_metadata_dict(
-        _md,
+        _md,  # TODO: maybe it needs **_md?
         # ALL following kwargs are stored under RE.md["data_management"]
-        smooth=wf_smooth,
-        gpuID=wf_gpuID,
-        beginFrame=wf_beginFrame,
-        endFrame=wf_endFrame,
-        strideFrame=wf_strideFrame,
-        avgFrame=wf_avgFrame,
-        type=wf_type,
-        dq=wf_dq,
-        verbose=wf_verbose,
-        saveG2=wf_saveG2,
-        overwrite=wf_overwrite,
+        # smooth=wf_smooth,
+        # gpuID=wf_gpuID,
+        # beginFrame=wf_beginFrame,
+        # endFrame=wf_endFrame,
+        # strideFrame=wf_strideFrame,
+        # avgFrame=wf_avgFrame,
+        # type=wf_type,
+        # dq=wf_dq,
+        # verbose=wf_verbose,
+        # saveG2=wf_saveG2,
+        # overwrite=wf_overwrite,
         analysisMachine=analysis_machine,
     )
 
@@ -455,7 +455,7 @@ def flyscan_cycler(
         cropCenterYInPixels = 259,
         cropExtentXInPixels = 256,
         cropExtentYInPixels = 256,
-        probeEnergyInElectronVolts = 10000,
+        probeEnergyInElectronVolts = 10000,  # 6977
         defocusDistanceInMeters = 0.000800,
         numGpus = 2,
         settings = "/home/beams/POLAR/ptychodusDefaults/default-settings.ini",
