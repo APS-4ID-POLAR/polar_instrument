@@ -10,6 +10,11 @@ __all__ = """
 """.split()
 
 class CopyFileSignal(Signal):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._st = None
+
     def start_copy(self, origin, destination):
         self._st = Status()
         @run_in_thread
