@@ -139,20 +139,21 @@ def flyscan_cycler(
         md: dict = {},
         templates: list = [],
         file_name_base: str = "scan",
-        # DM workflow kwargs ----------------------------------------
-        # wf_smooth: str = "sqmap",
-        # wf_gpuID: int = -1,
-        # wf_beginFrame: int = 1,
-        # wf_endFrame: int = -1,
-        # wf_strideFrame: int = 1,
-        # wf_avgFrame: int = 1,
-        # wf_type: str = "Multitau",
-        # wf_dq: str = "all",
-        # wf_verbose: bool = False,
-        # wf_saveG2: bool = False,
-        # wf_overwrite: bool = False,
-        analysis_machine: str = "polaris",
-        workflow_name: str = "ptychodus",
+        # DM workflow kwargs -------------------------------------
+        wf_analysis_machine: str = "polaris",
+        wf_workflow_name: str = "ptychodus",
+        wf_detectorName: str = "eiger",
+        wf_detectorDistanceInMeters: float = 2.335,
+        wf_cropCenterXInPixels: int = 540,
+        wf_cropCenterYInPixels: int = 259,
+        wf_cropExtentXInPixels: int = 256,
+        wf_cropExtentYInPixels: int = 256,
+        wf_probeEnergyInElectronVolts: float = 10000,
+        wf_defocusDistanceInMeters: float = 0.000800,
+        wf_numGpus: int = 2,
+        wf_settings: str = "/home/beams/POLAR/ptychodusDefaults/default-settings.ini",
+        # patternsFile (from area detector) --> ?
+        wf_demand: bool = False,
         # internal kwargs ----------------------------------------
         dm_concise: bool = False,
         dm_wait: bool = False,
@@ -229,9 +230,11 @@ def flyscan_cycler(
     _scan_id = RE.md["scan_id"] + 1
     _fname_format = "%s_%6.6d"
 
+
+    # TODO: simplify
     # Master file
     _master_fullpath = (
-        _base_path / ((_fname_format % (file_name_base, _scan_id)) + ".hdf")
+        _base_path / ((_fname_format % (file_name_base, _scan_id)) + "_master.hdf")
     )
 
     # Setup area detector
@@ -295,6 +298,8 @@ def flyscan_cycler(
 
     md[nxwriter.template_key] = dumps(templates)  # <-- adds the templates
 
+    nxwriter.warn_on_missing_content = nxwriter_warn_missing
+
     ############
     # METADATA #
     ############
@@ -320,19 +325,26 @@ def flyscan_cycler(
 
     _md = build_run_metadata_dict(
         _md,  # TODO: maybe it needs **_md?
-        # ALL following kwargs are stored under RE.md["data_management"]
-        # smooth=wf_smooth,
-        # gpuID=wf_gpuID,
-        # beginFrame=wf_beginFrame,
-        # endFrame=wf_endFrame,
-        # strideFrame=wf_strideFrame,
-        # avgFrame=wf_avgFrame,
-        # type=wf_type,
-        # dq=wf_dq,
-        # verbose=wf_verbose,
-        # saveG2=wf_saveG2,
-        # overwrite=wf_overwrite,
-        analysisMachine=analysis_machine,
+        workflow=wf_workflow_name,
+        wait=dm_wait,
+        timeout=dm_reporting_time_limit,
+        filePath=_master_fullpath.name,
+        sampleName = RE.md["sample"],
+        experimentName=dm_experiment.get(),
+        analysisMachine=wf_analysis_machine,
+        # TODO: What all can we switch to PV.gets?
+        detectorName = wf_detectorName,
+        detectorDistanceInMeters = wf_detectorDistanceInMeters,
+        cropCenterXInPixels = wf_cropCenterXInPixels,
+        cropCenterYInPixels = wf_cropCenterYInPixels,
+        cropExtentXInPixels = wf_cropExtentXInPixels,
+        cropExtentYInPixels = wf_cropExtentYInPixels,
+        probeEnergyInElectronVolts = wf_probeEnergyInElectronVolts,
+        defocusDistanceInMeters = wf_defocusDistanceInMeters,
+        numGpus = wf_numGpus,
+        settings = wf_settings,
+        # patternsFile (from area detector) --> ?
+        demand = wf_demand
     )
 
     _md.update(md)
@@ -422,49 +434,54 @@ def flyscan_cycler(
     # Wait for the master file to finish writing.
     yield from nxwriter.wait_writer_plan_stub()
 
+
+    ####################
+    # COPY "GOOD" DATA #
+    ####################
+
+    # add a function here to copy?
+
+    # Change to new data.
+    _master_fullpath = (
+        _base_path / ((_fname_format % (file_name_base, _scan_id)) + "_master.hdf")
+    )
+    RE.md["sample"] = "new_data"
+
     #############################
     # START THE APS DM WORKFLOW #
     #############################
     logger.info(
         "DM workflow %r, filePath=%r",
-        workflow_name,
-        _eiger_fullpath.name,
+        wf_workflow_name,
+        _master_fullpath.name,
     )
+
+    # TODO: This is the normal setup, but we will run using the other data below.
     yield from dm_workflow.run_as_plan(
-        workflow=workflow_name,
+        workflow=wf_workflow_name,
         wait=dm_wait,
         timeout=dm_reporting_time_limit,
         # all kwargs after this line are DM argsDict content
-        filePath=_eiger_fullpath.name,
+        filePath=_master_fullpath.name,
+        sampleName = RE.md["sample"],
         experimentName=dm_experiment.get(),
-        analysisMachine=analysis_machine,
-        # from the plan's API
-        # smooth=wf_smooth,
-        # gpuID=wf_gpuID,
-        # beginFrame=wf_beginFrame,
-        # endFrame=wf_endFrame,
-        # strideFrame=wf_strideFrame,
-        # avgFrame=wf_avgFrame,
-        # type=wf_type,
-        # dq=wf_dq,
-        # verbose=wf_verbose,
-        # saveG2=wf_saveG2,
-        # overwrite=wf_overwrite,
+        analysisMachine=wf_analysis_machine,
         # TODO: What all can we switch to PV.gets?
-        detectorDistanceInMeters = 2.335,
-        cropCenterXInPixels = 540,
-        cropCenterYInPixels = 259,
-        cropExtentXInPixels = 256,
-        cropExtentYInPixels = 256,
-        probeEnergyInElectronVolts = 10000,  # 6977
-        defocusDistanceInMeters = 0.000800,
-        numGpus = 2,
-        settings = "/home/beams/POLAR/ptychodusDefaults/default-settings.ini",
+        detectorName = wf_detectorName,
+        detectorDistanceInMeters = wf_detectorDistanceInMeters,
+        cropCenterXInPixels = wf_cropCenterXInPixels,
+        cropCenterYInPixels = wf_cropCenterYInPixels,
+        cropExtentXInPixels = wf_cropExtentXInPixels,
+        cropExtentYInPixels = wf_cropExtentYInPixels,
+        probeEnergyInElectronVolts = wf_probeEnergyInElectronVolts,
+        defocusDistanceInMeters = wf_defocusDistanceInMeters,
+        numGpus = wf_numGpus,
+        settings = wf_settings,
         # patternsFile (from area detector) --> ?
-        demand = False
+        demand = wf_demand
     )
 
     # upload bluesky run metadata to APS DM
-    share_bluesky_metadata_with_dm(dm_experiment.get(), workflow_name, run)
+    share_bluesky_metadata_with_dm(dm_experiment.get(), wf_workflow_name, run)
 
     logger.info("Finished!")
