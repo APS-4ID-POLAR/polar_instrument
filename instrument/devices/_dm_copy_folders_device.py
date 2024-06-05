@@ -14,7 +14,8 @@ class CopyFileSignal(Signal):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._st = None
+        self._st = Status()
+        self._st.set_finished()
         self._start_time = None
         self._end_time = None
 
