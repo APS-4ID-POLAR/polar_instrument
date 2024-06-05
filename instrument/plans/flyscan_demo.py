@@ -450,6 +450,7 @@ def flyscan_cycler(
         # verbose=wf_verbose,
         # saveG2=wf_saveG2,
         # overwrite=wf_overwrite,
+        # TODO: What all can we switch to PV.gets?
         detectorDistanceInMeters = 2.335,
         cropCenterXInPixels = 540,
         cropCenterYInPixels = 259,
