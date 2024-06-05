@@ -47,9 +47,10 @@ class MyNXWriter(NXWriterAPS):
 
     def write_entry(self):
         """Called after stop document has been received."""
-        nxentry = super().write_entry()
-        print(f"{nxentry=!r}")
-      
+        # nxentry = super().write_entry()
+        # print(f"{nxentry=!r}")
+        super().write_entry()
+
         if self.ad_file_name is not None:
             h5addr = "/entry/detectors/eiger"  # TODO: final location to be decided
             self.root[h5addr] = h5py.ExternalLink(

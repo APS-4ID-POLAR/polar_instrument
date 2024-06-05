@@ -1,6 +1,6 @@
 
 from pathlib import Path
-from ..devices import copy_files, dm_experiment
+from ..devices import _file_copy_device, dm_experiment
 from ..utils import dm_get_experiment_data_path
 from ..session_logs import logger
 logger.info(__file__)
@@ -17,4 +17,5 @@ def copy_previous_files(
     if destination.is_dir():
         raise FileExistsError("Folder already exists, will not overwrite!")
 
-    copy_files.start_copy(origin, destination)
+    _file_copy_device.start_copy(origin, destination)
+    print("Started data copy.")

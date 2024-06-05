@@ -6,7 +6,7 @@ from ..session_logs import logger
 logger.info(__file__)
 
 __all__ = """
-    copy_files
+    _file_copy_device
 """.split()
 
 class CopyFileSignal(Signal):
@@ -46,4 +46,4 @@ class CopyFileSignal(Signal):
         return self._st
 
 
-copy_files = CopyFileSignal(name="copy_files")
+_file_copy_device = CopyFileSignal(name="copy_files")
