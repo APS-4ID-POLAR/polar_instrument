@@ -466,8 +466,6 @@ def flyscan_cycler(
     _master_fullpath = _base_path / "fly001_master.h5"
     RE.md["sample"] = wf_sample
 
-    print(_master_fullpath)
-
     #############################
     # START THE APS DM WORKFLOW #
     #############################
