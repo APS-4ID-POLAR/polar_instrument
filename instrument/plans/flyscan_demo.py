@@ -15,7 +15,7 @@ from pathlib import Path
 from json import dumps
 from warnings import warn
 from .local_scans import mv
-from ..devices import sgz, positioner_stream, dm_experiment, dm_workflow
+from ..devices import sgz, positioner_stream, dm_experiment, dm_workflow, copy_files
 from ..session_logs import logger
 from ..framework import RE, cat
 from ..callbacks import nxwriter
@@ -215,6 +215,18 @@ def flyscan_cycler(
     if "sample" not in RE.md.keys():
         RE.md["sample"] = "sample01"
         warn(f"'sample' metadata not found! Using {RE.md['sample']}")
+
+
+
+    ##########################
+    # Start "GOOD" DATA copy #
+    ##########################
+
+    # maybe we plan to do this before!
+    # copy_files.start_copy(
+    #     "/home/beams/POLAR/ptychodusDemo/sample1",
+    #     Path(dm_get_experiment_data_path(dm_experiment.get())) / "sample1"
+    # )
 
     #####################
     # Setup files names #
@@ -434,18 +446,26 @@ def flyscan_cycler(
     # Wait for the master file to finish writing.
     yield from nxwriter.wait_writer_plan_stub()
 
+    ############################################################
+    # Check "GOOD" DATA  is done copying and change some names #
+    # TODO: REMOVE AFTER DEMO!                                 #
+    ############################################################
 
-    ####################
-    # COPY "GOOD" DATA #
-    ####################
-
-    # add a function here to copy?
+    # This is a trick to make bluesky wait for the files to copy.
+    yield from mv(copy_files, 0)
 
     # Change to new data.
+    _base_path = (
+        Path(dm_get_experiment_data_path(dm_experiment.get())) / "sample1"
+    )
+
     _master_fullpath = (
         _base_path / ((_fname_format % (file_name_base, _scan_id)) + "_master.hdf")
     )
-    RE.md["sample"] = "new_data"
+
+    RE.md["sample"] = "sample1"
+
+    print(_master_fullpath)
 
     #############################
     # START THE APS DM WORKFLOW #
