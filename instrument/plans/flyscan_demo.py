@@ -20,7 +20,7 @@ from ..devices import (
     positioner_stream,
     dm_experiment,
     dm_workflow,
-    _file_copy_device
+    file_copy_device
 )
 from ..session_logs import logger
 from ..framework import RE, cat
@@ -457,9 +457,9 @@ def flyscan_cycler(
     ############################################################
 
     # This is a trick to make bluesky wait for the files to copy.
-    if not _file_copy_device._st.done:
+    if not file_copy_device._st.done:
         print("Data copy in process. It may take a few of minutes.")
-    yield from mv(_file_copy_device, 0)
+    yield from mv(file_copy_device, 0)
 
     # Change to new data.
     _base_path = Path(dm_get_experiment_data_path(dm_experiment.get())) / wf_sample
