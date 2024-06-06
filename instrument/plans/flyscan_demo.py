@@ -613,10 +613,10 @@ def flyscan_cycler(
         demand = wf_demand
     )
 
-    # logger.info(f"dm_workflow id: {dm_workflow.job_id.get()}")
-    print(f"dm_workflow id: {dm_workflow.job_id.get()}")
-
     # upload bluesky run metadata to APS DM
     share_bluesky_metadata_with_dm(dm_experiment.get(), wf_workflow_name, run)
+
+    # logger.info(f"dm_workflow id: {dm_workflow.job_id.get()}")
+    print(f"dm_workflow id: {dm_workflow.job_id.get()}")
 
     logger.info("Finished!")
