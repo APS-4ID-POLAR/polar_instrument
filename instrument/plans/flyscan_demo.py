@@ -610,7 +610,8 @@ def flyscan_cycler(
         numGpus = wf_numGpus,
         settings = wf_settings,
         # patternsFile (from area detector) --> ?
-        demand = wf_demand
+        demand = wf_demand,
+        name="fly001",  # TODO: EXPOSE!
     )
 
     # upload bluesky run metadata to APS DM
