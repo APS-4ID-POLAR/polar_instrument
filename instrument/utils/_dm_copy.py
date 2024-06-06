@@ -8,7 +8,7 @@ logger.info(__file__)
 __all__ = ["copy_previous_files"]
 
 def copy_previous_files(
-        origin="/home/beams/POLAR/ptychodusDemo/sample1",
+        origin="/home/beams/POLAR/ptychodusDemo/sample1_new",
         destination=None
 ):
     if destination is None:
