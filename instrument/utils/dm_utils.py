@@ -6,11 +6,12 @@ from apstools.utils import (
     dm_start_daq,
     validate_experiment_dataDirectory,
     dm_get_experiment_datadir_active_daq,
-    dm_api_ds
+    dm_api_ds,
+    dm_api_proc
 )
 from pathlib import Path
 from .. import iconfig
-from ..devices import dm_experiment
+from ..devices import dm_experiment, dm_workflow
 from ..framework import RE
 from ..session_logs import logger
 logger.info(__file__)
@@ -75,3 +76,8 @@ def setup_user(dm_experiment_name: str, sample_name: str, index: int = -1):
             subpath.mkdir()
 
     # TODO: Add other setup things here? Like ask for name of users, etc.
+
+def get_processing_job_status(id=None, owner="user4idd"):
+    if id is None:
+        id = dm_workflow.job_id.get()
+    return dm_api_proc().getProcessingJobById(id=id, owner=owner)
