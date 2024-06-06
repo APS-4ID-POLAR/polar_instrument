@@ -33,14 +33,21 @@ __all__ = "flyscan_snake flyscan_1d flyscan_cycler".split()
 
 
 def flyscan_snake(
-        eiger,
-        *args,
-        speed: float = 10,
-        trigger_time: float = 0.02,
-        collection_time: float = 0.01,
-        md: dict = {},
-        templates: list = [],
+        detector,
+        stepping_motor,
+        stepping_motor_start,
+        stepping_motor_end,
+        stepping_motor_number_of_points,
+        flying_motor,
+        flying_motor_start,
+        flying_motor_end,
+        flying_motor_speed,
+        detector_trigger_period: float = 0.02,
+        detector_collection_time: float = 0.01,
         file_name_base: str = "scan",
+        md: dict = {},
+        master_file_templates: list = [],
+        nxwriter_warn_missing: bool = False,
         # DM workflow kwargs -------------------------------------
         wf_analysis_machine: str = "polaris",
         wf_workflow_name: str = "ptychodus",
@@ -51,19 +58,19 @@ def flyscan_snake(
         wf_cropExtentXInPixels: int = 256,
         wf_cropExtentYInPixels: int = 256,
         wf_probeEnergyInElectronVolts: float = 10000,
-        wf_defocusDistanceInMeters: float = 0.000800,
         wf_numGpus: int = 2,
         wf_settings: str = "/home/beams/POLAR/ptychodusDefaults/default-settings.ini",
-        # patternsFile (from area detector) --> ?
         wf_demand: bool = False,
         wf_sample: str = "sample1", # TODO: remove after demo
+        wf_scanFilePath: str = "fly001_pos.csv",
         # internal kwargs ----------------------------------------
         dm_concise: bool = False,
         dm_wait: bool = False,
-        dm_reporting_period: float = 10*60,  # TODO: change?
-        dm_reporting_time_limit: float = 10**6, # TODO: change?
-        nxwriter_warn_missing: bool = False,
+        dm_reporting_period: float = 10*60,
+        dm_reporting_time_limit: float = 10**6,
+
     ):
+
     """
     Flyscan using a "snake" trajectory.
 
@@ -97,16 +104,27 @@ def flyscan_snake(
     :func:`flyscan_cycler`
     """
 
-    detectors = [eiger]
-    cycler = outer_product(args + (2, True))
+    detectors = [detector]
+    args = (
+        stepping_motor,
+        stepping_motor_start,
+        stepping_motor_end,
+        stepping_motor_number_of_points,
+        flying_motor,
+        flying_motor_start,
+        flying_motor_end,
+        2,
+        True
+    )
+    cycler = outer_product(args)
     yield from flyscan_cycler(
         detectors,
         cycler,
-        speeds=[None, speed],
-        trigger_time=trigger_time,
-        collection_time=collection_time,
+        speeds=[None, flying_motor_speed],
+        trigger_time=detector_trigger_period,
+        collection_time=detector_collection_time,
         md=md,
-        templates=templates,
+        templates=master_file_templates,
         file_name_base=file_name_base,
         # DM workflow kwargs -------------------------------------
         wf_analysis_machine=wf_analysis_machine,
@@ -118,12 +136,12 @@ def flyscan_snake(
         wf_cropExtentXInPixels=wf_cropExtentXInPixels,
         wf_cropExtentYInPixels=wf_cropExtentYInPixels,
         wf_probeEnergyInElectronVolts=wf_probeEnergyInElectronVolts,
-        wf_defocusDistanceInMeters=wf_defocusDistanceInMeters,
         wf_numGpus=wf_numGpus,
         wf_settings=wf_settings,
         # patternsFile (from area detector) --> ?
         wf_demand=wf_demand,
         wf_sample=wf_sample, # TODO: remove after demo
+        wf_scanFilePath=wf_scanFilePath,
         # internal kwargs ----------------------------------------
         dm_concise=dm_concise,
         dm_wait=dm_wait,
@@ -251,12 +269,12 @@ def flyscan_cycler(
         wf_cropExtentXInPixels: int = 256,
         wf_cropExtentYInPixels: int = 256,
         wf_probeEnergyInElectronVolts: float = 10000,
-        wf_defocusDistanceInMeters: float = 0.000800,
         wf_numGpus: int = 2,
         wf_settings: str = "/home/beams/POLAR/ptychodusDefaults/default-settings.ini",
         # patternsFile (from area detector) --> ?
         wf_demand: bool = False,
         wf_sample: str = "sample1", # TODO: remove after demo
+        wf_scanFilePath: str = "fly001_pos.csv",
         # internal kwargs ----------------------------------------
         dm_concise: bool = False,
         dm_wait: bool = False,
@@ -580,6 +598,7 @@ def flyscan_cycler(
         filePath=_master_fullpath.name,
         sampleName = RE.md["sample"],
         experimentName=dm_experiment.get(),
+        scanFilePath=wf_scanFilePath,
         analysisMachine=wf_analysis_machine,
         # TODO: What all can we switch to PV.gets?
         detectorName = wf_detectorName,
@@ -589,7 +608,6 @@ def flyscan_cycler(
         cropExtentXInPixels = wf_cropExtentXInPixels,
         cropExtentYInPixels = wf_cropExtentYInPixels,
         probeEnergyInElectronVolts = wf_probeEnergyInElectronVolts,
-        defocusDistanceInMeters = wf_defocusDistanceInMeters,
         numGpus = wf_numGpus,
         settings = wf_settings,
         # patternsFile (from area detector) --> ?
