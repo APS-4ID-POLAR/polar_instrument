@@ -63,6 +63,7 @@ def flyscan_snake(
         wf_demand: bool = False,
         wf_sample: str = "sample1", # TODO: remove after demo
         wf_scanFilePath: str = "fly001_pos.csv",
+        wf_name: str = "fly001",
         # internal kwargs ----------------------------------------
         dm_concise: bool = False,
         dm_wait: bool = False,
@@ -142,6 +143,7 @@ def flyscan_snake(
         wf_demand=wf_demand,
         wf_sample=wf_sample, # TODO: remove after demo
         wf_scanFilePath=wf_scanFilePath,
+        wf_name=wf_name,
         # internal kwargs ----------------------------------------
         dm_concise=dm_concise,
         dm_wait=dm_wait,
@@ -275,6 +277,7 @@ def flyscan_cycler(
         wf_demand: bool = False,
         wf_sample: str = "sample1", # TODO: remove after demo
         wf_scanFilePath: str = "fly001_pos.csv",
+        wf_name: str = "fly001",
         # internal kwargs ----------------------------------------
         dm_concise: bool = False,
         dm_wait: bool = False,
@@ -337,16 +340,6 @@ def flyscan_cycler(
         RE.md["sample"] = "sample01"
         warn(f"'sample' metadata not found! Using {RE.md['sample']}")
 
-    ##########################
-    # Start "GOOD" DATA copy #
-    ##########################
-
-    # maybe we plan to do this before!
-    # copy_files.start_copy(
-    #     "/home/beams/POLAR/ptychodusDemo/sample1",
-    #     Path(dm_get_experiment_data_path(dm_experiment.get())) / "sample1"
-    # )
-
     #####################
     # Setup files names #
     #####################
@@ -394,9 +387,8 @@ def flyscan_cycler(
     _ps_fullpath = _ps_folder / _ps_fname
 
     # Setup path and file name in positioner_stream
-    # SOFTGLUE_PROBLEM
-    # positioner_stream.file_path.put(str(_ps_folder))
-    # positioner_stream.file_name.put(_ps_fname)
+    positioner_stream.file_path.put(str(_ps_folder))
+    positioner_stream.file_name.put(_ps_fname)
 
     # Check if any of these files exists
     for _fname in [_master_fullpath, _eiger_fullpath, _ps_fullpath]:
@@ -474,7 +466,8 @@ def flyscan_cycler(
         numGpus = wf_numGpus,
         settings = wf_settings,
         # patternsFile (from area detector) --> ?
-        demand = wf_demand
+        demand = wf_demand,
+        name=wf_name,
     )
 
     _md.update(md)
@@ -494,18 +487,15 @@ def flyscan_cycler(
         yield from mv(det.preset_monitor, collection_time)
 
     # Stop and reset softglue just in case
-    # SOFTGLUE_PROBLEM
-    # yield from sgz.stop_eiger()
-    # yield from sgz.stop_softglue()
-    # yield from sgz.reset_plan()
+    yield from sgz.stop_eiger()
+    yield from sgz.stop_softglue()
+    yield from sgz.reset_plan()
 
     # Stop positioner stream just in case
-    # SOFTGLUE_PROBLEM
-    # yield from mv(positioner_stream, 0)
+    yield from mv(positioner_stream, 0)
 
     # Setup the eiger frequency
-    # SOFTGLUE_PROBLEM
-    # yield from sgz.setup_eiger_trigger_plan(trigger_time)
+    yield from sgz.setup_eiger_trigger_plan(trigger_time)
     # TODO: Should we change the speed of the interferometer?
     # yield from sgz.setup_interf_trigger_plan(trigger_time/1000)
 
@@ -529,30 +519,29 @@ def flyscan_cycler(
     @stage_decorator(list(detectors) + motors)
     @run_decorator(md=_md)
     def inner_fly():
-        # SOFTGLUE_PROBLEM
-        # yield from mv(positioner_stream, 1)
-        # yield from sgz.start_softglue()
+        yield from mv(positioner_stream, 1)
+        yield from sgz.start_softglue()
 
-        # yield from sgz.start_eiger()
-        yield from mv(detectors[0].cam.acquire, 1)
+        yield from sgz.start_eiger()
+        # yield from mv(detectors[0].cam.acquire, 1)
         pos_cache = defaultdict(lambda: None)
         for step in list(cycler):
             yield from move_per_step(step, pos_cache)
-        yield from mv(detectors[0].cam.acquire, 0)
-        # yield from sgz.stop_eiger()
+        # yield from mv(detectors[0].cam.acquire, 0)
+        yield from sgz.stop_eiger()
 
         # This will wait for a full new set of packets.
         # TODO: It's an overkill, maybe Keenan's code can broadcast a signal?
-        # n = yield from rd(sgz.div_by_n_interf.n)
-        # _time_per_point = n/1e7
-        # _number_of_events_per_packet = 1e5/8
-        # yield from sleep(_time_per_point*_number_of_events_per_packet+ 0.1)
-        yield from sleep(0.1)
+        n = yield from rd(sgz.div_by_n_interf.n)
+        _time_per_point = n/1e7
+        _number_of_events_per_packet = 1e5/8
+        yield from sleep(_time_per_point*_number_of_events_per_packet+ 0.1)
+        # yield from sleep(0.1)
 
-        # yield from sgz.stop_softglue()
+        yield from sgz.stop_softglue()
 
-        # print("Stopping the positioner stream, this can take time.")
-        # yield from mv(positioner_stream, 0)
+        logger.info("Stopping the positioner stream, this can take time.")
+        yield from mv(positioner_stream, 0)
 
         return (yield from null()) # Is there something better to do here?
 
@@ -611,7 +600,7 @@ def flyscan_cycler(
         settings = wf_settings,
         # patternsFile (from area detector) --> ?
         demand = wf_demand,
-        name="fly001",  # TODO: EXPOSE!
+        name=wf_name,
     )
 
     # upload bluesky run metadata to APS DM
