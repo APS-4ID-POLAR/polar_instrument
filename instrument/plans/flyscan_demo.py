@@ -38,7 +38,31 @@ def flyscan_snake(
         speed: float = 10,
         trigger_time: float = 0.02,
         collection_time: float = 0.01,
-        md: dict = {}
+        md: dict = {},
+        templates: list = [],
+        file_name_base: str = "scan",
+        # DM workflow kwargs -------------------------------------
+        wf_analysis_machine: str = "polaris",
+        wf_workflow_name: str = "ptychodus",
+        wf_detectorName: str = "eiger",
+        wf_detectorDistanceInMeters: float = 2.335,
+        wf_cropCenterXInPixels: int = 540,
+        wf_cropCenterYInPixels: int = 259,
+        wf_cropExtentXInPixels: int = 256,
+        wf_cropExtentYInPixels: int = 256,
+        wf_probeEnergyInElectronVolts: float = 10000,
+        wf_defocusDistanceInMeters: float = 0.000800,
+        wf_numGpus: int = 2,
+        wf_settings: str = "/home/beams/POLAR/ptychodusDefaults/default-settings.ini",
+        # patternsFile (from area detector) --> ?
+        wf_demand: bool = False,
+        wf_sample: str = "sample1", # TODO: remove after demo
+        # internal kwargs ----------------------------------------
+        dm_concise: bool = False,
+        dm_wait: bool = False,
+        dm_reporting_period: float = 10*60,  # TODO: change?
+        dm_reporting_time_limit: float = 10**6, # TODO: change?
+        nxwriter_warn_missing: bool = False,
     ):
     """
     Flyscan using a "snake" trajectory.
@@ -81,7 +105,31 @@ def flyscan_snake(
         speeds=[None, speed],
         trigger_time=trigger_time,
         collection_time=collection_time,
-        md=md
+        md=md,
+        templates=templates,
+        file_name_base=file_name_base,
+        # DM workflow kwargs -------------------------------------
+        wf_analysis_machine=wf_analysis_machine,
+        wf_workflow_name=wf_workflow_name,
+        wf_detectorName=wf_detectorName,
+        wf_detectorDistanceInMeters=wf_detectorDistanceInMeters,
+        wf_cropCenterXInPixels=wf_cropCenterXInPixels,
+        wf_cropCenterYInPixels=wf_cropCenterYInPixels,
+        wf_cropExtentXInPixels=wf_cropExtentXInPixels,
+        wf_cropExtentYInPixels=wf_cropExtentYInPixels,
+        wf_probeEnergyInElectronVolts=wf_probeEnergyInElectronVolts,
+        wf_defocusDistanceInMeters=wf_defocusDistanceInMeters,
+        wf_numGpus=wf_numGpus,
+        wf_settings=wf_settings,
+        # patternsFile (from area detector) --> ?
+        wf_demand=wf_demand,
+        wf_sample=wf_sample, # TODO: remove after demo
+        # internal kwargs ----------------------------------------
+        dm_concise=dm_concise,
+        dm_wait=dm_wait,
+        dm_reporting_period=dm_reporting_period,  # TODO: change?
+        dm_reporting_time_limit=dm_reporting_time_limit, # TODO: change?
+        nxwriter_warn_missing=nxwriter_warn_missing,
         )
 
 def flyscan_1d(
@@ -93,6 +141,30 @@ def flyscan_1d(
         trigger_time: float = 0.02,
         collection_time: float = 0.01,
         md: dict = {},
+        templates: list = [],
+        file_name_base: str = "scan",
+        # DM workflow kwargs -------------------------------------
+        wf_analysis_machine: str = "polaris",
+        wf_workflow_name: str = "ptychodus",
+        wf_detectorName: str = "eiger",
+        wf_detectorDistanceInMeters: float = 2.335,
+        wf_cropCenterXInPixels: int = 540,
+        wf_cropCenterYInPixels: int = 259,
+        wf_cropExtentXInPixels: int = 256,
+        wf_cropExtentYInPixels: int = 256,
+        wf_probeEnergyInElectronVolts: float = 10000,
+        wf_defocusDistanceInMeters: float = 0.000800,
+        wf_numGpus: int = 2,
+        wf_settings: str = "/home/beams/POLAR/ptychodusDefaults/default-settings.ini",
+        # patternsFile (from area detector) --> ?
+        wf_demand: bool = False,
+        wf_sample: str = "sample1", # TODO: remove after demo
+        # internal kwargs ----------------------------------------
+        dm_concise: bool = False,
+        dm_wait: bool = False,
+        dm_reporting_period: float = 10*60,  # TODO: change?
+        dm_reporting_time_limit: float = 10**6, # TODO: change?
+        nxwriter_warn_missing: bool = False,
     ):
     """
     Flyscan in 1 dimension.
@@ -133,7 +205,31 @@ def flyscan_1d(
         speeds=[speed],
         trigger_time=trigger_time,
         collection_time=collection_time,
-        md=md
+        md=md,
+        templates=templates,
+        file_name_base=file_name_base,
+        # DM workflow kwargs -------------------------------------
+        wf_analysis_machine=wf_analysis_machine,
+        wf_workflow_name=wf_workflow_name,
+        wf_detectorName=wf_detectorName,
+        wf_detectorDistanceInMeters=wf_detectorDistanceInMeters,
+        wf_cropCenterXInPixels=wf_cropCenterXInPixels,
+        wf_cropCenterYInPixels=wf_cropCenterYInPixels,
+        wf_cropExtentXInPixels=wf_cropExtentXInPixels,
+        wf_cropExtentYInPixels=wf_cropExtentYInPixels,
+        wf_probeEnergyInElectronVolts=wf_probeEnergyInElectronVolts,
+        wf_defocusDistanceInMeters=wf_defocusDistanceInMeters,
+        wf_numGpus=wf_numGpus,
+        wf_settings=wf_settings,
+        # patternsFile (from area detector) --> ?
+        wf_demand=wf_demand,
+        wf_sample=wf_sample, # TODO: remove after demo
+        # internal kwargs ----------------------------------------
+        dm_concise=dm_concise,
+        dm_wait=dm_wait,
+        dm_reporting_period=dm_reporting_period,  # TODO: change?
+        dm_reporting_time_limit=dm_reporting_time_limit, # TODO: change?
+        nxwriter_warn_missing=nxwriter_warn_missing,
         )
 
 def flyscan_cycler(
