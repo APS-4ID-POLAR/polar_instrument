@@ -471,7 +471,6 @@ def flyscan_cycler(
         cropExtentXInPixels = wf_cropExtentXInPixels,
         cropExtentYInPixels = wf_cropExtentYInPixels,
         probeEnergyInElectronVolts = wf_probeEnergyInElectronVolts,
-        defocusDistanceInMeters = wf_defocusDistanceInMeters,
         numGpus = wf_numGpus,
         settings = wf_settings,
         # patternsFile (from area detector) --> ?
