@@ -468,6 +468,7 @@ def flyscan_cycler(
         # patternsFile (from area detector) --> ?
         demand = wf_demand,
         name=wf_name,
+        scanFilePath=wf_scanFilePath,
     )
 
     _md.update(md)
@@ -607,6 +608,7 @@ def flyscan_cycler(
     share_bluesky_metadata_with_dm(dm_experiment.get(), wf_workflow_name, run)
 
     # logger.info(f"dm_workflow id: {dm_workflow.job_id.get()}")
+    yield from sleep(0.5)
     print(f"dm_workflow id: {dm_workflow.job_id.get()}")
 
     logger.info("Finished!")
