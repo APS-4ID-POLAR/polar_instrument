@@ -477,6 +477,8 @@ def flyscan_cycler(
     # MOVING DEVICES TO START POINT #
     #################################
 
+    logger.info("Setting up devices.")
+
     # DM workflow
     yield from mv(
         dm_workflow.concise_reporting, dm_concise,
@@ -499,6 +501,8 @@ def flyscan_cycler(
     yield from sgz.setup_eiger_trigger_plan(trigger_time)
     # TODO: Should we change the speed of the interferometer?
     # yield from sgz.setup_interf_trigger_plan(trigger_time/1000)
+
+    logger.info("Moving motors to the start position.")
 
     # Move motor to start position using "normal speed"
     args = ()
@@ -607,8 +611,9 @@ def flyscan_cycler(
     # upload bluesky run metadata to APS DM
     share_bluesky_metadata_with_dm(dm_experiment.get(), wf_workflow_name, run)
 
+    yield from sleep(0.1)
+    # TODO: Switch back to logger.
     # logger.info(f"dm_workflow id: {dm_workflow.job_id.get()}")
-    yield from sleep(0.5)
     print(f"dm_workflow id: {dm_workflow.job_id.get()}")
 
     logger.info("Finished!")
