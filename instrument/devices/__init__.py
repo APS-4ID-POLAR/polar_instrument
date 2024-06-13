@@ -14,7 +14,6 @@ from .ad_eiger1M import load_eiger1m
 from .softgluezynq import sgz
 from .pva_control import positioner_stream
 from .data_management import dm_experiment, dm_workflow
-from ._dm_copy_folders_device import file_copy_device
 
 # TODO: this is useful while we are doing pre-commissioning tests
 # Remove everything from baseline.

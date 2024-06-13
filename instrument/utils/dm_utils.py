@@ -10,7 +10,6 @@ from apstools.utils import (
     dm_api_proc
 )
 from pathlib import Path
-from .. import iconfig
 from ..devices import dm_experiment, dm_workflow
 from ..framework import RE
 from ..session_logs import logger

@@ -3,7 +3,7 @@ from shutil import copytree
 from ophyd.status import Status
 from ophyd import Signal
 from datetime import datetime
-from ..session_logs import logger
+from ...session_logs import logger
 logger.info(__file__)
 
 __all__ = """
