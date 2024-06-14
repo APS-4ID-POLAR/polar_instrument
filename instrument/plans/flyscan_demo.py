@@ -474,7 +474,7 @@ def flyscan_cycler(
         plan_name = "flyscan_cycler",
         plan_args = {
             "detectors": list(map(repr, detectors)),
-            "motor": repr(motor),
+            "motors": repr(motors),
             "cycler": repr(cycler),
             "detector_trigger_period": detector_trigger_period,
             "detector_collection_time": detector_collection_time,
