@@ -529,13 +529,6 @@ def flyscan_cycler(
 
     logger.info("Setting up devices.")
 
-    # DM workflow
-    if wf_run:
-        yield from mv(
-            dm_workflow.concise_reporting, dm_concise,
-            dm_workflow.reporting_period, dm_reporting_period,
-        )
-
     # Setup detectors count time
     for det in detectors:
         yield from mv(det.preset_monitor, detector_collection_time)
@@ -611,7 +604,13 @@ def flyscan_cycler(
     #############################
     # START THE APS DM WORKFLOW #
     #############################
+
     if wf_run:
+        yield from mv(
+            dm_workflow.concise_reporting, dm_concise,
+            dm_workflow.reporting_period, dm_reporting_period,
+        )
+
         logger.info(
             "DM workflow %r, filePath=%r",
             wf_workflow_name,
@@ -642,10 +641,10 @@ def flyscan_cycler(
             name=wf_name,
         )
 
-        # upload bluesky run metadata to APS DM
-        share_bluesky_metadata_with_dm(dm_experiment.get(), wf_workflow_name, run)
-
         yield from sleep(0.1)
         logger.info(f"dm_workflow id: {dm_workflow.job_id.get()}")
+
+        # upload bluesky run metadata to APS DM
+        share_bluesky_metadata_with_dm(dm_experiment.get(), wf_workflow_name, run)
 
     logger.info("Finished!")
