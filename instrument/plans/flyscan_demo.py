@@ -44,10 +44,11 @@ def flyscan_snake(
         detector_trigger_period: float = 0.02,
         detector_collection_time: float = 0.01,
         file_name_base: str = "scan",
-        md: dict = {},
         master_file_templates: list = [],
         nxwriter_warn_missing: bool = False,
+        md: dict = {},
         # DM workflow kwargs -------------------------------------
+        wf_run: bool = False,
         wf_analysis_machine: str = "polaris",
         wf_workflow_name: str = "ptychodus",
         wf_detectorName: str = "eiger",
@@ -115,17 +116,41 @@ def flyscan_snake(
         2,
         True
     )
+
+    _md = {
+        "plan_name": "flyscan_snake",
+        "plan_args": {
+            "detectors": list(map(repr, detectors)),
+            "stepping_motor": repr(stepping_motor),
+            "stepping_motor_start": stepping_motor_start,
+            "stepping_motor_end": stepping_motor_end,
+            "stepping_motor_number_of_points": stepping_motor_number_of_points,
+            "flying_motor": repr(flying_motor),
+            "flying_motor_start": flying_motor_start,
+            "flying_motor_end": flying_motor_end,
+            "flying_motor_speed": flying_motor_speed,
+            "detector_trigger_period": detector_trigger_period,
+            "detector_collection_time": detector_collection_time,
+            "file_name_base": file_name_base,
+            "master_file_templates": master_file_templates,
+            "nxwriter_warn_missing": nxwriter_warn_missing,
+        }
+    }
+
+    _md.update(md)
+
     cycler = outer_product(args)
     yield from flyscan_cycler(
         detectors,
         cycler,
         speeds=[None, flying_motor_speed],
-        trigger_time=detector_trigger_period,
-        collection_time=detector_collection_time,
-        md=md,
-        templates=master_file_templates,
+        detector_trigger_period=detector_trigger_period,
+        detector_collection_time=detector_collection_time,
+        master_file_templates=master_file_templates,
         file_name_base=file_name_base,
+        md=_md,
         # DM workflow kwargs -------------------------------------
+        wf_run=wf_run,
         wf_analysis_machine=wf_analysis_machine,
         wf_workflow_name=wf_workflow_name,
         wf_detectorName=wf_detectorName,
@@ -153,13 +178,14 @@ def flyscan_1d(
         motor,
         start,
         end,
-        speed: float = 10,
-        trigger_time: float = 0.02,
-        collection_time: float = 0.01,
-        md: dict = {},
-        templates: list = [],
+        speed,
+        detector_trigger_period: float = 0.02,
+        detector_collection_time: float = 0.01,
+        master_file_templates: list = [],
         file_name_base: str = "scan",
+        md: dict = {},
         # DM workflow kwargs -------------------------------------
+        wf_run: bool = False,
         wf_analysis_machine: str = "polaris",
         wf_workflow_name: str = "ptychodus",
         wf_detectorName: str = "eiger",
@@ -214,16 +240,35 @@ def flyscan_1d(
     """
     detectors = [eiger]
     cycler = inner_product(2, (motor, start, end))
+
+    _md = {
+        "plan_name": "flyscan_1d",
+        "plan_args": {
+            "detectors": list(map(repr, detectors)),
+            "motor": repr(motor),
+            "motor_start": start,
+            "motor_end": end,
+            "motor_speed": speed,
+            "detector_trigger_period": detector_trigger_period,
+            "detector_collection_time": detector_collection_time,
+            "file_name_base": file_name_base,
+            "master_file_templates": master_file_templates,
+            "nxwriter_warn_missing": nxwriter_warn_missing,
+        }
+    }
+    _md.update(md)
+
     yield from flyscan_cycler(
         detectors,
         cycler,
         speeds=[speed],
-        trigger_time=trigger_time,
-        collection_time=collection_time,
-        md=md,
-        templates=templates,
+        detector_trigger_period=detector_trigger_period,
+        detector_collection_time=detector_collection_time,
+        master_file_templates=master_file_templates,
         file_name_base=file_name_base,
+        md=_md,
         # DM workflow kwargs -------------------------------------
+        wf_run=wf_run,
         wf_analysis_machine=wf_analysis_machine,
         wf_workflow_name=wf_workflow_name,
         wf_detectorName=wf_detectorName,
@@ -250,12 +295,13 @@ def flyscan_cycler(
         detectors: list,
         cycler,
         speeds: list,
-        trigger_time: float = 0.02,
-        collection_time: float = 0.01,
-        md: dict = {},
-        templates: list = [],
+        detector_trigger_period: float = 0.02,
+        detector_collection_time: float = 0.01,
+        master_file_templates: list = [],
         file_name_base: str = "scan",
+        md: dict = {},
         # DM workflow kwargs -------------------------------------
+        wf_run: bool = False,
         wf_analysis_machine: str = "polaris",
         wf_workflow_name: str = "ptychodus",
         wf_detectorName: str = "eiger",
@@ -322,10 +368,10 @@ def flyscan_cycler(
             "and run the setup_user function."
         )
 
-    if collection_time > trigger_time:
+    if detector_collection_time > detector_trigger_period:
         raise ValueError(
-            f"The collection time ({collection_time}) cannot be larger than the time "
-            f"between triggers ({trigger_time})."
+            f"The collection time ({detector_collection_time}) cannot be larger than the time "
+            f"between triggers ({detector_trigger_period})."
         )
     
     # Sample metadata will be used to sort data
@@ -421,10 +467,21 @@ def flyscan_cycler(
     ############
 
     motors = list(cycler.keys)  # the cycler inverts the list.
+
     _md = dict(
         detectors = [det.name for det in detectors],
         motors = [motor.name for motor in motors], 
         plan_name = "flyscan_cycler",
+        plan_args = {
+            "detectors": list(map(repr, detectors)),
+            "motor": repr(motor),
+            "cycler": repr(cycler),
+            "detector_trigger_period": detector_trigger_period,
+            "detector_collection_time": detector_collection_time,
+            "file_name_base": file_name_base,
+            "master_file_templates": master_file_templates,
+            "nxwriter_warn_missing": nxwriter_warn_missing,
+        },
         # This assumes the first detector is the eiger.
         eiger_relative_file_path = str(_rel_eiger_path),
         eiger_full_file_path = str(_eiger_fullpath),
@@ -439,29 +496,30 @@ def flyscan_cycler(
     dimensions = [(motor.hints["fields"], "primary") for motor in motors]
     _md["hints"].setdefault("dimensions", dimensions)
 
-    _md = build_run_metadata_dict(
-        _md,  # TODO: maybe it needs **_md?
-        workflow=wf_workflow_name,
-        wait=dm_wait,
-        timeout=dm_reporting_time_limit,
-        filePath=_master_fullpath.name,
-        sampleName = RE.md["sample"],
-        experimentName=dm_experiment.get(),
-        analysisMachine=wf_analysis_machine,
-        # TODO: What all can we switch to PV.gets?
-        detectorName = wf_detectorName,
-        detectorDistanceInMeters = wf_detectorDistanceInMeters,
-        cropCenterXInPixels = wf_cropCenterXInPixels,
-        cropCenterYInPixels = wf_cropCenterYInPixels,
-        cropExtentXInPixels = wf_cropExtentXInPixels,
-        cropExtentYInPixels = wf_cropExtentYInPixels,
-        probeEnergyInElectronVolts = wf_probeEnergyInElectronVolts,
-        numGpus = wf_numGpus,
-        settings = wf_settings,
-        demand = wf_demand,
-        name=wf_name,
-        scanFilePath=wf_scanFilePath,
-    )
+    if wf_run:
+        _md = build_run_metadata_dict(
+            _md,  # TODO: maybe it needs **_md?
+            workflow=wf_workflow_name,
+            wait=dm_wait,
+            timeout=dm_reporting_time_limit,
+            filePath=_master_fullpath.name,
+            sampleName = RE.md["sample"],
+            experimentName=dm_experiment.get(),
+            analysisMachine=wf_analysis_machine,
+            # TODO: What all can we switch to PV.gets?
+            detectorName = wf_detectorName,
+            detectorDistanceInMeters = wf_detectorDistanceInMeters,
+            cropCenterXInPixels = wf_cropCenterXInPixels,
+            cropCenterYInPixels = wf_cropCenterYInPixels,
+            cropExtentXInPixels = wf_cropExtentXInPixels,
+            cropExtentYInPixels = wf_cropExtentYInPixels,
+            probeEnergyInElectronVolts = wf_probeEnergyInElectronVolts,
+            numGpus = wf_numGpus,
+            settings = wf_settings,
+            demand = wf_demand,
+            name=wf_name,
+            scanFilePath=wf_scanFilePath,
+        )
 
     _md.update(md)
 
@@ -472,14 +530,15 @@ def flyscan_cycler(
     logger.info("Setting up devices.")
 
     # DM workflow
-    yield from mv(
-        dm_workflow.concise_reporting, dm_concise,
-        dm_workflow.reporting_period, dm_reporting_period,
-    )
+    if wf_run:
+        yield from mv(
+            dm_workflow.concise_reporting, dm_concise,
+            dm_workflow.reporting_period, dm_reporting_period,
+        )
 
     # Setup detectors count time
     for det in detectors:
-        yield from mv(det.preset_monitor, collection_time)
+        yield from mv(det.preset_monitor, detector_collection_time)
 
     # Stop and reset softglue just in case
     yield from sgz.stop_eiger()
@@ -490,7 +549,7 @@ def flyscan_cycler(
     yield from mv(positioner_stream, 0)
 
     # Setup the eiger frequency
-    yield from sgz.setup_eiger_trigger_plan(trigger_time)
+    yield from sgz.setup_eiger_trigger_plan(detector_trigger_period)
     # TODO: Should we change the speed of the interferometer?
     # yield from sgz.setup_interf_trigger_plan(trigger_time/1000)
 
@@ -533,7 +592,6 @@ def flyscan_cycler(
         _time_per_point = n/1e7
         _number_of_events_per_packet = 1e5/8
         yield from sleep(_time_per_point*_number_of_events_per_packet+ 0.1)
-        # yield from sleep(0.1)
 
         yield from sgz.stop_softglue()
 
@@ -553,40 +611,41 @@ def flyscan_cycler(
     #############################
     # START THE APS DM WORKFLOW #
     #############################
-    logger.info(
-        "DM workflow %r, filePath=%r",
-        wf_workflow_name,
-        _master_fullpath.name,
-    )
+    if wf_run:
+        logger.info(
+            "DM workflow %r, filePath=%r",
+            wf_workflow_name,
+            _master_fullpath.name,
+        )
 
-    yield from dm_workflow.run_as_plan(
-        workflow=wf_workflow_name,
-        wait=dm_wait,
-        timeout=dm_reporting_time_limit,
-        # all kwargs after this line are DM argsDict content
-        filePath=_master_fullpath.name,
-        sampleName = RE.md["sample"],
-        experimentName=dm_experiment.get(),
-        scanFilePath=wf_scanFilePath,
-        analysisMachine=wf_analysis_machine,
-        # TODO: What all can we switch to PV.gets?
-        detectorName = wf_detectorName,
-        detectorDistanceInMeters = wf_detectorDistanceInMeters,
-        cropCenterXInPixels = wf_cropCenterXInPixels,
-        cropCenterYInPixels = wf_cropCenterYInPixels,
-        cropExtentXInPixels = wf_cropExtentXInPixels,
-        cropExtentYInPixels = wf_cropExtentYInPixels,
-        probeEnergyInElectronVolts = wf_probeEnergyInElectronVolts,
-        numGpus = wf_numGpus,
-        settings = wf_settings,
-        demand = wf_demand,
-        name=wf_name,
-    )
+        yield from dm_workflow.run_as_plan(
+            workflow=wf_workflow_name,
+            wait=dm_wait,
+            timeout=dm_reporting_time_limit,
+            # all kwargs after this line are DM argsDict content
+            filePath=_master_fullpath.name,
+            sampleName = RE.md["sample"],
+            experimentName=dm_experiment.get(),
+            scanFilePath=wf_scanFilePath,
+            analysisMachine=wf_analysis_machine,
+            # TODO: What all can we switch to PV.gets?
+            detectorName = wf_detectorName,
+            detectorDistanceInMeters = wf_detectorDistanceInMeters,
+            cropCenterXInPixels = wf_cropCenterXInPixels,
+            cropCenterYInPixels = wf_cropCenterYInPixels,
+            cropExtentXInPixels = wf_cropExtentXInPixels,
+            cropExtentYInPixels = wf_cropExtentYInPixels,
+            probeEnergyInElectronVolts = wf_probeEnergyInElectronVolts,
+            numGpus = wf_numGpus,
+            settings = wf_settings,
+            demand = wf_demand,
+            name=wf_name,
+        )
 
-    # upload bluesky run metadata to APS DM
-    share_bluesky_metadata_with_dm(dm_experiment.get(), wf_workflow_name, run)
+        # upload bluesky run metadata to APS DM
+        share_bluesky_metadata_with_dm(dm_experiment.get(), wf_workflow_name, run)
 
-    yield from sleep(0.1)
-    logger.info(f"dm_workflow id: {dm_workflow.job_id.get()}")
+        yield from sleep(0.1)
+        logger.info(f"dm_workflow id: {dm_workflow.job_id.get()}")
 
     logger.info("Finished!")
