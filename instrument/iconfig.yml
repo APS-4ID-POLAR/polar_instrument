@@ -15,6 +15,8 @@ RUNENGINE_METADATA:
   proposal_id: internal
   databroker_catalog: *databroker_catalog
 
+POLAR_BASE_DIRECTORY: "/home/beams/POLAR/data"
+
 # Uncomment and edit to define a PV to use for the `scan_id`.
 # The default behavior is to use `RE.md["scan_id"]`.
 # RUN_ENGINE_SCAN_ID_PV: "IOC:integer"
@@ -24,9 +26,9 @@ RUNENGINE_METADATA:
 # These are examples for other use of this instrument.
 # see: https://bcda-aps.github.io/apstools/latest/examples/de_0_adsim_hdf5_basic.html
 #File-Directories
-AD_IMAGE_DIR: "adsimdet/%Y/%m/%d"
-AD_MOUNT_PATH: /tmp
-BLUESKY_MOUNT_PATH: /tmp/docker_ioc/iocad/tmp
+# AD_IMAGE_DIR: "adsimdet/%Y/%m/%d"
+# AD_MOUNT_PATH: /tmp
+# BLUESKY_MOUNT_PATH: /tmp/docker_ioc/iocad/tmp
 
 # permissions
 ALLOW_AREA_DETECTOR_WARMUP: true
@@ -34,6 +36,11 @@ ENABLE_AREA_DETECTOR_IMAGE_PLUGIN: true
 ENABLE_CALCS: true
 USE_PROGRESS_BAR: false
 WRITE_SPEC_DATA_FILES: true
+
+# APS Data Management
+# Use bash shell, deactivate all conda environments, source this file:
+DM_SETUP_FILE: "/home/dm/etc/dm.setup.sh"
+NEXUS_WARN_MISSING_CONTENT: false
 
 # ----------------------------------
 

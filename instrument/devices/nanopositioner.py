@@ -10,11 +10,20 @@ from ..session_logs import logger
 logger.info(__file__)
 
 
+class MyEpicsMotor(EpicsMotor):
+    def unstage(self):
+        try: 
+            self.stage_sigs.pop("velocity")
+        except KeyError:
+            pass
+        return super().unstage()
+
+
 class NanoPositioner(MotorBundle):
-    nanoy = Component(EpicsMotor, 'm1', labels=('motor', 'nanopositioner'))
-    nanox = Component(EpicsMotor, 'm2', labels=('motor', 'nanopositioner'))
-    nanoz = Component(EpicsMotor, 'm3', labels=('motor', 'nanopositioner'))
+    nanoy = Component(MyEpicsMotor, 'm1')
+    nanox = Component(MyEpicsMotor, 'm2')
+    nanoz = Component(MyEpicsMotor, 'm3')
 
 
-diff_nano = NanoPositioner('4idIF:', name='diff_nano')
+diff_nano = NanoPositioner('4idIF:', name='diff_nano', labels=('motors',))
 sd.baseline.append(diff_nano)

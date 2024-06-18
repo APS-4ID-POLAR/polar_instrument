@@ -41,6 +41,7 @@ class TriggerTime(TriggerBase):
         self._image_name = image_name
         self._acquisition_signal = self.cam.special_trigger_button
         self._min_period = min_period
+        self._flysetup = False
 
     @property
     def min_period(self):
@@ -62,7 +63,19 @@ class TriggerTime(TriggerBase):
         # TODO: I don't like this too much, would prefer that we set this for each scan.
         self.cam.stage_sigs["num_triggers"] = int(1e5)
 
+    def setup_external_trigger(self):
+        # Stage signals
+        self.cam.stage_sigs["trigger_mode"] = "External Enable"
+        self.cam.stage_sigs["manual_trigger"] = "Disable"
+        self.cam.stage_sigs["num_images"] = 1
+        self.cam.stage_sigs["num_exposures"] = 1
+        # TODO: We may not need this.
+        self.cam.stage_sigs["num_triggers"] = int(1e6)
+
     def stage(self):
+        if self._flysetup:
+            self.setup_external_trigger()
+
         # Make sure that detector is not armed.
         self.cam.acquire.set(0).wait(timeout=10)
         super().stage()
@@ -83,6 +96,8 @@ class TriggerTime(TriggerBase):
                 self.cam.status_message, check_value, timeout=10
             )
         )
+        self._flysetup = False
+        self.setup_manual_trigger()
 
     def trigger(self):
         "Trigger one acquisition."
@@ -205,5 +220,10 @@ def load_eiger1m(prefix="4idEiger:"):
                     AD_prime_plugin2(eiger1m.hdf1)
 
         eiger1m.default_settings()
+
+        # Sometimes we get errors that bluesky gets the wrong value (just the first)
+        # character. This should fix it.
+        for component in "file_path file_name file_template".split():
+            _ = getattr(eiger1m.hdf1, component).get(use_monitor=False)
 
     return eiger1m
