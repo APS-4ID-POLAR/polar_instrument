@@ -19,6 +19,7 @@ from .ad_eiger1M import load_eiger1m
 from .softgluezynq import sgz
 from .pva_control import positioner_stream
 from .data_management import dm_experiment, dm_workflow
+from .mono_lakeshores import mono_lakeshore_1, mono_lakeshore_2
 
 # TODO: this is useful while we are doing pre-commissioning tests
 # Remove everything from baseline.
