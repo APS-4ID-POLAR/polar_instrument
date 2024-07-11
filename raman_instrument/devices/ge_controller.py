@@ -5,7 +5,7 @@ GE pressure controllers
 __all__ = ['ge_apply', 'ge_release']
 
 from ophyd import Component, EpicsSignalRO, EpicsSignalWithRBV
-from apstools.devices import PVPositionerSoftDoneWithStop
+from .pvpositionersoftdone import PVPositionerSoftDoneWithStop
 from ..framework import sd
 from ..session_logs import logger
 logger.info(__file__)
