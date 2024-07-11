@@ -19,6 +19,7 @@ from ophyd import PVPositioner
 from ophyd import Signal
 # from ophyd.signal import EpicsSignalBase
 
+TARGET_UNDEFINED = "undefined"
 
 class PVPositionerSoftDone(PVPositioner):
     """
@@ -96,7 +97,7 @@ class PVPositionerSoftDone(PVPositioner):
     tolerance = Component(Signal, value=-1, kind="config")
     report_dmov_changes = Component(Signal, value=False, kind="omitted")
 
-    target = Component(Signal, value="None", kind="config")
+    target = Component(Signal, value=TARGET_UNDEFINED, kind="config")
 
     _rb_count = 0
     _sp_count = 0
