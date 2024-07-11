@@ -221,19 +221,10 @@ class PVPositionerSoftDone(PVPositioner):
     def _setup_move(self, position):
         """Move and do not wait until motion is complete (asynchronous)"""
         self.log.debug("%s.setpoint = %s", self.name, position)
-        # TODO: The stuff in this if statement might not be necessary anymore.
-        # if self.update_target:
-        #     kwargs = {}
-        #     if issubclass(self.target.__class__, EpicsSignalBase):
-        #         kwargs["wait"] = True  # Signal.put() warns if kwargs are given
-        #     self.target.put(position, **kwargs)
         self.setpoint.put(position, wait=True)
         if self.actuate is not None:
             self.log.debug("%s.actuate = %s", self.name, self.actuate_value)
             self.actuate.put(self.actuate_value, wait=False)
-        # This is needed because in a special case the setpoint.put does not
-        # run the "sub_value" subscriptions.
-        # self.cb_setpoint()
         self.cb_readback()  # This is needed to force the first check.
 
 
