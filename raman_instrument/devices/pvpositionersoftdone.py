@@ -99,8 +99,8 @@ class PVPositionerSoftDone(PVPositioner):
 
     target = Component(Signal, value=TARGET_UNDEFINED, kind="config")
 
-    _rb_count = 0
-    _sp_count = 0
+    # _rb_count = 0
+    # _sp_count = 0
 
     def __init__(
         self,
@@ -109,7 +109,7 @@ class PVPositionerSoftDone(PVPositioner):
         readback_pv="",
         setpoint_pv="",
         tolerance=None,
-        update_target=True,
+        # update_target=True,
         **kwargs,
     ):
         # fmt: off
@@ -128,11 +128,11 @@ class PVPositionerSoftDone(PVPositioner):
         # Make the default alias for the readback the name of the
         # positioner itself as in EpicsMotor.
         self.readback.name = self.name
-        self.update_target = update_target
+        # self.update_target = update_target
 
         self.readback.subscribe(self.cb_readback)
         self.setpoint.subscribe(self.cb_setpoint)
-        self.setpoint.subscribe(self.cb_update_target)
+        self.setpoint.subscribe(self.cb_update_target, event_type="setpoint")
         # cancel subscriptions before object is garbage collected
         weakref.finalize(self.readback, self.readback.unsubscribe_all)
         weakref.finalize(self.setpoint, self.setpoint.unsubscribe_all)
@@ -157,7 +157,7 @@ class PVPositionerSoftDone(PVPositioner):
     # fmt: on
 
     def cb_update_target(self, value, *args, **kwargs):
-        self.target.put(value, wait=True)
+        self.target.put(value)
 
     def cb_readback(self, *args, **kwargs):
         """
@@ -171,7 +171,7 @@ class PVPositionerSoftDone(PVPositioner):
         if idle:
             return
 
-        self._rb_count += 1
+        # self._rb_count += 1
 
         if self.inposition:
             self.done.put(self.done_value)
@@ -192,7 +192,7 @@ class PVPositionerSoftDone(PVPositioner):
         and do not react to the "wrong" signature.
         """
         if "value" in kwargs and "status" not in kwargs:
-            self._sp_count += 1
+            # self._sp_count += 1
             self.done.put(not self.done_value)
         # logger.debug("cb_setpoint: done=%s, setpoint=%s", self.done.get(), self.setpoint.get())
 
@@ -208,9 +208,10 @@ class PVPositionerSoftDone(PVPositioner):
         # Since this method must execute quickly, do NOT force
         # EPICS CA gets using `use_monitor=False`.
         rb = self.readback.get()
-        sp = self.setpoint.get()
+        # sp = self.setpoint.get()
+        target = self.target.get()
         tol = self.actual_tolerance
-        inpos = math.isclose(rb, sp, abs_tol=tol)
+        inpos = math.isclose(rb, target, abs_tol=tol)
         # logger.debug("inposition: inpos=%s rb=%s sp=%s tol=%s", inpos, rb, sp, tol)
         return inpos
 
@@ -233,7 +234,7 @@ class PVPositionerSoftDone(PVPositioner):
             self.actuate.put(self.actuate_value, wait=False)
         # This is needed because in a special case the setpoint.put does not
         # run the "sub_value" subscriptions.
-        self.cb_setpoint()
+        # self.cb_setpoint()
         self.cb_readback()  # This is needed to force the first check.
 
 
