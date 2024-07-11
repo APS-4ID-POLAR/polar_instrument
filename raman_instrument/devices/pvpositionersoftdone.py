@@ -48,7 +48,7 @@ class PVPositionerSoftDone(PVPositioner):
         ``True`` when this object update the ``target`` Component directly.
         Use ``False`` if the ``target`` Component will be updated externally,
         such as by the controller when ``target`` is an ``EpicsSignal``.
-        Defaults to ``True``.
+        Defaults to ``False``.
     kwargs :
         Passed to `ophyd.PVPositioner`
 
@@ -109,7 +109,7 @@ class PVPositionerSoftDone(PVPositioner):
         readback_pv="",
         setpoint_pv="",
         tolerance=None,
-        # update_target=True,
+        update_target=False,
         **kwargs,
     ):
         # fmt: off
@@ -128,7 +128,7 @@ class PVPositionerSoftDone(PVPositioner):
         # Make the default alias for the readback the name of the
         # positioner itself as in EpicsMotor.
         self.readback.name = self.name
-        # self.update_target = update_target
+        self.update_target = update_target
 
         self.readback.subscribe(self.cb_readback)
         self.setpoint.subscribe(self.cb_setpoint)
@@ -208,10 +208,9 @@ class PVPositionerSoftDone(PVPositioner):
         # Since this method must execute quickly, do NOT force
         # EPICS CA gets using `use_monitor=False`.
         rb = self.readback.get()
-        # sp = self.setpoint.get()
-        target = self.target.get()
+        sp = self.setpoint.get() if self.update_target is False else self.target.get()
         tol = self.actual_tolerance
-        inpos = math.isclose(rb, target, abs_tol=tol)
+        inpos = math.isclose(rb, sp, abs_tol=tol)
         # logger.debug("inposition: inpos=%s rb=%s sp=%s tol=%s", inpos, rb, sp, tol)
         return inpos
 
