@@ -17,6 +17,10 @@ logger.info(__file__)
 class AnalogOutput(Output):
     description = Component(EpicsSignal, ".DESC", kind="config")
     value = Component(EpicsSignal, "", kind="normal")
+
+    low_limit = Component(EpicsSignal, ".DRVL", kind="config")
+    high_limit = Component(EpicsSignal, ".DRVH", kind="config")
+
     readback_value = None
     desired_value = None
 
