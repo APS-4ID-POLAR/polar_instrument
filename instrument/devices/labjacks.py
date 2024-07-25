@@ -17,6 +17,8 @@ logger.info(__file__)
 class AnalogOutput(Output):
     description = Component(EpicsSignal, ".DESC", kind="config")
     value = Component(EpicsSignal, "", kind="normal")
+    readback_value = None
+    desired_value = None
 
 
 def make_analog_outputs(num_aos: int):
