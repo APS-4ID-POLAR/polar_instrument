@@ -6,12 +6,34 @@ __all__ = ["labjack"]
 
 from apstools.devices import LabJackT7
 from apstools.devices.labjack import (
-    make_analog_outputs, KIND_CONFIG_OR_NORMAL, DigitalIO
+    make_analog_outputs, KIND_CONFIG_OR_NORMAL, DigitalIO, Output
 )
-from ophyd import DynamicDeviceComponent, EpicsSignalRO
+from ophyd import DynamicDeviceComponent, EpicsSignalRO, Component, EpicsSignal
 from ..session_logs import logger
 from ..framework import sd
 logger.info(__file__)
+
+
+class AnalogOutput(Output):
+    description = Component(EpicsSignal, ".DESC", kind="config")
+    value = Component(EpicsSignal, "", kind="normal")
+
+
+def make_analog_outputs(num_aos: int):
+    """Create a dictionary with analog output device definitions.
+
+    For use with an ophyd DynamicDeviceComponent.
+
+    Parameters
+    ==========
+    num_aos
+      How many analog outputs to create.
+
+    """
+    defn = {}
+    for n in range(num_aos):
+        defn[f"ao{n}"] = (AnalogOutput, f"Ao{n}", {})
+    return defn
 
 
 def make_digital_ios(channels_list: list):
