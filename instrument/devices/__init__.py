@@ -16,6 +16,8 @@ from .softgluezynq import sgz
 from .pva_control import positioner_stream
 from .data_management import dm_experiment, dm_workflow
 from .labjacks import labjack
+from .usb_ctr8 import ctr8
+
 from .preamps import preamp1, preamp2
 preamp1._scaler_channel = scaler_4tst.channels.chan02
 preamp2._scaler_channel = scaler_4tst.channels.chan03
