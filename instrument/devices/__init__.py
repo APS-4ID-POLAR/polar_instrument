@@ -10,6 +10,7 @@ from .simulated_detector import simdet
 from .nanopositioner import diff_nano
 from .interferometers_4IDG import interferometer
 from .magnet_nanopositioner import magnet_nano
+from .polar_diffractometer import polar, polar_psi
 
 from .preamps import preamp1, preamp2
 preamp1._scaler_channel = scaler_4tst.channels.chan02
