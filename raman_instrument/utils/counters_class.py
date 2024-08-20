@@ -1,4 +1,4 @@
-from ..devices import spectrometer, laser
+# from ..devices import spectrometer, laser
 from ..session_logs import logger
 logger.info(__file__)
 
@@ -24,8 +24,8 @@ class CountersClass:
     def __init__(self):
         super().__init__()
         # This will hold the devices instances.
-        self._dets = [spectrometer]
-        self._extra_devices = [laser]
+        self._dets = [] # [spectrometer]
+        self._extra_devices = [] # [laser]
         # self._mon = None
         self._default_scaler = None
 
