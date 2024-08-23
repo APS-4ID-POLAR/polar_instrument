@@ -10,6 +10,8 @@ from ..devices import dm_workflow, dm_experiment
 from ..session_logs import logger
 logger.info(__file__)
 
+if "sample" not in RE.md.keys():
+	RE.md["sample"] = "None"
 
 def run_workflow(
         scan = -1,
