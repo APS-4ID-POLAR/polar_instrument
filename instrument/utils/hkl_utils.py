@@ -33,17 +33,19 @@ Auxilary HKL functions.
     ~write_config
     ~read_config
 """
-
-from hkl.util import Lattice
-import bluesky.plan_stubs as bps
 import pathlib
 import sys
-from instrument.framework import RE
 import fileinput
-import logging
+from bluesky import RunEngineInterrupted
+from bluesky.utils import ProgressBarManager
+from ..framework import RE
+from ..plans import mv
+from ..devices import polar, polar_psi
+from ..session_logs import logger
 
 try:
     from hkl import cahkl
+    from hkl.util import Lattice
     from hkl.user import (
         _check_geom_selected,
         _geom_,
@@ -52,17 +54,14 @@ try:
     )
     from hkl.configuration import DiffractometerConfiguration
     from hkl.diffract import Diffractometer
-    from instrument.devices.polar_diffractometer import polar, polar_psi
-    from bluesky import RunEngineInterrupted
-    from bluesky.utils import ProgressBarManager
-    from bluesky.plan_stubs import mv
 except ModuleNotFoundError:
     print("gi module is not installed, the hkl_utils functions will not work!")
     cahkl = _check_geom_selected = _geom_ = None
 
+logger.info(__file__)
+
 path_startup = pathlib.Path("startup_experiment.py")
 pbar_manager = ProgressBarManager()
-logger = logging.getLogger(__name__)
 _geom_for_psi_ = None
 
 
@@ -1541,7 +1540,7 @@ def br(h, k, l):
     Generator for the bluesky Run Engine.
     """
     _geom_ = current_diffractometer()
-    yield from bps.mv(
+    yield from mv(
         _geom_.h, float(h), _geom_.k, float(k), _geom_.l, float(l)
     )
 
@@ -1605,10 +1604,10 @@ def an(*args):
         delta, th = args
         if len(_geom_.calc.physical_axes) == 6:
             print("Moving to (delta,eta)=({},{})".format(delta, th))
-            yield from bps.mv(_geom_.delta, delta, _geom_.omega, th)
+            yield from mv(_geom_.delta, delta, _geom_.omega, th)
         elif len(_geom_.calc.physical_axes) == 4:
             print("Moving to (tth,th)=({},{})".format(delta, th))
-            yield from bps.mv(_geom_.tth, delta, _geom_.omega, th)
+            yield from mv(_geom_.tth, delta, _geom_.omega, th)
 
 
 def _wh():
