@@ -6,6 +6,7 @@ from .simulated_scaler import scaler
 from .scaler_4idtest import scaler_4tst
 # from .scaler_4idCTR8 import scaler_ctr8
 from .simulated_sixc import psic, sixcpsi
+from .polar_diffractometer import polar, polar_psi
 from .simulated_fourc_vertical import fourc
 from .simulated_new_diffractometer import diffract
 from .simulated_detector import simdet
