@@ -1,4 +1,4 @@
-from ..devices import scaler, scaler_4tst, scaler_ctr8
+from ..devices import scaler, scaler_4tst
 from ..session_logs import logger
 logger.info(__file__)
 
