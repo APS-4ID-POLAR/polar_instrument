@@ -3,7 +3,7 @@
 Scalers
 """
 
-__all__ = ['scaler']
+__all__ = ['scaler_4tst']
 
 from ophyd.scaler import ScalerCH
 from ophyd.signal import Signal
@@ -55,7 +55,8 @@ class PresetMonitorSignal(Signal):
         if float(value) <= 0:
             raise ValueError('preset_value has to be > 0.')
 
-        if self.parent._monitor.s.name == 'Time':
+        # if self.parent._monitor.s.name == 'Time':
+        if "chan01" in self.parent._monitor.name:
             value_put = 1e7*value  # convert to seconds
         else:
             value_put = value
@@ -200,11 +201,10 @@ class LocalScalerCH(ScalerCH):
         self._monitor = channel
 
 
-scaler = LocalScalerCH(
-    #'4idsoftmotors:scaler1', name='scaler', labels=('detectors',)
-    '4tst:scaler1', name='scaler', labels=('detectors',)
+scaler_4tst = LocalScalerCH(
+    '4tst:scaler1', name='scaler_4tst', labels=('detectors',)
 )
-scaler.monitor = 'Time'
-scaler.select_read_channels()
-scaler.select_plot_channels()
-sd.baseline.append(scaler)
+scaler_4tst.monitor = 'chan01'
+scaler_4tst.select_read_channels()
+scaler_4tst.select_plot_channels()
+sd.baseline.append(scaler_4tst)

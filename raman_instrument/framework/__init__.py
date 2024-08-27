@@ -10,5 +10,3 @@ from .initialize import *
 # from .user_dir import *
 from .metadata import *
 from .callbacks import *
-
-from .dm_setup import *

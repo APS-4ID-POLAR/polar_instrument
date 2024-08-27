@@ -11,11 +11,9 @@ DATABROKER_CATALOG: &databroker_catalog 4id_polar
 # default RunEngine metadata
 RUNENGINE_METADATA:
   beamline_id: 4id-polar
-  instrument_name: polar
+  instrument_name: polar-raman
   proposal_id: internal
   databroker_catalog: *databroker_catalog
-
-POLAR_BASE_DIRECTORY: "/home/beams/POLAR/data"
 
 # Uncomment and edit to define a PV to use for the `scan_id`.
 # The default behavior is to use `RE.md["scan_id"]`.
@@ -26,9 +24,9 @@ POLAR_BASE_DIRECTORY: "/home/beams/POLAR/data"
 # These are examples for other use of this instrument.
 # see: https://bcda-aps.github.io/apstools/latest/examples/de_0_adsim_hdf5_basic.html
 #File-Directories
-# AD_IMAGE_DIR: "adsimdet/%Y/%m/%d"
-# AD_MOUNT_PATH: /tmp
-# BLUESKY_MOUNT_PATH: /tmp/docker_ioc/iocad/tmp
+AD_IMAGE_DIR: "adsimdet/%Y/%m/%d"
+AD_MOUNT_PATH: /tmp
+BLUESKY_MOUNT_PATH: /tmp/docker_ioc/iocad/tmp
 
 # permissions
 ALLOW_AREA_DETECTOR_WARMUP: true
@@ -37,30 +35,11 @@ ENABLE_CALCS: true
 USE_PROGRESS_BAR: false
 WRITE_SPEC_DATA_FILES: true
 
-# APS Data Management
-# Use bash shell, deactivate all conda environments, source this file:
-DM_SETUP_FILE: "/home/dm/etc/dm.setup.sh"
-NEXUS_WARN_MISSING_CONTENT: false
-
-# ----------------------------------
-
-AREA_DETECTOR:
-  # TODO: switch to the Voyager-based path structure: "/gdata/..."
-  BLUESKY_FILES_ROOT: &BLUESKY_DATA_ROOT "/home/beams/POLAR/data/bluesky_images/eiger1M_test"
-  IMAGE_DIR: "%Y/%m/%d/"
-  HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
-  EIGER_1M:
-    # IOC host: beryl:/net/s8iddserv/xorApps/epics/synApps_6_2_1/ioc/8idEiger4m/iocBoot/ioc8idEiger4m/softioc/8idEiger4m.pl status
-    # Same filesystem
-    IOC_FILES_ROOT: *BLUESKY_DATA_ROOT
-    # NAME: eiger4M
-    # PV_PREFIX: "8idEiger4m:"
-
 # ----------------------------------
 
 # Directory to "autosave" the RE.md dictionary (uses PersistentDict)
 # Uncomment and modify to change from the default.
-RUNENGINE_MD_PATH: /home/beams/POLAR/.config/Bluesky_RunEngine_md
+RUNENGINE_MD_PATH: /home/beams/POLAR/.config/Bluesky_RunEngine_md_raman
 
 # override default control layer for ophyd
 # if undefined, defaults to PyEpics
