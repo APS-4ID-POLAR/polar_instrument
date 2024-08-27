@@ -38,8 +38,8 @@ import sys
 import fileinput
 from bluesky import RunEngineInterrupted
 from bluesky.utils import ProgressBarManager
+from bluesky.plan_stubs import mv
 from ..framework import RE
-from ..plans import mv
 from ..devices import polar, polar_psi
 from ..session_logs import logger
 
