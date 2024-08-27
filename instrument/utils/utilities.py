@@ -2,8 +2,6 @@
 Utility functions.
 
 .. autosummary::
-    ~setaz
-    ~freeze
     ~show_constraints
     ~reset_constraints
     ~set_constraints
@@ -49,92 +47,6 @@ import pathlib
 import sys
 
 path = pathlib.Path("startup_experiment.py")
-
-
-def setaz(*args):
-    """
-    Set azimuth in constant Psi geometry
-    """
-    _geom_ = current_diffractometer()
-    _check_geom_selected()
-    if _geom_.calc._engine.engine.parameters_values_get(Hkl.UnitEnum.USER):
-        _h2, _k2, _l2, psi = _geom_.calc._engine.engine.parameters_values_get(
-            Hkl.UnitEnum.USER
-        )
-        if len(args) == 3:
-            h2, k2, l2 = args
-        elif len(args) == 0:
-            h2 = int((input("H = ({})? ".format(_h2))) or _h2)
-            k2 = int((input("K = ({})? ".format(_k2))) or _k2)
-            l2 = int((input("L = ({})? ".format(_l2))) or _l2)
-        else:
-            raise ValueError(
-                "either no arguments or h, k, l need to be provided."
-            )
-        _geom_.calc._engine.engine.parameters_values_set(
-            [h2, k2, l2], Hkl.UnitEnum.USER
-        )
-        print("Azimuth = {} {} {} with Psi fixed at {}".format(h2, k2, l2, psi))
-    else:
-        raise ValueError(
-            "Function not available in mode '{}'".format(
-                _geom_.calc.engine.mode
-            )
-        )
-
-
-def freeze(*args):
-    """
-    Freeze angle to value in constant mu, omega, phi, chi and psi modes
-    """
-    _geom_ = current_diffractometer()
-    _check_geom_selected()
-    mode = _geom_.calc.engine.mode
-    if "constant" in mode.strip(" "):
-        print("Using mode '{}'".format(mode.strip("")))
-        if "phi" in mode.strip(""):
-            axis = "phi"
-        elif "chi" in mode.strip(""):
-            axis = "chi"
-        elif "omega" in mode.strip(""):
-            axis = "omega"
-        elif "mu" in mode.strip(""):
-            axis = "mu"
-        elif "psi" in mode.strip(""):
-            axis = "psi"
-            (
-                _h2,
-                _k2,
-                _l2,
-                value,
-            ) = _geom_.calc._engine.engine.parameters_values_get(
-                Hkl.UnitEnum.USER
-            )
-        else:
-            raise ValueError("Mode '{}' not supported.".format(mode))
-
-        if len(args) == 0:
-            value = _geom_.get_axis_constraints(axis).value
-            value = int(
-                (input("Freeze {} to ({})? ".format(axis, value))) or value
-            )
-        elif len(args) == 1:
-            value = args[0]
-        else:
-            raise ValueError(
-                "either no argument or angle value needs to be provided."
-            )
-        if axis == "psi":
-            _geom_.calc._engine.engine.parameters_values_set(
-                [_h2, _k2, _l2, value], Hkl.UnitEnum.USER
-            )
-        else:
-            ll = _geom_.get_axis_constraints(axis).low_limit
-            hl = _geom_.get_axis_constraints(axis).high_limit
-            _geom_.apply_constraints({axis: Constraint(ll, hl, value, True)})
-        print("{} frozen to {}".format(axis, value))
-    else:
-        raise ValueError("Function not available for mode '{}'".format(mode))
 
 
 def show_constraints():
@@ -185,16 +97,11 @@ def change_diffractometer(*args):
     print("Available diffractometers {}".format(list))
     diff = input("Diffractometer ({}): ".format(_geom_.name)) or _geom_.name
     if diff == "diffract":
-        select_diffractometer(diffract)
+        select_diffractometer(polar)
     elif diff == "fourc":
         select_diffractometer(fourc)
-    elif diff == "psic":
-        select_diffractometer(psic)
-    elif diff == "sixcpsi":
-        select_diffractometer(psic)
     else:
         raise ValueError("Diffractometer type {} not existing.".format(diff))
-
     _geom_ = current_diffractometer()
     print("Diffractometer changed to {}".format(_geom_.name))
 
