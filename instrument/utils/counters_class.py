@@ -109,7 +109,7 @@ class CountersClass:
 
     @default_scaler.setter
     def default_scaler(self, value):
-        available = {0: scaler, 1: scaler_4tst, 2: scaler_ctr8}
+        available = {0: scaler, 1: scaler_4tst}
         if value is not None:
             if value in [item for _, item in available.items()]:
                 self._default_scaler = value
