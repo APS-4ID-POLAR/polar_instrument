@@ -46,33 +46,34 @@ logger.info("#### Utilities ####")
 from .utils import *
 from apstools.utils import *
 
-# from hkl.user import (
+from hkl.user import (
+    select_diffractometer,
+    show_selected_diffractometer,
+    pa,
+)
 #     cahkl,
 #     cahkl_table,
 #     calc_UB,
 #     list_samples,
 #     new_sample,
 #     or_swap,
-#     select_diffractometer,
 #     set_energy,
 #     setor,
 #     show_sample,
-#     show_selected_diffractometer,
 #     update_sample,
 #     wh,
-#     pa,
 # )
 
-# from hkl.util import (
-#     list_orientation_runs,
-#     restore_constraints,
-#     restore_energy,
-#     restore_orientation as hkl_restore_orientation,
-#     restore_reflections,
-#     restore_sample,
-#     restore_UB,
-#     run_orientation_info,
-# )
+from hkl.util import (
+    list_orientation_runs,
+    restore_constraints,
+    restore_energy,
+    restore_orientation as hkl_restore_orientation,
+    restore_reflections,
+    restore_sample,
+    restore_UB,
+    run_orientation_info,
+)
 
 from polartools.absorption import (
     load_absorption,
