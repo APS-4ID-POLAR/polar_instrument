@@ -27,7 +27,7 @@ from hkl.user import (
 
 from ..framework import RE
 from .counters_class import counters
-from ..devices import polar, diffract, fourc, scaler
+from ..devices import polar, psic, diffract, fourc, scaler
 from inspect import getmembers, isfunction
 from polartools import (
     hkl_utils,
@@ -136,7 +136,6 @@ def freeze(*args):
     else:
         raise ValueError("Function not available for mode '{}'".format(mode))
 
-
 def show_constraints():
     """
     Show constraints and freeze angles (value)
@@ -193,7 +192,7 @@ def change_diffractometer(*args):
     elif diff == "sixcpsi":
         select_diffractometer(polar)
     else:
-        raise ValueError("Diffractometer type {} not existing.".format(diff))
+        raise ValueError("Diffractometer type {} does not exist.".format(diff))
 
     _geom_ = current_diffractometer()
     print("Diffractometer changed to {}".format(_geom_.name))

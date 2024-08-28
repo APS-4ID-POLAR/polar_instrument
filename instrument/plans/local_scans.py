@@ -226,15 +226,16 @@ def count(detectors=None, num=1, time=None, delay=0, lockin=False,
     # @stage_ami_decorator(False)
     # @stage_dichro_decorator(dichro, lockin, None)
     @extra_devices_decorator(extras)
-    def _inner_ascan():
+    def _inner_count():
         yield from bp_count(
             detectors + extras,
             num=num,
             per_shot=per_shot,
+            delay=delay,
             md=_md
             )
 
-    return (yield from _inner_ascan())
+    return (yield from _inner_count())
 
 
 def ascan(*args, time=None, detectors=None, lockin=False, dichro=False,

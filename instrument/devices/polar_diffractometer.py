@@ -13,7 +13,6 @@ from hkl.geometries import ApsPolar
 from hkl.user import select_diffractometer
 from ..session_logs import logger
 logger.info(__file__)
-from hkl.diffract import Diffractometer
 
 
 class SixCircleDiffractometer(ApsPolar):
