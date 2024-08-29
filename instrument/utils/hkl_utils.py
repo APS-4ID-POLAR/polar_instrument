@@ -33,6 +33,7 @@ Auxilary HKL functions.
     ~write_config
     ~read_config
 """
+
 import pathlib
 import sys
 import fileinput
@@ -61,6 +62,8 @@ except ModuleNotFoundError:
 logger.info(__file__)
 
 path_startup = pathlib.Path("startup_experiment.py")
+polar_config = pathlib.Path("polar-config.json")
+fourc_config = pathlib.Path("fourc-config.json")
 pbar_manager = ProgressBarManager()
 _geom_for_psi_ = None
 
@@ -1540,9 +1543,7 @@ def br(h, k, l):
     Generator for the bluesky Run Engine.
     """
     _geom_ = current_diffractometer()
-    yield from mv(
-        _geom_.h, float(h), _geom_.k, float(k), _geom_.l, float(l)
-    )
+    yield from mv(_geom_.h, float(h), _geom_.k, float(k), _geom_.l, float(l))
 
 
 def uan(*args):
@@ -1878,14 +1879,10 @@ def write_config(method="File", overwrite=False):
     overwrite: Boolean, optional
         asks if existing file hould be overwritten
     """
+    _geom_ = current_diffractometer()
     config = DiffractometerConfiguration(_geom_)
-    if _geom_.name == "polar":
-        config_file = pathlib.Path("polar-config.json")
-    elif _geom_.name == "fourc":
-        config_file = pathlib.Path("fourc-config.json")
-
     settings = config.export("json")
-    if config_file.exists():
+    if _geom_.name == "polar" and polar_config.exists():
         if not overwrite:
             value = input("Overwrite existing configuration file (y/[n])? ")
             if value == "y":
@@ -1893,13 +1890,30 @@ def write_config(method="File", overwrite=False):
         if overwrite:
             if method == "File":
                 print("Writing configuration file.")
-                with open(config_file.name, "w") as f:
+                with open(polar_config.name, "w") as f:
+                    f.write(settings)
+    elif _geom_.name == "fourc" and fourc_config.exists():
+        if not overwrite:
+            value = input("Overwrite existing configuration file (y/[n])? ")
+            if value == "y":
+                overwrite = True
+        if overwrite:
+            if method == "File":
+                print("Writing configuration file.")
+                with open(fourc_config.name, "w") as f:
                     f.write(settings)
     else:
         if method == "File":
             print("Writing configuration file.")
-            with open(config_file.name, "w") as f:
-                f.write(settings)
+            print(_geom_.name)
+            if _geom_.name == "polar":
+                with open(polar_config.name, "w") as f:
+                    f.write(settings)
+            if _geom_.name == "fourc":
+                with open(polar_config.name, "w") as f:
+                    f.write(settings)
+            else:
+                print("Only available for 'polar' and 'fourc' geometries.")
 
 
 def read_config(method="File"):
@@ -1911,19 +1925,18 @@ def read_config(method="File"):
     method: string, optional
         right now only "File" possible, but later PV or other
     """
+    _geom_ = current_diffractometer()
     config = DiffractometerConfiguration(_geom_)
-    if _geom_.name == "polar":
-        config_file = pathlib.Path("polar-config.json")
-    elif _geom_.name == "fourc":
-        config_file = pathlib.Path("fourc-config.json")
-    if config_file.exists():
+    if _geom_.name == "polar" and polar_config.exists():
         if method == "File":
-            print("Read configuration file '{}'.".format(config_file.name))
+            print("Read configuration file '{}'.".format(polar_config.name))
             method = input("Method ([o]verwrite/[a]ppend)? ")
             if method == "a":
-                config.restore(config_file, clear=False)
+                config.restore(polar_config, clear=False)
             elif method == "o":
-                config.restore(config_file, clear=True)
+                config.restore(polar_config, clear=True)
+            else:
+                print("Config file not read!")
 
 
 select_diffractometer(polar)
