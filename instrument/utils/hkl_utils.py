@@ -125,7 +125,7 @@ def sampleNew(*args):
     a, b, c, alpha, beta, gamma : float, optional
         Lattice constants. If None, it will ask for input.
     """
-    _check_geom_selected()
+    _geom_ = current_diffractometer()
     current_sample = _geom_.calc.sample_name
     sample = _geom_.calc._samples[current_sample]
     lattice = [getattr(sample.lattice, parm) for parm in sample.lattice._fields]
@@ -265,7 +265,6 @@ def _sampleList():
     """List all samples currently defined in hklpy; specify  current one."""
 
     _geom_ = current_diffractometer()
-
     samples = _geom_.calc._samples
     for x in list(samples.keys())[1:]:
         orienting_refl = samples[x]._orientation_reflections
@@ -280,12 +279,12 @@ def _sampleList():
                     "H",
                     "K",
                     "L",
-                    "Delta",
-                    "Eta",
+                    "Gamma",
+                    "Mu",
                     "Chi",
                     "Phi",
-                    "Nu",
-                    "Mu",
+                    "Delta",
+                    "Tau",
                 )
             )
         for ref in samples[x]._sample.reflections_get():
@@ -541,6 +540,7 @@ def list_reflections(all_samples=False):
 
 def or_swap():
     """Swaps the two orientation reflections in hklpy."""
+    _geom_ = current_diffractometer()
     sample = _geom_.calc._sample
     sample.swap_orientation_reflections()
     list_reflections()
@@ -567,7 +567,7 @@ def setor0(*args):
         Values of H, K, L positions for current reflection. If None, it will ask
         for it.
     """
-    _check_geom_selected()
+    _geom_ = current_diffractometer()
     sample = _geom_.calc._sample
     orienting_refl = sample._orientation_reflections
 
@@ -676,7 +676,7 @@ def setor1(*args):
         for it.
     """
 
-    _check_geom_selected()
+    _geom_ = current_diffractometer()
     sample = _geom_.calc._sample
     orienting_refl = sample._orientation_reflections
 
@@ -776,7 +776,7 @@ def set_orienting():
     WARNING: This function will only work with six circles. This will be fixed
     in future releases.
     """
-    _check_geom_selected()
+    _geom_ = current_diffractometer()
     sample = _geom_.calc._sample
     orienting_refl = sample._orientation_reflections
     if _geom_.name == "polar":
@@ -949,6 +949,7 @@ def del_reflection():
     WARNING: This function will only work with six circles. This will be fixed
     in future releases.
     """
+    _geom_ = current_diffractometer()
     sample = _geom_.calc._sample
     orienting_refl = sample._orientation_reflections
     if _geom_.name == "polar":
@@ -1124,6 +1125,7 @@ def list_orienting(all_samples=False):
         If True, it will print the reflections of all samples, if False, only of
         the current one.
     """
+    _geom_ = current_diffractometer()
     _check_geom_selected()
     if all_samples:
         samples = _geom_.calc._samples.values()
@@ -1254,6 +1256,7 @@ def or0(h=None, k=None, l=None):
         Values of H, K, L positions for current reflection. If None, it will ask
         for it.
     """
+    _geom_ = current_diffractometer()
     sample = _geom_.calc._sample
     orienting_refl = sample._orientation_reflections
     if not h and not k and not l:
@@ -1323,6 +1326,7 @@ def or1(h=None, k=None, l=None):
         Values of H, K, L positions for current reflection. If None, it will ask
         for it.
     """
+    _geom_ = current_diffractometer()
     sample = _geom_.calc._sample
     orienting_refl = sample._orientation_reflections
     if not h and not k and not l:
@@ -1392,6 +1396,8 @@ def compute_UB():
         Values of H, K, L positions for current reflection. If None, it will ask
         for it.
     """
+
+    _geom_ = current_diffractometer()
     sample = _geom_.calc._sample
     print("Computing UB!")
     calc_UB(
@@ -1414,6 +1420,7 @@ def calc_UB(r1, r2, wavelength=None, output=False):
         Toggle to decide whether to print the UB matrix.
     """
     _check_geom_selected()
+    _geom_ = current_diffractometer()
     _geom_.calc.sample.compute_UB(r1, r2)
     if output:
         print(_geom_.calc.sample.UB)
@@ -1678,6 +1685,7 @@ def setlat(*args):
         Lattice constants. If None, it will ask for input.
     """
 
+    _geom_ = current_diffractometer()
     current_sample = _geom_.calc.sample_name
     sample = _geom_.calc._samples[current_sample]
     lattice = [getattr(sample.lattice, parm) for parm in sample.lattice._fields]
@@ -1769,6 +1777,7 @@ def setaz(*args):
 
 
 def freeze(*args):
+    _geom_ = current_diffractometer()
     _check_geom_selected()
     if _geom_.calc.engine.mode == "psi constant horizontal":
         h2, k2, l2, psi = _geom_.calc._engine.engine.parameters_values_get(1)
@@ -1795,7 +1804,7 @@ def update_lattice(lattice_constant=None):
     lattice_constant: string, optional
         a, b or c or auto (default)
     """
-
+    _geom_ = current_diffractometer()
     current_sample = _geom_.calc.sample_name
     sample = _geom_.calc._samples[current_sample]
     lattice = [getattr(sample.lattice, parm) for parm in sample.lattice._fields]
