@@ -43,6 +43,7 @@ from bluesky.plan_stubs import mv
 from ..framework import RE
 from ..devices import polar, polar_psi
 from ..session_logs import logger
+from ..utilities.utils import set_constraints
 
 try:
     from hkl import cahkl
@@ -197,6 +198,8 @@ def sampleNew(*args):
             1, sample._sample.reflections_get()[-1]
         )
         compute_UB()
+        set_constraints('mu',-100,100)
+        set_constraints('gamma',-10,180)
 
 
 def sampleChange(sample_key=None):
