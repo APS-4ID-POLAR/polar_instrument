@@ -171,7 +171,7 @@ def sampleNew(*args):
             position=_geom_.calc.Position(
                 gamma=40,
                 mu=20,
-                chi=-90,
+                chi=90,
                 phi=0,
                 delta=0,
                 tau=0,
@@ -196,12 +196,7 @@ def sampleNew(*args):
         sample._orientation_reflections.insert(
             1, sample._sample.reflections_get()[-1]
         )
-        print("Compute UB!")
-        sample.compute_UB(
-            sample._orientation_reflections[0],
-            sample._orientation_reflections[1],
-        )
-        _geom_.forward(1, 0, 0)
+        compute_UB()
 
 
 def sampleChange(sample_key=None):
@@ -649,14 +644,7 @@ def setor0(*args):
     sample._orientation_reflections.insert(
         0, sample._sample.reflections_get()[-1]
     )
-
-    if len(orienting_refl) > 1:
-        print("Computing UB!")
-        sample.compute_UB(
-            sample._orientation_reflections[0],
-            sample._orientation_reflections[1],
-        )
-        _geom_.forward(1, 0, 0)
+    compute_UB()
 
 
 def setor1(*args):
@@ -758,14 +746,7 @@ def setor1(*args):
     sample._orientation_reflections.insert(
         1, sample._sample.reflections_get()[-1]
     )
-
-    if len(orienting_refl) > 1:
-        print("Computing UB!")
-        sample.compute_UB(
-            sample._orientation_reflections[0],
-            sample._orientation_reflections[1],
-        )
-        _geom_.forward(1, 0, 0)
+    compute_UB()
 
 
 def set_orienting():
@@ -935,11 +916,7 @@ def set_orienting():
     sample._orientation_reflections.insert(
         1, sample._sample.reflections_get()[int(or1)]
     )
-    print("Computing UB!")
-    sample.compute_UB(
-        sample._orientation_reflections[0], sample._orientation_reflections[1]
-    )
-    _geom_.forward(1, 0, 0)
+    compute_UB()
 
 
 def del_reflection():
@@ -1304,13 +1281,7 @@ def or0(h=None, k=None, l=None):
         0, sample._sample.reflections_get()[-1]
     )
 
-    if len(orienting_refl) > 1:
-        print("Computing UB!")
-        sample.compute_UB(
-            sample._orientation_reflections[0],
-            sample._orientation_reflections[1],
-        )
-        _geom_.forward(1, 0, 0)
+    compute_UB()
 
 
 def or1(h=None, k=None, l=None):
@@ -1374,13 +1345,7 @@ def or1(h=None, k=None, l=None):
         1, sample._sample.reflections_get()[-1]
     )
 
-    if len(orienting_refl) > 1:
-        print("Computing UB!")
-        sample.compute_UB(
-            sample._orientation_reflections[0],
-            sample._orientation_reflections[1],
-        )
-        _geom_.forward(1, 0, 0)
+    compute_UB()
 
 
 def compute_UB():
@@ -1399,11 +1364,14 @@ def compute_UB():
 
     _geom_ = current_diffractometer()
     sample = _geom_.calc._sample
-    print("Computing UB!")
-    calc_UB(
-        sample._orientation_reflections[0], sample._orientation_reflections[1]
-    )
-    _geom_.forward(1, 0, 0)
+    orienting_refl = sample._orientation_reflections
+    if len(orienting_refl) > 1:
+        print("Computing UB!")
+        calc_UB(
+            sample._orientation_reflections[0],
+            sample._orientation_reflections[1],
+        )
+        _geom_.forward(1, 0, 0)
 
 
 def calc_UB(r1, r2, wavelength=None, output=False):
@@ -1562,7 +1530,7 @@ def uan(*args):
 
     Parameters
     ----------
-    delta, th: float, optional??
+    gamma, mu: float, optional??
         Delta and th motor angles to be moved to.
 
     Returns
@@ -1570,12 +1538,12 @@ def uan(*args):
     """
     _geom_ = current_diffractometer()
     if len(args) != 2:
-        raise ValueError("Usage: uan(delta/tth,eta/th)")
+        raise ValueError("Usage: uan(gamma/tth,mu/th)")
     else:
         delta, th = args
         if len(_geom_.calc.physical_axes) == 6:
             print("Moving to (delta,eta)=({},{})".format(delta, th))
-            plan = mv(_geom_.delta, delta, _geom_.omega, th)
+            plan = mv(_geom_.gamma, delta, _geom_.mu, th)
         elif len(_geom_.calc.physical_axes) == 4:
             print("Moving to (tth,th)=({},{})".format(delta, th))
             plan = mv(_geom_.tth, delta, _geom_.omega, th)
@@ -1612,7 +1580,7 @@ def an(*args):
         delta, th = args
         if len(_geom_.calc.physical_axes) == 6:
             print("Moving to (delta,eta)=({},{})".format(delta, th))
-            yield from mv(_geom_.delta, delta, _geom_.omega, th)
+            yield from mv(_geom_.gamma, delta, _geom_.mu, th)
         elif len(_geom_.calc.physical_axes) == 4:
             print("Moving to (tth,th)=({},{})".format(delta, th))
             yield from mv(_geom_.tth, delta, _geom_.omega, th)
@@ -1741,7 +1709,6 @@ def setaz(*args):
             raise ValueError(
                 "either no arguments or h, k, l need to be provided."
             )
-        _geom_.calc._engine.engine.parameters_values_set([h2, k2, l2], 1)
         _geom_for_psi_.calc._engine.engine.parameters_values_set(
             [h2, k2, l2], 1
         )
@@ -1762,7 +1729,6 @@ def setaz(*args):
             raise ValueError(
                 "either no arguments or h, k, l need to be provided."
             )
-        _geom_.calc._engine.engine.parameters_values_set([h2, k2, l2], 1)
         _geom_for_psi_.calc._engine.engine.parameters_values_set(
             [h2, k2, l2], 1
         )
