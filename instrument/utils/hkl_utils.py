@@ -44,6 +44,7 @@ from ..framework import RE
 from ..devices import polar, polar_psi
 from ..session_logs import logger
 from ..utils import set_constraints, setaz
+from ophyd import SoftPositioner
 
 try:
     from hkl import cahkl
@@ -541,14 +542,13 @@ def or_swap():
     """Swaps the two orientation reflections in hklpy."""
     _geom_ = current_diffractometer()
     sample = _geom_.calc._sample
-    sample.swap_orientation_reflections()
-    list_reflections()
-    print("Computing UB!")
-    sample.compute_UB(
-        sample._orientation_reflections[0], sample._orientation_reflections[1]
-    )
-    _geom_.forward(1, 0, 0)
-
+    orienting_refl = sample._orientation_reflections
+    if len(orienting_refl) > 1:
+        sample.swap_orientation_reflections()
+        list_reflections()
+    else:
+        print("Missing orienting reflections!")
+    compute_UB()
 
 def setor0(*args):
     """
@@ -1367,6 +1367,7 @@ def compute_UB():
     """
 
     _geom_ = current_diffractometer()
+    _geom_for_psi_ = engine_for_psi()
     sample = _geom_.calc._sample
     orienting_refl = sample._orientation_reflections
     if len(orienting_refl) > 1:
@@ -1376,6 +1377,7 @@ def compute_UB():
             sample._orientation_reflections[1],
         )
         _geom_.forward(1, 0, 0)
+        Sync_UB_Matrix(_geom_, _geom_for_psi_)
 
 
 def calc_UB(r1, r2, wavelength=None, output=False):
@@ -1956,3 +1958,37 @@ class sampleListClass:
 
 
 sampleList = sampleListClass()
+
+class Sync_UB_Matrix:
+    """Copy the UB matrix from source to target diffractometers."""
+
+    _geom_ = current_diffractometer()
+    _geom_for_psi_ = engine_for_psi()
+    def __init__(self, source: Diffractometer, target: Diffractometer):
+        self.source = source
+        self.target = target
+        self.source.UB.subscribe(self.sync_callback)
+
+        # initialize
+        self.sync_callback(self.source.UB.get())
+
+    def cleanup(self, *args, **kwargs):
+        """Remove all our subscriptions to ophyd objects."""
+        self.source.UB.clear_sub(self.sync_callback)
+
+    def sync_callback(self, value=None, **kwargs):
+        if value is None:
+            raise RuntimeError(f"sync_callback: {value=!r}  {kwargs=!r}")
+        ub_source = value
+        #print(f"Copy UB={ub_source=} from {self.source.name} to {self.target.name}")
+        print(f"Copy UB from {self.source.name} to {self.target.name}")
+        self.target.UB.put(ub_source)
+
+        for axis in self.source.real_positioners._fields:
+            ptarget = getattr(self.target, axis)
+            if isinstance(ptarget, SoftPositioner):
+                # If the target is a simulated motor, sync it with the source.
+                psource = getattr(self.source, axis)
+                ptarget.move(psource.position)
+                print(f"Sync {self.target.name}.{axis}={ptarget.position}")
+
