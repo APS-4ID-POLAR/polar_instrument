@@ -27,10 +27,10 @@ from hkl.user import (
 
 from ..framework import RE
 from .counters_class import counters
-from ..devices import polar, psic, diffract, fourc, scaler
+from ..devices import polar, diffract, fourc, scaler
+from ..utils import hkl_utils
 from inspect import getmembers, isfunction
 from polartools import (
-    hkl_utils,
     load_data,
     diffraction,
     absorption,
@@ -393,7 +393,7 @@ def list_functions(select=None):
     if select == "absorption":
         packages = [absorption]
     elif select == "diffraction":
-        packages = [hkl_utils, load_data, diffraction, utils]
+        packages = [load_data, diffraction, utils]
     elif select == "hklpy":
         packages = [user, util]
     else:
