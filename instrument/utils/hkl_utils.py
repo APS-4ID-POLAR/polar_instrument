@@ -1635,18 +1635,52 @@ def _wh():
             )
         )
 
-    elif _geom_.name == "fourc":
-        print(
-            "\n{:>11}{:>9}{:>9}{:>9}".format("Two Theta", "Theta", "Chi", "Phi")
-        )
-        print(
-            "{:>11.3f}{:>9.3f}{:>9.3f}{:>9.3f}".format(
-                _geom_.tth.position,
-                _geom_.omega.position,
-                _geom_.chi.position,
-                _geom_.phi.position,
-            )
-        )
+def pa_new():
+    """
+    Retrieve information on the current reciprocal space position.
+
+    """
+    _geom_ = current_diffractometer()
+    _geom_for_psi_ = engine_for_psi()
+    _geom_for_psi_.calc.sample.UB = _geom_.calc._sample.UB
+    geometry = _geom_.calc._geometry.name_get()
+
+    print("{_geom_.__class__.__name__},  {geometry} geometry {_geom_} diffractometer")
+    print("{polar.calc.engine.mode} mode")
+
+    for i, ref in enumerate(sample._sample.reflections_get()):
+        if orienting_refl[0] == ref:
+            h, k, l = ref.hkl_get()
+            pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
+            if _geom_.name == "polar":
+                print(
+                    "                        H, K , L = {:>4}{:>3}{:>3}".format(
+                        int(h),
+                        int(k),
+                        int(l),
+                    )
+                )
+                print(
+                    " gamma, mu, chi, phi, delta, tau = {:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}".format(
+                        pos[4],
+                        pos[1],
+                        pos[2],
+                        pos[3],
+                        pos[5],
+                        pos[0],
+                    )
+                )
+
+    """
+    table.addRow(("diffractometer", self.name))
+    table.addRow(("geometry", self.calc._geometry.name_get()))
+    table.addRow(("class", self.__class__.__name__))
+    table.addRow(("energy (keV)", f"{self.calc.energy:.5f}"))
+    table.addRow(("wavelength (angstrom)", f"{self.calc.wavelength:.5f}"))
+    table.addRow(("calc engine", self.calc.engine.name))
+    table.addRow(("mode", self.calc.engine.mode))
+    """
+
 
 
 def setlat(*args):
