@@ -43,7 +43,7 @@ from bluesky.plan_stubs import mv
 from ..framework import RE
 from ..devices import polar, polar_psi
 from ..session_logs import logger
-from ..utils import set_constraints, setaz
+from ..utils import set_constraints
 from ophyd import SoftPositioner
 
 try:
