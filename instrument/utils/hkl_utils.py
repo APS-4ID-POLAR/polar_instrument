@@ -1643,25 +1643,24 @@ def pa_new():
     _geom_ = current_diffractometer()
     _geom_for_psi_ = engine_for_psi()
     _geom_for_psi_.calc.sample.UB = _geom_.calc._sample.UB
+    sample = _geom_.calc._sample
+    lattice = [getattr(sample.lattice, parm) for parm in sample.lattice._fields]
     geometry = _geom_.calc._geometry.name_get()
+    orienting_refl = sample._orientation_reflections
+    
 
-    print("{_geom_.__class__.__name__},  {geometry} geometry {_geom_} diffractometer")
-    print("{polar.calc.engine.mode} mode")
+    print("{},  {} geometry, {} diffractometer".format(_geom_.__class__.__name__, geometry, _geom_.name))
+    print("{} mode".format(polar.calc.engine.mode))
 
+    print("Sample = {}".format(sample.name))
     for i, ref in enumerate(sample._sample.reflections_get()):
         if orienting_refl[0] == ref:
+            print("\nPrimary reflection at (lambda {})".format(orienting_refl[0].geometry_get().wavelength_get(0)))
             h, k, l = ref.hkl_get()
             pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
             if _geom_.name == "polar":
                 print(
-                    "                        H, K , L = {:>4}{:>3}{:>3}".format(
-                        int(h),
-                        int(k),
-                        int(l),
-                    )
-                )
-                print(
-                    " gamma, mu, chi, phi, delta, tau = {:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}".format(
+                    "     gamma, mu, chi, phi, delta, tau = {:>3.3f}, {:>3.3f}, {:>3.3f}, {:>3.3f}, {:>3.3f}, {:>3.3f}".format(
                         pos[4],
                         pos[1],
                         pos[2],
@@ -1670,6 +1669,47 @@ def pa_new():
                         pos[0],
                     )
                 )
+                print(
+                    "                            H, K , L = {:>2}{:>2}{:>2}".format(
+                        int(h),
+                        int(k),
+                        int(l),
+                    )
+                )
+    for i, ref in enumerate(sample._sample.reflections_get()):
+        if orienting_refl[1] == ref:
+            print("\nSecondary reflection at (lambda {})".format(orienting_refl[1].geometry_get().wavelength_get(0)))
+            h, k, l = ref.hkl_get()
+            pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
+            if _geom_.name == "polar":
+                print(
+                    "     gamma, mu, chi, phi, delta, tau = {:>3.3f}, {:>3.3f}, {:>3.3f}, {:>3.3f}, {:>3.3f}, {:>3.3f}".format(
+                        pos[4],
+                        pos[1],
+                        pos[2],
+                        pos[3],
+                        pos[5],
+                        pos[0],
+                    )
+                )
+                print(
+                    "                            H, K , L = {:>2}{:>2}{:>2}".format(
+                        int(h),
+                        int(k),
+                        int(l),
+                    )
+                )
+
+    print("\nLattice constants:")
+    print("                          real space =", end=" ")
+    print(*sample.lattice, sep=", ")    
+    print("                    reciprocal space =", end=" ")
+    print("{:>3.3f}, {:3.3f}, {:>3.3f}, {:3.3f}, {:>3.3f}, {:3.3f} ".format(sample.reciprocal[0],sample.reciprocal[1],sample.reciprocal[2],sample.reciprocal[3],sample.reciprocal[4],sample.reciprocal[5]))
+    print("\nAzimuthal reference:")
+    _h2, _k2, _l2, psi = _geom_.calc._engine.engine.parameters_values_get(1)
+    print("                               H K L = {:2.0f}{:2.0f}{:2.0f}".format(_h2,_k2,_l2))
+    print("\nMonochromator:")
+    print("                 Energy (wavelength) = {:3.3f} ({:3.3f})".format(_geom_.calc.energy, _geom_.calc.wavelength))
 
     """
     table.addRow(("diffractometer", self.name))
