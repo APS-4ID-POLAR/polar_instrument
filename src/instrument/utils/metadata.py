@@ -57,7 +57,7 @@ VERSIONS = dict(
 
 def get_md_path():
     """Get PersistentDict directory for RE metadata."""
-    path = iconfig.get("MD_PATH")
+    path = iconfig.get("RUN_ENGINE").get("MD_PATH")
     if path is None:
         path = DEFAULT_MD_PATH
     else:
