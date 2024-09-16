@@ -32,6 +32,9 @@ Auxilary HKL functions.
     ~update_lattice
     ~write_config
     ~read_config
+    ~show_constraints
+    ~reset_constraints
+    ~set_constraints
 """
 
 import pathlib
@@ -2000,6 +2003,85 @@ def read_config(method="File"):
                 config.restore(polar_config, clear=True)
             else:
                 print("Config file not read!")
+
+def show_constraints():
+    """
+    Show constraints and freeze angles (value)
+    """
+    _geom_ = current_diffractometer()
+    _geom_.show_constraints()
+
+
+def reset_constraints():
+    """
+    Reset all constraints
+    """
+    _geom_ = current_diffractometer()
+    _geom_.reset_constraints()
+    _geom_.show_constraints()
+
+
+def set_constraints(*args):
+    """
+    Change constraint values for specific axis
+    """
+    _geom_ = current_diffractometer()
+    axes = _geom_.calc._engine.engine.axis_names_get(0)
+
+    if len(args) == 12:
+        i = -1
+        for axis in axes:
+            i+=2
+            low = args[i-1]
+            high = args[i]
+            angle = _geom_.get_axis_constraints(axis).value
+            _geom_.apply_constraints(
+                {axis: Constraint(low, high, angle, True)}
+        )
+        
+    elif len(args) == 3:
+        axis, low, high = args
+        angle = _geom_.get_axis_constraints(axis).value
+        _geom_.apply_constraints(
+            {axis: Constraint(low, high, angle, True)}
+        )
+    elif len(args) == 1:
+        axis = args[0]
+        print(axis)
+        low = _geom_.get_axis_constraints(axis).low_limit
+        high = _geom_.get_axis_constraints(axis).high_limit
+        angle = _geom_.get_axis_constraints(axis).value
+        value = (
+            input(
+                "{} constraints low, high = [{:3.3f}, {:3.3f}]: ".format(
+                    axis, low, high
+                )
+            )
+        ) or [low, high]
+        if isinstance(value, str):
+            value = value.replace(",", " ").split(" ")
+        _geom_.apply_constraints(
+            {axis: Constraint(value[0], value[1], angle, True)}
+        )
+    elif len(args) == 0:
+        for axis in axes:
+            low = _geom_.get_axis_constraints(axis).low_limit
+            high = _geom_.get_axis_constraints(axis).high_limit
+            angle = _geom_.get_axis_constraints(axis).value
+            value = (
+                input(
+                    "{} constraints low, high = [{:3.3f}, {:3.3f}]: ".format(
+                        axis, low, high
+                    )
+                )
+            ) or [low, high]
+            if isinstance(value, str):
+                value = value.replace(",", " ").split(" ")
+            _geom_.apply_constraints(
+                {axis: Constraint(value[0], value[1], angle, True)}
+        )
+    _geom_.show_constraints()
+
 
 
 select_diffractometer(polar)
