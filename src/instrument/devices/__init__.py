@@ -5,12 +5,16 @@ local, custom Device definitions
 from ..utils.config import iconfig
 
 if iconfig.get("STATION") == "4idg":
+    from .simulated_scaler import scaler
     from .scaler_4idtest import scaler_4tst
     from .simulated_fourc_vertical import fourc
     from .simulated_new_diffractometer import diffract
     from .simulated_detector import simdet
-else:
-    from .simulated_scaler import scaler
+elif iconfig.get("STATION") == "raman":
+    from .sample_stage import sx, sy, sz
+    from .ventus_laser import laser
+    from .ad_lightfield import spectrometer
+    from .ge_controller import ge_apply, ge_release
 
 from .counters_class import counters
 
@@ -27,7 +31,3 @@ from .counters_class import counters
 # from .pva_control import positioner_stream
 # from .data_management import dm_experiment, dm_workflow
 
-# from .sample_stage import sx, sy, sz
-# from .ventus_laser import laser
-# from .ad_lightfield import spectrometer
-# from .ge_controller import ge_apply, ge_release
