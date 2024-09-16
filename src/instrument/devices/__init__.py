@@ -2,11 +2,18 @@
 local, custom Device definitions
 """
 
-from .simulated_scaler import scaler
-from .scaler_4idtest import scaler_4tst
-from .simulated_fourc_vertical import fourc
-from .simulated_new_diffractometer import diffract
-from .simulated_detector import simdet
+from ..utils.config import iconfig
+
+if iconfig.get("STATION") == "4idg":
+    from .scaler_4idtest import scaler_4tst
+    from .simulated_fourc_vertical import fourc
+    from .simulated_new_diffractometer import diffract
+    from .simulated_detector import simdet
+else:
+    from .simulated_scaler import scaler
+
+from .counters_class import counters
+
 # from .nanopositioner import diff_nano
 # from .interferometers_4IDG import interferometer
 # from .magnet_nanopositioner import magnet_nano
@@ -24,5 +31,3 @@ from .simulated_detector import simdet
 # from .ventus_laser import laser
 # from .ad_lightfield import spectrometer
 # from .ge_controller import ge_apply, ge_release
-
-from .counters_class import counters

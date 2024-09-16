@@ -5,6 +5,8 @@ ICONFIG_VERSION: 2.0.0
 
 # Add additional configuration for use with your instrument.
 
+STATION: 4idg
+
 ### The short name for the databroker catalog.
 DATABROKER_CATALOG: &databroker_catalog 4id_polar
 
