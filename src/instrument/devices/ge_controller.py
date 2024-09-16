@@ -6,8 +6,8 @@ __all__ = ['ge_apply', 'ge_release']
 
 from ophyd import Component, EpicsSignalRO, EpicsSignalWithRBV
 from apstools.devices import PVPositionerSoftDoneWithStop
-from ..framework import sd
-from ..session_logs import logger
+from ..utils import logger
+from ..utils.run_engine import sd
 logger.info(__file__)
 
 

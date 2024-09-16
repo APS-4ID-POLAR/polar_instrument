@@ -3,7 +3,7 @@
 __all__ = ["interferometer"]
 
 from ophyd import Device, Component, EpicsSignalRO
-from ..session_logs import logger
+from ..utils import logger
 logger.info(__file__)
 
 class InterferometerDevice(Device):

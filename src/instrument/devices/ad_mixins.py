@@ -17,7 +17,7 @@ from pathlib import PurePath
 from os.path import isfile
 from datetime import datetime
 from itertools import count
-from ..session_logs import logger
+from ..utils import logger
 logger.info(__file__)
 
 

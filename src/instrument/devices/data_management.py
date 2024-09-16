@@ -1,7 +1,7 @@
 from apstools.devices import DM_WorkflowConnector
 from apstools.utils import dm_api_proc
 from ophyd import Signal
-from ..session_logs import logger
+from ..utils import logger
 logger.info(__file__)
 
 __all__ = """

@@ -11,15 +11,11 @@ https://bcda-aps.github.io/apstools/dev/api/_filewriters.html#apstools.callbacks
 
 __all__ = ["nxwriter"]
 
-import logging
 import h5py
 from apstools.callbacks import NXWriterAPS
-
-from .._iconfig import iconfig
+from ..utils import iconfig, logger
 
 # from ..framework.initialize import RE
-
-logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 LAYOUT_VERSION = "APS-POLAR-2024-06"

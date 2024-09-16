@@ -5,8 +5,8 @@ Nanopositioner motors
 __all__ = ['diff_nano']
 
 from ophyd import Component, MotorBundle, EpicsMotor
-from ..framework import sd
-from ..session_logs import logger
+from ..utils.run_engine import sd
+from ..utils import logger
 logger.info(__file__)
 
 

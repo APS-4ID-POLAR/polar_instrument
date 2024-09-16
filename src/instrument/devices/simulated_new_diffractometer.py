@@ -5,13 +5,13 @@ Simulated diffract
 __all__ = ['diffract']
 
 from ophyd import Component, PseudoSingle, Kind, Signal, EpicsMotor
-from ..framework import sd
+from ..utils.run_engine import sd
 import gi
 gi.require_version('Hkl', '5.0')
 # MUST come before `import hkl`
 from hkl.geometries import Petra3_p09_eh2
 from hkl.user import select_diffractometer
-from ..session_logs import logger
+from ..utils import logger
 logger.info(__file__)
 
 

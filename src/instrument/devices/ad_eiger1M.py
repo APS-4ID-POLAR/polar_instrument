@@ -17,8 +17,7 @@ from .ad_mixins import (
     PvaPlugin,
     EigerHDF5Plugin
 )
-from .. import iconfig  # noqa
-from ..session_logs import logger
+from ..utils import logger, iconfig
 logger.info(__file__)
 
 __all__ = ["load_eiger1m"]

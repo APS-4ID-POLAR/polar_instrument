@@ -7,8 +7,8 @@ __all__ = ['sgz']
 from ophyd import Component, Device, EpicsSignal, EpicsSignalRO, DynamicDeviceComponent
 from collections import OrderedDict
 from bluesky.plan_stubs import mv, sleep
-from ..framework import sd
-from ..session_logs import logger
+from ..utils.run_engine import sd
+from ..utils import logger
 logger.info(__file__)
 
 
