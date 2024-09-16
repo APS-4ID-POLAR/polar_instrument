@@ -9,6 +9,10 @@ Includes:
 * Bluesky queueserver
 """
 
+from os import environ
+if not environ.get("POLAR_INSTRUMENT"):
+    environ["POLAR_INSTRUMENT"] = "raman"
+
 # logging setup first
 from .utils import logger
 

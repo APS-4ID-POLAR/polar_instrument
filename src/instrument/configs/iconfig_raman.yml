@@ -4,7 +4,7 @@
 ICONFIG_VERSION: 2.0.0
 
 # Add additional configuration for use with your instrument.
-STATION: 4idg
+STATION: raman
 
 ### The short name for the databroker catalog.
 DATABROKER_CATALOG: &databroker_catalog 4id_polar
@@ -13,7 +13,7 @@ DATABROKER_CATALOG: &databroker_catalog 4id_polar
 RUN_ENGINE:
     DEFAULT_METADATA:
         beamline_id: 4id-polar
-        instrument_name: 4IDG
+        instrument_name: 4ID-Raman
         proposal_id: internal
         databroker_catalog: *databroker_catalog
 

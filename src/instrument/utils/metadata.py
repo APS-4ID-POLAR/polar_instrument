@@ -27,6 +27,7 @@ import ophyd
 import pyRestTable
 import pysumreg
 import spec2nexus
+from os import environ
 
 from .config import iconfig
 
@@ -61,7 +62,9 @@ def get_md_path():
     if path is None:
         path = DEFAULT_MD_PATH
     else:
-        path = pathlib.Path(path)
+        profile = environ.get("IPYTHON_PROFILE", "dev")
+        path = pathlib.Path(path + "_" + profile) if "dev" in profile else pathlib.Path(path)
+
     logger.info("RunEngine metadata saved in directory: %s", str(path))
     return str(path)
 
