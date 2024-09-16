@@ -35,11 +35,13 @@ import logging
 import pathlib
 
 import yaml
+from os import environ
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 instrument_path = pathlib.Path(__file__).parent.parent
-DEFAULT_ICONFIG_YML_FILE = instrument_path / "configs" / "iconfig.yml"
+_STATION = environ["POLAR_INSTRUMENT"]
+DEFAULT_ICONFIG_YML_FILE = instrument_path / "configs" / f"iconfig_{_STATION}.yml"
 ICONFIG_MINIMUM_VERSION = "2.0.0"
 
 

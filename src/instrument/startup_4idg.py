@@ -9,6 +9,9 @@ Includes:
 * Bluesky queueserver
 """
 
+from os import environ
+environ["POLAR_INSTRUMENT"] = "4idg"
+
 # logging setup first
 from .utils import logger
 
