@@ -1,4 +1,4 @@
-from ..utils import peaks
+from ..utils.best_effort import peaks
 from ..plans import mv
 from ..utils import logger
 logger.info(__file__)
