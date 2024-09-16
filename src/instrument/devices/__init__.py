@@ -18,7 +18,7 @@ from .simulated_detector import simdet
 # from .ad_eiger1M import load_eiger1m
 # from .softgluezynq import sgz
 # from .pva_control import positioner_stream
-# from .data_management import dm_experiment, dm_workflow
+from .data_management import dm_experiment, dm_workflow
 
 # from .sample_stage import sx, sy, sz
 # from .ventus_laser import laser
