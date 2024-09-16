@@ -27,8 +27,11 @@ logger.info(__file__)
 from ..utils.config import iconfig  # noqa
 from ..utils.run_engine import RE  # noqa
 
+
+spec_config = iconfig.get("SPEC_DATA_FILES")
+
 DEFAULT_FILE_EXTENSION = "dat"
-file_extension = iconfig.get("FILE_EXTENSION", DEFAULT_FILE_EXTENSION)
+file_extension = spec_config.get("FILE_EXTENSION", DEFAULT_FILE_EXTENSION)
 
 
 def spec_comment(comment, doc=None):

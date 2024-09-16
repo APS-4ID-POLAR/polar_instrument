@@ -16,7 +16,7 @@ logger.info(__file__)
 
 from .ophyd_setup import *  # noqa  Ensure oregistry & timeouts are setup first.
 
-re_config = iconfig.get("RE", {})
+re_config = iconfig.get("RUN_ENGINE", {})
 
 
 def epics_scan_id_source(scan_id_epics, _md):

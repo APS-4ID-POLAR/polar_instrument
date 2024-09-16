@@ -33,7 +33,7 @@ from .config import iconfig
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-re_config = iconfig.get("RE", {})
+re_config = iconfig.get("RUN_ENGINE", {})
 
 DEFAULT_MD_PATH = pathlib.Path.home() / ".config" / "Bluesky_RunEngine_md"
 HOSTNAME = socket.gethostname() or "localhost"
@@ -57,7 +57,7 @@ VERSIONS = dict(
 
 def get_md_path():
     """Get PersistentDict directory for RE metadata."""
-    path = iconfig.get("RUN_ENGINE").get("MD_PATH")
+    path = re_config.get("MD_PATH")
     if path is None:
         path = DEFAULT_MD_PATH
     else:
@@ -76,7 +76,7 @@ def re_metadata(cat=None):
     }
     if cat is not None:
         md["databroker_catalog"] = cat.name
-    md.update(iconfig.get("RUNENGINE_METADATA", {}))
+    md.update(re_config.get("DEFAULT_METADATA", {}))
 
     conda_prefix = os.environ.get("CONDA_PREFIX")
     if conda_prefix is not None:
