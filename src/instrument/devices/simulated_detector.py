@@ -4,7 +4,7 @@ __all__ = ['simdet']
 from ophyd.signal import SignalRO
 from numpy.random import default_rng
 from time import sleep
-from ..session_logs import logger
+from ..utils import logger
 logger.info(__file__)
 
 
