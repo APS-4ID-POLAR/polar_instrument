@@ -2080,8 +2080,6 @@ def set_constraints(*args):
             _geom_.apply_constraints(
                 {axis: Constraint(value[0], value[1], angle, True)}
         )
-    _geom_.show_constraints()
-
 
 
 select_diffractometer(polar)
