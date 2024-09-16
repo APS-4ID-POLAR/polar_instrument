@@ -1,4 +1,5 @@
-from ..devices import scaler, scaler_4tst
+from .simulated_scaler import scaler
+from .scaler_4idtest import scaler_4tst
 from ..utils import logger
 logger.info(__file__)
 
