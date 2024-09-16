@@ -57,6 +57,7 @@ try:
         select_diffractometer,
         current_diffractometer,
     )
+    from hkl.util import Constraint
     from hkl.configuration import DiffractometerConfiguration
     from hkl.diffract import Diffractometer
 except ModuleNotFoundError:
