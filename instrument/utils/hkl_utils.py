@@ -204,7 +204,7 @@ def sampleNew(*args):
         compute_UB()
         set_constraints('mu',-100,100)
         set_constraints('gamma',-10,180)
-        setaz(1,0,0)
+        setaz(0,1,0)
 
 
 def sampleChange(sample_key=None):
@@ -1809,7 +1809,6 @@ def setaz(*args):
         _h2, _k2, _l2, psi = _geom_.calc._engine.engine.parameters_values_get(1)
         if len(args) == 3:
             h2, k2, l2 = args
-            print(h2)
         elif len(args) == 0:
             h2 = int((input("H = ({})? ".format(_h2))) or _h2)
             k2 = int((input("K = ({})? ".format(_k2))) or _k2)
