@@ -1672,7 +1672,7 @@ def pa_new():
                     )
                 )
                 print(
-                    "                            H K L = {:>2}{:>2}{:>2}".format(
+                    "                                H K L = {:>2}{:>2}{:>2}".format(
                         int(h),
                         int(k),
                         int(l),
@@ -1695,7 +1695,7 @@ def pa_new():
                     )
                 )
                 print(
-                    "                            H K L = {:>2}{:>2}{:>2}".format(
+                    "                                H K L = {:>2}{:>2}{:>2}".format(
                         int(h),
                         int(k),
                         int(l),
