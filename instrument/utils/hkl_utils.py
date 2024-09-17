@@ -1657,7 +1657,7 @@ def pa_new():
     print("Sample = {}".format(sample.name))
     for i, ref in enumerate(sample._sample.reflections_get()):
         if orienting_refl[0] == ref:
-            print("\nPrimary reflection at (lambda {})".format(orienting_refl[0].geometry_get().wavelength_get(0)))
+            print("\nPrimary reflection at (lambda {:.3f})".format(orienting_refl[0].geometry_get().wavelength_get(0)))
             h, k, l = ref.hkl_get()
             pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
             if _geom_.name == "polar":
@@ -1680,7 +1680,7 @@ def pa_new():
                 )
     for i, ref in enumerate(sample._sample.reflections_get()):
         if orienting_refl[1] == ref:
-            print("\nSecondary reflection at (lambda {})".format(orienting_refl[1].geometry_get().wavelength_get(0)))
+            print("\nSecondary reflection at (lambda {:.3f})".format(orienting_refl[1].geometry_get().wavelength_get(0)))
             h, k, l = ref.hkl_get()
             pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
             if _geom_.name == "polar":
