@@ -1650,7 +1650,7 @@ def pa_new():
     lattice = [getattr(sample.lattice, parm) for parm in sample.lattice._fields]
     geometry = _geom_.calc._geometry.name_get()
     orienting_refl = sample._orientation_reflections
-    
+    current_mode = _geom_.calc.engine.mode
 
     print("{},  {} geometry, {} diffractometer".format(_geom_.__class__.__name__, geometry, _geom_.name))
     print("{} mode".format(polar.calc.engine.mode))
@@ -1709,8 +1709,11 @@ def pa_new():
     print("                    reciprocal space =", end=" ")
     print("{:>3.3f}, {:3.3f}, {:>3.3f}, {:3.3f}, {:>3.3f}, {:3.3f} ".format(sample.reciprocal[0],sample.reciprocal[1],sample.reciprocal[2],sample.reciprocal[3],sample.reciprocal[4],sample.reciprocal[5]))
     print("\nAzimuthal reference:")
-    _h2, _k2, _l2, psi = _geom_.calc._engine.engine.parameters_values_get(1)
+    if current_mode == 'psi constant horizontal' or current_mode == 'psi constant vertical':
+        _h2, _k2, _l2, psi = _geom_.calc._engine.engine.parameters_values_get(1)
+        print("                               Psi frozen to {}".format(psi))
     print("                               H K L = {:2.0f}{:2.0f}{:2.0f}".format(_h2,_k2,_l2))
+
     print("\nMonochromator:")
     print("                 Energy (wavelength) = {:3.3f} ({:3.3f})".format(_geom_.calc.energy, _geom_.calc.wavelength))
 
