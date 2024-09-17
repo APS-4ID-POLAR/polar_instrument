@@ -1380,7 +1380,7 @@ def compute_UB():
             sample._orientation_reflections[1],
         )
         _geom_.forward(1, 0, 0)
-        #Sync_UB_Matrix(_geom_, _geom_for_psi_)
+        Sync_UB_Matrix(_geom_, _geom_for_psi_)
 
 
 def calc_UB(r1, r2, wavelength=None, output=False):
