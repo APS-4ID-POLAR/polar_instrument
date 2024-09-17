@@ -1672,7 +1672,7 @@ def pa_new():
                     )
                 )
                 print(
-                    "                            H, K , L = {:>2}{:>2}{:>2}".format(
+                    "                            H K L = {:>2}{:>2}{:>2}".format(
                         int(h),
                         int(k),
                         int(l),
@@ -1695,7 +1695,7 @@ def pa_new():
                     )
                 )
                 print(
-                    "                            H, K , L = {:>2}{:>2}{:>2}".format(
+                    "                            H K L = {:>2}{:>2}{:>2}".format(
                         int(h),
                         int(k),
                         int(l),
@@ -1711,7 +1711,7 @@ def pa_new():
         _h2, _k2, _l2, psi = _geom_.calc._engine.engine.parameters_values_get(1)
         print("\nAzimuthal reference:")
         print("                               H K L = {:2.0f}{:2.0f}{:2.0f}".format(_h2,_k2,_l2))
-        print("                               Psi frozen to {}".format(psi))
+        #print("                               Psi frozen to {}".format(psi))
 
 
     print("\nMonochromator:")
