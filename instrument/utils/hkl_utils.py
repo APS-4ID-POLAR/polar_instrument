@@ -1711,8 +1711,12 @@ def pa_new():
     print("\nAzimuthal reference:")
     if current_mode == 'psi constant horizontal' or current_mode == 'psi constant vertical':
         _h2, _k2, _l2, psi = _geom_.calc._engine.engine.parameters_values_get(1)
+        print("                               H K L = {:2.0f}{:2.0f}{:2.0f}".format(_h2,_k2,_l2))
         print("                               Psi frozen to {}".format(psi))
-    print("                               H K L = {:2.0f}{:2.0f}{:2.0f}".format(_h2,_k2,_l2))
+    else:
+        _h2, _k2, _l2 = _geom_.calc._engine.engine.parameters_values_get(1)
+        print("                               H K L = {:2.0f}{:2.0f}{:2.0f}".format(_h2,_k2,_l2))
+
 
     print("\nMonochromator:")
     print("                 Energy (wavelength) = {:3.3f} ({:3.3f})".format(_geom_.calc.energy, _geom_.calc.wavelength))
