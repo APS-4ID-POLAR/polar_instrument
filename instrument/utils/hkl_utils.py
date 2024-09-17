@@ -1647,7 +1647,6 @@ def pa_new():
     _geom_for_psi_ = engine_for_psi()
     _geom_for_psi_.calc.sample.UB = _geom_.calc._sample.UB
     sample = _geom_.calc._sample
-    lattice = [getattr(sample.lattice, parm) for parm in sample.lattice._fields]
     geometry = _geom_.calc._geometry.name_get()
     orienting_refl = sample._orientation_reflections
     current_mode = _geom_.calc.engine.mode
@@ -1708,14 +1707,11 @@ def pa_new():
     print(*sample.lattice, sep=", ")    
     print("                    reciprocal space =", end=" ")
     print("{:>3.3f}, {:3.3f}, {:>3.3f}, {:3.3f}, {:>3.3f}, {:3.3f} ".format(sample.reciprocal[0],sample.reciprocal[1],sample.reciprocal[2],sample.reciprocal[3],sample.reciprocal[4],sample.reciprocal[5]))
-    print("\nAzimuthal reference:")
     if current_mode == 'psi constant horizontal' or current_mode == 'psi constant vertical':
         _h2, _k2, _l2, psi = _geom_.calc._engine.engine.parameters_values_get(1)
+        print("\nAzimuthal reference:")
         print("                               H K L = {:2.0f}{:2.0f}{:2.0f}".format(_h2,_k2,_l2))
         print("                               Psi frozen to {}".format(psi))
-    else:
-        _h2, _k2, _l2 = _geom_.calc._engine.engine.parameters_values_get(1)
-        print("                               H K L = {:2.0f}{:2.0f}{:2.0f}".format(_h2,_k2,_l2))
 
 
     print("\nMonochromator:")
