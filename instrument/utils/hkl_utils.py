@@ -43,7 +43,7 @@ from bluesky import RunEngineInterrupted
 from bluesky.utils import ProgressBarManager
 from bluesky.plan_stubs import mv
 from ..framework import RE
-from ..devices import polar, polar_psi
+from ..devices import polar, polar_psi, fourc
 from ..session_logs import logger
 from ophyd import SoftPositioner
 
