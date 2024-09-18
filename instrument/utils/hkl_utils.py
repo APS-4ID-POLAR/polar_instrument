@@ -220,7 +220,7 @@ def sampleNew(*args):
                 0,
                 position=_geom_.calc.Position(
                     tth=40,
-                    th=20,
+                    omega=20,
                     chi=0,
                     phi=0,
                 ),
