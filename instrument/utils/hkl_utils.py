@@ -2,7 +2,6 @@
 Auxilary HKL functions.
 
 .. autosummary::
-    ~current_diffractometer
     ~select_engine_for_psi
     ~engine_for_psi
     ~set_experiment
@@ -232,6 +231,8 @@ def sampleNew(*args):
         if _geom_.name == "polar":
             set_constraints('mu',-100,100)
             set_constraints('gamma',-10,180)
+            set_constraints('delta',-20,60)
+            set_constraints('tau',-1,1)
         if _geom_.name == "fourc":
             set_constraints('omega',-100,100)
             set_constraints('tth',-10,180)            
