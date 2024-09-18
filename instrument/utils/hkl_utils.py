@@ -1444,7 +1444,8 @@ def compute_UB():
             sample._orientation_reflections[1],
         )
         _geom_.forward(1, 0, 0)
-        Sync_UB_Matrix(_geom_, _geom_for_psi_)
+        if _geom_.name == "polar":
+            Sync_UB_Matrix(_geom_, _geom_for_psi_)
 
 
 def calc_UB(r1, r2, wavelength=None, output=False):
@@ -1708,7 +1709,7 @@ def _wh():
             )
         )
         print(
-            "{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}}".format(
+            "{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}".format(
                 _geom_.tth.position,
                 _geom_.omega.position,
                 _geom_.chi.position,
