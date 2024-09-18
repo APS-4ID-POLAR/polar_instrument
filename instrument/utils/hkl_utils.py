@@ -229,8 +229,12 @@ def sampleNew(*args):
             1, sample._sample.reflections_get()[-1]
         )
         compute_UB()
-        set_constraints('mu',-100,100)
-        set_constraints('gamma',-10,180)
+        if _geom_.name == "polar":
+            set_constraints('mu',-100,100)
+            set_constraints('gamma',-10,180)
+        if _geom_.name == "fourc":
+            set_constraints('omega',-100,100)
+            set_constraints('tth',-10,180)            
         setaz(0,1,0)
 
 
