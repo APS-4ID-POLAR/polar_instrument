@@ -1679,12 +1679,12 @@ def _wh():
             _geom_.calc.engine.pseudo_axes["l"],
         )
     )
-
-    print(
-        "   Azimuth = {:6.4f}".format(
-            _geom_for_psi_.inverse(0).psi,
+    if _geom_ == 'polar':
+        print(
+            "   Azimuth = {:6.4f}".format(
+                _geom_for_psi_.inverse(0).psi,
+            )
         )
-    )
     print(
         "   Lambda (Energy) = {:6.4f} \u212B ({:6.4f} keV)".format(
             _geom_.calc.wavelength, _geom_.calc.energy
