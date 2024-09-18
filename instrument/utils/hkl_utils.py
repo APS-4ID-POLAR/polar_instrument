@@ -124,7 +124,7 @@ def set_diffractometer(instrument=None):
     """Name the diffractometer to be used."""
     if instrument:
         diff = instrument.name
-        print(diff)
+        #print(diff)
     elif instrument is None:
         _geom_ = current_diffractometer()
         diff = (input("Diffractometer [polar or fourc] ({})? ".format(_geom_.name))) or _geom_.name
