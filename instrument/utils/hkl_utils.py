@@ -1679,7 +1679,7 @@ def _wh():
             _geom_.calc.engine.pseudo_axes["l"],
         )
     )
-    if _geom_ == 'polar':
+    if _geom_.name == 'polar':
         print(
             "   Azimuth = {:6.4f}".format(
                 _geom_for_psi_.inverse(0).psi,
