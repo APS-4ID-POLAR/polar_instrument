@@ -364,20 +364,34 @@ def _sampleList():
         print(*samples[x].lattice._fields, sep=", ", end=" = ")
         print(*samples[x].lattice, sep=", ")
         if len(orienting_refl) > 1:
-            print(
-                "\n{:>3}{:>4}{:>3}{:>3}{:>9}{:>9}{:>9}{:>9}{:>9}{:>9}".format(
-                    "#",
-                    "H",
-                    "K",
-                    "L",
-                    "Gamma",
-                    "Mu",
-                    "Chi",
-                    "Phi",
-                    "Delta",
-                    "Tau",
+            if len(_geom_.calc.physical_axes) == 6:
+                print(
+                    "\n{:>3}{:>4}{:>3}{:>3}{:>9}{:>9}{:>9}{:>9}{:>9}{:>9}".format(
+                        "#",
+                        "H",
+                        "K",
+                        "L",
+                        "Gamma",
+                        "Mu",
+                        "Chi",
+                        "Phi",
+                        "Delta",
+                        "Tau",
+                    )
                 )
-            )
+            if len(_geom_.calc.physical_axes) == 4:
+                print(
+                    "\n{:>3}{:>4}{:>3}{:>3}{:>9}{:>9}{:>9}{:>9}".format(
+                        "#",
+                        "H",
+                        "K",
+                        "L",
+                        "tth",
+                        "th",
+                        "chi",
+                        "phi",
+                    )
+                )
         for ref in samples[x]._sample.reflections_get():
             if len(orienting_refl) > 1:
                 if orienting_refl[0] == ref:
