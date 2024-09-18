@@ -1949,7 +1949,7 @@ def setaz(*args):
 def freeze(*args):
     _geom_ = current_diffractometer()
     _check_geom_selected()
-    if _geom_.calc.engine.mode == "psi constant horizontal":
+    if _geom_.calc.engine.mode == "psi constant horizontal" or  _geom_.calc.engine.mode == "psi_constant" :
         h2, k2, l2, psi = _geom_.calc._engine.engine.parameters_values_get(1)
         if len(args) == 1:
             psi = args[0]
