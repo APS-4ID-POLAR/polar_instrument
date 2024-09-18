@@ -169,35 +169,62 @@ def sampleNew(*args):
         _geom_.calc.new_sample(nm, lattice=lattice)
 
         sample = _geom_.calc._sample
-        sample.add_reflection(
-            0,
-            0,
-            2,
-            position=_geom_.calc.Position(
-                gamma=40,
-                mu=20,
-                chi=-90,
-                phi=0,
-                delta=0,
-                tau=0,
-            ),
-        )
-        sample._orientation_reflections.insert(
-            0, sample._sample.reflections_get()[-1]
-        )
-        sample.add_reflection(
-            2,
-            0,
-            0,
-            position=_geom_.calc.Position(
-                gamma=40,
-                mu=20,
-                chi=0,
-                phi=0,
-                delta=0,
-                tau=0,
-            ),
-        )
+        if len(_geom_.calc.physical_axes) == 6:
+            sample.add_reflection(
+                0,
+                0,
+                2,
+                position=_geom_.calc.Position(
+                    gamma=40,
+                    mu=20,
+                    chi=-90,
+                    phi=0,
+                    delta=0,
+                    tau=0,
+                ),
+            )
+            sample._orientation_reflections.insert(
+                0, sample._sample.reflections_get()[-1]
+            )
+            sample.add_reflection(
+                2,
+                0,
+                0,
+                position=_geom_.calc.Position(
+                    gamma=40,
+                    mu=20,
+                    chi=0,
+                    phi=0,
+                    delta=0,
+                    tau=0,
+                ),
+            )
+        if len(_geom_.calc.physical_axes) == 4:
+            sample.add_reflection(
+                0,
+                0,
+                2,
+                position=_geom_.calc.Position(
+                    tth=40,
+                    omega=20,
+                    chi=-90,
+                    phi=0,
+                ),
+            )
+            sample._orientation_reflections.insert(
+                0, sample._sample.reflections_get()[-1]
+            )
+            sample.add_reflection(
+                2,
+                0,
+                0,
+                position=_geom_.calc.Position(
+                    tth=40,
+                    th=20,
+                    chi=0,
+                    phi=0,
+                ),
+            )
         sample._orientation_reflections.insert(
             1, sample._sample.reflections_get()[-1]
         )
@@ -263,7 +290,44 @@ def sampleRemove(sample_key=None):
     except KeyError:
         print("Not a valid sample key")
 
+# In development
+"""
+def sampleWrite(sample_key=None):
+ 
+    _geom_ = current_diffractometer()
+    config = DiffractometerConfiguration(_geom_)
 
+    if sample_key is None:
+        d = _geom_.calc._samples.keys()
+        print("Sample keys:", list(d))
+        sample_key = input("\nEnter sample key to write: ")
+    try:
+        print(config.export('dict')['samples'][sample_key])
+        print("\n[{}] sample info written to file.".format(sample_key))
+
+    except KeyError:
+        print("Not a valid sample key")
+
+
+
+def sampelRestore(sample_key=None):
+
+    _geom_ = current_diffractometer()
+    config = DiffractometerConfiguration(_geom_)
+
+    config.restore('test', clear=True)
+
+
+def eslave(selection=None):
+    if selection is None:
+        print("No slave device          (0)")
+        print("Undulator                (1)")
+        print("Polarization analyzer    (2)")
+        print("Phase plate 1            (4)")
+        print("Phase plate 2            (8)")
+        selection = int(input("\nEnter number: "))
+
+"""
 def _sampleList():
     """List all samples currently defined in hklpy; specify  current one."""
 
@@ -1621,7 +1685,7 @@ def _wh():
             _geom_.calc.wavelength, _geom_.calc.energy
         )
     )
-    if _geom_.name == "polar":
+    if len(_geom_.calc.physical_axes) == 6:
         print(
             "\n{:>9}{:>9}{:>9}{:>9}{:>9}{:>9}".format(
                 "Gamma", "Mu", "Chi", "Phi", "Delta", "Tau"
@@ -1637,6 +1701,21 @@ def _wh():
                 _geom_.tau.position,
             )
         )
+    else:
+        print(
+            "\n{:>9}{:>9}{:>9}{:>9}".format(
+                "tth", "th", "Chi", "Phi"
+            )
+        )
+        print(
+            "{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}}".format(
+                _geom_.tth.position,
+                _geom_.omega.position,
+                _geom_.chi.position,
+                _geom_.phi.position,
+            )
+        )
+
 
 def pa_new():
     """
@@ -1660,7 +1739,7 @@ def pa_new():
             print("\nPrimary reflection at (lambda = {:.3f})".format(orienting_refl[0].geometry_get().wavelength_get(0)))
             h, k, l = ref.hkl_get()
             pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
-            if _geom_.name == "polar":
+            if len(_geom_.calc.physical_axes) == 6:
                 print(
                     "     gamma, mu, chi, phi, delta, tau = {:>3.3f}, {:>3.3f}, {:>3.3f}, {:>3.3f}, {:>3.3f}, {:>3.3f}".format(
                         pos[4],
@@ -1678,6 +1757,25 @@ def pa_new():
                         int(l),
                     )
                 )
+            else:
+                print(
+                    "     tth, th, chi, phi  = {:>3.3f}, {:>3.3f}, {:>3.3f}, {:>3.3f}".format(
+                        pos[4],
+                        pos[1],
+                        pos[2],
+                        pos[3],
+                        pos[5],
+                        pos[0],
+                    )
+                )
+                print(
+                    "                   H K L = {:>2}{:>2}{:>2}".format(
+                        int(h),
+                        int(k),
+                        int(l),
+                    )
+                )
+
     for i, ref in enumerate(sample._sample.reflections_get()):
         if orienting_refl[1] == ref:
             print("\nSecondary reflection at (lambda = {:.3f})".format(orienting_refl[1].geometry_get().wavelength_get(0)))
@@ -1701,6 +1799,25 @@ def pa_new():
                         int(l),
                     )
                 )
+            else:
+                print(
+                    "     tth, th, chi, phi = {:>3.3f}, {:>3.3f}, {:>3.3f}, {:>3.3f}".format(
+                        pos[4],
+                        pos[1],
+                        pos[2],
+                        pos[3],
+                        pos[5],
+                        pos[0],
+                    )
+                )
+                print(
+                    "                 H K L = {:>2}{:>2}{:>2}".format(
+                        int(h),
+                        int(k),
+                        int(l),
+                    )
+                )
+
 
     print("\nLattice constants:")
     print("                          real space =", end=" ")
@@ -1716,17 +1833,6 @@ def pa_new():
 
     print("\nMonochromator:")
     print("                 Energy (wavelength) = {:3.3f} ({:3.3f})".format(_geom_.calc.energy, _geom_.calc.wavelength))
-
-    """
-    table.addRow(("diffractometer", self.name))
-    table.addRow(("geometry", self.calc._geometry.name_get()))
-    table.addRow(("class", self.__class__.__name__))
-    table.addRow(("energy (keV)", f"{self.calc.energy:.5f}"))
-    table.addRow(("wavelength (angstrom)", f"{self.calc.wavelength:.5f}"))
-    table.addRow(("calc engine", self.calc.engine.name))
-    table.addRow(("mode", self.calc.engine.mode))
-    """
-
 
 
 def setlat(*args):
