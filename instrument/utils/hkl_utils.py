@@ -119,11 +119,12 @@ def set_experiment(name=None, proposal_id=None, sample=None):
         f.write(f"RE.md['sample']='{sample}'\n")
         f.close()
 
-
-def set_diffractometer(*args):
-    if len(args) == 1:
-        diff = args
-    elif len(args) == 0:
+def set_diffractometer(instrument=None):
+    """Name the diffractometer to be used."""
+    _geom_ = current_diffractometer()
+    if instrument:
+        diff = instrument.name
+    elif instrument is None:
         _geom_ = current_diffractometer()
         diff = (input("Diffractometer [polar or fourc] ({})? ".format(_geom_.name))) or _geom_.name
     else:
@@ -132,8 +133,10 @@ def set_diffractometer(*args):
         )
     if diff == 'fourc':
         select_diffractometer(fourc)
+        print("Diffractometer {} selected".format(diff))
     elif diff == 'polar':
         select_diffractometer(polar)
+        print("Diffractometer {} selected".format(diff))
 
 def sampleNew(*args):
     """
