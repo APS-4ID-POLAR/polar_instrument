@@ -126,14 +126,14 @@ def set_diffractometer(*args):
     elif len(args) == 0:
         _geom_ = current_diffractometer()
         diff = (input("Diffractometer [polar or fourc] ({})? ".format(_geom_.name))) or _geom_.name
-        if diff == 'fourc':
-            select_diffractometer(fourc)
-        elif diff == 'polar':
-            select_diffractometer(polar)
     else:
         raise ValueError(
             "either no argument or diffractometer polar or fourc to be provided."
         )
+    if diff == 'fourc':
+        select_diffractometer(fourc)
+    elif diff == 'polar':
+        select_diffractometer(polar)
 
 def sampleNew(*args):
     """
