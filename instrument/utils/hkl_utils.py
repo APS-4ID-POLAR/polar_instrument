@@ -120,6 +120,21 @@ def set_experiment(name=None, proposal_id=None, sample=None):
         f.close()
 
 
+def set_diffractometer(*args):
+    if len(args) == 1:
+        diff = args
+    elif len(args) == 0:
+        _geom_ = current_diffractometer()
+        diff = (input("Diffractometer [polar or fourc] ({})? ".format(_geom_.name))) or _geom_.name
+        if diff == 'fourc':
+            select_diffractometer(fourc)
+        elif diff == 'polar':
+            select_diffractometer(polar)
+    else:
+        raise ValueError(
+            "either no argument or diffractometer polar or fourc to be provided."
+        )
+
 def sampleNew(*args):
     """
     Set the lattice constants.
@@ -232,7 +247,7 @@ def sampleNew(*args):
             set_constraints('mu',-100,100)
             set_constraints('gamma',-10,180)
             set_constraints('delta',-20,60)
-            set_constraints('tau',-1,1)
+            set_constraints('tau',-0.5,0.5)
         if _geom_.name == "fourc":
             set_constraints('omega',-100,100)
             set_constraints('tth',-10,180)            
