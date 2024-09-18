@@ -5,6 +5,7 @@ Auxilary HKL functions.
     ~select_engine_for_psi
     ~engine_for_psi
     ~set_experiment
+    ~set_diffractometer
     ~sampleNew
     ~sampleChange
     ~sampleList
