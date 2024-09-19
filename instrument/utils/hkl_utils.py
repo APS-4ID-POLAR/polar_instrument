@@ -2155,6 +2155,18 @@ def read_config(method="File"):
                 compute_UB()
             else:
                 print("Config file not read!")
+    elif _geom_.name == "fourc" and fourc_config.exists():
+        if method == "File":
+            print("Read configuration file '{}'.".format(fourc_config.name))
+            method = input("Method ([o]verwrite/[a]ppend)? ")
+            if method == "a":
+                config.restore(fourc_config, clear=False)
+                compute_UB()
+            elif method == "o":
+                config.restore(fourc_config, clear=True)
+                compute_UB()
+            else:
+                print("Config file not read!")
 
 def show_constraints():
     """
