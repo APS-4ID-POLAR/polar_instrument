@@ -138,6 +138,10 @@ def set_diffractometer(instrument=None):
     elif diff == 'polar':
         select_diffractometer(polar)
         print("Diffractometer {} selected".format(diff))
+    else:
+        raise ValueError(
+            "{} not an existing diffractometer".format{diff}
+        )
 
 def sampleNew(*args):
     """
