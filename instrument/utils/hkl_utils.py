@@ -122,11 +122,10 @@ def set_experiment(name=None, proposal_id=None, sample=None):
 
 def set_diffractometer(instrument=None):
     """Name the diffractometer to be used."""
+    _geom_ = current_diffractometer()
     if instrument:
         diff = instrument.name
-        #print(diff)
     elif instrument is None:
-        _geom_ = current_diffractometer()
         diff = (input("Diffractometer [polar or fourc] ({})? ".format(_geom_.name))) or _geom_.name
     else:
         raise ValueError(
@@ -140,7 +139,7 @@ def set_diffractometer(instrument=None):
         print("Diffractometer {} selected".format(diff))
     else:
         raise ValueError(
-            "{} not an existing diffractometer".format{diff}
+            "{} not an existing diffractometer".format(diff)
         )
 
 def sampleNew(*args):
