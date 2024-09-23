@@ -6,7 +6,7 @@
 # define fallback if BLUESKY_CONDA_ENV is not found
 DEFAULT_ENV=bluesky_2024_2
 export ENV_NAME="${BLUESKY_CONDA_ENV:-${DEFAULT_ENV}}"
-export IPYTHON_PROFILE=bluesky
+export IPYTHON_PROFILE=4idg
 export IPYTHONDIR="${HOME}/.ipython"
 
 
