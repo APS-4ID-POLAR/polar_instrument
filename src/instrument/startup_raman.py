@@ -44,6 +44,7 @@ else:
 
 from .callbacks import *  # noqa
 from .plans import *  # noqa
+from .utils.polartools_hklpy_imports import *  # noqa
 
 # TODO: Loads plans for development, remove for production.
 from .utils.tests.common import *  # noqa
@@ -51,3 +52,9 @@ from .utils.tests.common import *  # noqa
 from IPython import get_ipython
 from .utils.local_magics import LocalMagics
 get_ipython().register_magics(LocalMagics)
+
+cat = db_query(cat, dict(station = environ["POLAR_INSTRUMENT"]))
+
+# TODO: this is useful while we are doing pre-commissioning tests
+# Remove everything from baseline.
+sd.baseline = []
