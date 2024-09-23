@@ -10,7 +10,7 @@ if iconfig.get("STATION") == "4idg":
     from .simulated_fourc_vertical import fourc
     from .simulated_new_diffractometer import diffract
     from .simulated_detector import simdet
-    from .polar_diffractometer import polar
+    from .polar_diffractometer import polar, polar_psi
 elif iconfig.get("STATION") == "raman":
     from .sample_stage import sx, sy, sz
     from .ventus_laser import laser

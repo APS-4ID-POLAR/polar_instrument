@@ -2,7 +2,7 @@
 Simulated polar
 """
 
-__all__ = ['polar']
+__all__ = ['polar', 'polar_psi']
 
 from ophyd import Component, PseudoSingle, Kind, Signal, EpicsMotor
 from ..utils.run_engine import sd
