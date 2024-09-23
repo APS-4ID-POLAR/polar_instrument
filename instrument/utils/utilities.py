@@ -28,9 +28,9 @@ from hkl.user import (
 from ..framework import RE
 from .counters_class import counters
 from ..devices import polar, diffract, fourc, scaler
+from ..utils import hkl_utils
 from inspect import getmembers, isfunction
 from polartools import (
-    hkl_utils,
     load_data,
     diffraction,
     absorption,
@@ -42,7 +42,6 @@ from polartools import (
 from apstools import utils
 
 from hkl import user, util
-from hkl.util import Constraint
 
 import fileinput
 import pathlib
@@ -137,48 +136,6 @@ def freeze(*args):
         raise ValueError("Function not available for mode '{}'".format(mode))
 
 
-def show_constraints():
-    """
-    Show constraints and freeze angles (value)
-    """
-    _geom_ = current_diffractometer()
-    _geom_.show_constraints()
-
-
-def reset_constraints():
-    """
-    Reset all constraints
-    """
-    _geom_ = current_diffractometer()
-    _geom_.reset_constraints()
-    _geom_.show_constraints()
-
-
-def set_constraints():
-    """
-    Change constraint values for specific axis
-    """
-    _geom_ = current_diffractometer()
-    axes = _geom_.calc._engine.engine.axis_names_get(0)
-    for axis in axes:
-        low = _geom_.get_axis_constraints(axis).low_limit
-        high = _geom_.get_axis_constraints(axis).high_limit
-        angle = _geom_.get_axis_constraints(axis).value
-        value = (
-            input(
-                "{} constraints low, high = [{:3.3f}, {:3.3f}]: ".format(
-                    axis, low, high
-                )
-            )
-        ) or [low, high]
-        if isinstance(value, str):
-            value = value.replace(",", " ").split(" ")
-        _geom_.apply_constraints(
-            {axis: Constraint(value[0], value[1], angle, True)}
-        )
-    _geom_.show_constraints()
-
-
 def change_diffractometer(*args):
     _geom_ = current_diffractometer()
     list = ["diffract", "fourc", "polar", "sixcpsi"]
@@ -193,7 +150,7 @@ def change_diffractometer(*args):
     elif diff == "sixcpsi":
         select_diffractometer(polar)
     else:
-        raise ValueError("Diffractometer type {} not existing.".format(diff))
+        raise ValueError("Diffractometer type {} does not exist.".format(diff))
 
     _geom_ = current_diffractometer()
     print("Diffractometer changed to {}".format(_geom_.name))
@@ -357,7 +314,7 @@ def list_functions(select=None):
     if select == "absorption":
         packages = [absorption]
     elif select == "diffraction":
-        packages = [hkl_utils, load_data, diffraction, utils]
+        packages = [load_data, diffraction, utils]
     elif select == "hklpy":
         packages = [user, util]
     else:
