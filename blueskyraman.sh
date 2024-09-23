@@ -4,7 +4,7 @@
 
 # Get the Python environment name.
 # define fallback if BLUESKY_CONDA_ENV is not found
-DEFAULT_ENV=bluesky_2024_2
+DEFAULT_ENV=bluesky_2024_2_1
 export ENV_NAME="${BLUESKY_CONDA_ENV:-${DEFAULT_ENV}}"
 export IPYTHON_PROFILE=raman
 export IPYTHONDIR="${HOME}/.ipython"
