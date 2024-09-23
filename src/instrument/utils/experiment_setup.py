@@ -1,3 +1,16 @@
+"""
+Utility functions
+=================
+
+.. autosummary::
+
+    ~set_experiment
+"""
+
+__all__ = """
+    set_experiment
+""".split()
+
 from apstools.utils import (
     dm_start_daq,
     validate_experiment_dataDirectory,
@@ -7,7 +20,7 @@ from apstools.utils import (
 import sys
 import fileinput
 from pathlib import Path
-from ..devices import dm_experiment
+from ..devices.data_management import dm_experiment
 from .dm_utils import dm_get_experiment_data_path
 from .run_engine import RE
 from ._logging_setup import logger

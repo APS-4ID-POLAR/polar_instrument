@@ -4,7 +4,7 @@ Setup new user in Bluesky.
 
 from apstools.utils import dm_api_ds, dm_api_proc
 from pathlib import Path
-from ..devices import dm_workflow
+from ..devices.data_management import dm_workflow
 from .run_engine import RE
 from ._logging_setup import logger
 logger.info(__file__)

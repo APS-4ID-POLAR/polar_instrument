@@ -12,13 +12,13 @@ This setup must be done before any of the DM package libraries are called.
 
 __all__ = []
 
-import logging
 import os
 import pathlib
+from apstools.utils.aps_data_management import dm_setup
 
 from .config import iconfig
+from ._logging_setup import logger
 
-logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 dm_setup_file = iconfig.get("DM_SETUP_FILE")
@@ -36,6 +36,7 @@ if dm_setup_file is not None:
         os.environ.update(environment)
 
         workflow_owner = os.environ["DM_STATION_NAME"].lower()
+        _ = dm_setup(dm_setup_file)
         logger.info("APS DM workflow owner: %s", workflow_owner)
     else:
         logger.warning("APS DM setup file does not exist: '%s'", bash_script)

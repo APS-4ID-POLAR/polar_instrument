@@ -42,7 +42,8 @@ from bluesky import RunEngineInterrupted
 from bluesky.utils import ProgressBarManager
 from bluesky.plan_stubs import mv
 from .run_engine import RE
-from ..devices import polar, polar_psi, fourc
+from ..devices.polar_diffractometer import polar, polar_psi
+from ..devices.simulated_fourc_vertical import fourc
 from ._logging_setup import logger
 from ophyd import SoftPositioner
 
