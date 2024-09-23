@@ -49,6 +49,10 @@ from .utils.polartools_hklpy_imports import *  # noqa
 # TODO: Loads plans for development, remove for production.
 from .utils.tests.common import *  # noqa
 
+from IPython import get_ipython
+from .utils.local_magics import LocalMagics
+get_ipython().register_magics(LocalMagics)
+
 # TODO: this is useful while we are doing pre-commissioning tests
 # Remove everything from baseline.
 sd.baseline = []

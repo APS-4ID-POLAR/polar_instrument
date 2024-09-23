@@ -1,18 +1,7 @@
 
 from hkl.user import (
-    cahkl,
-    cahkl_table,
-    calc_UB,
-    list_samples,
-    new_sample,
-    or_swap,
     select_diffractometer,
-    set_energy,
-    setor,
-    show_sample,
     show_selected_diffractometer,
-    update_sample,
-    wh,
     pa,
 )
 
