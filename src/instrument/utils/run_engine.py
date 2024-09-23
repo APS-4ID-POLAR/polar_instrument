@@ -33,7 +33,7 @@ if MD_PATH is not None:
     RE.md = bluesky.utils.PersistentDict(MD_PATH)
 RE.md.update(re_metadata(full_cat))  # programmatic metadata
 RE.md.update(re_config.get("DEFAULT_METADATA", {}))
-RE.md["station"] = iconfig.get("STATION")
+RE.md["instrument_name"] = f'polar-{iconfig.get("STATION")}'
 
 sd = bluesky.SupplementalData()
 """Baselines & monitors for ``RE``."""
