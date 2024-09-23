@@ -3,7 +3,7 @@ Databroker catalog, provides ``cat``.
 =====================================
 
 .. autosummary::
-    ~cat
+    ~full_cat
 """
 
 import logging
@@ -24,9 +24,9 @@ else:
     _cat = load_catalog(catalog_name)
     _cat.register_handler("AD_SPE_APSPolar", SPEHandler, overwrite=True)
 
-cat = _cat
+full_cat = _cat
 """Databroker catalog object, receives new data from ``RE``."""
 
-logger.info("Databroker catalog: %s", cat.name)
+logger.info("Databroker catalog: %s", full_cat.name)
 
 
