@@ -38,14 +38,12 @@ Auxilary HKL functions.
 """
 
 import pathlib
-import sys
-import fileinput
 from bluesky import RunEngineInterrupted
 from bluesky.utils import ProgressBarManager
 from bluesky.plan_stubs import mv
 from .run_engine import RE
 from ..devices import polar, polar_psi, fourc
-from .debug_setup import logger
+from ._logging_setup import logger
 from ophyd import SoftPositioner
 
 try:
@@ -66,7 +64,6 @@ except ModuleNotFoundError:
 
 logger.info(__file__)
 
-path_startup = pathlib.Path("startup_experiment.py")
 polar_config = pathlib.Path("polar-config.json")
 fourc_config = pathlib.Path("fourc-config.json")
 pbar_manager = ProgressBarManager()
@@ -86,39 +83,6 @@ def engine_for_psi():
     """Return the currently-selected psi calc engine (or ``None``)."""
     return _geom_for_psi_
 
-
-def set_experiment(name=None, proposal_id=None, sample=None):
-    _name = name if name else RE.md["user"]
-    _proposal_id = proposal_id if proposal_id else RE.md["proposal_id"]
-    _sample = sample if sample else RE.md["sample"]
-    name = _name if name else input(f"User [{_name}]: ") or _name
-    proposal_id = (
-        _proposal_id
-        if proposal_id
-        else input(f"Proposal ID [{_proposal_id}]: ") or _proposal_id
-    )
-    sample = _sample if sample else input(f"Sample [{_sample}]: ") or _sample
-
-    RE.md["user"] = name
-    RE.md["proposal_id"] = proposal_id
-    RE.md["sample"] = sample
-
-    if path_startup.exists():
-        for line in fileinput.input([path_startup.name], inplace=True):
-            if line.strip().startswith("RE.md['user']"):
-                line = f"RE.md['user']='{name}'\n"
-            if line.strip().startswith("RE.md['proposal_id']"):
-                line = f"RE.md['proposal_id']='{proposal_id}'\n"
-            if line.strip().startswith("RE.md['sample']"):
-                line = f"RE.md['sample']='{sample}'\n"
-            sys.stdout.write(line)
-    else:
-        f = open(path_startup.name, "w")
-        f.write("from instrument.collection import RE\n")
-        f.write(f"RE.md['user']='{name}'\n")
-        f.write(f"RE.md['proposal_id']='{proposal_id}'\n")
-        f.write(f"RE.md['sample']='{sample}'\n")
-        f.close()
 
 def set_diffractometer(instrument=None):
     """Name the diffractometer to be used."""
