@@ -83,7 +83,6 @@ def count(detectors=None, num=1, time=None, delay=None, md=None, per_shot=None):
         yield from bp_count(
             detectors + extras,
             num=num,
-            delay=delay,
             per_shot=per_shot,
             delay=delay,
             md=_md
