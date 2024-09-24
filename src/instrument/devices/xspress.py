@@ -116,16 +116,28 @@ class TriggerTime(TriggerBase):
         return self._status
 
 
+from ophyd import Device, EpicsSignal
+class StatN(Device):
+    name = Component(EpicsSignal, "Name")
+
+
 class VortexROIStatPlugin(ROIStatPlugin):
     dim_sa = None
-    roi1 = Component(ROIStatNPlugin, "1:")
-    roi2 = Component(ROIStatNPlugin, "2:")
-    roi3 = Component(ROIStatNPlugin, "3:")
-    roi4 = Component(ROIStatNPlugin, "4:")
-    roi5 = Component(ROIStatNPlugin, "5:")
-    roi6 = Component(ROIStatNPlugin, "6:")
-    roi7 = Component(ROIStatNPlugin, "7:")
-    roi8 = Component(ROIStatNPlugin, "8:")
+    roi1 = Component(StatN, "1:")
+    roi2 = Component(StatN, "2:")
+    roi3 = Component(StatN, "3:")
+
+
+# class VortexROIStatPlugin(ROIStatPlugin):
+#     dim_sa = None
+#     roi1 = Component(ROIStatNPlugin, "1:")
+#     roi2 = Component(ROIStatNPlugin, "2:")
+#     roi3 = Component(ROIStatNPlugin, "3:")
+#     roi4 = Component(ROIStatNPlugin, "4:")
+#     roi5 = Component(ROIStatNPlugin, "5:")
+#     roi6 = Component(ROIStatNPlugin, "6:")
+#     roi7 = Component(ROIStatNPlugin, "7:")
+#     roi8 = Component(ROIStatNPlugin, "8:")
 
 
 class VortexDetector(TriggerTime, DetectorBase):
