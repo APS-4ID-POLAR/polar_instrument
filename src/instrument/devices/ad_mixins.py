@@ -15,9 +15,7 @@ from ophyd.areadetector.plugins import(
 )
 from ophyd.areadetector.filestore_mixins import FileStoreBase
 from apstools.devices import CamMixin_V34
-from pathlib import PurePath
 from os.path import isfile
-from datetime import datetime
 from itertools import count
 from ..utils import logger
 logger.info(__file__)

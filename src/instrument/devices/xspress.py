@@ -14,7 +14,8 @@ from .ad_mixins import (
     ROIStatNPlugin,
     PolarHDF5Plugin
 )
-from ..utils import logger, iconfig
+from ..utils._logging_setup import iconfig
+from ..utils import logger
 logger.info(__file__)
 
 __all__ = ["load_vortex"]
