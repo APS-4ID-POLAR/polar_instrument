@@ -182,9 +182,9 @@ class VortexDetector(TriggerTime, DetectorBase):
         self.hdf1.autosave.put("off")
       
     def default_settings(self):
-        self.cam.num_triggers.put(1)
-        self.cam.manual_trigger.put("Disable")
-        self.cam.trigger_mode.put("Internal Enable")
+        # self.cam.num_triggers.put(1)
+        # self.cam.manual_trigger.put("Disable")
+        self.cam.trigger_mode.put("Internal")
         self.cam.acquire.put(0)
 
         self.hdf1.file_template.put("%s%s_%6.6d.h5")
