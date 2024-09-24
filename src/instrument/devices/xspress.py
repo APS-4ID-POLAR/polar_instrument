@@ -1,6 +1,6 @@
 """ Eiger 1M setup """
 
-from ophyd import ADComponent, Staged, EpicsSignal
+from ophyd import ADComponent, Staged, Component
 from ophyd.status import wait as status_wait, SubscriptionStatus
 from ophyd.areadetector import DetectorBase, Xspress3DetectorCam
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
@@ -117,14 +117,14 @@ class TriggerTime(TriggerBase):
 
 
 class VortexROIStatPlugin(ROIStatPlugin):
-    roi1 = ADComponent(ROIStatNPlugin, "1:")
-    roi2 = ADComponent(ROIStatNPlugin, "2:")
-    roi3 = ADComponent(ROIStatNPlugin, "3:")
-    roi4 = ADComponent(ROIStatNPlugin, "4:")
-    roi5 = ADComponent(ROIStatNPlugin, "5:")
-    roi6 = ADComponent(ROIStatNPlugin, "6:")
-    roi7 = ADComponent(ROIStatNPlugin, "7:")
-    roi8 = ADComponent(ROIStatNPlugin, "8:")
+    roi1 = Component(ROIStatNPlugin, "1:")
+    roi2 = Component(ROIStatNPlugin, "2:")
+    roi3 = Component(ROIStatNPlugin, "3:")
+    roi4 = Component(ROIStatNPlugin, "4:")
+    roi5 = Component(ROIStatNPlugin, "5:")
+    roi6 = Component(ROIStatNPlugin, "6:")
+    roi7 = Component(ROIStatNPlugin, "7:")
+    roi8 = Component(ROIStatNPlugin, "8:")
 
 
 class VortexDetector(TriggerTime, DetectorBase):
