@@ -117,6 +117,7 @@ class TriggerTime(TriggerBase):
 
 
 class VortexROIStatPlugin(ROIStatPlugin):
+    dim_sa = None
     roi1 = Component(ROIStatNPlugin, "1:")
     roi2 = Component(ROIStatNPlugin, "2:")
     roi3 = Component(ROIStatNPlugin, "3:")
