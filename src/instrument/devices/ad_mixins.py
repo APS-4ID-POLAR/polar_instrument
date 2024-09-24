@@ -153,7 +153,7 @@ class FileStoreHDF5IterativeWriteEpicsName(FileStorePluginBaseEpicsName):
             [
                 ("file_template", "%s%s_%6.6d.h5"),
                 ("file_write_mode", "Stream"),
-                ("capture", 1),
+                ("capture", 0),
             ]
         )
         self._point_counter = None
