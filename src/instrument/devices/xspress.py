@@ -198,7 +198,8 @@ class VortexDetector(TriggerTime, DetectorBase):
         self.plot_roi1()
 
     def plot_roi1(self):
-        self.stats1.total.kind="hinted"
+        # self.stats1.total.kind="hinted"
+        pass
 
 
 def load_vortex(prefix="S4QX4:"):
