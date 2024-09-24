@@ -9,7 +9,9 @@ from ophyd.areadetector.plugins import(
     ROIPlugin_V34,
     StatsPlugin_V34,
     CodecPlugin_V34,
-    HDF5Plugin_V34
+    HDF5Plugin_V34,
+    ROIStatPlugin_V34,
+    ROIStatNPlugin_V25,
 )
 from ophyd.areadetector.filestore_mixins import FileStoreBase
 from apstools.devices import CamMixin_V34
@@ -44,6 +46,14 @@ class StatsPlugin(PluginMixin, StatsPlugin_V34):
 
 
 class CodecPlugin(PluginMixin, CodecPlugin_V34):
+    """Remove property attribute found in AD IOCs now."""
+
+
+class ROIStatPlugin(PluginMixin, ROIStatPlugin_V34):
+    """Remove property attribute found in AD IOCs now."""
+
+
+class ROIStatNPlugin(PluginMixin, ROIStatNPlugin_V25):
     """Remove property attribute found in AD IOCs now."""
 
 
@@ -182,7 +192,7 @@ class HDF5Plugin(PluginMixin, HDF5Plugin_V34):
     pass
 
 
-class EigerHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
+class PolarHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
 
     """
     Using the filename from EPICS.

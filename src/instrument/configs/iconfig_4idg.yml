@@ -39,6 +39,27 @@ RUN_ENGINE:
 #     TABLE: false
 
 AREA_DETECTOR:
+  # TODO: switch to the Voyager-based path structure: "/gdata/..."
+  IMAGE_DIR: "%Y/%m/%d/"
+  HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
+  EIGER_1M:
+    # IOC host: beryl:/net/s8iddserv/xorApps/epics/synApps_6_2_1/ioc/8idEiger4m/iocBoot/ioc8idEiger4m/softioc/8idEiger4m.pl status
+    # Same filesystem
+    BLUESKY_FILES_ROOT: "/home/beams/POLAR/data/bluesky_images/eiger1M_test"
+    IOC_FILES_ROOT: "/home/beams/POLAR/data/bluesky_images/eiger1M_test"
+    # NAME: eiger4M
+    # PV_PREFIX: "8idEiger4m:"
+
+  VORTEX:
+    # IOC host: beryl:/net/s8iddserv/xorApps/epics/synApps_6_2_1/ioc/8idEiger4m/iocBoot/ioc8idEiger4m/softioc/8idEiger4m.pl status
+    # Same filesystem
+    BLUESKY_FILES_ROOT: "/home/beams/POLAR/data/bluesky_images/vortex_test"
+    IOC_FILES_ROOT: "/home/xspress3/data"
+    # NAME: eiger4M
+    # PV_PREFIX: "8idEiger4m:"
+
+
+AREA_DETECTOR:
     ### General configuration for area detectors.
     ALLOW_PLUGIN_WARMUP: true
     BLUESKY_FILES_ROOT: &BLUESKY_DATA_ROOT "/path/to/data/"
