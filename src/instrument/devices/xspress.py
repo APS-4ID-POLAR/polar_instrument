@@ -118,7 +118,7 @@ class TriggerTime(TriggerBase):
 
 from ophyd import Device, EpicsSignal
 class StatN(Device):
-    name = Component(EpicsSignal, "Name")
+    roi_name = Component(EpicsSignal, "Name")
 
 
 class VortexROIStatPlugin(ROIStatPlugin):
