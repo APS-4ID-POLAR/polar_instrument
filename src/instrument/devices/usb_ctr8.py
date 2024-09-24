@@ -5,8 +5,8 @@ USB-CTR8
 __all__ = ["ctr8"]
 
 from apstools.devices import MeasCompCtr
-from ..session_logs import logger
-from ..framework import sd
+from ..utils import logger
+from ..utils.run_engine import sd
 logger.info(__file__)
 
 
