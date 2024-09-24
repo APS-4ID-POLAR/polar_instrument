@@ -49,7 +49,6 @@ AREA_DETECTOR:
     IOC_FILES_ROOT: "/home/beams/POLAR/data/bluesky_images/eiger1M_test"
     # NAME: eiger4M
     # PV_PREFIX: "8idEiger4m:"
-
   VORTEX:
     # IOC host: beryl:/net/s8iddserv/xorApps/epics/synApps_6_2_1/ioc/8idEiger4m/iocBoot/ioc8idEiger4m/softioc/8idEiger4m.pl status
     # Same filesystem

@@ -14,7 +14,7 @@ from .ad_mixins import (
     ROIStatNPlugin,
     PolarHDF5Plugin
 )
-from ..utils._logging_setup import iconfig
+from ..utils.config import iconfig
 from ..utils import logger
 logger.info(__file__)
 
