@@ -85,6 +85,7 @@ def count(detectors=None, num=1, time=None, delay=None, md=None, per_shot=None):
             num=num,
             delay=delay,
             per_shot=per_shot,
+            delay=delay,
             md=_md
             )
 
