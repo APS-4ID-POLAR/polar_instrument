@@ -48,6 +48,7 @@ from .utils.polartools_hklpy_imports import *  # noqa
 
 # TODO: Loads plans for development, remove for production.
 from .utils.tests.common import *  # noqa
+from .utils import *
 
 from IPython import get_ipython
 from .utils.local_magics import LocalMagics
