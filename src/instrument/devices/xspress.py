@@ -74,18 +74,6 @@ class TriggerTime(TriggerBase):
     def unstage(self):
         super().unstage()
         self.cam.acquire.set(0).wait(timeout=10)
-
-        def check_value(*, old_value, value, **kwargs):
-            "Return True when detector is done"
-            return (value == "Ready" or value == "Acquisition aborted")
-
-        # When stopping the detector, it may take some time processing the images.
-        # This will block until it's done.
-        status_wait(
-            SubscriptionStatus(
-                self.cam.status_message, check_value, timeout=10
-            )
-        )
         self._flysetup = False
         self.setup_manual_trigger()
 
@@ -233,9 +221,11 @@ class VortexDetector(TriggerTime, DetectorBase):
         self.hdf1.autosave.put("off")
       
     def default_settings(self):
+        self.stage_sigs.pop("cam.image_mode")
+
         self.cam.trigger_mode.put("Internal")
         self.cam.acquire.put(0)
-        self.stage_sigs.pop("cam.image_mode")
+        self.cam.stage_sigs.pop("wait_for_plugins")
 
         self.hdf1.file_template.put("%s%s_%6.6d.h5")
         self.hdf1.num_capture.put(0)
