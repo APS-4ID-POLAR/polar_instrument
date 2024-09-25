@@ -187,8 +187,8 @@ class VortexROIStatPlugin(Device):
 
 class VortexDetector(TriggerTime, DetectorBase):
 
-    _default_configuration_attrs = ('chan1', 'chan2', 'chan3', 'chan4')
-    _default_read_attrs = ('cam', 'hdf1', 'stats1', 'stats2', 'stats3', 'stats4')
+    _default_configuration_attrs = ('cam', 'chan1', 'chan2', 'chan3', 'chan4')
+    _default_read_attrs = ('hdf1', 'stats1', 'stats2', 'stats3', 'stats4')
 
     cam = ADComponent(Xspress3DetectorCam, "det1:")
     
