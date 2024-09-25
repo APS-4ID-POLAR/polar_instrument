@@ -75,6 +75,11 @@ class EigerDetectorCam(CamMixin_V34, EigerDetectorCam):
 class VortexDetectorCam(CamMixin_V34, Xspress3DetectorCam):
     trigger_mode = ADComponent(EpicsSignalWithRBV, "TriggerMode", kind="config")
 
+    # Removed
+    wait_for_plugins = None
+    acquire_busy = None
+    offset = None
+
 
 class FileStorePluginBaseEpicsName(FileStoreBase):
 
