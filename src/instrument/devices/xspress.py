@@ -212,7 +212,7 @@ class VortexDetector(TriggerTime, DetectorBase):
         """Start detector in alignment mode"""
         self.save_images_off()
         self.cam.trigger_mode.set("Internal").wait(timeout=10)
-        self.cam.num_images(MAX_IMAGES)
+        self.cam.num_images.set(MAX_IMAGES).wait(timeout=10)
         self.preset_monitor.set(time).wait(timeout=10)
         self.cam.acquire.set(1).wait(timeout=10)
 
