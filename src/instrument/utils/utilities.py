@@ -22,8 +22,8 @@ from hkl.user import (
 )
 
 from .run_engine import RE
-from .counters_class import counters
-from ..devices import polar, diffract, fourc, scaler
+#from ..devices import counters
+from ..devices import polar, diffract, fourc, scaler, counters
 from ..utils import hkl_utils
 from inspect import getmembers, isfunction
 from polartools import (
