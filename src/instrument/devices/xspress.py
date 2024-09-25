@@ -2,7 +2,7 @@
 
 from ophyd import ADComponent, Staged, Component, EpicsSignalRO, Device, EpicsSignal
 from ophyd.status import wait as status_wait, SubscriptionStatus
-from ophyd.areadetector import DetectorBase, Xspress3DetectorCam, EpicsSignalWithRBV
+from ophyd.areadetector import DetectorBase, EpicsSignalWithRBV
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
 from apstools.devices import AD_plugin_primed, AD_prime_plugin2
 from apstools.utils import run_in_thread
@@ -10,9 +10,8 @@ from pathlib import PurePath
 from time import time as ttime, sleep
 from .ad_mixins import (
     ROIPlugin,
-    ROIStatPlugin,
-    ROIStatNPlugin,
-    PolarHDF5Plugin
+    PolarHDF5Plugin,
+    VortexDetectorCam
 )
 from ..utils.config import iconfig
 from ..utils import logger
@@ -23,7 +22,7 @@ __all__ = ["load_vortex"]
 BLUESKY_FILES_ROOT = PurePath(iconfig["AREA_DETECTOR"]["VORTEX"]["BLUESKY_FILES_ROOT"])
 IOC_FILES_ROOT = PurePath(iconfig["AREA_DETECTOR"]["VORTEX"]["IOC_FILES_ROOT"])
 IMAGE_DIR = iconfig["AREA_DETECTOR"].get("IMAGE_DIR", "%Y/%m/%d/")
-
+MAX_IMAGES = 12000
 
 class TriggerTime(TriggerBase):
     """
@@ -54,19 +53,14 @@ class TriggerTime(TriggerBase):
     def setup_manual_trigger(self):
         # Stage signals
         self.cam.stage_sigs["trigger_mode"] = "Internal"
-        self.cam.stage_sigs["image_mode"] = "Single"
         self.cam.stage_sigs["num_images"] = 1
         self.cam.stage_sigs["num_exposures"] = 1
 
     def setup_external_trigger(self):
-        # TODO: need to check this!!!!!
         # Stage signals
-        self.cam.stage_sigs["trigger_mode"] = "External Enable"
-        self.cam.stage_sigs["manual_trigger"] = "Disable"
-        self.cam.stage_sigs["num_images"] = 1
+        self.cam.stage_sigs["trigger_mode"] = "TTL Veto Only"
+        self.cam.stage_sigs["num_images"] = MAX_IMAGES
         self.cam.stage_sigs["num_exposures"] = 1
-        # TODO: We may not need this.
-        self.cam.stage_sigs["num_triggers"] = int(1e6)
 
     def stage(self):
         if self._flysetup:
@@ -190,7 +184,7 @@ class VortexDetector(TriggerTime, DetectorBase):
     _default_configuration_attrs = ('cam', 'chan1', 'chan2', 'chan3', 'chan4')
     _default_read_attrs = ('hdf1', 'stats1', 'stats2', 'stats3', 'stats4')
 
-    cam = ADComponent(Xspress3DetectorCam, "det1:")
+    cam = ADComponent(VortexDetectorCam, "det1:")
     
     chan1 = ADComponent(ROIPlugin, "ROI1:")
     chan2 = ADComponent(ROIPlugin, "ROI2:")
@@ -217,9 +211,8 @@ class VortexDetector(TriggerTime, DetectorBase):
     def align_on(self, time=0.1):
         """Start detector in alignment mode"""
         self.save_images_off()
-        self.cam.manual_trigger.set("Disable").wait(timeout=10)
-        self.cam.num_triggers.set(int(1e6)).wait(timeout=10)
-        self.cam.trigger_mode.set("Internal Enable").wait(timeout=10)
+        self.cam.trigger_mode.set("Internal").wait(timeout=10)
+        self.cam.num_images(MAX_IMAGES)
         self.preset_monitor.set(time).wait(timeout=10)
         self.cam.acquire.set(1).wait(timeout=10)
 
@@ -256,8 +249,8 @@ class VortexDetector(TriggerTime, DetectorBase):
         self.plot_roi1()
 
     def plot_roi1(self):
-        # self.stats1.total.kind="hinted"
-        pass
+        # TODO: This is just temporary to have something.
+        self.stats1.roi1.total_value.kind="hinted"
 
 
 def load_vortex(prefix="S4QX4:"):

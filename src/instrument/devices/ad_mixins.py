@@ -1,7 +1,7 @@
 """ AD mixins """
 
 from ophyd import ADComponent, EpicsSignal, Signal
-from ophyd.areadetector import EigerDetectorCam
+from ophyd.areadetector import EigerDetectorCam, Xspress3DetectorCam, EpicsSignalWithRBV
 from ophyd.areadetector.plugins import(
     PluginBase_V34,
     ImagePlugin_V34,
@@ -70,6 +70,10 @@ class EigerDetectorCam(CamMixin_V34, EigerDetectorCam):
     link_3 = None
     dcu_buff_free = None
     offset = None
+
+
+class VortexDetectorCam(CamMixin_V34, Xspress3DetectorCam):
+    trigger_mode = ADComponent(EpicsSignalWithRBV, "TriggerMode", kind="config")
 
 
 class FileStorePluginBaseEpicsName(FileStoreBase):
