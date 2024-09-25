@@ -97,25 +97,25 @@ class TriggerTime(TriggerBase):
 
 
 class ROIStatN(Device):
-    roi_name = Component(EpicsSignal, "Name")
-    use = Component(EpicsSignal, "Use")
+    roi_name = Component(EpicsSignal, "Name", kind="config")
+    use = Component(EpicsSignal, "Use", kind="config")
 
-    max_sizex = Component(EpicsSignalRO, "MaxSizeX_RBV")
-    roi_startx = Component(EpicsSignalWithRBV, "MinY")
-    roi_sizex = Component(EpicsSignalWithRBV, "SizeY")
+    max_sizex = Component(EpicsSignalRO, "MaxSizeX_RBV", kind="config")
+    roi_startx = Component(EpicsSignalWithRBV, "MinY", kind="config")
+    roi_sizex = Component(EpicsSignalWithRBV, "SizeY", kind="config")
 
-    max_sizey = Component(EpicsSignalRO, "MaxSizeY_RBV")
-    roi_startxy = Component(EpicsSignalWithRBV, "MinY")
-    roi_sizey = Component(EpicsSignalWithRBV, "SizeY")
+    max_sizey = Component(EpicsSignalRO, "MaxSizeY_RBV", kind="config")
+    roi_startxy = Component(EpicsSignalWithRBV, "MinY", kind="config")
+    roi_sizey = Component(EpicsSignalWithRBV, "SizeY", kind="config")
 
-    bdg_width = Component(EpicsSignalWithRBV, "BgdWidth")
-    min_value = Component(EpicsSignalRO, "MinValue_RBV")
-    max_value = Component(EpicsSignalRO, "MaxValue_RBV")
-    mean_value = Component(EpicsSignalRO, "MeanValue_RBV")
-    total_value = Component(EpicsSignalRO, "Total_RBV")
-    net_value = Component(EpicsSignalRO, "Net_RBV")
+    bdg_width = Component(EpicsSignalWithRBV, "BgdWidth", kind="config")
+    min_value = Component(EpicsSignalRO, "MinValue_RBV", kind="normal")
+    max_value = Component(EpicsSignalRO, "MaxValue_RBV", kind="normal")
+    mean_value = Component(EpicsSignalRO, "MeanValue_RBV", kind="normal")
+    total_value = Component(EpicsSignalRO, "Total_RBV", kind="normal")
+    net_value = Component(EpicsSignalRO, "Net_RBV", kind="normal")
 
-    reset_button = Component(EpicsSignal, "Reset")
+    reset_button = Component(EpicsSignal, "Reset", kind="ommited")
 
 
 class VortexROIStatPlugin(Device):
