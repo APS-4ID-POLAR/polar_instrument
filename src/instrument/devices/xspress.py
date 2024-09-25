@@ -1,8 +1,8 @@
 """ Eiger 1M setup """
 
-from ophyd import ADComponent, Staged, Component, EpicsSignalRO
+from ophyd import ADComponent, Staged, Component, EpicsSignalRO, Device, EpicsSignal
 from ophyd.status import wait as status_wait, SubscriptionStatus
-from ophyd.areadetector import DetectorBase, Xspress3DetectorCam
+from ophyd.areadetector import DetectorBase, Xspress3DetectorCam, EpicsSignalWithRBV
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
 from apstools.devices import AD_plugin_primed, AD_prime_plugin2
 from apstools.utils import run_in_thread
@@ -116,42 +116,73 @@ class TriggerTime(TriggerBase):
         return self._status
 
 
-from ophyd import Device, EpicsSignal
-class StatN(Device):
+class ROIStatN(Device):
     roi_name = Component(EpicsSignal, "Name")
     use = Component(EpicsSignal, "Use")
-    roi_name = Component(EpicsSignal, "Name")
-    roi_name = Component(EpicsSignal, "Name")
-    roi_name = Component(EpicsSignal, "Name")
-    roi_name = Component(EpicsSignal, "Name")
+
+    max_sizex = Component(EpicsSignalRO, "MaxSizeX_RBV")
+    roi_startx = Component(EpicsSignalWithRBV, "MinY")
+    roi_sizex = Component(EpicsSignalWithRBV, "SizeY")
+
+    max_sizey = Component(EpicsSignalRO, "MaxSizeY_RBV")
+    roi_startxy = Component(EpicsSignalWithRBV, "MinY")
+    roi_sizey = Component(EpicsSignalWithRBV, "SizeY")
+
+    bdg_width = Component(EpicsSignalWithRBV, "BgdWidth")
+    min_value = Component(EpicsSignalRO, "MinValue_RBV")
+    max_value = Component(EpicsSignalRO, "MaxValue_RBV")
+    mean_value = Component(EpicsSignalRO, "MeanValue_RBV")
+    total_value = Component(EpicsSignalRO, "Total_RBV")
+    net_value = Component(EpicsSignalRO, "Net_RBV")
+
+    reset_button = Component(EpicsSignal, "Reset")
 
 
 class VortexROIStatPlugin(ROIStatPlugin):
-    dim_sa = None
-    dimensions = None
-    driver_version = None
-    execution_time = None
-    array_size = None
-    array_size_all = None
-    width = Component(EpicsSignalRO, "ArraySize0_RBV")
-    height = Component(EpicsSignalRO, "ArraySize1_RBV")
-    depth = Component(EpicsSignalRO, "ArraySize2_RBV")
+    # ROIs
+    roi1 = Component(ROIStatN, "1:")
+    roi2 = Component(ROIStatN, "2:")
+    roi3 = Component(ROIStatN, "3:")
+    roi4 = Component(ROIStatN, "4:")
+    roi5 = Component(ROIStatN, "5:")
+    roi6 = Component(ROIStatN, "6:")
+    roi7 = Component(ROIStatN, "7:")
+    roi8 = Component(ROIStatN, "8:")
+
+    # Other parameters
+
+    asyn_port = Component(EpicsSignalRO, "PortName_RBV")
+    plugin_type = Component(EpicsSignalRO, "PluginType_RBV")
+    nd_array_port = Component(EpicsSignalWithRBV, "NDArrayPort")
+    nd_array_address = Component(EpicsSignalWithRBV, "NDArrayAddress")
+    enable = Component(
+        EpicsSignalWithRBV, "EnableCallbacks", string=True, kind="config"
+    )
+    min_callback_time = Component(EpicsSignalWithRBV, "MinCallbackTime")
+    blocking_callbacks = Component(
+        EpicsSignalWithRBV, "BlockingCallbacks", string=True, kind="config"
+    )
+    queue_free = Component(EpicsSignal, "QueueFree")
+    array_counter = Component(EpicsSignalWithRBV, "ArrayCounter")
+    array_rate = Component(EpicsSignalRO, "ArrayRate_RBV")
+
+    dropped_arrays = Component(EpicsSignalWithRBV, "DroppedArrays")
+
     ndimensions = Component(EpicsSignalRO, "NDimensions_RBV")
-    roi1 = Component(StatN, "1:")
-    roi2 = Component(StatN, "2:")
-    roi3 = Component(StatN, "3:")
+    array_size0 = Component(EpicsSignalRO, "ArraySize0_RBV")
+    array_size1 = Component(EpicsSignalRO, "ArraySize1_RBV")
+    array_size2 = Component(EpicsSignalRO, "ArraySize2_RBV")
 
+    data_type = Component(EpicsSignalRO, "DataType_RBV", string=True)
+    color_mode = Component(EpicsSignalRO, "ColorMode_RBV")
+    bayer_pattern = Component(EpicsSignalRO, "BayerPattern_RBV")
 
-# class VortexROIStatPlugin(ROIStatPlugin):
-#     dim_sa = None
-#     roi1 = Component(ROIStatNPlugin, "1:")
-#     roi2 = Component(ROIStatNPlugin, "2:")
-#     roi3 = Component(ROIStatNPlugin, "3:")
-#     roi4 = Component(ROIStatNPlugin, "4:")
-#     roi5 = Component(ROIStatNPlugin, "5:")
-#     roi6 = Component(ROIStatNPlugin, "6:")
-#     roi7 = Component(ROIStatNPlugin, "7:")
-#     roi8 = Component(ROIStatNPlugin, "8:")
+    unique_id = Component(EpicsSignalRO, "UniqueId_RBV")
+    time_stamp = Component(EpicsSignalRO, "TimeStamp_RBV")
+
+    array_callbacks = Component(
+        EpicsSignalWithRBV, "ArrayCallbacks", string=True, doc="0='Disable' 1='Enable'"
+    )
 
 
 class VortexDetector(TriggerTime, DetectorBase):
