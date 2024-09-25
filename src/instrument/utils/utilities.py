@@ -21,7 +21,7 @@ from hkl.user import (
     select_diffractometer,
 )
 
-from ..framework import RE
+from .run_engine import RE
 from .counters_class import counters
 from ..devices import polar, diffract, fourc, scaler
 from ..utils import hkl_utils
