@@ -239,7 +239,7 @@ def set_experiment(name=None, proposal_id=None, sample=None):
     else:
         print("Writing experiment information to '{}'".format(path.name))
         f = open(path.name, "w")
-        f.write("from instrument.collection import RE\n")
+        f.write("from instrument.utils.run_engine import RE\n")
         f.write(f"RE.md['user']='{name}'\n")
         f.write(f"RE.md['proposal_id']='{proposal_id}'\n")
         f.write(f"RE.md['sample']='{sample}'\n")
