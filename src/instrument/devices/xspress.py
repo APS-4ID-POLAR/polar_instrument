@@ -140,14 +140,14 @@ class ROIStatN(Device):
 
 class VortexROIStatPlugin(Device):
     # ROIs
-    roi1 = Component(ROIStatN, "1:")
-    roi2 = Component(ROIStatN, "2:")
-    roi3 = Component(ROIStatN, "3:")
-    roi4 = Component(ROIStatN, "4:")
-    roi5 = Component(ROIStatN, "5:")
-    roi6 = Component(ROIStatN, "6:")
-    roi7 = Component(ROIStatN, "7:")
-    roi8 = Component(ROIStatN, "8:")
+    roi1 = ADComponent(ROIStatN, "1:")
+    roi2 = ADComponent(ROIStatN, "2:")
+    roi3 = ADComponent(ROIStatN, "3:")
+    roi4 = ADComponent(ROIStatN, "4:")
+    roi5 = ADComponent(ROIStatN, "5:")
+    roi6 = ADComponent(ROIStatN, "6:")
+    roi7 = ADComponent(ROIStatN, "7:")
+    roi8 = ADComponent(ROIStatN, "8:")
 
     # Other parameters
 
