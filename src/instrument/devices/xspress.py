@@ -117,7 +117,7 @@ class ROIStatN(Device):
     total_value = Component(EpicsSignalRO, "Total_RBV", kind="normal")
     net_value = Component(EpicsSignalRO, "Net_RBV", kind="normal")
 
-    reset_button = Component(EpicsSignal, "Reset", kind="ommited")
+    reset_button = Component(EpicsSignal, "Reset", kind="omitted")
 
 
 class VortexROIStatPlugin(Device):
