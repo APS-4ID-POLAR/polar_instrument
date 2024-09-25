@@ -138,7 +138,7 @@ class ROIStatN(Device):
     reset_button = Component(EpicsSignal, "Reset")
 
 
-class VortexROIStatPlugin(ROIStatPlugin):
+class VortexROIStatPlugin(Device):
     # ROIs
     roi1 = Component(ROIStatN, "1:")
     roi2 = Component(ROIStatN, "2:")
