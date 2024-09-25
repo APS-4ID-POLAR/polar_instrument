@@ -1,7 +1,7 @@
 """ Eiger 1M setup """
 
 from ophyd import ADComponent, Staged, Component, EpicsSignalRO, Device, EpicsSignal
-from ophyd.status import wait as status_wait, SubscriptionStatus
+from ophyd.status import Status
 from ophyd.areadetector import DetectorBase, EpicsSignalWithRBV
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
 from apstools.devices import AD_plugin_primed, AD_prime_plugin2
@@ -30,7 +30,7 @@ class TriggerTime(TriggerBase):
     """
     _status_type = ADTriggerStatus
 
-    def __init__(self, *args, image_name=None, min_period=0.2, **kwargs):
+    def __init__(self, *args, image_name=None, min_period=0.0, **kwargs):
         super().__init__(*args, **kwargs)
         if image_name is None:
             image_name = '_'.join([self.name, 'image'])
@@ -67,7 +67,9 @@ class TriggerTime(TriggerBase):
         # Make sure that detector is not armed.
         self.cam.acquire.set(0).wait(timeout=10)
         super().stage()
-        self.cam.acquire.set(1).wait(timeout=10)
+
+        if self._flysetup:
+            self.cam.acquire.set(1).wait(timeout=10)
 
     def unstage(self):
         super().unstage()
@@ -165,10 +167,44 @@ class VortexROIStatPlugin(Device):
     )
 
 
+class VortexSCA(Device):
+
+    clock_ticks = Component(EpicsSignalRO,'0:Value_RBV')
+    reset_ticks = Component(EpicsSignalRO,'1:Value_RBV')
+    reset_counts = Component(EpicsSignalRO,'2:Value_RBV')
+    all_events = Component(EpicsSignalRO,'3:Value_RBV')
+    all_good = Component(EpicsSignalRO,'4:Value_RBV')
+    pileup = Component(EpicsSignalRO,'7:Value_RBV')
+    dt_factor = Component(EpicsSignalRO,'8:Value_RBV')
+
+    def _status_done(self):
+
+        # Create status that checks when the SCA updates.
+        status = Status(self.timestamp, settle_time=0.01)
+
+        def _set_finished(**kwargs):
+            status.set_finished()
+            self.dt_factor.clear_sub(_set_finished)
+
+        self.dt_factor.subscribe(_set_finished, event_type='value', run=False)
+
+        return status
+
+
 class VortexDetector(TriggerTime, DetectorBase):
 
     _default_configuration_attrs = ('cam', 'chan1', 'chan2', 'chan3', 'chan4')
-    _default_read_attrs = ('hdf1', 'stats1', 'stats2', 'stats3', 'stats4')
+    _default_read_attrs = (
+        'hdf1',
+        'stats1',
+        'stats2',
+        'stats3',
+        'stats4',
+        'sca1',
+        'sca2',
+        'sca3',
+        'sca4'
+    )
 
     cam = ADComponent(VortexDetectorCam, "det1:")
     
@@ -181,6 +217,11 @@ class VortexDetector(TriggerTime, DetectorBase):
     stats2 = ADComponent(VortexROIStatPlugin, "MCA2ROI:")
     stats3 = ADComponent(VortexROIStatPlugin, "MCA3ROI:")
     stats4 = ADComponent(VortexROIStatPlugin, "MCA4ROI:")
+
+    sca1 = ADComponent(VortexSCA, "C1SCA")
+    sca2 = ADComponent(VortexSCA, "C2SCA")
+    sca3 = ADComponent(VortexSCA, "C3SCA")
+    sca4 = ADComponent(VortexSCA, "C4SCA")
     
     hdf1 = ADComponent(
         PolarHDF5Plugin,
