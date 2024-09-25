@@ -54,13 +54,11 @@ class TriggerTime(TriggerBase):
         # Stage signals
         self.cam.stage_sigs["trigger_mode"] = "Internal"
         self.cam.stage_sigs["num_images"] = 1
-        self.cam.stage_sigs["num_exposures"] = 1
 
     def setup_external_trigger(self):
         # Stage signals
         self.cam.stage_sigs["trigger_mode"] = "TTL Veto Only"
         self.cam.stage_sigs["num_images"] = MAX_IMAGES
-        self.cam.stage_sigs["num_exposures"] = 1
 
     def stage(self):
         if self._flysetup:

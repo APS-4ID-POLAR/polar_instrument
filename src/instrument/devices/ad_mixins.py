@@ -79,6 +79,8 @@ class VortexDetectorCam(CamMixin_V34, Xspress3DetectorCam):
     wait_for_plugins = None
     acquire_busy = None
     offset = None
+    num_exposures = None
+    acquire_period = None
 
 
 class FileStorePluginBaseEpicsName(FileStoreBase):
