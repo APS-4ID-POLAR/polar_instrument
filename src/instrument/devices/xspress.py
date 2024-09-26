@@ -106,7 +106,7 @@ class TriggerTime(TriggerBase):
         # Monitor timestamps
         state_status = None
         for i in range(1, self.cam.num_channels.get()+1):
-            _status = getattr(self, f'sca{i}')._status_done()
+            _status = getattr(self, f'stats{i}')._status_done()
             if state_status:
                 state_status = AndStatus(state_status, _status)
             else:
@@ -186,6 +186,19 @@ class VortexROIStatPlugin(Device):
         EpicsSignalWithRBV, "ArrayCallbacks", string=True, doc="0='Disable' 1='Enable'"
     )
 
+    def _status_done(self):
+
+        # Create status that checks when the SCA updates.
+        status = Status(self.time_stamp, settle_time=0.01)
+
+        def _set_finished(**kwargs):
+            status.set_finished()
+            self.time_stamp.clear_sub(_set_finished)
+
+        self.time_stamp.subscribe(_set_finished, event_type='value', run=False)
+
+        return status
+
 
 class VortexSCA(Device):
 
@@ -196,19 +209,6 @@ class VortexSCA(Device):
     all_good = Component(EpicsSignalRO,'4:Value_RBV')
     pileup = Component(EpicsSignalRO,'7:Value_RBV')
     dt_factor = Component(EpicsSignalRO,'8:Value_RBV')
-
-    def _status_done(self):
-
-        # Create status that checks when the SCA updates.
-        status = Status(self.dt_factor, settle_time=0.01)
-
-        def _set_finished(**kwargs):
-            status.set_finished()
-            self.dt_factor.clear_sub(_set_finished)
-
-        self.dt_factor.subscribe(_set_finished, event_type='value', run=False)
-
-        return status
 
 
 class VortexDetector(TriggerTime, DetectorBase):
