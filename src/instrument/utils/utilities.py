@@ -196,7 +196,7 @@ def set_counting_time(time=None, monitor=False):
                 monitor = scaler.monitor if not "Time" else "Test7"
                 monitor = input("Monitor [{}]: ".format(monitor)) or monitor
             counters._mon = scaler.monitor = monitor
-            counters.monitor_counts = int(time)
+            counters.monitor_counts = float(time)
 
 
 def set_experiment(name=None, proposal_id=None, sample=None):
