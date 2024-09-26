@@ -272,6 +272,7 @@ class VortexDetector(Trigger, DetectorBase):
 
         self.hdf1.stage_sigs.pop("enable")
         self.hdf1.stage_sigs["num_capture"] = 0
+        self.hdf1.stage_sigs["capture"] = 1
     
         self.setup_manual_trigger()
         self.save_images_off()
