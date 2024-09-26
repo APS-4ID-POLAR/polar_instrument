@@ -116,6 +116,10 @@ class TriggerTime(TriggerBase):
         button_status = self._status_type(self)
         self._acquisition_signal.put(1, wait=False)
         self._status = AndStatus(state_status, button_status)
+
+
+        self._status = self._status_type(self)
+        self._acquisition_signal.put(1, wait=False)
         return self._status
 
 
