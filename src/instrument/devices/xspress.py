@@ -113,9 +113,10 @@ class TriggerTime(TriggerBase):
                 state_status = _status
 
         # Click the Acquire_button
-        button_status = super().trigger()
-
-        return AndStatus(state_status, button_status)
+        button_status = self._status_type(self)
+        self._acquisition_signal.put(1, wait=False)
+        self._status = AndStatus(state_status, button_status)
+        return self._status
 
 
 class ROIStatN(Device):
