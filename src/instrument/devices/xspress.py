@@ -4,13 +4,14 @@ from ophyd import ADComponent, Staged, Component, EpicsSignalRO, Device, EpicsSi
 from ophyd.status import Status, AndStatus
 from ophyd.areadetector import DetectorBase, EpicsSignalWithRBV
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
-from apstools.devices import AD_plugin_primed, AD_prime_plugin2
 from pathlib import PurePath
 from time import time as ttime, sleep
 from .ad_mixins import (
     ROIPlugin,
     PolarHDF5Plugin,
-    VortexDetectorCam
+    VortexDetectorCam,
+    AD_plugin_primed_vortex,
+    AD_prime_plugin2_vortex
 )
 from ..utils.config import iconfig
 from ..utils._logging_setup import logger
@@ -311,8 +312,8 @@ def load_vortex(prefix="S4QX4:"):
         prime = iconfig.get("AREA_DETECTOR", {}).get("VORTEX", {})
         if prime.get("ALLOW_PLUGIN_WARMUP", False):
             if detector.connected:
-                if not AD_plugin_primed(detector.hdf1):
-                    AD_prime_plugin2(detector.hdf1)
+                if not AD_plugin_primed_vortex(detector.hdf1):
+                    AD_prime_plugin2_vortex(detector.hdf1)
 
         detector.default_settings()
 
