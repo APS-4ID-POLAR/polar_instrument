@@ -185,7 +185,7 @@ def set_counting_time(time=None, monitor=False):
                 input("Counting time [{}]: ".format(item[1]["value"]))
                 or item[1]["value"]
             )
-        if int(time) < threshold:
+        if float(time) < threshold:
             print("New counting time: {} s".format(time))
             counters._mon = scaler.monitor = "Time"
             scaler.preset_monitor.put(float(time))
