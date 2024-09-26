@@ -98,6 +98,7 @@ class Trigger(TriggerBase):
 
         if self.hdf1.enable.get() in (True, 1, "on", "Enable"):
             self.generate_datum(self._image_name, ttime(), {})
+
         self._status = AndStatus(state_status, self._acquire_status)
         add_delay(self._status, self._delay)
 
