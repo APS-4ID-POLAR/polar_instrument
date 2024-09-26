@@ -240,7 +240,7 @@ def AD_plugin_primed_vortex(plugin):
     Uses the timestamp = 0 as a sign of an unprimed plugin. Not sure this is generic.
     """
     
-    return plugin.time_stamp.get != 0
+    return plugin.time_stamp.get() != 0
 
 
 def AD_prime_plugin2_vortex(plugin):
