@@ -1,7 +1,7 @@
 """ Eiger 1M setup """
 
 from ophyd import ADComponent, Staged, Component, EpicsSignalRO, Device, EpicsSignal
-from ophyd.status import Status
+from ophyd.status import Status, AndStatus
 from ophyd.areadetector import DetectorBase, EpicsSignalWithRBV
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
 from apstools.devices import AD_plugin_primed, AD_prime_plugin2
@@ -77,25 +77,45 @@ class TriggerTime(TriggerBase):
         self._flysetup = False
         self.setup_manual_trigger()
 
+    # def trigger(self):
+    #     "Trigger one acquisition."
+    #     if self._staged != Staged.yes:
+    #         raise RuntimeError("This detector is not ready to trigger."
+    #                            "Call the stage() method before triggering.")
+
+    #     @run_in_thread
+    #     def add_delay(status_obj, min_period):
+    #         count_time = self.cam.acquire_time.get()
+    #         total_sleep = count_time if count_time > min_period else min_period
+    #         sleep(total_sleep)
+    #         status_obj.set_finished()
+
+    #     self._status = self._status_type(self)
+    #     self._acquisition_signal.put(1, wait=False)
+    #     if self.hdf1.enable.get() in (True, 1, "on", "Enable"):
+    #         self.generate_datum(self._image_name, ttime(), {})
+    #     add_delay(self._status, self._min_period)
+    #     return self._status
+
     def trigger(self):
-        "Trigger one acquisition."
+
         if self._staged != Staged.yes:
             raise RuntimeError("This detector is not ready to trigger."
                                "Call the stage() method before triggering.")
 
-        @run_in_thread
-        def add_delay(status_obj, min_period):
-            count_time = self.cam.acquire_time.get()
-            total_sleep = count_time if count_time > min_period else min_period
-            sleep(total_sleep)
-            status_obj.set_finished()
+        # Monitor timestamps
+        state_status = None
+        for i in range(1, self.cam.num_channels.get()+1):
+            _status = getattr(self, f'sca{i}')._status_done()
+            if state_status:
+                state_status = AndStatus(state_status, _status)
+            else:
+                state_status = _status
 
-        self._status = self._status_type(self)
-        self._acquisition_signal.put(1, wait=False)
-        if self.hdf1.enable.get() in (True, 1, "on", "Enable"):
-            self.generate_datum(self._image_name, ttime(), {})
-        add_delay(self._status, self._min_period)
-        return self._status
+        # Click the Acquire_button
+        button_status = super().trigger()
+
+        return AndStatus(state_status, button_status)
 
 
 class ROIStatN(Device):
