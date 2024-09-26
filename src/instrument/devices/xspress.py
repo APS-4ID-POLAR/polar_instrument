@@ -38,6 +38,7 @@ class TriggerTime(TriggerBase):
         self._acquisition_signal = self.cam.acquire
         self._min_period = min_period
         self._flysetup = False
+        self._acquire_status = None
 
     @property
     def min_period(self):
@@ -65,17 +66,19 @@ class TriggerTime(TriggerBase):
             self.setup_external_trigger()
 
         # Make sure that detector is not armed.
-        self.cam.acquire.set(0).wait(timeout=10)
+        self._acquisition_signal.set(0).wait(timeout=10)
+        self._acquisition_signal.subscribe(self._acquire_changed)
         super().stage()
 
         if self._flysetup:
-            self.cam.acquire.set(1).wait(timeout=10)
+            self._acquisition_signal.set(1).wait(timeout=10)
 
     def unstage(self):
         super().unstage()
         self.cam.acquire.set(0).wait(timeout=10)
         self._flysetup = False
         self.setup_manual_trigger()
+        self._acquisition_signal.clear_sub(self._acquire_changed)
 
     # def trigger(self):
     #     "Trigger one acquisition."
@@ -113,14 +116,20 @@ class TriggerTime(TriggerBase):
                 state_status = _status
 
         # Click the Acquire_button
-        button_status = self._status_type(self)
+        self._acquire_status = self._status_type(self)
         self._acquisition_signal.put(1, wait=False)
-        self._status = AndStatus(state_status, button_status)
-
-
-        self._status = self._status_type(self)
-        self._acquisition_signal.put(1, wait=False)
+        self._status = AndStatus(state_status, self._acquire_status)
         return self._status
+    
+    def _acquire_changed(self, value=None, old_value=None, **kwargs):
+        "This is called when the 'acquire' signal changes."
+        if self._status is None:
+            return
+        if (old_value != 0) and (value == 0):
+            # Negative-going edge means an acquisition just finished.
+            ttime.sleep(self._sleep_time)
+            self._acquire_status.set_finished()
+            self._acquire_status = None
 
 
 class ROIStatN(Device):
