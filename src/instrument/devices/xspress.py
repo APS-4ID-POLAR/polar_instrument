@@ -12,7 +12,8 @@ from .ad_mixins import (
     PolarHDF5Plugin,
     VortexDetectorCam
 )
-from ..utils import logger, iconfig
+from ..utils.config import iconfig
+from ..utils._logging_setup import logger
 logger.info(__file__)
 
 __all__ = ["load_vortex"]
