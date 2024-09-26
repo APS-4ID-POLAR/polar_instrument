@@ -200,7 +200,7 @@ class VortexSCA(Device):
     def _status_done(self):
 
         # Create status that checks when the SCA updates.
-        status = Status(self.timestamp, settle_time=0.01)
+        status = Status(self.dt_factor, settle_time=0.01)
 
         def _set_finished(**kwargs):
             status.set_finished()
