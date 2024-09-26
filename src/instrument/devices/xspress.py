@@ -4,6 +4,7 @@ from ophyd import ADComponent, Staged, Component, EpicsSignalRO, Device, EpicsSi
 from ophyd.status import Status, AndStatus
 from ophyd.areadetector import DetectorBase, EpicsSignalWithRBV
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
+from apstools.utils import run_in_thread
 from pathlib import PurePath
 from time import time as ttime, sleep
 from .ad_mixins import (
@@ -30,7 +31,7 @@ class Trigger(TriggerBase):
     """
     _status_type = ADTriggerStatus
 
-    def __init__(self, *args, image_name=None, **kwargs):
+    def __init__(self, *args, image_name=None, delay=0.2, **kwargs):
         super().__init__(*args, **kwargs)
         if image_name is None:
             image_name = '_'.join([self.name, 'image'])
@@ -39,6 +40,7 @@ class Trigger(TriggerBase):
         self._flysetup = False
         self._acquire_status = None
         self._sleep_time = 0.05
+        self._delay = delay
 
     def setup_manual_trigger(self):
         # Stage signals
@@ -86,8 +88,19 @@ class Trigger(TriggerBase):
         # Click the Acquire_button
         self._acquire_status = self._status_type(self)
         self._acquisition_signal.put(1, wait=False)
+
+        @run_in_thread
+        def add_delay(status_obj, min_period):
+            count_time = self.cam.acquire_time.get()
+            total_sleep = count_time if count_time > min_period else min_period
+            sleep(total_sleep)
+            status_obj.set_finished()
+
+        if self.hdf1.enable.get() in (True, 1, "on", "Enable"):
+            self.generate_datum(self._image_name, ttime(), {})
         self._status = AndStatus(state_status, self._acquire_status)
-        self.generate_datum(self._image_name, ttime(), {})
+        add_delay(self._status, self._delay)
+
         return self._status
     
     def _acquire_changed(self, value=None, old_value=None, **kwargs):
