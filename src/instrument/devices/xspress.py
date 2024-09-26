@@ -24,33 +24,21 @@ IOC_FILES_ROOT = PurePath(iconfig["AREA_DETECTOR"]["VORTEX"]["IOC_FILES_ROOT"])
 IMAGE_DIR = iconfig["AREA_DETECTOR"].get("IMAGE_DIR", "%Y/%m/%d/")
 MAX_IMAGES = 12000
 
-class TriggerTime(TriggerBase):
+class Trigger(TriggerBase):
     """
     This trigger mixin class takes one acquisition per trigger.
     """
     _status_type = ADTriggerStatus
 
-    def __init__(self, *args, image_name=None, min_period=0.0, **kwargs):
+    def __init__(self, *args, image_name=None, **kwargs):
         super().__init__(*args, **kwargs)
         if image_name is None:
             image_name = '_'.join([self.name, 'image'])
         self._image_name = image_name
         self._acquisition_signal = self.cam.acquire
-        self._min_period = min_period
         self._flysetup = False
         self._acquire_status = None
         self._sleep_time = 0.05
-
-    @property
-    def min_period(self):
-        return self._min_period
-
-    @min_period.setter
-    def min_period(self, value):
-        try:
-            self._min_period = float(value)
-        except ValueError:
-            raise ValueError("min_period must be a number.")
 
     def setup_manual_trigger(self):
         # Stage signals
@@ -81,28 +69,7 @@ class TriggerTime(TriggerBase):
         self.setup_manual_trigger()
         self._acquisition_signal.clear_sub(self._acquire_changed)
 
-    # def trigger(self):
-    #     "Trigger one acquisition."
-    #     if self._staged != Staged.yes:
-    #         raise RuntimeError("This detector is not ready to trigger."
-    #                            "Call the stage() method before triggering.")
-
-    #     @run_in_thread
-    #     def add_delay(status_obj, min_period):
-    #         count_time = self.cam.acquire_time.get()
-    #         total_sleep = count_time if count_time > min_period else min_period
-    #         sleep(total_sleep)
-    #         status_obj.set_finished()
-
-    #     self._status = self._status_type(self)
-    #     self._acquisition_signal.put(1, wait=False)
-    #     if self.hdf1.enable.get() in (True, 1, "on", "Enable"):
-    #         self.generate_datum(self._image_name, ttime(), {})
-    #     add_delay(self._status, self._min_period)
-    #     return self._status
-
     def trigger(self):
-
         if self._staged != Staged.yes:
             raise RuntimeError("This detector is not ready to trigger."
                                "Call the stage() method before triggering.")
@@ -216,7 +183,6 @@ class VortexROIStatPlugin(Device):
 
 
 class VortexSCA(Device):
-
     clock_ticks = Component(EpicsSignalRO,'0:Value_RBV')
     reset_ticks = Component(EpicsSignalRO,'1:Value_RBV')
     reset_counts = Component(EpicsSignalRO,'2:Value_RBV')
@@ -226,7 +192,7 @@ class VortexSCA(Device):
     dt_factor = Component(EpicsSignalRO,'8:Value_RBV')
 
 
-class VortexDetector(TriggerTime, DetectorBase):
+class VortexDetector(Trigger, DetectorBase):
 
     _default_configuration_attrs = ('cam', 'chan1', 'chan2', 'chan3', 'chan4')
     _default_read_attrs = (
@@ -341,7 +307,8 @@ def load_vortex(prefix="S4QX4:"):
             if "blocking_callbacks" in dir(obj):  # is it a plugin?
                 obj.stage_sigs["blocking_callbacks"] = "No"
 
-        if iconfig.get("ALLOW_AREA_DETECTOR_WARMUP", False):
+        prime = iconfig.get("AREA_DETECTOR", {}).get("VORTEX", {})
+        if prime.get("ALLOW_PLUGIN_WARMUP", False):
             if detector.connected:
                 if not AD_plugin_primed(detector.hdf1):
                     AD_prime_plugin2(detector.hdf1)

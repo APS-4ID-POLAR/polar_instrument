@@ -54,9 +54,7 @@ AREA_DETECTOR:
         # Same filesystem
         BLUESKY_FILES_ROOT: "/home/beams/POLAR/data/bluesky_images/vortex_test"
         IOC_FILES_ROOT: "/home/xspress3/data"
-        # NAME: eiger4M
-        # PV_PREFIX: "8idEiger4m:"
-
+        ALLOW_PLUGIN_WARMUP: true
 
 # AREA_DETECTOR:
     ### General configuration for area detectors.
