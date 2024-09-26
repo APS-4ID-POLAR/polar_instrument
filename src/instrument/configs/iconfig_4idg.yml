@@ -93,7 +93,7 @@ OPHYD:
 
     ### default timeouts (seconds)
     TIMEOUTS:
-        PV_READ: &TIMEOUT 5
+        PV_READ: &TIMEOUT 15
         PV_WRITE: *TIMEOUT
         PV_CONNECTION: *TIMEOUT
 

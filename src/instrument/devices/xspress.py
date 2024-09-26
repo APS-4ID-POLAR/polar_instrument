@@ -5,7 +5,6 @@ from ophyd.status import Status, AndStatus
 from ophyd.areadetector import DetectorBase, EpicsSignalWithRBV
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
 from apstools.devices import AD_plugin_primed, AD_prime_plugin2
-from apstools.utils import run_in_thread
 from pathlib import PurePath
 from time import time as ttime, sleep
 from .ad_mixins import (
@@ -13,8 +12,7 @@ from .ad_mixins import (
     PolarHDF5Plugin,
     VortexDetectorCam
 )
-from ..utils.config import iconfig
-from ..utils import logger
+from ..utils import logger, iconfig
 logger.info(__file__)
 
 __all__ = ["load_vortex"]
@@ -265,7 +263,7 @@ class VortexDetector(Trigger, DetectorBase):
 
         self.cam.trigger_mode.put("Internal")
         self.cam.acquire.put(0)
-        self.cam.stage_sigs.pop("wait_for_plugins")
+        # self.cam.stage_sigs.pop("wait_for_plugins")
 
         self.hdf1.file_template.put("%s%s_%6.6d.h5")
         self.hdf1.num_capture.put(0)
@@ -286,7 +284,9 @@ def load_vortex(prefix="S4QX4:"):
 
     t0 = ttime()
     try:
-        connection_timeout = iconfig.get("PV_CONNECTION_TIMEOUT", 15)
+        connection_timeout = iconfig.get("OPHYD", {}).get("TIMEOUTS", {}).get(
+            "PV_CONNECTION", 15
+        )
         detector = VortexDetector(prefix, name="vortex")
         detector.wait_for_connection(timeout=connection_timeout)
     except (KeyError, NameError, TimeoutError) as exinfo:
@@ -301,7 +301,7 @@ def load_vortex(prefix="S4QX4:"):
 
     else:
         # just in case these things are not defined in the class source code
-        detector.cam.stage_sigs["wait_for_plugins"] = "Yes"
+        # detector.cam.stage_sigs["wait_for_plugins"] = "Yes"
         for nm in detector.component_names:
             obj = getattr(detector, nm)
             if "blocking_callbacks" in dir(obj):  # is it a plugin?
