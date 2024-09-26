@@ -7,7 +7,7 @@ from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
 from apstools.devices import AD_plugin_primed, AD_prime_plugin2
 from apstools.utils import run_in_thread
 from pathlib import PurePath
-from time import time as ttime, sleep
+from time import sleep
 from .ad_mixins import (
     ROIPlugin,
     PolarHDF5Plugin,
@@ -39,6 +39,7 @@ class TriggerTime(TriggerBase):
         self._min_period = min_period
         self._flysetup = False
         self._acquire_status = None
+        self._sleep_time = 0.05
 
     @property
     def min_period(self):
@@ -123,11 +124,11 @@ class TriggerTime(TriggerBase):
     
     def _acquire_changed(self, value=None, old_value=None, **kwargs):
         "This is called when the 'acquire' signal changes."
-        if self._status is None:
+        if self._acquire_status is None:
             return
         if (old_value != 0) and (value == 0):
             # Negative-going edge means an acquisition just finished.
-            ttime.sleep(self._sleep_time)
+            sleep(self._sleep_time)
             self._acquire_status.set_finished()
             self._acquire_status = None
 
