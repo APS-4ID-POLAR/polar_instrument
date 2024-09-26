@@ -7,7 +7,7 @@ from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
 from apstools.devices import AD_plugin_primed, AD_prime_plugin2
 from apstools.utils import run_in_thread
 from pathlib import PurePath
-from time import sleep
+from time import time as ttime, sleep
 from .ad_mixins import (
     ROIPlugin,
     PolarHDF5Plugin,
