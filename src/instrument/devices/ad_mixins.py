@@ -74,7 +74,9 @@ class EigerDetectorCam(CamMixin_V34, EigerDetectorCam):
 
 class VortexDetectorCam(CamMixin_V34, Xspress3DetectorCam):
     trigger_mode = ADComponent(EpicsSignalWithRBV, "TriggerMode", kind="config")
-
+    acquire = ADComponent(
+        EpicsSignal, 'det1:Acquire', trigger_value=1, kind='omitted'
+    )
     # Removed
     wait_for_plugins = None
     acquire_busy = None
