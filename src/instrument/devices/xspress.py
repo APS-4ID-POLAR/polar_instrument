@@ -87,6 +87,7 @@ class Trigger(TriggerBase):
         self._acquire_status = self._status_type(self)
         self._acquisition_signal.put(1, wait=False)
         self._status = AndStatus(state_status, self._acquire_status)
+        self.generate_datum(self._image_name, ttime(), {})
         return self._status
     
     def _acquire_changed(self, value=None, old_value=None, **kwargs):

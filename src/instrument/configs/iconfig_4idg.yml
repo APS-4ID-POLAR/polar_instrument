@@ -53,7 +53,7 @@ AREA_DETECTOR:
         # IOC host: beryl:/net/s8iddserv/xorApps/epics/synApps_6_2_1/ioc/8idEiger4m/iocBoot/ioc8idEiger4m/softioc/8idEiger4m.pl status
         # Same filesystem
         BLUESKY_FILES_ROOT: "/home/beams/POLAR/data/bluesky_images/vortex_test"
-        IOC_FILES_ROOT: "/home/xspress3/data"
+        IOC_FILES_ROOT: "/net/s4data/export/sector4/4idd/bluesky_images/vortex_test"
         ALLOW_PLUGIN_WARMUP: true
 
 # AREA_DETECTOR:
