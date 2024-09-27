@@ -47,28 +47,38 @@ path = pathlib.Path("startup_experiment.py")
 import pyRestTable
 
 def wm(*argv):
-    table = pyRestTable.Table()
-    nm=['   ']
-    anm=['   ']
-    hpos=['   High']
-    lpos=['   Low']
-    pos=['   Position   ']
-    centering =['l']
-    for arg in argv:
-        nm.append(arg.name)
-        anm.append(arg.attr_name)
-        hpos.append(arg.high_limit)
-        pos.append(arg.position)
-        lpos.append(arg.low_limit)
-        centering.append('r')
-    print(centering)
-    table.labels = nm
-    table.setTabularColumns(True, centering)
-    table.rows.append(anm)
-    table.rows.append(hpos)
-    table.rows.append(pos)
-    table.rows.append(lpos)
-    print(table.reST(fmt='plain'))
+    if len(argv) != 0:
+        table = pyRestTable.Table()
+        nm=['   ']
+        atnm=['   ']
+        ptxt = ['  Position']
+        hpos=['   High']
+        lpos=['   Low']
+        pos=['   Current   ']
+        centering =['l']
+        for arg in argv:
+            apos="{:.4f}".format(arg.position)
+            ahpos ="{:.4f}".format(arg.high_limit)
+            alpos ="{:.4f}".format(arg.low_limit)
+            nm.append(arg.name)
+            atnm.append(arg.attr_name)
+            ptxt.append('')
+            hpos.append(ahpos)
+            pos.append(apos)
+            lpos.append(alpos)
+            centering.append('r')
+        #print(centering)
+        print('')
+        table.labels = nm
+        #table.setTabularColumns(True, centering)
+        table.rows.append(atnm)
+        table.rows.append(ptxt)
+        table.rows.append(hpos)
+        table.rows.append(pos)
+        table.rows.append(lpos)
+        print(table.reST(fmt='plain'))
+    else:
+        print('Usage: wm(motor1, motor2, ...)')
 
 
 def change_diffractometer(*args):
