@@ -391,7 +391,6 @@ def flyscan_cycler(
     _scan_id = RE.md["scan_id"] + 1
     _fname_format = "%s_%6.6d"
 
-
     # TODO: simplify
     # Master file
     _master_fullpath = (
