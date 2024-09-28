@@ -469,12 +469,12 @@ def list_reflections(all_samples=False):
                     "H",
                     "K",
                     "L",
-                    "Delta",
-                    "Eta",
+                    "Gamma",
+                    "Mu",
                     "Chi",
                     "Phi",
-                    "Nu",
-                    "Mu",
+                    "Delta",
+                    "Tau",
                     "orienting",
                 )
             )
@@ -1620,13 +1620,13 @@ def uan(*args):
     if len(args) != 2:
         raise ValueError("Usage: uan(gamma/tth,mu/th)")
     else:
-        delta, th = args
+        gamma, mu = args
         if len(_geom_.calc.physical_axes) == 6:
-            print("Moving to (delta,eta)=({},{})".format(delta, th))
-            plan = mv(_geom_.gamma, delta, _geom_.mu, th)
+            print("Moving to (gamma,mu)=({},{})".format(gamma, mu))
+            plan = mv(_geom_.gamma, gamma, _geom_.mu, mu)
         elif len(_geom_.calc.physical_axes) == 4:
-            print("Moving to (tth,th)=({},{})".format(delta, th))
-            plan = mv(_geom_.tth, delta, _geom_.omega, th)
+            print("Moving to (tth,th)=({},{})".format(gamma, mu))
+            plan = mv(_geom_.tth, gamma, _geom_.omega, mu)
     RE.waiting_hook = pbar_manager
     try:
         RE(plan)
@@ -1659,7 +1659,7 @@ def an(*args):
     else:
         delta, th = args
         if len(_geom_.calc.physical_axes) == 6:
-            print("Moving to (delta,eta)=({},{})".format(delta, th))
+            print("Moving to (gamma, mu)=({},{})".format(delta, th))
             yield from mv(_geom_.gamma, delta, _geom_.mu, th)
         elif len(_geom_.calc.physical_axes) == 4:
             print("Moving to (tth,th)=({},{})".format(delta, th))
