@@ -116,7 +116,6 @@ class Monochromator(KohzuSeqCtl_Monochromator):
         setpoint_pv="BraggThetaAO"
     )
 
-    # No y1 at 4-ID-D
     y1 = None
     crystal_select = Component(EpicsMotor, 'm2', labels=('motor', 'mono'))
 
