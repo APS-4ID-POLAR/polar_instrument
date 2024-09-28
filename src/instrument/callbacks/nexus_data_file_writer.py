@@ -27,7 +27,7 @@ class MyNXWriter(NXWriterAPS):
     Modify the default behavior of NXWriter for XPCS.
     """
 
-    ad_file_name = None  # AD_full_file_name_local(adsimdet.hdf1)
+    ad_file_names = {}
     position_file_name = None
 
     def write_root(self, filename):
@@ -47,10 +47,10 @@ class MyNXWriter(NXWriterAPS):
         # print(f"{nxentry=!r}")
         super().write_entry()
 
-        if self.ad_file_name is not None:
-            h5addr = "/entry/detectors/eiger"  # TODO: final location to be decided
+        for name, path in self.ad_file_names.items():
+            h5addr = f"/entry/detectors/{name}"
             self.root[h5addr] = h5py.ExternalLink(
-                str(self.ad_file_name),
+                str(path),
                 "/entry/instrument",  # link to the image dataset
             )
       
@@ -60,6 +60,10 @@ class MyNXWriter(NXWriterAPS):
                 str(self.position_file_name),
                 "/stream",  # link to the root of the file
             )
+        
+        # TODO: Do they need to be reset!?
+        self.ad_file_names = {}
+        self.position_file_name = None
 
 
 nxwriter = MyNXWriter()  # create the callback instance

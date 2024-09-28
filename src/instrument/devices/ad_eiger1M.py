@@ -6,7 +6,7 @@ from ophyd.areadetector import DetectorBase
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
 from apstools.devices import AD_plugin_primed, AD_prime_plugin2
 from apstools.utils import run_in_thread
-from pathlib import PurePath
+from pathlib import PurePath, Path
 from time import time as ttime, sleep
 from .ad_mixins import (
     EigerDetectorCam,
@@ -186,6 +186,22 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
 
     def plot_roi1(self):
         self.stats1.total.kind="hinted"
+
+    def setup_images(
+            self, file_name_base, folder, name_template, file_number, flyscan=False
+        ):
+
+        self.hdf1.file_name.set(f"{file_name_base}").wait()
+        self.hdf1.file_path.set(folder).wait()
+        self.hdf1.file_template.set(f"%s{name_template}.h5").wait()
+        self.hdf1.file_number.set(file_number).wait()
+        
+        # Make sure eiger will save image
+        self.auto_save_on()
+        # Changes the stage_sigs to the external trigger mode
+        self._flysetup = flyscan
+
+        return Path(self.hdf1.make_write_read_paths()[1])
 
 
 def load_eiger1m(prefix="4idEiger:"):

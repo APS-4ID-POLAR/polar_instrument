@@ -21,8 +21,9 @@ from ..devices import (
     dm_experiment,
     dm_workflow,
 )
-from ..session_logs import logger
-from ..framework import RE, cat
+from ..utils import logger
+from ..utils.run_engine import RE
+from ..utils.catalog import cat
 from ..callbacks import nxwriter
 from ..utils import dm_get_experiment_data_path
 logger.info(__file__)
@@ -400,17 +401,23 @@ def flyscan_cycler(
         _base_path / ((_fname_format % (file_name_base, _scan_id)) + "_master.hdf")
     )
 
-    # Setup area detector
-    _eiger_folder = _base_path / "eiger"
+    # Setup area detectors
+    _dets_file_paths = {}
+    for det in detectors:
+        _folder = _base_path / det.name
+        _dets_file_paths[det.name] = det.setup_images(
+                file_name_base, _folder, _fname_format, _scan_id, flyscan=True
+        )
 
+    # _eiger_folder = _base_path / "eiger"
     # TODO: For now we assume the eiger is the first detector
-    _eig = detectors[0]
-    _eig.hdf1.file_name.set(f"{file_name_base}").wait()
-    _eig.hdf1.file_path.set(_eiger_folder).wait()
-    _eig.hdf1.file_template.set(f"%s{_fname_format}.h5").wait()
-    _eig.hdf1.file_number.set(_scan_id).wait()
+    # _eig = detectors[0]
+    # _eig.hdf1.file_name.set(f"{file_name_base}").wait()
+    # _eig.hdf1.file_path.set(_eiger_folder).wait()
+    # _eig.hdf1.file_template.set(f"%s{_fname_format}.h5").wait()
+    # _eig.hdf1.file_number.set(_scan_id).wait()
 
-    _eiger_fullpath = Path(detectors[0].hdf1.make_write_read_paths()[1])
+    # _eiger_fullpath = Path(detectors[0].hdf1.make_write_read_paths()[1])
 
     # Make sure eiger will save image
     detectors[0].auto_save_on()
@@ -430,7 +437,7 @@ def flyscan_cycler(
     positioner_stream.file_name.put(_ps_fname)
 
     # Check if any of these files exists
-    for _fname in [_master_fullpath, _eiger_fullpath, _ps_fullpath]:
+    for _fname in [_master_fullpath, _ps_fullpath] + list(_dets_file_paths.values()):
         if _fname.is_file():
             raise FileExistsError(
                 f"The file {_fname} already exists! Will not overwrite, quitting."
@@ -441,11 +448,14 @@ def flyscan_cycler(
     #################################################
 
     # Relative paths are used in the master file so that data can be copied.
-    _rel_eiger_path = _eiger_fullpath.relative_to(_base_path)
+    _rel_dets_paths = {}
+    for _name, _path in _dets_file_paths.items():
+        _rel_dets_paths[_name] = _path.relative_to(_base_path)
+    # _rel_eiger_path = _eiger_fullpath.relative_to(_base_path)
     _rel_ps_path = _ps_fullpath.relative_to(_base_path)
 
     # Sets the file names
-    nxwriter.ad_file_name = str(_rel_eiger_path)
+    nxwriter.ad_file_names = _rel_dets_paths
     nxwriter.position_file_name = str(_rel_ps_path)
     nxwriter.file_name = str(_master_fullpath)
     nxwriter.file_path = str(_base_path)
@@ -453,10 +463,10 @@ def flyscan_cycler(
     md.update(dict(master_file=str(nxwriter.file_name)))
 
     # For now this is here just to show how the templates works.
-    master_file_templates += [
-        ["/entry/eiger_file_path=", str(_rel_eiger_path)],
-        ["/entry/softglue_file_path=", str(_rel_ps_path)],
-    ]
+    # master_file_templates += [
+    #     ["/entry/eiger_file_path=", str(_rel_eiger_path)],
+    #     ["/entry/softglue_file_path=", str(_rel_ps_path)],
+    # ]
 
     md[nxwriter.template_key] = dumps(master_file_templates)  # <-- adds the templates
 
@@ -483,18 +493,26 @@ def flyscan_cycler(
             "nxwriter_warn_missing": nxwriter_warn_missing,
         },
         # This assumes the first detector is the eiger.
-        eiger_relative_file_path = str(_rel_eiger_path),
-        eiger_full_file_path = str(_eiger_fullpath),
+        # eiger_relative_file_path = str(_rel_eiger_path),
+        # eiger_full_file_path = str(_eiger_fullpath),
         positioner_stream_full_file_path = str(_ps_fullpath),
         positioner_stream_relative_file_path = str(_rel_ps_path),
         # TODO: a similar scan with a monitor (scaler...)
         hints = dict(monitor=None, detectors=[], scan_type="flyscan")
     )
+
+    for _name, _fpath in _dets_file_paths.items():
+        _md[f"{_name}_full_file_path"] = str(_fpath)
+
+    for _name, _fpath in _rel_dets_paths.items():
+        _md[f"{_name}_relative_file_path"] = str(_fpath)
+
     for item in detectors:
         _md['hints']['detectors'].extend(item.hints['fields'])
     
     dimensions = [(motor.hints["fields"], "primary") for motor in motors]
     _md["hints"].setdefault("dimensions", dimensions)
+
 
     if wf_run:
         _md = build_run_metadata_dict(
