@@ -15,12 +15,9 @@ from pathlib import Path
 from json import dumps
 from warnings import warn
 from .local_scans import mv
-from ..devices import (
-    sgz,
-    positioner_stream,
-    dm_experiment,
-    dm_workflow,
-)
+from ..devices.pva_control import positioner_stream
+from ..devices.softgluezynq import sgz
+from ..devices.data_management import dm_experiment, dm_workflow
 from ..utils import logger
 from ..utils.run_engine import RE
 from ..utils.catalog import cat
