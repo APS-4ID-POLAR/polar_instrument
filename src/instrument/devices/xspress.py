@@ -287,6 +287,25 @@ class VortexDetector(Trigger, DetectorBase):
         # TODO: This is just temporary to have something.
         self.stats1.roi1.total_value.kind="hinted"
 
+    def setup_images(
+            self, file_name_base, folder, name_template, file_number, flyscan=False
+        ):
+
+        # TODO: How to convert the file_name_base into a folder that xspress can access?
+
+        return None
+        # self.hdf1.file_name.set(f"{file_name_base}").wait()
+        # self.hdf1.file_path.set(folder).wait()
+        # self.hdf1.file_template.set(f"%s{name_template}.h5").wait()
+        # self.hdf1.file_number.set(file_number).wait()
+        
+        # # Make sure eiger will save image
+        # self.auto_save_on()
+        # # Changes the stage_sigs to the external trigger mode
+        # self._flysetup = flyscan
+
+        # return Path(self.hdf1.make_write_read_paths()[1])
+
 
 def load_vortex(prefix="S4QX4:"):
 
