@@ -405,9 +405,11 @@ def flyscan_cycler(
     _dets_file_paths = {}
     for det in detectors:
         _folder = _base_path / det.name
-        _dets_file_paths[det.name] = det.setup_images(
-                file_name_base, _folder, _fname_format, _scan_id, flyscan=True
-        )
+        _setup_images = getattr(det, "setup_images", None)
+        if _setup_images:
+            _dets_file_paths[det.name] = _setup_images(
+                    file_name_base, _folder, _fname_format, _scan_id, flyscan=True
+            )
 
     # _eiger_folder = _base_path / "eiger"
     # TODO: For now we assume the eiger is the first detector
