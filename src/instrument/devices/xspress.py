@@ -94,7 +94,8 @@ class Trigger(TriggerBase):
             self.generate_datum(self._image_name, ttime(), {})
 
         self._status = AndStatus(state_status, self._acquire_status)
-        return self._status
+        # return self._status
+        return self._acquire_status
     
     def _acquire_changed(self, value=None, old_value=None, **kwargs):
         "This is called when the 'acquire' signal changes."
