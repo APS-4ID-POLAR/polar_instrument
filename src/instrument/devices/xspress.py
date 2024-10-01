@@ -9,6 +9,9 @@ from pathlib import PurePath
 from time import time as ttime, sleep
 from .ad_mixins import (
     ROIPlugin,
+    AttributePlugin,
+    ROIStatNPlugin,
+    ROIStatPlugin,
     PolarHDF5Plugin,
     VortexDetectorCam,
     AD_plugin_primed_vortex,
@@ -105,73 +108,81 @@ class Trigger(TriggerBase):
             self._acquire_status = None
 
 
-class ROIStatN(Device):
-    roi_name = Component(EpicsSignal, "Name", kind="config")
-    use = Component(EpicsSignal, "Use", kind="config")
+# class ROIStatN(Device):
+#     roi_name = Component(EpicsSignal, "Name", kind="config")
+#     use = Component(EpicsSignal, "Use", kind="config")
 
-    max_sizex = Component(EpicsSignalRO, "MaxSizeX_RBV", kind="config")
-    roi_startx = Component(EpicsSignalWithRBV, "MinY", kind="config")
-    roi_sizex = Component(EpicsSignalWithRBV, "SizeY", kind="config")
+#     max_sizex = Component(EpicsSignalRO, "MaxSizeX_RBV", kind="config")
+#     roi_startx = Component(EpicsSignalWithRBV, "MinY", kind="config")
+#     roi_sizex = Component(EpicsSignalWithRBV, "SizeY", kind="config")
 
-    max_sizey = Component(EpicsSignalRO, "MaxSizeY_RBV", kind="config")
-    roi_startxy = Component(EpicsSignalWithRBV, "MinY", kind="config")
-    roi_sizey = Component(EpicsSignalWithRBV, "SizeY", kind="config")
+#     max_sizey = Component(EpicsSignalRO, "MaxSizeY_RBV", kind="config")
+#     roi_startxy = Component(EpicsSignalWithRBV, "MinY", kind="config")
+#     roi_sizey = Component(EpicsSignalWithRBV, "SizeY", kind="config")
 
-    bdg_width = Component(EpicsSignalWithRBV, "BgdWidth", kind="config")
-    min_value = Component(EpicsSignalRO, "MinValue_RBV", kind="normal")
-    max_value = Component(EpicsSignalRO, "MaxValue_RBV", kind="normal")
-    mean_value = Component(EpicsSignalRO, "MeanValue_RBV", kind="normal")
-    total_value = Component(EpicsSignalRO, "Total_RBV", kind="normal")
-    net_value = Component(EpicsSignalRO, "Net_RBV", kind="normal")
+#     bdg_width = Component(EpicsSignalWithRBV, "BgdWidth", kind="config")
+#     min_value = Component(EpicsSignalRO, "MinValue_RBV", kind="normal")
+#     max_value = Component(EpicsSignalRO, "MaxValue_RBV", kind="normal")
+#     mean_value = Component(EpicsSignalRO, "MeanValue_RBV", kind="normal")
+#     total_value = Component(EpicsSignalRO, "Total_RBV", kind="normal")
+#     net_value = Component(EpicsSignalRO, "Net_RBV", kind="normal")
 
-    reset_button = Component(EpicsSignal, "Reset", kind="omitted")
+#     reset_button = Component(EpicsSignal, "Reset", kind="omitted")
 
 
-class VortexROIStatPlugin(Device):
+class VortexROIStatPlugin(ROIStatPlugin):
     # ROIs
-    roi1 = ADComponent(ROIStatN, "1:")
-    roi2 = ADComponent(ROIStatN, "2:")
-    roi3 = ADComponent(ROIStatN, "3:")
-    roi4 = ADComponent(ROIStatN, "4:")
-    roi5 = ADComponent(ROIStatN, "5:")
-    roi6 = ADComponent(ROIStatN, "6:")
-    roi7 = ADComponent(ROIStatN, "7:")
-    roi8 = ADComponent(ROIStatN, "8:")
+    # roi1 = ADComponent(ROIStatN, "1:")
+    # roi2 = ADComponent(ROIStatN, "2:")
+    # roi3 = ADComponent(ROIStatN, "3:")
+    # roi4 = ADComponent(ROIStatN, "4:")
+    # roi5 = ADComponent(ROIStatN, "5:")
+    # roi6 = ADComponent(ROIStatN, "6:")
+    # roi7 = ADComponent(ROIStatN, "7:")
+    # roi8 = ADComponent(ROIStatN, "8:")
+
+    roi2 = ADComponent(ROIStatNPlugin, "2:")
+    roi3 = ADComponent(ROIStatNPlugin, "3:")
+    roi4 = ADComponent(ROIStatNPlugin, "4:")
+    roi5 = ADComponent(ROIStatNPlugin, "5:")
+    roi6 = ADComponent(ROIStatNPlugin, "6:")
+    roi7 = ADComponent(ROIStatNPlugin, "7:")
+    roi8 = ADComponent(ROIStatNPlugin, "8:")
 
     # Other parameters
 
-    asyn_port = Component(EpicsSignalRO, "PortName_RBV")
-    plugin_type = Component(EpicsSignalRO, "PluginType_RBV")
-    nd_array_port = Component(EpicsSignalWithRBV, "NDArrayPort")
-    nd_array_address = Component(EpicsSignalWithRBV, "NDArrayAddress")
-    enable = Component(
-        EpicsSignalWithRBV, "EnableCallbacks", string=True, kind="config"
-    )
-    min_callback_time = Component(EpicsSignalWithRBV, "MinCallbackTime")
-    blocking_callbacks = Component(
-        EpicsSignalWithRBV, "BlockingCallbacks", string=True, kind="config"
-    )
-    queue_free = Component(EpicsSignal, "QueueFree")
-    array_counter = Component(EpicsSignalWithRBV, "ArrayCounter")
-    array_rate = Component(EpicsSignalRO, "ArrayRate_RBV")
+    # asyn_port = Component(EpicsSignalRO, "PortName_RBV")
+    # plugin_type = Component(EpicsSignalRO, "PluginType_RBV")
+    # nd_array_port = Component(EpicsSignalWithRBV, "NDArrayPort")
+    # nd_array_address = Component(EpicsSignalWithRBV, "NDArrayAddress")
+    # enable = Component(
+    #     EpicsSignalWithRBV, "EnableCallbacks", string=True, kind="config"
+    # )
+    # min_callback_time = Component(EpicsSignalWithRBV, "MinCallbackTime")
+    # blocking_callbacks = Component(
+    #     EpicsSignalWithRBV, "BlockingCallbacks", string=True, kind="config"
+    # )
+    # queue_free = Component(EpicsSignal, "QueueFree")
+    # array_counter = Component(EpicsSignalWithRBV, "ArrayCounter")
+    # array_rate = Component(EpicsSignalRO, "ArrayRate_RBV")
 
-    dropped_arrays = Component(EpicsSignalWithRBV, "DroppedArrays")
+    # dropped_arrays = Component(EpicsSignalWithRBV, "DroppedArrays")
 
-    ndimensions = Component(EpicsSignalRO, "NDimensions_RBV")
-    array_size0 = Component(EpicsSignalRO, "ArraySize0_RBV")
-    array_size1 = Component(EpicsSignalRO, "ArraySize1_RBV")
-    array_size2 = Component(EpicsSignalRO, "ArraySize2_RBV")
+    # ndimensions = Component(EpicsSignalRO, "NDimensions_RBV")
+    # array_size0 = Component(EpicsSignalRO, "ArraySize0_RBV")
+    # array_size1 = Component(EpicsSignalRO, "ArraySize1_RBV")
+    # array_size2 = Component(EpicsSignalRO, "ArraySize2_RBV")
 
-    data_type = Component(EpicsSignalRO, "DataType_RBV", string=True)
-    color_mode = Component(EpicsSignalRO, "ColorMode_RBV")
-    bayer_pattern = Component(EpicsSignalRO, "BayerPattern_RBV")
+    # data_type = Component(EpicsSignalRO, "DataType_RBV", string=True)
+    # color_mode = Component(EpicsSignalRO, "ColorMode_RBV")
+    # bayer_pattern = Component(EpicsSignalRO, "BayerPattern_RBV")
 
-    unique_id = Component(EpicsSignalRO, "UniqueId_RBV")
-    time_stamp = Component(EpicsSignalRO, "TimeStamp_RBV")
+    # unique_id = Component(EpicsSignalRO, "UniqueId_RBV")
+    # time_stamp = Component(EpicsSignalRO, "TimeStamp_RBV")
 
-    array_callbacks = Component(
-        EpicsSignalWithRBV, "ArrayCallbacks", string=True, doc="0='Disable' 1='Enable'"
-    )
+    # array_callbacks = Component(
+    #     EpicsSignalWithRBV, "ArrayCallbacks", string=True, doc="0='Disable' 1='Enable'"
+    # )
 
     def _status_done(self):
 
@@ -187,14 +198,18 @@ class VortexROIStatPlugin(Device):
         return status
 
 
-class VortexSCA(Device):
+class VortexSCA(AttributePlugin):
     clock_ticks = Component(EpicsSignalRO,'0:Value_RBV')
     reset_ticks = Component(EpicsSignalRO,'1:Value_RBV')
     reset_counts = Component(EpicsSignalRO,'2:Value_RBV')
     all_events = Component(EpicsSignalRO,'3:Value_RBV')
     all_good = Component(EpicsSignalRO,'4:Value_RBV')
+    window1 = Component(EpicsSignalRO,'5:Value_RBV')
+    window2 = Component(EpicsSignalRO,'6:Value_RBV')
     pileup = Component(EpicsSignalRO,'7:Value_RBV')
-    dt_factor = Component(EpicsSignalRO,'8:Value_RBV')
+    event_width = Component(EpicsSignalRO, '8:Value_RBV')
+    dt_factor = Component(EpicsSignalRO,'9:Value_RBV')
+    dt_percent = Component(EpicsSignalRO,'10:Value_RBV')
 
 
 class VortexDetector(Trigger, DetectorBase):
@@ -224,10 +239,10 @@ class VortexDetector(Trigger, DetectorBase):
     stats3 = ADComponent(VortexROIStatPlugin, "MCA3ROI:")
     stats4 = ADComponent(VortexROIStatPlugin, "MCA4ROI:")
 
-    sca1 = ADComponent(VortexSCA, "C1SCA")
-    sca2 = ADComponent(VortexSCA, "C2SCA")
-    sca3 = ADComponent(VortexSCA, "C3SCA")
-    sca4 = ADComponent(VortexSCA, "C4SCA")
+    sca1 = ADComponent(VortexSCA, "C1SCA:")
+    sca2 = ADComponent(VortexSCA, "C2SCA:")
+    sca3 = ADComponent(VortexSCA, "C3SCA:")
+    sca4 = ADComponent(VortexSCA, "C4SCA:")
     
     hdf1 = ADComponent(
         PolarHDF5Plugin,
