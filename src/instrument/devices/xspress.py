@@ -78,43 +78,27 @@ class Trigger(TriggerBase):
         self._collect_image = False
 
     def trigger(self):
-        t0 = ttime()
         if self._staged != Staged.yes:
             raise RuntimeError("This detector is not ready to trigger."
                                "Call the stage() method before triggering.")
 
-        # Monitor timestamps
-        # state_status = None
-        # for i in range(1, self.cam.num_channels.get()+1):
-        #     _status = getattr(self, f'stats{i}')._status_done()
-        #     if state_status:
-        #         state_status = AndStatus(state_status, _status)
-        #     else:
-        #         state_status = _status
-
         # Click the Acquire_button
-        print("1-", ttime()-t0)
-        self._acquire_status = self._status_type(self)
-        print("2-", ttime()-t0)
+        self._status = self._status_type(self)
         self._acquisition_signal.put(1, wait=False)
-        print("3-", ttime()-t0)
         if self._collect_image:
             self.generate_datum(self._image_name, ttime(), {})
-        print("4-", ttime()-t0)
-        # self._status = AndStatus(state_status, self._acquire_status)
-        # return self._status
 
-        return self._acquire_status
+        return self._status
     
     def _acquire_changed(self, value=None, old_value=None, **kwargs):
         "This is called when the 'acquire' signal changes."
-        if self._acquire_status is None:
+        if self._status is None:
             return
         if (old_value != 0) and (value == 0):
             # Negative-going edge means an acquisition just finished.
             sleep(self._delay)
-            self._acquire_status.set_finished()
-            self._acquire_status = None
+            self._status.set_finished()
+            self._status = None
 
 
 class ROIStatN(Device):
