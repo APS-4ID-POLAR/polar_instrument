@@ -33,7 +33,7 @@ class Trigger(TriggerBase):
     """
     _status_type = ADTriggerStatus
 
-    def __init__(self, *args, image_name=None, delay=0.2, **kwargs):
+    def __init__(self, *args, image_name=None, delay=0.0, **kwargs):
         super().__init__(*args, **kwargs)
         if image_name is None:
             image_name = '_'.join([self.name, 'image'])
@@ -97,15 +97,15 @@ class Trigger(TriggerBase):
         # return self._status
         return self._acquire_status
     
-    def _acquire_changed(self, value=None, old_value=None, **kwargs):
-        "This is called when the 'acquire' signal changes."
-        if self._acquire_status is None:
-            return
-        if (old_value != 0) and (value == 0):
-            # Negative-going edge means an acquisition just finished.
-            sleep(self._delay)
-            self._acquire_status.set_finished()
-            self._acquire_status = None
+    # def _acquire_changed(self, value=None, old_value=None, **kwargs):
+    #     "This is called when the 'acquire' signal changes."
+    #     if self._acquire_status is None:
+    #         return
+    #     if (old_value != 0) and (value == 0):
+    #         # Negative-going edge means an acquisition just finished.
+    #         sleep(self._delay)
+    #         self._acquire_status.set_finished()
+    #         self._acquire_status = None
 
 
 class ROIStatN(Device):
