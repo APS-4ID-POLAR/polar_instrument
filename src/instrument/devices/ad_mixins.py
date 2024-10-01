@@ -60,6 +60,11 @@ class ROIStatNPlugin(PluginMixin, ROIStatNPlugin_V25):
 
 class AttributePlugin(PluginMixin, AttributePlugin_V34):
     """Remove property attribute found in AD IOCs now."""
+    ts_acquiring = None
+    ts_control = None
+    ts_current_point = None
+    ts_num_points = None
+    ts_read = None
 
 
 class EigerDetectorCam(CamMixin_V34, EigerDetectorCam):
