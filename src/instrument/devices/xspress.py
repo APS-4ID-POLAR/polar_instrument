@@ -141,6 +141,7 @@ class VortexROIStatPlugin(ROIStatPlugin):
     # roi7 = ADComponent(ROIStatN, "7:")
     # roi8 = ADComponent(ROIStatN, "8:")
 
+    roi1 = ADComponent(ROIStatNPlugin, "1:")
     roi2 = ADComponent(ROIStatNPlugin, "2:")
     roi3 = ADComponent(ROIStatNPlugin, "3:")
     roi4 = ADComponent(ROIStatNPlugin, "4:")
