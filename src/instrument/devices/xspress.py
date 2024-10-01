@@ -295,9 +295,10 @@ def load_vortex(prefix="S4QX4:"):
         # just in case these things are not defined in the class source code
         # detector.cam.stage_sigs["wait_for_plugins"] = "Yes"
         for nm in detector.component_names:
+            block = "Yes" if "sca" in nm else "No"
             obj = getattr(detector, nm)
-            if "blocking_callbacks" in dir(obj):  # is it a plugin?
-                obj.stage_sigs["blocking_callbacks"] = "No"
+            if "blocking_callbacks" in dir(obj):
+                obj.stage_sigs["blocking_callbacks"] = block
 
         prime = iconfig.get("AREA_DETECTOR", {}).get("VORTEX", {})
         if prime.get("ALLOW_PLUGIN_WARMUP", False):
