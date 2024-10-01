@@ -108,47 +108,47 @@ class Trigger(TriggerBase):
             self._acquire_status = None
 
 
-# class ROIStatN(Device):
-#     roi_name = Component(EpicsSignal, "Name", kind="config")
-#     use = Component(EpicsSignal, "Use", kind="config")
+class ROIStatN(Device):
+    roi_name = Component(EpicsSignal, "Name", kind="config")
+    use = Component(EpicsSignal, "Use", kind="config")
 
-#     max_sizex = Component(EpicsSignalRO, "MaxSizeX_RBV", kind="config")
-#     roi_startx = Component(EpicsSignalWithRBV, "MinY", kind="config")
-#     roi_sizex = Component(EpicsSignalWithRBV, "SizeY", kind="config")
+    max_sizex = Component(EpicsSignalRO, "MaxSizeX_RBV", kind="config")
+    roi_startx = Component(EpicsSignalWithRBV, "MinY", kind="config")
+    roi_sizex = Component(EpicsSignalWithRBV, "SizeY", kind="config")
 
-#     max_sizey = Component(EpicsSignalRO, "MaxSizeY_RBV", kind="config")
-#     roi_startxy = Component(EpicsSignalWithRBV, "MinY", kind="config")
-#     roi_sizey = Component(EpicsSignalWithRBV, "SizeY", kind="config")
+    max_sizey = Component(EpicsSignalRO, "MaxSizeY_RBV", kind="config")
+    roi_startxy = Component(EpicsSignalWithRBV, "MinY", kind="config")
+    roi_sizey = Component(EpicsSignalWithRBV, "SizeY", kind="config")
 
-#     bdg_width = Component(EpicsSignalWithRBV, "BgdWidth", kind="config")
-#     min_value = Component(EpicsSignalRO, "MinValue_RBV", kind="normal")
-#     max_value = Component(EpicsSignalRO, "MaxValue_RBV", kind="normal")
-#     mean_value = Component(EpicsSignalRO, "MeanValue_RBV", kind="normal")
-#     total_value = Component(EpicsSignalRO, "Total_RBV", kind="normal")
-#     net_value = Component(EpicsSignalRO, "Net_RBV", kind="normal")
+    bdg_width = Component(EpicsSignalWithRBV, "BgdWidth", kind="config")
+    min_value = Component(EpicsSignalRO, "MinValue_RBV", kind="normal")
+    max_value = Component(EpicsSignalRO, "MaxValue_RBV", kind="normal")
+    mean_value = Component(EpicsSignalRO, "MeanValue_RBV", kind="normal")
+    total_value = Component(EpicsSignalRO, "Total_RBV", kind="normal")
+    net_value = Component(EpicsSignalRO, "Net_RBV", kind="normal")
 
-#     reset_button = Component(EpicsSignal, "Reset", kind="omitted")
+    reset_button = Component(EpicsSignal, "Reset", kind="omitted")
 
 
 class VortexROIStatPlugin(ROIStatPlugin):
-    # ROIs
-    # roi1 = ADComponent(ROIStatN, "1:")
-    # roi2 = ADComponent(ROIStatN, "2:")
-    # roi3 = ADComponent(ROIStatN, "3:")
-    # roi4 = ADComponent(ROIStatN, "4:")
-    # roi5 = ADComponent(ROIStatN, "5:")
-    # roi6 = ADComponent(ROIStatN, "6:")
-    # roi7 = ADComponent(ROIStatN, "7:")
-    # roi8 = ADComponent(ROIStatN, "8:")
+    #ROIs
+    roi1 = Component(ROIStatN, "1:")
+    roi2 = Component(ROIStatN, "2:")
+    roi3 = Component(ROIStatN, "3:")
+    roi4 = Component(ROIStatN, "4:")
+    roi5 = Component(ROIStatN, "5:")
+    roi6 = Component(ROIStatN, "6:")
+    roi7 = Component(ROIStatN, "7:")
+    roi8 = Component(ROIStatN, "8:")
 
-    roi1 = ADComponent(ROIStatNPlugin, "1:")
-    roi2 = ADComponent(ROIStatNPlugin, "2:")
-    roi3 = ADComponent(ROIStatNPlugin, "3:")
-    roi4 = ADComponent(ROIStatNPlugin, "4:")
-    roi5 = ADComponent(ROIStatNPlugin, "5:")
-    roi6 = ADComponent(ROIStatNPlugin, "6:")
-    roi7 = ADComponent(ROIStatNPlugin, "7:")
-    roi8 = ADComponent(ROIStatNPlugin, "8:")
+    # roi1 = ADComponent(ROIStatNPlugin, "1:")
+    # roi2 = ADComponent(ROIStatNPlugin, "2:")
+    # roi3 = ADComponent(ROIStatNPlugin, "3:")
+    # roi4 = ADComponent(ROIStatNPlugin, "4:")
+    # roi5 = ADComponent(ROIStatNPlugin, "5:")
+    # roi6 = ADComponent(ROIStatNPlugin, "6:")
+    # roi7 = ADComponent(ROIStatNPlugin, "7:")
+    # roi8 = ADComponent(ROIStatNPlugin, "8:")
 
     # Other parameters
 
