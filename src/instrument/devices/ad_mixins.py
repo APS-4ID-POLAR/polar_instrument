@@ -12,6 +12,7 @@ from ophyd.areadetector.plugins import(
     HDF5Plugin_V34,
     ROIStatPlugin_V34,
     ROIStatNPlugin_V25,
+    AttributePlugin_V34,
 )
 from ophyd.areadetector.filestore_mixins import FileStoreBase
 from apstools.devices import CamMixin_V34
@@ -54,6 +55,10 @@ class ROIStatPlugin(PluginMixin, ROIStatPlugin_V34):
 
 
 class ROIStatNPlugin(PluginMixin, ROIStatNPlugin_V25):
+    """Remove property attribute found in AD IOCs now."""
+
+
+class AttributePlugin(PluginMixin, AttributePlugin_V34):
     """Remove property attribute found in AD IOCs now."""
 
 
