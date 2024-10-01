@@ -78,13 +78,13 @@ class Trigger(TriggerBase):
                                "Call the stage() method before triggering.")
 
         # Monitor timestamps
-        state_status = None
-        for i in range(1, self.cam.num_channels.get()+1):
-            _status = getattr(self, f'stats{i}')._status_done()
-            if state_status:
-                state_status = AndStatus(state_status, _status)
-            else:
-                state_status = _status
+        # state_status = None
+        # for i in range(1, self.cam.num_channels.get()+1):
+        #     _status = getattr(self, f'stats{i}')._status_done()
+        #     if state_status:
+        #         state_status = AndStatus(state_status, _status)
+        #     else:
+        #         state_status = _status
 
         # Click the Acquire_button
         self._acquire_status = self._status_type(self)
@@ -93,7 +93,7 @@ class Trigger(TriggerBase):
         if self.hdf1.enable.get() in (True, 1, "on", "Enable"):
             self.generate_datum(self._image_name, ttime(), {})
 
-        self._status = AndStatus(state_status, self._acquire_status)
+        # self._status = AndStatus(state_status, self._acquire_status)
         # return self._status
 
         return self._acquire_status
