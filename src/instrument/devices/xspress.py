@@ -42,6 +42,7 @@ class Trigger(TriggerBase):
         self._flysetup = False
         self._acquire_status = None
         self._delay = delay
+        self._collect_image = False
 
     def setup_manual_trigger(self):
         # Stage signals
@@ -57,6 +58,9 @@ class Trigger(TriggerBase):
         if self._flysetup:
             self.setup_external_trigger()
 
+        if self.hdf1.enable.get() in (True, 1, "on", "Enable"):
+            self._collect_image = True
+
         # Make sure that detector is not armed.
         self._acquisition_signal.set(0).wait(timeout=10)
         self._acquisition_signal.subscribe(self._acquire_changed)
@@ -71,8 +75,10 @@ class Trigger(TriggerBase):
         self._flysetup = False
         self.setup_manual_trigger()
         self._acquisition_signal.clear_sub(self._acquire_changed)
+        self._collect_image = False
 
     def trigger(self):
+        t0 = ttime()
         if self._staged != Staged.yes:
             raise RuntimeError("This detector is not ready to trigger."
                                "Call the stage() method before triggering.")
@@ -87,12 +93,14 @@ class Trigger(TriggerBase):
         #         state_status = _status
 
         # Click the Acquire_button
+        print("1-", ttime()-t0)
         self._acquire_status = self._status_type(self)
+        print("2-", ttime()-t0)
         self._acquisition_signal.put(1, wait=False)
-
-        if self.hdf1.enable.get() in (True, 1, "on", "Enable"):
+        print("3-", ttime()-t0)
+        if self._collect_image:
             self.generate_datum(self._image_name, ttime(), {})
-
+        print("4-", ttime()-t0)
         # self._status = AndStatus(state_status, self._acquire_status)
         # return self._status
 
