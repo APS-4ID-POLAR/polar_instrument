@@ -59,7 +59,7 @@ class Trigger(TriggerBase):
 
         # Make sure that detector is not armed.
         self._acquisition_signal.set(0).wait(timeout=10)
-        self._acquisition_signal.subscribe(self._acquire_changed)
+        # self._acquisition_signal.subscribe(self._acquire_changed)
         super().stage()
 
         if self._flysetup:
@@ -70,7 +70,7 @@ class Trigger(TriggerBase):
         self.cam.acquire.set(0).wait(timeout=10)
         self._flysetup = False
         self.setup_manual_trigger()
-        self._acquisition_signal.clear_sub(self._acquire_changed)
+        # self._acquisition_signal.clear_sub(self._acquire_changed)
 
     def trigger(self):
         if self._staged != Staged.yes:
