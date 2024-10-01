@@ -10,7 +10,6 @@ from time import time as ttime, sleep
 from .ad_mixins import (
     ROIPlugin,
     AttributePlugin,
-    ROIStatNPlugin,
     ROIStatPlugin,
     PolarHDF5Plugin,
     VortexDetectorCam,
@@ -140,50 +139,6 @@ class VortexROIStatPlugin(ROIStatPlugin):
     roi6 = Component(ROIStatN, "6:")
     roi7 = Component(ROIStatN, "7:")
     roi8 = Component(ROIStatN, "8:")
-
-    # roi1 = ADComponent(ROIStatNPlugin, "1:")
-    # roi2 = ADComponent(ROIStatNPlugin, "2:")
-    # roi3 = ADComponent(ROIStatNPlugin, "3:")
-    # roi4 = ADComponent(ROIStatNPlugin, "4:")
-    # roi5 = ADComponent(ROIStatNPlugin, "5:")
-    # roi6 = ADComponent(ROIStatNPlugin, "6:")
-    # roi7 = ADComponent(ROIStatNPlugin, "7:")
-    # roi8 = ADComponent(ROIStatNPlugin, "8:")
-
-    # Other parameters
-
-    # asyn_port = Component(EpicsSignalRO, "PortName_RBV")
-    # plugin_type = Component(EpicsSignalRO, "PluginType_RBV")
-    # nd_array_port = Component(EpicsSignalWithRBV, "NDArrayPort")
-    # nd_array_address = Component(EpicsSignalWithRBV, "NDArrayAddress")
-    # enable = Component(
-    #     EpicsSignalWithRBV, "EnableCallbacks", string=True, kind="config"
-    # )
-    # min_callback_time = Component(EpicsSignalWithRBV, "MinCallbackTime")
-    # blocking_callbacks = Component(
-    #     EpicsSignalWithRBV, "BlockingCallbacks", string=True, kind="config"
-    # )
-    # queue_free = Component(EpicsSignal, "QueueFree")
-    # array_counter = Component(EpicsSignalWithRBV, "ArrayCounter")
-    # array_rate = Component(EpicsSignalRO, "ArrayRate_RBV")
-
-    # dropped_arrays = Component(EpicsSignalWithRBV, "DroppedArrays")
-
-    # ndimensions = Component(EpicsSignalRO, "NDimensions_RBV")
-    # array_size0 = Component(EpicsSignalRO, "ArraySize0_RBV")
-    # array_size1 = Component(EpicsSignalRO, "ArraySize1_RBV")
-    # array_size2 = Component(EpicsSignalRO, "ArraySize2_RBV")
-
-    # data_type = Component(EpicsSignalRO, "DataType_RBV", string=True)
-    # color_mode = Component(EpicsSignalRO, "ColorMode_RBV")
-    # bayer_pattern = Component(EpicsSignalRO, "BayerPattern_RBV")
-
-    # unique_id = Component(EpicsSignalRO, "UniqueId_RBV")
-    # time_stamp = Component(EpicsSignalRO, "TimeStamp_RBV")
-
-    # array_callbacks = Component(
-    #     EpicsSignalWithRBV, "ArrayCallbacks", string=True, doc="0='Disable' 1='Enable'"
-    # )
 
     def _status_done(self):
 
