@@ -59,7 +59,7 @@ class Trigger(TriggerBase):
 
         # Make sure that detector is not armed.
         self._acquisition_signal.set(0).wait(timeout=10)
-        # self._acquisition_signal.subscribe(self._acquire_changed)
+        self._acquisition_signal.subscribe(self._acquire_changed)
         super().stage()
 
         if self._flysetup:
@@ -70,7 +70,7 @@ class Trigger(TriggerBase):
         self.cam.acquire.set(0).wait(timeout=10)
         self._flysetup = False
         self.setup_manual_trigger()
-        # self._acquisition_signal.clear_sub(self._acquire_changed)
+        self._acquisition_signal.clear_sub(self._acquire_changed)
 
     def trigger(self):
         if self._staged != Staged.yes:
@@ -95,17 +95,18 @@ class Trigger(TriggerBase):
 
         self._status = AndStatus(state_status, self._acquire_status)
         # return self._status
+
         return self._acquire_status
     
-    # def _acquire_changed(self, value=None, old_value=None, **kwargs):
-    #     "This is called when the 'acquire' signal changes."
-    #     if self._acquire_status is None:
-    #         return
-    #     if (old_value != 0) and (value == 0):
-    #         # Negative-going edge means an acquisition just finished.
-    #         sleep(self._delay)
-    #         self._acquire_status.set_finished()
-    #         self._acquire_status = None
+    def _acquire_changed(self, value=None, old_value=None, **kwargs):
+        "This is called when the 'acquire' signal changes."
+        if self._acquire_status is None:
+            return
+        if (old_value != 0) and (value == 0):
+            # Negative-going edge means an acquisition just finished.
+            sleep(self._delay)
+            self._acquire_status.set_finished()
+            self._acquire_status = None
 
 
 class ROIStatN(Device):
