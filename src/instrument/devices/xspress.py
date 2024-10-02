@@ -21,12 +21,18 @@ logger.info(__file__)
 
 __all__ = ["load_vortex"]
 
-
 # Bluesky and IOC have the same path root.
 # BLUESKY_FILES_ROOT = PurePath(iconfig["AREA_DETECTOR"]["VORTEX"]["BLUESKY_FILES_ROOT"])
 IOC_FILES_ROOT = Path(iconfig["AREA_DETECTOR"]["VORTEX"]["IOC_FILES_ROOT"])
-HDF1_NAME_FORMAT = Path(iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"])
+
+DEFAULT_FOLDER = Path(iconfig["AREA_DETECTOR"]["EIGER"]["DEFAULT_FOLDER"])
+
+HDF1_NAME_TEMPLATE = iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"]
+HDF1_FILE_EXTENSION = iconfig["AREA_DETECTOR"]["HDF5_FILE_EXTENSION"]
+HDF1_NAME_FORMAT = Path(HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION)
+
 MAX_IMAGES = 12000
+
 
 class Trigger(TriggerBase):
     """
@@ -241,7 +247,7 @@ class VortexDetector(Trigger, DetectorBase):
         # self.cam.stage_sigs.pop("wait_for_plugins")
 
         self.hdf1.file_template.put(HDF1_NAME_FORMAT)
-        self.hdf1.file_path.put(IOC_FILES_ROOT)
+        self.hdf1.file_path.put(DEFAULT_FOLDER)
         self.hdf1.num_capture.put(0)
 
         self.hdf1.stage_sigs.pop("enable")
@@ -266,22 +272,6 @@ class VortexDetector(Trigger, DetectorBase):
     def plot_roi1(self):
         # TODO: This is just temporary to have something.
         self.stats1.roi1.total_value.kind="hinted"
-
-    # def setup_images(
-    #         self, file_name_base, folder, name_template, file_number, flyscan=False
-    #     ):
-
-        # self.hdf1.file_name.set(f"{file_name_base}").wait()
-        # self.hdf1.file_path.set(folder).wait()
-        # self.hdf1.file_template.set(f"%s{name_template}.h5").wait()
-        # self.hdf1.file_number.set(file_number).wait()
-        
-        # # Make sure eiger will save image
-        # self.auto_save_on()
-        # # Changes the stage_sigs to the external trigger mode
-        # self._flysetup = flyscan
-
-        # return Path(self.hdf1.make_write_read_paths()[1])
 
     def setup_images(
             self, file_name_base, file_number, flyscan=False

@@ -22,9 +22,11 @@ logger.info(__file__)
 
 __all__ = ["load_eiger1m"]
 
-BLUESKY_FILES_ROOT = PurePath(iconfig["AREA_DETECTOR"]["BLUESKY_FILES_ROOT"])
-IOC_FILES_ROOT = PurePath(iconfig["AREA_DETECTOR"]["EIGER_1M"]["IOC_FILES_ROOT"])
-IMAGE_DIR = iconfig["AREA_DETECTOR"].get("IMAGE_DIR", "%Y/%m/%d/")
+DEFAULT_FOLDER = Path(iconfig["AREA_DETECTOR"]["EIGER"]["DEFAULT_FOLDER"])
+
+HDF1_NAME_TEMPLATE = iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"]
+HDF1_FILE_EXTENSION = iconfig["AREA_DETECTOR"]["HDF5_FILE_EXTENSION"]
+HDF1_NAME_FORMAT = Path(HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION)
 
 
 class TriggerTime(TriggerBase):
@@ -133,9 +135,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
 
     hdf1 = ADComponent(
         PolarHDF5Plugin,
-        "HDF1:",
-        write_path_template=f"{IOC_FILES_ROOT / IMAGE_DIR}/",
-        read_path_template=f"{BLUESKY_FILES_ROOT / IMAGE_DIR}/",
+        "HDF1:"
     )
 
     # Make this compatible with other detectors
@@ -174,7 +174,8 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.cam.trigger_mode.put("Internal Enable")
         self.cam.acquire.put(0)
 
-        self.hdf1.file_template.put("%s%s_%6.6d.h5")
+        self.hdf1.file_template.put(HDF1_NAME_FORMAT)
+        self.hdf1.file_path.put(DEFAULT_FOLDER)
         self.hdf1.num_capture.put(0)
 
         self.hdf1.stage_sigs.pop("enable")
@@ -188,14 +189,11 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.stats1.total.kind="hinted"
 
     def setup_images(
-            self, file_name_base, folder, name_template, file_number, flyscan=False
+            self, name_template, file_number, flyscan=False
         ):
 
-        self.hdf1.file_name.set(f"{file_name_base}").wait()
-        self.hdf1.file_path.set(folder).wait()
-        self.hdf1.file_template.set(f"%s{name_template}.h5").wait()
-        self.hdf1.file_number.set(file_number).wait()
-        
+        self.hdf1.file_number.set(file_number).wait(timeout=10)
+        self.hdf1.file_name.set(name_template).wait(timeout=10)       
         # Make sure eiger will save image
         self.auto_save_on()
         # Changes the stage_sigs to the external trigger mode

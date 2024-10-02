@@ -391,14 +391,11 @@ def flyscan_cycler(
         _base_path.mkdir()
 
     _scan_id = RE.md["scan_id"] + 1
-    # TODO: This is not a great solution. Can it be made more general?
-    _fname_format = HDF1_NAME_FORMAT.strip(".h5")
 
     # TODO: simplify
     # Master file
-    _master_fullpath = (
-        _base_path / ((_fname_format % (file_name_base, _scan_id)) + "_master.hdf")
-    )
+    _master_fullpath = HDF1_NAME_FORMAT % (str(_base_path), file_name_base, _scan_id)
+    _master_fullpath += "_master.hdf"
 
     # Setup area detectors
     _dets_file_paths = {}

@@ -16,7 +16,9 @@ from ..utils.config import iconfig
 from ..utils import logger
 logger.info(__file__)
 
-HDF1_NAME_FORMAT = Path(iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"])
+HDF1_NAME_TEMPLATE = iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"]
+HDF1_FILE_EXTENSION = iconfig["AREA_DETECTOR"]["HDF5_FILE_EXTENSION"]
+HDF1_NAME = Path(HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION)
 
 
 class PVASignal(Signal):
@@ -126,7 +128,7 @@ class PositionerStream(Device):
 		# Add the name of the device
 		path /= self.name
 
-		full_path = HDF1_NAME_FORMAT % (
+		full_path = HDF1_NAME % (
 			str(path), name_base, file_number
 		)
 
