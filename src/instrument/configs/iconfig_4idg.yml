@@ -42,12 +42,12 @@ AREA_DETECTOR:
     # TODO: switch to the Voyager-based path structure: "/gdata/..."
     HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
     EIGER_1M:
-        BLUESKY_FILES_ROOT: "/home/beams/POLAR/data/bluesky_images/eiger1M_test"
-        IOC_FILES_ROOT: "/home/beams/POLAR/data/bluesky_images/eiger1M_test"
+        BLUESKY_FILES_ROOT: "/gdata/dm/4IDD"
+        IOC_FILES_ROOT: "/gdata/dm/4IDD"
         ALLOW_PLUGIN_WARMUP: true
     VORTEX:
-        BLUESKY_FILES_ROOT: "/home/beams/POLAR/data/bluesky_images/vortex_test"
-        IOC_FILES_ROOT: "/net/s4data/export/sector4/4idd/bluesky_images/vortex_test"
+        BLUESKY_FILES_ROOT: "/net/s4data/export/sector4/4idd"
+        IOC_FILES_ROOT: "/net/s4data/export/sector4/4idd"
         ALLOW_PLUGIN_WARMUP: true
 
 # AREA_DETECTOR:
