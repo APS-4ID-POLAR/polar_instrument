@@ -18,7 +18,8 @@ from ..utils import iconfig, logger
 # from ..framework.initialize import RE
 logger.info(__file__)
 
-LAYOUT_VERSION = "APS-POLAR-2024-06"
+# LAYOUT_VERSION = "APS-POLAR-2024-06"
+LAYOUT_VERSION = "APS-POLAR-2024-10"
 NEXUS_RELEASE = "v2022.07"  # NeXus release to which this file is written
 
 
@@ -27,8 +28,8 @@ class MyNXWriter(NXWriterAPS):
     Modify the default behavior of NXWriter for XPCS.
     """
 
-    ad_file_name = None  # AD_full_file_name_local(adsimdet.hdf1)
-    position_file_name = None
+    externals = {}
+    # position_file_name = None
 
     def write_root(self, filename):
         super().write_root(filename)
@@ -47,19 +48,24 @@ class MyNXWriter(NXWriterAPS):
         # print(f"{nxentry=!r}")
         super().write_entry()
 
-        if self.ad_file_name is not None:
-            h5addr = "/entry/detectors/eiger"  # TODO: final location to be decided
+        for name, path in self.externals.items():
+            h5addr = f"/entry/externals/{name}"
             self.root[h5addr] = h5py.ExternalLink(
-                str(self.ad_file_name),
+                str(path),
                 "/entry/instrument",  # link to the image dataset
             )
       
-        if self.position_file_name is not None:
-            h5addr = "/entry/instrument/softglue"  # TODO: final location to be decided
-            self.root[h5addr] = h5py.ExternalLink(
-                str(self.position_file_name),
-                "/stream",  # link to the root of the file
-            )
+        # TODO: Positioner stream is treated as an area detector.
+        # if self.position_file_name is not None:
+        #     h5addr = "/entry/instrument/softglue"  # TODO: final location to be decided
+        #     self.root[h5addr] = h5py.ExternalLink(
+        #         str(self.position_file_name),
+        #         "/stream",  # link to the root of the file
+        #     )
+        
+        # TODO: Do they need to be reset!?
+        self.externals = {}
+        # self.position_file_name = None
 
 
 nxwriter = MyNXWriter()  # create the callback instance

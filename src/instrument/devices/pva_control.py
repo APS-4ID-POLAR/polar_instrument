@@ -113,6 +113,22 @@ class PositionerStream(Device):
 		super().stop(**kwargs)
 		self.stop_signal()
 
+	def setup_images(
+            self, file_name_base, folder, name_template, file_number, flyscan=False
+        ):
+
+		# Setup positioner stream
+		if not folder.is_dir():
+			folder.mkdir()
+
+		_ps_fname = (name_template + ".h5") % (file_name_base, file_number)
+
+		# Setup path and file name in positioner_stream
+		self.file_path.put(str(folder))
+		self.file_name.put(_ps_fname)
+
+		return folder / _ps_fname
+
 
 positioner_stream = PositionerStream("", name="positioner_stream")
 sd.baseline.append(positioner_stream)
