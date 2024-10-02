@@ -137,8 +137,12 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
             )
 
     def make_write_read_paths(self):
+        # This will generate the folder name and the full path.
+        # - Folder is either determined by data management, or just use the one in
+        # EPICS.
+        # - File name uses everything from EPICS (template, base name and file number).
 
-        # Setting up the path and base name.
+        # Setting up the path.
         # If not using DM, it will simply take the values from EPICS!!
         if self.use_dm:
             # Get the path name from data management.
@@ -149,21 +153,21 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
                 path = Path(self._ioc_path_root) / relative_path
             #self.file_path.set(str(path)).wait(timeout=10)
 
-            # Use the sample metadata as base name
-            file_name = RE.md["sample"]
+            # Add the sample name from metadata to the folder.
+            path /= RE.md["sample"]
+            path /= self.parent.name
         else:
             path = self.file_path.get()
-            file_name = self.file_name.get()
 
         # Create full path based on EPICS file template - assumes some sort of
         # %s%s_5.5%d.h5 format
         full_path = self.file_template.get() % (
             str(path) + "/",
-            file_name,
+            self.file_name.get(),
             int(self.file_number.get())
         )
 
-        return str(path), file_name, full_path
+        return str(path), full_path
 
     def stage(self):
 
