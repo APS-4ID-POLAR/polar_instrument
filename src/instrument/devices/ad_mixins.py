@@ -1,6 +1,6 @@
 """ AD mixins """
 
-from ophyd import ADComponent, EpicsSignal, Signal
+from ophyd import ADComponent, EpicsSignal, Signal, Component
 from ophyd.areadetector import EigerDetectorCam, Xspress3DetectorCam, EpicsSignalWithRBV
 from ophyd.areadetector.plugins import(
     PluginBase_V34,
@@ -85,7 +85,8 @@ class EigerDetectorCam(CamMixin_V34, EigerDetectorCam):
 
 
 class VortexDetectorCam(CamMixin_V34, Xspress3DetectorCam):
-    trigger_mode = ADComponent(EpicsSignalWithRBV, "TriggerMode", kind="config")
+    trigger_mode = Component(EpicsSignalWithRBV, "TriggerMode", kind="config")
+    erase_on_start = Component(EpicsSignal, "EraseOnStart", string=True, kind="config")
 
     # Removed
     offset = None

@@ -251,6 +251,8 @@ class VortexDetector(Trigger, DetectorBase):
         self.save_images_off()
         self.plot_roi1()
 
+        self.cam.stage_sigs["erase_on_start"] = "No"
+
         for component in "sca1 sca2 sca3 sca4".split():
             getattr(self, component).stage_sigs["blocking_callbacks"] = "Yes"
 
