@@ -8,9 +8,15 @@ __all__ = ["positioner_stream"]
 from pvapy import Channel
 from ophyd import Device, Signal, Component
 from ophyd.status import Status
-from ..utils.run_engine import sd
+from pathlib import Path
+from .data_management import dm_experiment
+from ..utils.dm_utils import dm_get_experiment_data_path
+from ..utils.run_engine import sd, RE
+from ..utils.config import iconfig
 from ..utils import logger
 logger.info(__file__)
+
+HDF1_NAME_FORMAT = Path(iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"])
 
 
 class PVASignal(Signal):
@@ -113,21 +119,37 @@ class PositionerStream(Device):
 		super().stop(**kwargs)
 		self.stop_signal()
 
+	def setup_file_path_name(self, name_base, file_number):
+		path = Path(dm_get_experiment_data_path(dm_experiment.get()))
+		# Add the sample name from metadata to the folder.
+		path /= RE.md["sample"]
+		# Add the name of the device
+		path /= self.name
+
+		full_path = HDF1_NAME_FORMAT % (
+			str(path), name_base, file_number
+		)
+
+		return path, full_path
+
+
 	def setup_images(
-            self, file_name_base, folder, name_template, file_number, flyscan=False
+            self, name_base, file_number, flyscan=False
         ):
+
+		folder, full_path = self.setup_file_path_name(name_base, file_number)
 
 		# Setup positioner stream
 		if not folder.is_dir():
 			folder.mkdir()
 
-		_ps_fname = (name_template + ".h5") % (file_name_base, file_number)
+		_ps_fname = folder.relative_to(full_path)
 
 		# Setup path and file name in positioner_stream
 		self.file_path.put(str(folder))
-		self.file_name.put(_ps_fname)
+		self.file_name.put(str(_ps_fname))
 
-		return folder / _ps_fname
+		return full_path
 
 
 positioner_stream = PositionerStream("", name="positioner_stream")
