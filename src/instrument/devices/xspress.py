@@ -284,10 +284,11 @@ class VortexDetector(Trigger, DetectorBase):
         # return Path(self.hdf1.make_write_read_paths()[1])
 
     def setup_images(
-            self, file_number, flyscan=False
+            self, file_name_base, file_number, flyscan=False
         ):
 
-        self.hdf1.file_number.set(file_number).wait()
+        self.hdf1.file_name.set(file_name_base).wait(timeout=10)
+        self.hdf1.file_number.set(file_number).wait(timeout=10)
         self.auto_save_on()
         self._flysetup = flyscan
 
