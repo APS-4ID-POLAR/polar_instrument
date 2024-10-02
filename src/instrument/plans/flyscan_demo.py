@@ -19,14 +19,16 @@ from ..devices.pva_control import positioner_stream
 from ..devices.softgluezynq import sgz
 from ..devices.data_management import dm_experiment, dm_workflow
 from ..utils import logger
+from ..utils.config import iconfig
 from ..utils.run_engine import RE
 from ..utils.catalog import cat
 from ..callbacks import nxwriter
 from ..utils import dm_get_experiment_data_path
 logger.info(__file__)
 
-
 __all__ = "flyscan_snake flyscan_1d flyscan_cycler".split()
+
+HDF1_NAME_FORMAT = Path(iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"])
 
 
 def flyscan_snake(
@@ -389,7 +391,8 @@ def flyscan_cycler(
         _base_path.mkdir()
 
     _scan_id = RE.md["scan_id"] + 1
-    _fname_format = "%s_%6.6d"
+    # TODO: This is not a great solution. Can it be made more general?
+    _fname_format = HDF1_NAME_FORMAT.strip(".h5")
 
     # TODO: simplify
     # Master file
@@ -400,38 +403,11 @@ def flyscan_cycler(
     # Setup area detectors
     _dets_file_paths = {}
     for det in list(detectors) + [positioner_stream]:
-        _folder = _base_path / det.name
         _setup_images = getattr(det, "setup_images", None)
         if _setup_images:
             _dets_file_paths[det.name] = _setup_images(
-                    file_name_base, _folder, _fname_format, _scan_id, flyscan=True
+                file_name_base, _scan_id, flyscan=True
             )
-
-    # This is all going in the detector itself.
-    # _eiger_folder = _base_path / "eiger"
-    # TODO: For now we assume the eiger is the first detector
-    # _eig = detectors[0]
-    # _eig.hdf1.file_name.set(f"{file_name_base}").wait()
-    # _eig.hdf1.file_path.set(_eiger_folder).wait()
-    # _eig.hdf1.file_template.set(f"%s{_fname_format}.h5").wait()
-    # _eig.hdf1.file_number.set(_scan_id).wait()
-    # _eiger_fullpath = Path(detectors[0].hdf1.make_write_read_paths()[1])
-    # Make sure eiger will save image
-    # detectors[0].auto_save_on()
-    # Changes the stage_sigs to the external trigger mode
-    # detectors[0]._flysetup = True
-    
-    # Setup positioner stream
-    # _ps_folder = _base_path / "positioner_stream"
-    # if not _ps_folder.is_dir():
-    #     _ps_folder.mkdir()
-
-    # _ps_fname = (_fname_format + ".h5") % (file_name_base, _scan_id)
-    # _ps_fullpath = _ps_folder / _ps_fname
-
-    # Setup path and file name in positioner_stream
-    # positioner_stream.file_path.put(str(_ps_folder))
-    # positioner_stream.file_name.put(_ps_fname)
 
     # Check if any of these files exists
     # for _fname in [_master_fullpath, _ps_fullpath] + list(_dets_file_paths.values()):
@@ -449,12 +425,9 @@ def flyscan_cycler(
     _rel_dets_paths = {}
     for _name, _path in _dets_file_paths.items():
         _rel_dets_paths[_name] = _path.relative_to(_base_path)
-    # _rel_eiger_path = _eiger_fullpath.relative_to(_base_path)
-    # _rel_ps_path = _ps_fullpath.relative_to(_base_path)
 
     # Sets the file names
     nxwriter.externals = _rel_dets_paths
-    # nxwriter.position_file_name = str(_rel_ps_path)
     nxwriter.file_name = str(_master_fullpath)
     nxwriter.file_path = str(_base_path)
 
@@ -465,7 +438,6 @@ def flyscan_cycler(
     #     ["/entry/eiger_file_path=", str(_rel_eiger_path)],
     #     ["/entry/softglue_file_path=", str(_rel_ps_path)],
     # ]
-
     md[nxwriter.template_key] = dumps(master_file_templates)  # <-- adds the templates
 
     nxwriter.warn_on_missing_content = nxwriter_warn_missing
@@ -551,7 +523,7 @@ def flyscan_cycler(
         yield from mv(det.preset_monitor, detector_collection_time)
 
     # Stop and reset softglue just in case
-    yield from sgz.stop_eiger()
+    yield from sgz.stop_detectors()
     yield from sgz.stop_softglue()
     yield from sgz.reset_plan()
 
@@ -588,13 +560,11 @@ def flyscan_cycler(
         yield from mv(positioner_stream, 1)
         yield from sgz.start_softglue()
 
-        yield from sgz.start_eiger()
-        # yield from mv(detectors[0].cam.acquire, 1)
+        yield from sgz.start_detectors()
         pos_cache = defaultdict(lambda: None)
         for step in list(cycler):
             yield from move_per_step(step, pos_cache)
-        # yield from mv(detectors[0].cam.acquire, 0)
-        yield from sgz.stop_eiger()
+        yield from sgz.stop_detectors()
 
         # This will wait for a full new set of packets.
         # TODO: It's an overkill, maybe Keenan's code can broadcast a signal?
