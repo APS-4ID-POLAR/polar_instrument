@@ -1,11 +1,10 @@
 """ Eiger 1M setup """
 
 from ophyd import ADComponent, Staged, Component, EpicsSignalRO, Device, EpicsSignal
-from ophyd.status import Status, AndStatus
+from ophyd.status import Status
 from ophyd.areadetector import DetectorBase, EpicsSignalWithRBV
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
-from apstools.utils import run_in_thread
-from pathlib import PurePath
+from pathlib import Path
 from time import time as ttime, sleep
 from .ad_mixins import (
     ROIPlugin,
@@ -22,9 +21,11 @@ logger.info(__file__)
 
 __all__ = ["load_vortex"]
 
-BLUESKY_FILES_ROOT = PurePath(iconfig["AREA_DETECTOR"]["VORTEX"]["BLUESKY_FILES_ROOT"])
-IOC_FILES_ROOT = PurePath(iconfig["AREA_DETECTOR"]["VORTEX"]["IOC_FILES_ROOT"])
-HDF1_NAME_FORMAT = PurePath(iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"])
+
+# Bluesky and IOC have the same path root.
+# BLUESKY_FILES_ROOT = PurePath(iconfig["AREA_DETECTOR"]["VORTEX"]["BLUESKY_FILES_ROOT"])
+IOC_FILES_ROOT = Path(iconfig["AREA_DETECTOR"]["VORTEX"]["IOC_FILES_ROOT"])
+HDF1_NAME_FORMAT = Path(iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"])
 MAX_IMAGES = 12000
 
 class Trigger(TriggerBase):
@@ -200,8 +201,7 @@ class VortexDetector(Trigger, DetectorBase):
     hdf1 = ADComponent(
         PolarHDF5Plugin,
         "HDF1:",
-        write_path_template=f"{IOC_FILES_ROOT}/",
-        read_path_template=f"{BLUESKY_FILES_ROOT}/",
+        ioc_path_root=IOC_FILES_ROOT,
     )
 
     # Make this compatible with other detectors
@@ -267,13 +267,10 @@ class VortexDetector(Trigger, DetectorBase):
         # TODO: This is just temporary to have something.
         self.stats1.roi1.total_value.kind="hinted"
 
-    def setup_images(
-            self, file_name_base, folder, name_template, file_number, flyscan=False
-        ):
+    # def setup_images(
+    #         self, file_name_base, folder, name_template, file_number, flyscan=False
+    #     ):
 
-        # TODO: How to convert the file_name_base into a folder that xspress can access?
-
-        return None
         # self.hdf1.file_name.set(f"{file_name_base}").wait()
         # self.hdf1.file_path.set(folder).wait()
         # self.hdf1.file_template.set(f"%s{name_template}.h5").wait()
@@ -285,6 +282,16 @@ class VortexDetector(Trigger, DetectorBase):
         # self._flysetup = flyscan
 
         # return Path(self.hdf1.make_write_read_paths()[1])
+
+    def setup_images(
+            self, file_number, flyscan=False
+        ):
+
+        self.hdf1.file_number.set(file_number).wait()
+        self.auto_save_on()
+        self._flysetup = flyscan
+
+        return Path(self.hdf1.make_write_read_paths()[-1])
 
 
 def load_vortex(prefix="S4QX4:"):

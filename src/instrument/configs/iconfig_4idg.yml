@@ -76,6 +76,8 @@ SPEC_DATA_FILES:
 ### APS Data Management
 ### Use bash shell, deactivate all conda environments, source this file:
 DM_SETUP_FILE: "/home/dm/etc/dm.setup.sh"
+DM_ROOT_PATH: "/gdata/dm/4IDD"
+DM_USE_PATH: true
 
 # ----------------------------------
 

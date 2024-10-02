@@ -123,11 +123,24 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
         self._use_dm = USE_DM_PATH
         self._ioc_path_root = ioc_path_root
 
+    @property
+    def use_dm(self):
+        return self._use_dm
+
+    @use_dm.setter
+    def use_dm(self, value):
+        if isinstance(value, bool):
+            self._use_dm = value
+        else:
+            raise ValueError(
+                f"use_dm must be set to True or False, but {value} was entered."
+            )
+
     def make_write_read_paths(self):
 
         # Setting up the path and base name.
         # If not using DM, it will simply take the values from EPICS!!
-        if USE_DM_PATH:
+        if self.use_dm:
             # Get the path name from data management.
             path = Path(dm_get_experiment_data_path(dm_experiment.get()))
             # But the IOC may not be able to direcly write to the DM folder.
