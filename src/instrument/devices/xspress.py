@@ -29,7 +29,7 @@ DEFAULT_FOLDER = Path(iconfig["AREA_DETECTOR"]["VORTEX"]["DEFAULT_FOLDER"])
 
 HDF1_NAME_TEMPLATE = iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"]
 HDF1_FILE_EXTENSION = iconfig["AREA_DETECTOR"]["HDF5_FILE_EXTENSION"]
-HDF1_NAME_FORMAT = Path(HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION)
+HDF1_NAME_FORMAT = HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION
 
 MAX_IMAGES = 12000
 
@@ -247,7 +247,7 @@ class VortexDetector(Trigger, DetectorBase):
         # self.cam.stage_sigs.pop("wait_for_plugins")
 
         self.hdf1.file_template.put(HDF1_NAME_FORMAT)
-        self.hdf1.file_path.put(DEFAULT_FOLDER)
+        self.hdf1.file_path.put(str(DEFAULT_FOLDER))
         self.hdf1.num_capture.put(0)
 
         self.hdf1.stage_sigs.pop("enable")

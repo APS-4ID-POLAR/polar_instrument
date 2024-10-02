@@ -26,7 +26,7 @@ DEFAULT_FOLDER = Path(iconfig["AREA_DETECTOR"]["EIGER"]["DEFAULT_FOLDER"])
 
 HDF1_NAME_TEMPLATE = iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"]
 HDF1_FILE_EXTENSION = iconfig["AREA_DETECTOR"]["HDF5_FILE_EXTENSION"]
-HDF1_NAME_FORMAT = Path(HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION)
+HDF1_NAME_FORMAT = HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION
 
 
 class TriggerTime(TriggerBase):
@@ -175,7 +175,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.cam.acquire.put(0)
 
         self.hdf1.file_template.put(HDF1_NAME_FORMAT)
-        self.hdf1.file_path.put(DEFAULT_FOLDER)
+        self.hdf1.file_path.put(str(DEFAULT_FOLDER))
         self.hdf1.num_capture.put(0)
 
         self.hdf1.stage_sigs.pop("enable")
