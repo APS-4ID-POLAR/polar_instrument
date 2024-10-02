@@ -263,12 +263,6 @@ class VortexDetector(Trigger, DetectorBase):
         for component in "sca1 sca2 sca3 sca4".split():
             getattr(self, component).stage_sigs["blocking_callbacks"] = "Yes"
 
-        for nm in self.component_names:
-            block = "Yes" if "sca" in nm else "No"
-            obj = getattr(self, nm)
-            if "blocking_callbacks" in dir(obj):
-                obj.stage_sigs["blocking_callbacks"] = block
-
     def plot_roi1(self):
         # TODO: This is just temporary to have something.
         self.stats1.roi1.total_value.kind="hinted"
