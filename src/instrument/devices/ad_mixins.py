@@ -20,8 +20,17 @@ from os.path import isfile
 from itertools import count
 from time import sleep
 from collections import OrderedDict
+from pathlib import Path
+from .data_management import dm_experiment
+from ..utils.run_engine import RE
+from ..utils.config import iconfig
+from ..utils.dm_utils import dm_get_experiment_data_path
 from ..utils import logger
 logger.info(__file__)
+
+
+USE_DM_PATH = iconfig["DM_USE_PATH"]
+DM_ROOT_PATH = iconfig["DM_ROOT_PATH"]
 
 
 class PluginMixin(PluginBase_V34):
@@ -96,7 +105,7 @@ class VortexDetectorCam(CamMixin_V34, Xspress3DetectorCam):
 
 class FileStorePluginBaseEpicsName(FileStoreBase):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, ioc_path_root=None, **kwargs):
         super().__init__(*args, **kwargs)
         if hasattr(self, "create_directory"):
             self.stage_sigs.update({"create_directory": -3})
@@ -111,32 +120,37 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
         # This is needed if you want to start bluesky and run a no-image scan first.
         self._fn = None
         self._fp = None
+        self._use_dm = USE_DM_PATH
+        self._ioc_path_root = ioc_path_root
 
-    # This is the part to change if a different file scheme is chosen.
     def make_write_read_paths(self):
-        # Folders - this allows for using dates for folders, but we won't use it for now
-        # formatter = datetime.now().strftime
-        # write_path = formatter(self.write_path_template)
-        # read_path = formatter(self.read_path_template)
 
-        # Folders - uses whatever is defined in epics.
-        write_path = self.file_path.get()
-        read_path = write_path
+        # Setting up the path and base name.
+        # If not using DM, it will simply take the values from EPICS!!
+        if USE_DM_PATH:
+            # Get the path name from data management.
+            path = Path(dm_get_experiment_data_path(dm_experiment.get()))
+            # But the IOC may not be able to direcly write to the DM folder.
+            if self._ioc_path_root:
+                relative_path = path.relative_to(DM_ROOT_PATH)
+                path = Path(self._ioc_path_root) / relative_path
+            #self.file_path.set(str(path)).wait(timeout=10)
 
-        # File name -- assumes some sort of %s%s_5.5%d.h5 format
-        file_read = self.file_template.get() % (
-            read_path,
-            self.file_name.get(),
+            # Use the sample metadata as base name
+            file_name = RE.md["sample"]
+        else:
+            path = self.file_path.get()
+            file_name = self.file_name.get()
+
+        # Create full path based on EPICS file template - assumes some sort of
+        # %s%s_5.5%d.h5 format
+        full_path = self.file_template.get() % (
+            str(path) + "/",
+            file_name,
             int(self.file_number.get())
         )
 
-        file_write = self.file_template.get() % (
-            write_path + "/",
-            self.file_name.get(),
-            int(self.file_number.get())
-        )
-
-        return write_path, file_write, read_path, file_read
+        return str(path), file_name, full_path
 
     def stage(self):
 
@@ -146,23 +160,26 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
             if self.file_write_mode.get(as_string=True) != "Single":
                 self.capture.set(0).wait()
             
-            write_path, file_write, read_path, file_read = self.make_write_read_paths()
+            path, file_name, full_path = self.make_write_read_paths()
 
-            if isfile(file_write):
+            if isfile(full_path):
                 raise OSError(
-                    f"{file_write} already exists! Cannot overwrite it, so please "
+                    f"{full_path} already exists! Cannot overwrite it, so please "
                     "change the file name."
                 )
 
-            self.file_path.set(write_path).wait()
-            super().stage()
-
-            self._fn = file_read
-            self._fp = read_path
             if not self.file_path_exists.get():
                 raise IOError(
-                    "Path %s does not exist on IOC." "" % self.file_path.get()
+                    f"Path {self.file_path.get()} does not exist on IOC."
                 )
+
+            self.file_path.set(path).wait(timeout=10)
+            self.file_path.set(file_name).wait(timeout=10)
+
+            super().stage()
+
+            self._fn = full_path
+            self._fp = full_path
 
 
 class FileStoreHDF5IterativeWriteEpicsName(FileStorePluginBaseEpicsName):
