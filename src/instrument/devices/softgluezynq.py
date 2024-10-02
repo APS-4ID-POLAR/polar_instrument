@@ -71,10 +71,10 @@ class SoftGlueZynqDevice(Device):
     def stop_softglue(self):
         yield from mv(self.buffers.in4, "0")
 
-    def start_eiger(self):
+    def start_detectors(self):
         yield from mv(self.buffers.in2, "1")
 
-    def stop_eiger(self):
+    def stop_detectors(self):
         yield from mv(self.buffers.in2, "0")
 
     def reset_plan(self):
