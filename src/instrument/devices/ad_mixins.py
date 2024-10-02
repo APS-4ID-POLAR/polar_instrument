@@ -177,7 +177,7 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
             if self.file_write_mode.get(as_string=True) != "Single":
                 self.capture.set(0).wait()
             
-            path, file_name, full_path = self.make_write_read_paths()
+            path, full_path = self.make_write_read_paths()
 
             if isfile(full_path):
                 raise OSError(
@@ -191,7 +191,6 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
                 )
 
             self.file_path.set(path).wait(timeout=10)
-            self.file_path.set(file_name).wait(timeout=10)
 
             super().stage()
 
