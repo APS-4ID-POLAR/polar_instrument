@@ -248,6 +248,15 @@ class VortexDetector(Trigger, DetectorBase):
         self.save_images_off()
         self.plot_roi1()
 
+        for component in "sca1 sca2 sca3 sca4".split():
+            getattr(self, component).stage_sigs["blocking_callbacks"] = "Yes"
+
+        for nm in self.component_names:
+            block = "Yes" if "sca" in nm else "No"
+            obj = getattr(self, nm)
+            if "blocking_callbacks" in dir(obj):
+                obj.stage_sigs["blocking_callbacks"] = block
+
     def plot_roi1(self):
         # TODO: This is just temporary to have something.
         self.stats1.roi1.total_value.kind="hinted"
@@ -292,14 +301,6 @@ def load_vortex(prefix="S4QX4:"):
         # fmt: on
 
     else:
-        # just in case these things are not defined in the class source code
-        # detector.cam.stage_sigs["wait_for_plugins"] = "Yes"
-        for nm in detector.component_names:
-            block = "Yes" if "sca" in nm else "No"
-            obj = getattr(detector, nm)
-            if "blocking_callbacks" in dir(obj):
-                obj.stage_sigs["blocking_callbacks"] = block
-
         prime = iconfig.get("AREA_DETECTOR", {}).get("VORTEX", {})
         if prime.get("ALLOW_PLUGIN_WARMUP", False):
             if detector.connected:
