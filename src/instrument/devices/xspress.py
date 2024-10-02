@@ -24,7 +24,7 @@ __all__ = ["load_vortex"]
 
 BLUESKY_FILES_ROOT = PurePath(iconfig["AREA_DETECTOR"]["VORTEX"]["BLUESKY_FILES_ROOT"])
 IOC_FILES_ROOT = PurePath(iconfig["AREA_DETECTOR"]["VORTEX"]["IOC_FILES_ROOT"])
-IMAGE_DIR = iconfig["AREA_DETECTOR"].get("IMAGE_DIR", "%Y/%m/%d/")
+HDF1_NAME_FORMAT = PurePath(iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"])
 MAX_IMAGES = 12000
 
 class Trigger(TriggerBase):
@@ -200,8 +200,8 @@ class VortexDetector(Trigger, DetectorBase):
     hdf1 = ADComponent(
         PolarHDF5Plugin,
         "HDF1:",
-        write_path_template=f"{IOC_FILES_ROOT / IMAGE_DIR}/",
-        read_path_template=f"{BLUESKY_FILES_ROOT / IMAGE_DIR}/",
+        write_path_template=f"{IOC_FILES_ROOT}/",
+        read_path_template=f"{BLUESKY_FILES_ROOT}/",
     )
 
     # Make this compatible with other detectors
@@ -240,7 +240,8 @@ class VortexDetector(Trigger, DetectorBase):
         self.cam.acquire.put(0)
         # self.cam.stage_sigs.pop("wait_for_plugins")
 
-        self.hdf1.file_template.put("%s%s_%6.6d.h5")
+        self.hdf1.file_template.put(HDF1_NAME_FORMAT)
+        self.hdf1.file_path.put(IOC_FILES_ROOT)
         self.hdf1.num_capture.put(0)
 
         self.hdf1.stage_sigs.pop("enable")
