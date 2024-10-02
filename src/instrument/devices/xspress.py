@@ -55,6 +55,9 @@ class Trigger(TriggerBase):
         self.cam.stage_sigs["num_images"] = MAX_IMAGES
 
     def stage(self):
+
+        self.cam.erase.set(1).wait(timeout=10)
+
         if self._flysetup:
             self.setup_external_trigger()
 
