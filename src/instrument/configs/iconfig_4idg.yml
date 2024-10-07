@@ -40,7 +40,7 @@ RUN_ENGINE:
 
 AREA_DETECTOR:
     # TODO: switch to the Voyager-based path structure: "/gdata/..."
-    HDF5_FILE_TEMPLATE: "%s%s_%6.6d"
+    HDF5_FILE_TEMPLATE: "%s/%s_%6.6d"
     HDF5_FILE_EXTENSION: h5
     EIGER_1M:
         # BLUESKY_FILES_ROOT: /gdata/dm/4IDD/  # forced to be the same

@@ -145,7 +145,7 @@ class PositionerStream(Device):
 		if not folder.is_dir():
 			folder.mkdir()
 
-		_ps_fname = folder.relative_to(full_path)
+		_ps_fname = full_path.relative_to(folder)
 
 		# Setup path and file name in positioner_stream
 		self.file_path.put(str(folder))
