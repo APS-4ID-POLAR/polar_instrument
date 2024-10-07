@@ -74,7 +74,7 @@ class SoftGlueZynqDevice(Device):
     div_by_n_trigger = Component(SoftGlueZynqDevideByN, "SG:DivByN-2_", kind="config")
 
     # Create a gate pulse
-    gate_trigger = Component(SoftGlueZynqGateDly, "GateDly-1_", kind="config")
+    gate_trigger = Component(SoftGlueZynqGateDly, "SG:GateDly-1_", kind="config")
 
     def __init__(self, *args, reset_sleep_time=0.2, reference_clock=1e7, **kwargs):
         super().__init__(*args, **kwargs)
