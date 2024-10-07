@@ -12,6 +12,9 @@ if iconfig.get("STATION") == "4idg":
     from .simulated_detector import simdet
     from .polar_diffractometer import polar, polar_psi
     from .xspress import load_vortex
+    from .nanopositioner import diff_nano
+    from .softgluezynq import sgz
+    from .pva_control import positioner_stream
 elif iconfig.get("STATION") == "raman":
     from .sample_stage import sx, sy, sz
     from .ventus_laser import laser
