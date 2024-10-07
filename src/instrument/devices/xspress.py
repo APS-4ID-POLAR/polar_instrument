@@ -55,11 +55,15 @@ class Trigger(TriggerBase):
         # Stage signals
         self.cam.stage_sigs["trigger_mode"] = "Internal"
         self.cam.stage_sigs["num_images"] = 1
+        for component in "sca1 sca2 sca3 sca4".split():
+            getattr(self, component).stage_sigs["blocking_callbacks"] = "Yes"
 
     def setup_external_trigger(self):
         # Stage signals
         self.cam.stage_sigs["trigger_mode"] = "TTL Veto Only"
         self.cam.stage_sigs["num_images"] = MAX_IMAGES
+        for component in "sca1 sca2 sca3 sca4".split():
+            getattr(self, component).stage_sigs["blocking_callbacks"] = "No"
 
     def stage(self):
 
@@ -260,8 +264,10 @@ class VortexDetector(Trigger, DetectorBase):
 
         self.cam.stage_sigs["erase_on_start"] = "No"
 
-        for component in "sca1 sca2 sca3 sca4".split():
-            getattr(self, component).stage_sigs["blocking_callbacks"] = "Yes"
+        # for component in "sca1 sca2 sca3 sca4".split():
+        #     getattr(self, component).stage_sigs["blocking_callbacks"] = "No"
+        for component in self.component_names:
+            getattr(self, component).stage_sigs["blocking_callbacks"] = "No"
 
     def plot_roi1(self):
         # TODO: This is just temporary to have something.
