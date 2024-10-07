@@ -515,9 +515,9 @@ def flyscan_cycler(
 
     logger.info("Setting up devices.")
 
-    # Setup detectors count time
-    for det in detectors:
-        yield from mv(det.preset_monitor, detector_collection_time)
+    # Setup detectors count time --> detector is now gated.
+    # for det in detectors:
+    #     yield from mv(det.preset_monitor, detector_collection_time)
 
     # Stop and reset softglue just in case
     yield from sgz.stop_detectors()
@@ -528,9 +528,9 @@ def flyscan_cycler(
     yield from mv(positioner_stream, 0)
 
     # Setup the eiger frequency
-    yield from sgz.setup_eiger_trigger_plan(detector_trigger_period)
-    # TODO: Should we change the speed of the interferometer?
-    # yield from sgz.setup_interf_trigger_plan(trigger_time/1000)
+    yield from sgz.setup_trigger_plan(
+        detector_trigger_period, detector_collection_time
+    )
 
     logger.info("Moving motors to the start position.")
 

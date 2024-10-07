@@ -51,19 +51,35 @@ class SoftGlueZynqUpCounter(Device):
     counts = Component(EpicsSignalRO, "COUNTS", kind="config")
 
 
+class SoftGlueZynqGateDly(Device):
+    in_signal = Component(EpicsSignal, "IN_Signal", kind="config")
+    clock_signal = Component(EpicsSignal, "CLK_Signal", kind="config")
+    delay = Component(EpicsSignal, "DLY", kind="config")
+    width = Component(EpicsSignal, "WIDTH", kind="config")
+    out_signal = Component(EpicsSignal, "OUT_Signal", kind="config")
+
+
 class SoftGlueZynqDevice(Device):
     dma = DynamicDeviceComponent(_dma_fields())
     buffers = DynamicDeviceComponent(_buffer_fields())
-    # Using channel #1 of up counter
-    up_counter_interf = Component(SoftGlueZynqUpCounter, "SG:UpCntr-1_", kind="config")
-    up_counter_eiger = Component(SoftGlueZynqUpCounter, "SG:UpCntr-2_", kind="config")
-    # Using the channel #3 of divide by N
-    div_by_n_interf = Component(SoftGlueZynqDevideByN, "SG:DivByN-1_", kind="config")
-    div_by_n_eiger = Component(SoftGlueZynqDevideByN, "SG:DivByN-2_", kind="config")
 
-    def __init__(self, *args, **kwargs):
+    # Using channel #4 to count when the gate is off.
+    up_counter_interf = Component(SoftGlueZynqUpCounter, "SG:UpCntr-1_", kind="config")
+    up_counter_trigger = Component(SoftGlueZynqUpCounter, "SG:UpCntr-2_", kind="config")
+    up_counter_gate_on = Component(SoftGlueZynqUpCounter, "SG:UpCntr-3_", kind="config")
+    up_counter_gate_off = Component(SoftGlueZynqUpCounter, "SG:UpCntr-4_", kind="config")
+
+    # Setup the frequency of the interferometer and trigger based on 10 MHz clock.
+    div_by_n_interf = Component(SoftGlueZynqDevideByN, "SG:DivByN-1_", kind="config")
+    div_by_n_trigger = Component(SoftGlueZynqDevideByN, "SG:DivByN-2_", kind="config")
+
+    # Create a gate pulse
+    gate_trigger = Component(SoftGlueZynqGateDly, "GateDly-1_", kind="config")
+
+    def __init__(self, *args, reset_sleep_time=0.2, reference_clock=1e7, **kwargs):
         super().__init__(*args, **kwargs)
-        self._reset_sleep_time = 0.2
+        self._reset_sleep_time = reset_sleep_time
+        self._reference_clock = reference_clock
 
     def start_softglue(self):
         yield from mv(self.buffers.in4, "1")
@@ -82,13 +98,15 @@ class SoftGlueZynqDevice(Device):
         yield from sleep(self._reset_sleep_time)
         yield from mv(self.buffers.in1, "0")
 
-    def setup_eiger_trigger_plan(self, time):
-        # We are using the 10 MHz clock as a refence
-        yield from mv(self.div_by_n_eiger.n, 1e7/(1/time))
+    def setup_trigger_plan(self, period_time, pulse_width_time, pulse_delay_time=0):
+        yield from mv(
+            self.div_by_n_trigger.n, self._reference_clock*period_time,
+            self.gate_trigger.delay, self._reference_clock*pulse_delay_time,
+            self.gate_trigger.width, self._reference_clock*pulse_width_time
+        )
 
-    def setup_interf_trigger_plan(self, time):
-        # We are using the 10 MHz clock as a refence
-        yield from mv(self.div_by_n_interf.n, 1e7/(1/time))
+    def setup_interf_plan(self, time):
+        yield from mv(self.div_by_n_interf.n, self._reference_clock*time)
 
 
 sgz = SoftGlueZynqDevice('4idIF:', name='sgz')
