@@ -174,7 +174,7 @@ def flyscan_snake(
         )
 
 def flyscan_1d(
-        eiger,
+        detector,
         motor,
         start,
         end,
@@ -238,7 +238,7 @@ def flyscan_1d(
     :func:`bluesky.plan_patterns.inner_product`
     :func:`flyscan_cycler`
     """
-    detectors = [eiger]
+    detectors = [detector]
     cycler = inner_product(2, (motor, start, end))
 
     _md = {
