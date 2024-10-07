@@ -394,7 +394,7 @@ def flyscan_cycler(
 
     # TODO: simplify
     # Master file
-    _master_fullpath = HDF1_NAME_FORMAT % (str(_base_path), file_name_base, _scan_id)
+    _master_fullpath = str(HDF1_NAME_FORMAT) % (str(_base_path), file_name_base, _scan_id)
     _master_fullpath += "_master.hdf"
 
     # Setup area detectors
