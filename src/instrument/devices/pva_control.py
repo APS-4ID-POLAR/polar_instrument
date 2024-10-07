@@ -128,7 +128,7 @@ class PositionerStream(Device):
 		# Add the name of the device
 		path /= self.name
 
-		full_path = HDF1_NAME % (
+		full_path = str(HDF1_NAME) % (
 			str(path), name_base, file_number
 		)
 
