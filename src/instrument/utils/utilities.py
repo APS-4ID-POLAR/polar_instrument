@@ -44,18 +44,18 @@ import sys
 
 path = pathlib.Path("startup_experiment.py")
 
-import pyRestTable
+from prettytable import PrettyTable, PLAIN_COLUMNS
 
 def wm(*argv):
     if len(argv) != 0:
-        table = pyRestTable.Table()
+        table = PrettyTable()
         nm=['   ']
         atnm=['   ']
         ptxt = ['  Position']
         hpos=['   High']
         lpos=['   Low']
-        pos=['   Current   ']
-        centering =['l']
+        pos=['   Current']
+        centering =["l"]
         for arg in argv:
             apos="{:.4f}".format(arg.position)
             ahpos ="{:.4f}".format(arg.high_limit)
@@ -66,17 +66,17 @@ def wm(*argv):
             hpos.append(ahpos)
             pos.append(apos)
             lpos.append(alpos)
-            centering.append('r')
-        #print(centering)
-        print('')
-        table.labels = nm
-        #table.setTabularColumns(True, centering)
-        table.rows.append(atnm)
-        table.rows.append(ptxt)
-        table.rows.append(hpos)
-        table.rows.append(pos)
-        table.rows.append(lpos)
-        print(table.reST(fmt='plain'))
+            centering.append("r")   
+        table.align = 'r'
+        table.add_row(nm)
+        table.add_row(atnm)
+        table.add_row(ptxt)
+        table.add_row(hpos)
+        table.add_row(pos)
+        table.add_row(lpos)
+        table.set_style(PLAIN_COLUMNS)
+        table.header = False
+        print(table)
     else:
         print('Usage: wm(motor1, motor2, ...)')
 

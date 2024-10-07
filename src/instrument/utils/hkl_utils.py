@@ -127,23 +127,24 @@ def sampleNew(*args):
         nm = (
             input("Sample name ({})? ".format(current_sample))
         ) or current_sample
-        a = (input("Lattice a ({})? ".format(lattice[0]))) or lattice[0]
-        b = (input("Lattice b ({})? ".format(lattice[1]))) or lattice[1]
-        c = (input("Lattice c ({})? ".format(lattice[2]))) or lattice[2]
-        alpha = (input("Lattice alpha ({})? ".format(lattice[3]))) or lattice[3]
-        beta = (input("Lattice beta ({})? ".format(lattice[4]))) or lattice[4]
-        gamma = (input("Lattice gamma ({})? ".format(lattice[5]))) or lattice[5]
+        if nm in _geom_.calc._samples:
+            logger.warning(
+                ("Sample '%s' is already defined. Use setlat to change lattice parameters."),
+                nm,
+            )
+        else:
+            a = (input("Lattice a ({})? ".format(lattice[0]))) or lattice[0]
+            b = (input("Lattice b ({})? ".format(lattice[1]))) or lattice[1]
+            c = (input("Lattice c ({})? ".format(lattice[2]))) or lattice[2]
+            alpha = (input("Lattice alpha ({})? ".format(lattice[3]))) or lattice[3]
+            beta = (input("Lattice beta ({})? ".format(lattice[4]))) or lattice[4]
+            gamma = (input("Lattice gamma ({})? ".format(lattice[5]))) or lattice[5]
     else:
         raise ValueError(
             "either no arguments or name, a, b, c, alpha, beta, gamma need to be provided."
         )
 
-    if nm in _geom_.calc._samples:
-        logger.warning(
-            ("Sample '%s' is already defined."),
-            nm,
-        )
-    else:
+    if nm not in _geom_.calc._samples:
         lattice = Lattice(
             a=float(a),
             b=float(b),
@@ -224,7 +225,10 @@ def sampleNew(*args):
             set_constraints('omega',-100,100)
             set_constraints('tth',-10,180)            
         setaz(0,1,0)
-
+    inp = (input("Reset scan number (yes/[no])? ".format(lattice[5]))) or None
+    if inp == 'yes' or inp == 'y':
+        RE.md['scan_id'] = 0
+        print("Next scan number: {}".format(RE.md['scan_id']+1))
 
 def sampleChange(sample_key=None):
     """
