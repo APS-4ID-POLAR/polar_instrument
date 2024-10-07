@@ -22,7 +22,7 @@ from ..utils import logger
 from ..utils.config import iconfig
 from ..utils.run_engine import RE
 from ..utils.catalog import full_cat
-from ..callbacks import nxwriter
+from ..callbacks.nexus_data_file_writer import nxwriter
 from ..utils import dm_get_experiment_data_path
 logger.info(__file__)
 
