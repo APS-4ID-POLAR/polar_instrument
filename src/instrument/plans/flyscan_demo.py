@@ -399,12 +399,14 @@ def flyscan_cycler(
 
     # Setup area detectors
     _dets_file_paths = {}
+    # Relative paths are used in the master file so that data can be copied.
+    _rel_dets_paths = {}
     for det in list(detectors) + [positioner_stream]:
         _setup_images = getattr(det, "setup_images", None)
         if _setup_images:
-            _dets_file_paths[det.name] = Path(_setup_images(
+            _dets_file_paths[det.name], _rel_dets_paths[det.name] = _setup_images(
                 file_name_base, _scan_id, flyscan=True
-            ))
+            )
 
     # Check if any of these files exists
     # for _fname in [_master_fullpath, _ps_fullpath] + list(_dets_file_paths.values()):
@@ -417,11 +419,6 @@ def flyscan_cycler(
     #################################################
     # nxwriter - creates and setup the master file  #
     #################################################
-
-    # Relative paths are used in the master file so that data can be copied.
-    _rel_dets_paths = {}
-    for _name, _path in _dets_file_paths.items():
-        _rel_dets_paths[_name] = _path.relative_to(_base_path)
 
     # Sets the file names
     nxwriter.externals = _rel_dets_paths

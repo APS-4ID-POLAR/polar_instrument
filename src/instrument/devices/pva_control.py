@@ -132,14 +132,20 @@ class PositionerStream(Device):
 			str(path), name_base, file_number
 		)
 
-		return path, full_path
+		relative_path = str(HDF1_NAME) % (
+			self.name, name_base, file_number
+		)
+
+		return path, full_path, relative_path
 
 
 	def setup_images(
             self, name_base, file_number, flyscan=False
         ):
 
-		folder, full_path = self.setup_file_path_name(name_base, file_number)
+		folder, full_path, relative_path = self.setup_file_path_name(
+			name_base, file_number
+		)
 
 		# Setup positioner stream
 		if not folder.is_dir():
@@ -151,7 +157,7 @@ class PositionerStream(Device):
 		self.file_path.put(str(folder))
 		self.file_name.put(str(_ps_fname))
 
-		return full_path
+		return Path(full_path), Path(relative_path)
 
 
 positioner_stream = PositionerStream("", name="positioner_stream")

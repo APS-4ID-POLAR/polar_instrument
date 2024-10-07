@@ -199,7 +199,9 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         # Changes the stage_sigs to the external trigger mode
         self._flysetup = flyscan
 
-        return Path(self.hdf1.make_write_read_paths()[1])
+        _, full_path, relative_path = self.hdf1.make_write_read_paths()
+
+        return Path(full_path), Path(relative_path)
 
 
 def load_eiger1m(prefix="4idEiger:"):

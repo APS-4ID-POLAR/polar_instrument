@@ -276,7 +276,9 @@ class VortexDetector(Trigger, DetectorBase):
         self.auto_save_on()
         self._flysetup = flyscan
 
-        return Path(self.hdf1.make_write_read_paths()[-1])
+        _, full_path, relative_path = self.hdf1.make_write_read_paths()
+
+        return Path(full_path), Path(relative_path)
 
 
 def load_vortex(prefix="S4QX4:"):

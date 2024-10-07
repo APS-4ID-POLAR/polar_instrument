@@ -149,8 +149,8 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
             path = Path(dm_get_experiment_data_path(dm_experiment.get()))
             # But the IOC may not be able to direcly write to the DM folder.
             if self._ioc_path_root:
-                relative_path = path.relative_to(DM_ROOT_PATH)
-                path = Path(self._ioc_path_root) / relative_path
+                rel_path = path.relative_to(DM_ROOT_PATH)
+                path = Path(self._ioc_path_root) / rel_path
             #self.file_path.set(str(path)).wait(timeout=10)
 
             # Add the sample name from metadata to the folder.
@@ -167,7 +167,13 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
             int(self.file_number.get())
         )
 
-        return str(path), full_path
+        relative_path = self.file_template.get() % (
+            f"{self.parent.name}/",
+            self.file_name.get(),
+            int(self.file_number.get())
+        )
+
+        return str(path), full_path, relative_path
 
     def stage(self):
 
@@ -177,7 +183,7 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
             if self.file_write_mode.get(as_string=True) != "Single":
                 self.capture.set(0).wait()
             
-            path, full_path = self.make_write_read_paths()
+            path, full_path, _ = self.make_write_read_paths()
 
             if isfile(full_path):
                 raise OSError(
