@@ -402,13 +402,13 @@ def flyscan_cycler(
     for det in list(detectors) + [positioner_stream]:
         _setup_images = getattr(det, "setup_images", None)
         if _setup_images:
-            _dets_file_paths[det.name] = _setup_images(
+            _dets_file_paths[det.name] = Path(_setup_images(
                 file_name_base, _scan_id, flyscan=True
-            )
+            ))
 
     # Check if any of these files exists
     # for _fname in [_master_fullpath, _ps_fullpath] + list(_dets_file_paths.values()):
-    for _fname in [_master_fullpath] + list(_dets_file_paths.values()):
+    for _fname in [Path(_master_fullpath)] + list(_dets_file_paths.values()):
         if _fname.is_file():
             raise FileExistsError(
                 f"The file {_fname} already exists! Will not overwrite, quitting."
