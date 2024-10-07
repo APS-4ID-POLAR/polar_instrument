@@ -23,7 +23,7 @@ from ..utils.config import iconfig
 from ..utils.run_engine import RE
 from ..utils.catalog import full_cat
 from ..callbacks.nexus_data_file_writer import nxwriter
-from ..utils import dm_get_experiment_data_path
+from ..utils.dm_utils import dm_get_experiment_data_path
 logger.info(__file__)
 
 __all__ = "flyscan_snake flyscan_1d flyscan_cycler".split()
