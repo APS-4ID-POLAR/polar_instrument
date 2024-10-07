@@ -21,7 +21,7 @@ from ..devices.data_management import dm_experiment, dm_workflow
 from ..utils import logger
 from ..utils.config import iconfig
 from ..utils.run_engine import RE
-from ..utils.catalog import cat
+from ..utils.catalog import full_cat
 from ..callbacks import nxwriter
 from ..utils import dm_get_experiment_data_path
 logger.info(__file__)
@@ -580,7 +580,7 @@ def flyscan_cycler(
     uid = yield from inner_fly()
 
     # Get the bluesky run
-    run = cat[uid]
+    run = full_cat[uid]
 
     # Wait for the master file to finish writing.
     yield from nxwriter.wait_writer_plan_stub()
