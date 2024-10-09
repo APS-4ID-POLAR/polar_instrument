@@ -266,6 +266,7 @@ class VortexDetector(Trigger, DetectorBase):
         for component in self.component_names:
             try:
                 logger.info(component)
+                getattr(self, component).wait_for_connection(timeout=10)
                 if "blocking_callbacks" in getattr(self, component).stage_sigs.keys():
                     getattr(self, component).stage_sigs["blocking_callbacks"] = "No"
             except AttributeError:
@@ -297,6 +298,8 @@ def load_vortex(prefix="S4QX4:"):
             "PV_CONNECTION", 15
         )
         detector = VortexDetector(prefix, name="vortex")
+        logger.info(connection_timeout)
+        logger.info(type(connection_timeout))
         detector.wait_for_connection(timeout=connection_timeout)
     except (KeyError, NameError, TimeoutError) as exinfo:
         # fmt: off
