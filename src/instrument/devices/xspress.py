@@ -267,19 +267,21 @@ class VortexDetector(Trigger, DetectorBase):
 
         for nm in self.component_names:
             t0 = ttime()
+            i = 1
             while ttime() - t0 < self.VORTEX_SLEEP:
                 try:
-                    logger.info(f"Connecting to {nm}1")
+                    logger.info(f"Connecting to {nm}1 - {i}")
                     obj = getattr(self, nm)
                     if "blocking_callbacks" in dir(obj):  # is it a plugin?
-                        logger.info(f"Connecting to {nm}2")
+                        logger.info(f"Connecting to {nm}2 - {i}")
                         obj.wait_for_connection(timeout=self.VORTEX_SLEEP)
-                        logger.info(f"Connecting to {nm}3")
+                        logger.info(f"Connecting to {nm}3 - {i}")
                         obj.stage_sigs["blocking_callbacks"] = "No"
-                        logger.info(f"Connecting to {nm}4\n")
-                        break
+                        logger.info(f"Connecting to {nm}4 - {i}\n")
+                    break
                 except TimeoutError:
                     sleep(1)
+                    i += 1
 
     def plot_roi1(self):
         # TODO: This is just temporary to have something.
