@@ -297,10 +297,11 @@ def load_vortex(prefix="S4QX4:"):
         connection_timeout = iconfig.get("OPHYD", {}).get("TIMEOUTS", {}).get(
             "PV_CONNECTION", 15
         )
+        logger.info("Connecting to vortex")
         detector = VortexDetector(prefix, name="vortex")
-        logger.info(connection_timeout)
-        logger.info(type(connection_timeout))
+        logger.info("Waiting for connection")
         detector.wait_for_connection(timeout=connection_timeout)
+        logger.info("Connected")
     except (KeyError, NameError, TimeoutError) as exinfo:
         # fmt: off
         logger.warning(
@@ -316,7 +317,7 @@ def load_vortex(prefix="S4QX4:"):
         if prime.get("ALLOW_PLUGIN_WARMUP", False):
             if detector.connected:
                 if not AD_plugin_primed_vortex(detector.hdf1):
-                    logger.info("Priming detector")
+                    logger.info("Priming HDF1 plugin")
                     AD_prime_plugin2_vortex(detector.hdf1)
 
         logger.info("Loading default settings")
