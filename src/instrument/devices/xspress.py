@@ -139,41 +139,28 @@ class ROIStatN(Device):
 
 class VortexROIStatPlugin(ROIStatPlugin):
     #ROIs
-    roi1 = Component(ROIStatN, "1:")
-    roi2 = Component(ROIStatN, "2:")
-    roi3 = Component(ROIStatN, "3:")
-    roi4 = Component(ROIStatN, "4:")
-    roi5 = Component(ROIStatN, "5:")
-    roi6 = Component(ROIStatN, "6:")
-    roi7 = Component(ROIStatN, "7:")
-    roi8 = Component(ROIStatN, "8:")
-
-    def _status_done(self):
-
-        # Create status that checks when the SCA updates.
-        status = Status(self.time_stamp, settle_time=0.01)
-
-        def _set_finished(**kwargs):
-            status.set_finished()
-            self.time_stamp.clear_sub(_set_finished)
-
-        self.time_stamp.subscribe(_set_finished, event_type='value', run=False)
-
-        return status
+    roi1 = Component(ROIStatN, "1:", kind="normal")
+    roi2 = Component(ROIStatN, "2:", kind="omitted")
+    roi3 = Component(ROIStatN, "3:", kind="omitted")
+    roi4 = Component(ROIStatN, "4:", kind="omitted")
+    roi5 = Component(ROIStatN, "5:", kind="omitted")
+    roi6 = Component(ROIStatN, "6:", kind="omitted")
+    roi7 = Component(ROIStatN, "7:", kind="omitted")
+    roi8 = Component(ROIStatN, "8:", kind="omitted")
 
 
 class VortexSCA(AttributePlugin):
-    clock_ticks = Component(EpicsSignalRO,'0:Value_RBV')
-    reset_ticks = Component(EpicsSignalRO,'1:Value_RBV')
-    reset_counts = Component(EpicsSignalRO,'2:Value_RBV')
-    all_events = Component(EpicsSignalRO,'3:Value_RBV')
-    all_good = Component(EpicsSignalRO,'4:Value_RBV')
-    window1 = Component(EpicsSignalRO,'5:Value_RBV')
-    window2 = Component(EpicsSignalRO,'6:Value_RBV')
-    pileup = Component(EpicsSignalRO,'7:Value_RBV')
-    event_width = Component(EpicsSignalRO, '8:Value_RBV')
-    dt_factor = Component(EpicsSignalRO,'9:Value_RBV')
-    dt_percent = Component(EpicsSignalRO,'10:Value_RBV')
+    clock_ticks = Component(EpicsSignalRO, '0:Value_RBV', kind="normal")
+    reset_ticks = Component(EpicsSignalRO, '1:Value_RBV', kind="normal")
+    reset_counts = Component(EpicsSignalRO, '2:Value_RBV', kind="normal")
+    all_events = Component(EpicsSignalRO, '3:Value_RBV', kind="normal")
+    all_good = Component(EpicsSignalRO, '4:Value_RBV', kind="normal")
+    window1 = Component(EpicsSignalRO, '5:Value_RBV', kind="normal")
+    window2 = Component(EpicsSignalRO, '6:Value_RBV', kind="normal")
+    pileup = Component(EpicsSignalRO, '7:Value_RBV', kind="normal")
+    event_width = Component(EpicsSignalRO, '8:Value_RBV', kind="normal")
+    dt_factor = Component(EpicsSignalRO,'9:Value_RBV', kind="normal")
+    dt_percent = Component(EpicsSignalRO,'10:Value_RBV', kind="normal")
 
 
 class VortexDetector(Trigger, DetectorBase):
