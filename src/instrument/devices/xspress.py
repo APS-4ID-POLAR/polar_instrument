@@ -201,8 +201,6 @@ class VortexDetector(Trigger, DetectorBase):
         ioc_path_root=IOC_FILES_ROOT,
     )
 
-    VORTEX_SLEEP = 5
-
     # Make this compatible with other detectors
     @property
     def preset_monitor(self):
@@ -252,6 +250,8 @@ class VortexDetector(Trigger, DetectorBase):
         self.stage_sigs.pop("cam.image_mode")
         self.cam.stage_sigs["erase_on_start"] = "No"
 
+
+        # TODO: Not sure why this is needed. It will timeout otherwise.
         connection_timeout = iconfig.get("OPHYD", {}).get("TIMEOUTS", {}).get(
             "PV_CONNECTION", 15
         )
@@ -316,8 +316,6 @@ def load_vortex(prefix="S4QX4:"):
                     AD_prime_plugin2_vortex(detector.hdf1)
 
         logger.info("Loading default settings")
-
-        detector.VORTEX_SLEEP = 60
 
         detector.default_settings()
 
