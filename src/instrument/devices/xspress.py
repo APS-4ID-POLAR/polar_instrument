@@ -343,6 +343,9 @@ def load_vortex(prefix="S4QX4:"):
                     AD_prime_plugin2_vortex(detector.hdf1)
 
         logger.info("Loading default settings")
+
+        detector.VORTEX_SLEEP = 60
+
         detector.default_settings()
 
         # Sometimes we get errors that bluesky gets the wrong value (just the first)
