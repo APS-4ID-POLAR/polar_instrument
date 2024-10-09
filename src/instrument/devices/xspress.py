@@ -248,7 +248,6 @@ class VortexDetector(Trigger, DetectorBase):
 
         self.cam.trigger_mode.put("Internal")
         self.cam.acquire.put(0)
-        # self.cam.stage_sigs.pop("wait_for_plugins")
 
         self.hdf1.file_template.put(HDF1_NAME_FORMAT)
         self.hdf1.file_path.put(str(DEFAULT_FOLDER))
