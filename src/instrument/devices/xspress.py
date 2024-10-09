@@ -40,30 +40,28 @@ class Trigger(TriggerBase):
     """
     _status_type = ADTriggerStatus
 
-    def __init__(self, *args, image_name=None, delay=0.0, **kwargs):
+    def __init__(self, *args, image_name=None, **kwargs):
         super().__init__(*args, **kwargs)
         if image_name is None:
             image_name = '_'.join([self.name, 'image'])
         self._image_name = image_name
         self._acquisition_signal = self.cam.acquire
+        self._acquire_busy_signal = self.cam.acquire_busy
         self._flysetup = False
-        self._acquire_status = None
-        self._delay = delay
+        self._status = None
         self._collect_image = False
 
     def setup_manual_trigger(self):
         # Stage signals
         self.cam.stage_sigs["trigger_mode"] = "Internal"
         self.cam.stage_sigs["num_images"] = 1
-        for component in "sca1 sca2 sca3 sca4".split():
-            getattr(self, component).stage_sigs["blocking_callbacks"] = "Yes"
+        self.cam.stage_sigs["wait_for_plugins"] = "Yes"
 
     def setup_external_trigger(self):
         # Stage signals
         self.cam.stage_sigs["trigger_mode"] = "TTL Veto Only"
         self.cam.stage_sigs["num_images"] = MAX_IMAGES
-        for component in "sca1 sca2 sca3 sca4".split():
-            getattr(self, component).stage_sigs["blocking_callbacks"] = "No"
+        self.cam.stage_sigs["wait_for_plugins"] = "No"
 
     def stage(self):
 
@@ -77,7 +75,8 @@ class Trigger(TriggerBase):
 
         # Make sure that detector is not armed.
         self._acquisition_signal.set(0).wait(timeout=10)
-        self._acquisition_signal.subscribe(self._acquire_changed)
+        self._acquire_busy_signal.subscribe(self._acquire_changed)
+
         super().stage()
 
         if self._flysetup:
@@ -87,9 +86,9 @@ class Trigger(TriggerBase):
         super().unstage()
         self.cam.acquire.set(0).wait(timeout=10)
         self._flysetup = False
-        self.setup_manual_trigger()
-        self._acquisition_signal.clear_sub(self._acquire_changed)
+        self._acquire_busy_signal.clear_sub(self._acquire_changed)
         self._collect_image = False
+        self.setup_manual_trigger()
 
     def trigger(self):
         if self._staged != Staged.yes:
@@ -105,12 +104,13 @@ class Trigger(TriggerBase):
         return self._status
     
     def _acquire_changed(self, value=None, old_value=None, **kwargs):
-        "This is called when the 'acquire' signal changes."
+        "This is called when the 'acquire_busy' signal changes."
+
         if self._status is None:
             return
         if (old_value != 0) and (value == 0):
             # Negative-going edge means an acquisition just finished.
-            sleep(self._delay)
+            # sleep(self._delay)
             self._status.set_finished()
             self._status = None
 
@@ -264,10 +264,9 @@ class VortexDetector(Trigger, DetectorBase):
 
         self.cam.stage_sigs["erase_on_start"] = "No"
 
-        # for component in "sca1 sca2 sca3 sca4".split():
-        #     getattr(self, component).stage_sigs["blocking_callbacks"] = "No"
         for component in self.component_names:
-            getattr(self, component).stage_sigs["blocking_callbacks"] = "No"
+            if "blocking_callbacks" in getattr(self, component).stage_sigs.keys():
+                getattr(self, component).stage_sigs.pop("blocking_callbacks")
 
     def plot_roi1(self):
         # TODO: This is just temporary to have something.
