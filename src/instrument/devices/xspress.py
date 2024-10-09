@@ -245,14 +245,10 @@ class VortexDetector(Trigger, DetectorBase):
       
     def default_settings(self):
 
-
-        logger.info("1")
         self.hdf1.file_template.put(HDF1_NAME_FORMAT)
         self.hdf1.file_path.put(str(DEFAULT_FOLDER))
         self.hdf1.num_capture.put(0)
 
-
-        logger.info("2")
         self.cam.trigger_mode.put("Internal")
         self.cam.acquire.put(0)
 
@@ -260,18 +256,16 @@ class VortexDetector(Trigger, DetectorBase):
         self.hdf1.stage_sigs["num_capture"] = 0
         self.hdf1.stage_sigs["capture"] = 1
     
-        logger.info("3")
         self.setup_manual_trigger()
         self.save_images_off()
         self.plot_roi1()
 
-        logger.info("4")
         self.stage_sigs.pop("cam.image_mode")
         self.cam.stage_sigs["erase_on_start"] = "No"
 
-        logger.info("5")
         for component in self.component_names:
             try:
+                logger.info(component)
                 if "blocking_callbacks" in getattr(self, component).stage_sigs.keys():
                     getattr(self, component).stage_sigs["blocking_callbacks"] = "No"
             except AttributeError:
