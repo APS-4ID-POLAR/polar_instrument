@@ -263,6 +263,8 @@ class VortexDetector(Trigger, DetectorBase):
         self.stage_sigs.pop("cam.image_mode")
         self.cam.stage_sigs["erase_on_start"] = "No"
 
+        VORTEX_SLEEP = 5
+        sleep(VORTEX_SLEEP)
         logger.info("here")
         self.chan1.stage_sigs["blocking_callbacks"] = "No"
         self.chan2.stage_sigs["blocking_callbacks"] = "No"
