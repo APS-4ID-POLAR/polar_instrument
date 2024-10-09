@@ -265,7 +265,7 @@ class VortexDetector(Trigger, DetectorBase):
 
         for component in self.component_names:
             try:
-                logger.info(component)
+                logger.info(f"Connecting to {component}")
                 getattr(self, component).wait_for_connection(timeout=10)
                 if "blocking_callbacks" in getattr(self, component).stage_sigs.keys():
                     getattr(self, component).stage_sigs["blocking_callbacks"] = "No"
