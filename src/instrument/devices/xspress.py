@@ -214,6 +214,8 @@ class VortexDetector(Trigger, DetectorBase):
         ioc_path_root=IOC_FILES_ROOT,
     )
 
+    VORTEX_SLEEP = 5
+
     # Make this compatible with other detectors
     @property
     def preset_monitor(self):
@@ -263,8 +265,7 @@ class VortexDetector(Trigger, DetectorBase):
         self.stage_sigs.pop("cam.image_mode")
         self.cam.stage_sigs["erase_on_start"] = "No"
 
-        VORTEX_SLEEP = 5
-        sleep(VORTEX_SLEEP)
+        sleep(self.VORTEX_SLEEP)
         logger.info("here")
         self.chan1.stage_sigs["blocking_callbacks"] = "No"
         self.chan2.stage_sigs["blocking_callbacks"] = "No"
