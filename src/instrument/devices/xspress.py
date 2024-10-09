@@ -265,34 +265,30 @@ class VortexDetector(Trigger, DetectorBase):
         self.stage_sigs.pop("cam.image_mode")
         self.cam.stage_sigs["erase_on_start"] = "No"
 
-        sleep(self.VORTEX_SLEEP)
-        logger.info("here")
-        self.chan1.stage_sigs["blocking_callbacks"] = "No"
-        self.chan2.stage_sigs["blocking_callbacks"] = "No"
-        self.chan3.stage_sigs["blocking_callbacks"] = "No"
-        self.chan4.stage_sigs["blocking_callbacks"] = "No"
+        # t0 = ttime()
+        # while ttime() - t0 < self.VORTEX_SLEEP:
+        for component in self.component_names:
+            try:
+                logger.info(f"Connecting to {component}")
+                getattr(self, component).wait_for_connection(all_signals=True, timeout=10)
+                logger.info(f"Connecting to {component}")
+                if "blocking_callbacks" in getattr(self, component).stage_sigs.keys():
+                    getattr(self, component).stage_sigs["blocking_callbacks"] = "No"
+            except AttributeError:
+                pass
 
-        self.stats1.stage_sigs["blocking_callbacks"] = "No"
-        self.stats2.stage_sigs["blocking_callbacks"] = "No"
-        self.stats3.stage_sigs["blocking_callbacks"] = "No"
-        self.stats4.stage_sigs["blocking_callbacks"] = "No"
 
-        self.sca1.stage_sigs["blocking_callbacks"] = "No"
-        self.sca2.stage_sigs["blocking_callbacks"] = "No"
-        self.sca3.stage_sigs["blocking_callbacks"] = "No"
-        self.sca4.stage_sigs["blocking_callbacks"] = "No"
-    
-        self.hdf1.stage_sigs["blocking_callbacks"] = "No"
 
-        # for component in self.component_names:
-        #     try:
-        #         logger.info(f"Connecting to {component}")
-        #         getattr(self, component).wait_for_connection(all_signals=True, timeout=10)
-        #         logger.info(f"Connecting to {component}")
-        #         if "blocking_callbacks" in getattr(self, component).stage_sigs.keys():
-        #             getattr(self, component).stage_sigs["blocking_callbacks"] = "No"
-        #     except AttributeError:
-        #         pass
+
+        for component in self.component_names:
+            try:
+                logger.info(f"Connecting to {component}")
+                getattr(self, component).wait_for_connection(all_signals=True, timeout=10)
+                logger.info(f"Connecting to {component}")
+                if "blocking_callbacks" in getattr(self, component).stage_sigs.keys():
+                    getattr(self, component).stage_sigs["blocking_callbacks"] = "No"
+            except AttributeError:
+                pass
 
     def plot_roi1(self):
         # TODO: This is just temporary to have something.
