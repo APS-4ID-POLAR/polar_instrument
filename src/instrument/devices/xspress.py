@@ -264,8 +264,11 @@ class VortexDetector(Trigger, DetectorBase):
         self.cam.stage_sigs["erase_on_start"] = "No"
 
         for component in self.component_names:
-            if "blocking_callbacks" in getattr(self, component).stage_sigs.keys():
-                getattr(self, component).stage_sigs.pop("blocking_callbacks")
+            try:
+                if "blocking_callbacks" in getattr(self, component).stage_sigs.keys():
+                    getattr(self, component).stage_sigs.pop("blocking_callbacks")
+            except AttributeError:
+                pass
 
     def plot_roi1(self):
         # TODO: This is just temporary to have something.
