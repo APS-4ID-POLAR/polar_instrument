@@ -244,29 +244,36 @@ class VortexDetector(Trigger, DetectorBase):
         self.hdf1.autosave.put("off")
       
     def default_settings(self):
-        self.stage_sigs.pop("cam.image_mode")
 
-        self.cam.trigger_mode.put("Internal")
-        self.cam.acquire.put(0)
 
+        logger.info("1")
         self.hdf1.file_template.put(HDF1_NAME_FORMAT)
         self.hdf1.file_path.put(str(DEFAULT_FOLDER))
         self.hdf1.num_capture.put(0)
+
+
+        logger.info("2")
+        self.cam.trigger_mode.put("Internal")
+        self.cam.acquire.put(0)
 
         self.hdf1.stage_sigs.pop("enable")
         self.hdf1.stage_sigs["num_capture"] = 0
         self.hdf1.stage_sigs["capture"] = 1
     
+        logger.info("3")
         self.setup_manual_trigger()
         self.save_images_off()
         self.plot_roi1()
 
+        logger.info("4")
+        self.stage_sigs.pop("cam.image_mode")
         self.cam.stage_sigs["erase_on_start"] = "No"
 
+        logger.info("5")
         for component in self.component_names:
             try:
                 if "blocking_callbacks" in getattr(self, component).stage_sigs.keys():
-                    getattr(self, component).stage_sigs.pop("blocking_callbacks")
+                    getattr(self, component).stage_sigs["blocking_callbacks"] = "No"
             except AttributeError:
                 pass
 
@@ -312,8 +319,10 @@ def load_vortex(prefix="S4QX4:"):
         if prime.get("ALLOW_PLUGIN_WARMUP", False):
             if detector.connected:
                 if not AD_plugin_primed_vortex(detector.hdf1):
+                    logger.info("Priming detector")
                     AD_prime_plugin2_vortex(detector.hdf1)
 
+        logger.info("Loading default settings")
         detector.default_settings()
 
         # Sometimes we get errors that bluesky gets the wrong value (just the first)
