@@ -4,6 +4,8 @@ from ophyd import ADComponent, Staged, Component, EpicsSignalRO, Device, EpicsSi
 from ophyd.status import Status
 from ophyd.areadetector import DetectorBase, EpicsSignalWithRBV
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
+from bluesky.plan_stubs import wait_for
+import asyncio
 from pathlib import Path
 from time import time as ttime, sleep
 from .ad_mixins import (
@@ -229,7 +231,41 @@ class VortexDetector(Trigger, DetectorBase):
     
     def auto_save_off(self):
         self.hdf1.autosave.put("off")
-      
+
+    def wait_for_detector(self):
+
+        async def _wait_for_read():
+            future = asyncio.Future()
+
+            async def set_future_done(future):
+                # This is really just needed when running the detector very fast. Seems
+                # like that anything beyond ~50 ms count period is not a problem. So I 
+                # think this 0.5 sec can be hardcoded.
+                sleep_time = 0.5
+
+                # Checks if there is a new image being read. Stops when there is no
+                # new image for >  sleep_time.
+                old = 0
+                new = self.cam.array_counter.read()[
+                    "vortex_cam_array_counter"
+                    ]["timestamp"]
+                while old != new:
+                    await asyncio.sleep(sleep_time)
+                    old = new
+                    new = self.cam.array_counter.read()[
+                        "vortex_cam_array_counter"
+                        ]["timestamp"]
+                
+                future.set_result("Detector done!")
+
+            # Schedule setting the future as done after 10 seconds
+            asyncio.create_task(set_future_done(future))
+
+            # Wait for the future to complete
+            await future
+
+        yield from wait_for([_wait_for_read], timeout=15)
+
     def default_settings(self):
 
         self.hdf1.file_template.put(HDF1_NAME_FORMAT)

@@ -575,7 +575,8 @@ def flyscan_cycler(
         # TODO: need to add a logic to wait for detector to process images before it
         # stops
         for det in detectors:
-            yield from det.stop_detector()
+            if "wait_for_detector" in dir(det):
+                yield from det.wait_for_detector()
 
         return (yield from null()) # Is there something better to do here?
 
