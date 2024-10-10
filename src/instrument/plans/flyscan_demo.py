@@ -574,10 +574,12 @@ def flyscan_cycler(
 
         # TODO: need to add a logic to wait for detector to process images before it
         # stops
+        logger.info("Stopping detectors")
         for det in detectors:
             if "wait_for_detector" in dir(det):
                 yield from det.wait_for_detector()
 
+        logger.info("Scan done, unstaging...")
         return (yield from null()) # Is there something better to do here?
 
     uid = yield from inner_fly()
