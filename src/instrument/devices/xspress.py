@@ -165,6 +165,12 @@ class VortexSCA(AttributePlugin):
     dt_percent = Component(EpicsSignalRO,'10:Value_RBV', kind="normal")
 
 
+class VortexHDF1Plugin(PolarHDF5Plugin):
+    # The array counter readback pv is different...
+    array_counter = Component(EpicsSignal, "ArrayCounter", kind="config")
+    array_counter_readback = Component(EpicsSignalRO, "ArrayCounter_RBV", kind="config")
+
+
 class VortexDetector(Trigger, DetectorBase):
 
     _default_configuration_attrs = ('cam', 'chan1', 'chan2', 'chan3', 'chan4')
@@ -198,7 +204,7 @@ class VortexDetector(Trigger, DetectorBase):
     sca4 = ADComponent(VortexSCA, "C4SCA:")
     
     hdf1 = ADComponent(
-        PolarHDF5Plugin,
+        VortexHDF1Plugin,
         "HDF1:",
         ioc_path_root=IOC_FILES_ROOT,
     )
