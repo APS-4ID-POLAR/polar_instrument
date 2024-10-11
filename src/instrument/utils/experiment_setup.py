@@ -21,6 +21,7 @@ import sys
 import fileinput
 from pathlib import Path
 from ..devices.data_management import dm_experiment
+from .config import iconfig
 from .dm_utils import dm_get_experiment_data_path
 from .run_engine import RE
 from ._logging_setup import logger
@@ -33,7 +34,8 @@ def set_experiment(
         proposal_id: str = None,
         sample: str = None,
         dm_experiment_name: str =  None,
-        first_scan_number: int = -1
+        first_scan_number: int = -1,
+        use_vortex: bool = False,
     ):
 
     _name = RE.md.get("user", "test")
@@ -54,7 +56,7 @@ def set_experiment(
 
     # TODO: Add logic to check the experiment name and ask the user.
     if dm_experiment_name:
-        _setup_dm(dm_experiment_name, sample)
+        _setup_dm(dm_experiment_name, sample, use_vortex)
 
     if first_scan_number >= 0:
         RE.md["scan_id"] = first_scan_number
@@ -77,7 +79,7 @@ def set_experiment(
             f.write(f"RE.md['sample']='{sample}'\n")
 
 
-def _setup_dm(dm_experiment_name: str, sample_name: str):
+def _setup_dm(dm_experiment_name: str, sample_name: str, use_vortex: bool):
     """
     Configure bluesky session for this user.
 
@@ -118,3 +120,22 @@ def _setup_dm(dm_experiment_name: str, sample_name: str):
         subpath = sample_path / subfolder
         if not subpath.is_dir():
             subpath.mkdir()
+    
+    if use_vortex:
+        start_vortex_daq(sample_path)
+
+def start_vortex_daq(path, sample):
+
+    DM_ROOT_PATH = Path(iconfig["DM_ROOT_PATH"])
+    IOC_FILES_ROOT = Path(iconfig["AREA_DETECTOR"]["VORTEX"]["IOC_FILES_ROOT"])
+
+    rel_path = path.relative_to(DM_ROOT_PATH)
+    vortex_path = IOC_FILES_ROOT  / rel_path
+
+    full_path = vortex_path / "vortex"
+    if not full_path.is_dir():
+        full_path.mkdir()
+    
+    print(vortex_path, full_path)
+
+    # dm_start_daq(dm_experiment.get(), vortex_path, destDirectory=sample)
