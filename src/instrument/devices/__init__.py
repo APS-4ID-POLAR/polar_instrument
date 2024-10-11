@@ -12,6 +12,7 @@ if iconfig.get("STATION") == "4idg":
     from .simulated_detector import simdet
     from .polar_diffractometer import polar, polar_psi
     from .xspress import load_vortex
+    from .ad_eiger1M import load_eiger1m
     from .nanopositioner import diff_nano
     from .softgluezynq import sgz
     from .pva_control import positioner_stream
