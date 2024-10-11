@@ -124,7 +124,7 @@ def _setup_dm(dm_experiment_name: str, sample_name: str, use_vortex: bool):
     if use_vortex:
         start_vortex_daq(sample_path)
 
-def start_vortex_daq(path, sample):
+def start_vortex_daq(path):
 
     DM_ROOT_PATH = Path(iconfig["DM_ROOT_PATH"])
     IOC_FILES_ROOT = Path(iconfig["AREA_DETECTOR"]["VORTEX"]["IOC_FILES_ROOT"])
