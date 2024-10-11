@@ -67,7 +67,6 @@ class PositionerStream(Device):
 	)
 
 	_status_obj = None
-	# _done_signal = None
 
 	@property
 	def status(self):
@@ -85,14 +84,15 @@ class PositionerStream(Device):
 				self._status_obj.set_finished()
 				self.status_pva.stopMonitor()
 
-		# self._done_signal = False
-		self.start_pva.stopMonitor()
 		self._status_obj = Status()
-
-		self.start_signal()
-
-		self.status_pva.monitor(_status_sub, "field(value, alarm, timeStamp)")
 		
+		if self.status != "Acquiring":
+			self.start_pva.stopMonitor()
+			self.start_signal()
+			self.status_pva.monitor(_status_sub, "field(value, alarm, timeStamp)")
+		else:
+			self._status_obj.set_finished()
+
 		return self._status_obj
 
 	def stop_stream(self):
@@ -101,11 +101,10 @@ class PositionerStream(Device):
 				self._status_obj.set_finished()
 				self.status_pva.stopMonitor()
 
-		# self._done_signal = False
-		self.start_pva.stopMonitor()
 		self._status_obj = Status()
 
 		if self.status != 'Idle':
+			self.start_pva.stopMonitor()
 			self.stop_signal()
 			self.status_pva.monitor(_status_sub, "field(value, alarm, timeStamp)")
 		else:
