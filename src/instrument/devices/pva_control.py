@@ -96,20 +96,21 @@ class PositionerStream(Device):
 		return self._status_obj
 
 	def stop_stream(self):
-		def _status_sub(inp):
-			if inp["value"] == "Idle":
-				self._status_obj.set_finished()
-				self.status_pva.stopMonitor()
+		if self.status != 'Idle':
+			def _status_sub(inp):
+				if inp["value"] == "Idle":
+					self._status_obj.set_finished()
+					self.status_pva.stopMonitor()
 
-		self._done_signal = False
-		self.start_pva.stopMonitor()
-		self._status_obj = Status()
+			self._done_signal = False
+			self.start_pva.stopMonitor()
+			self._status_obj = Status()
 
-		self.stop_signal()
+			self.stop_signal()
 
-		self.status_pva.monitor(_status_sub, "field(value, alarm, timeStamp)")
-		
-		return self._status_obj
+			self.status_pva.monitor(_status_sub, "field(value, alarm, timeStamp)")
+			
+			return self._status_obj
 
 	def set(self, value, **kwargs):
 		if value not in [1, 0]:
