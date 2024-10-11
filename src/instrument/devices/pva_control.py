@@ -67,7 +67,7 @@ class PositionerStream(Device):
 	)
 
 	_status_obj = None
-	_done_signal = None
+	# _done_signal = None
 
 	@property
 	def status(self):
@@ -85,7 +85,7 @@ class PositionerStream(Device):
 				self._status_obj.set_finished()
 				self.status_pva.stopMonitor()
 
-		self._done_signal = False
+		# self._done_signal = False
 		self.start_pva.stopMonitor()
 		self._status_obj = Status()
 
@@ -101,7 +101,7 @@ class PositionerStream(Device):
 				self._status_obj.set_finished()
 				self.status_pva.stopMonitor()
 
-		self._done_signal = False
+		# self._done_signal = False
 		self.start_pva.stopMonitor()
 		self._status_obj = Status()
 
