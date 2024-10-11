@@ -15,6 +15,7 @@ if iconfig.get("STATION") == "4idg":
     from .nanopositioner import diff_nano
     from .softgluezynq import sgz
     from .pva_control import positioner_stream
+    from .data_management import dm_experiment, dm_workflow
 elif iconfig.get("STATION") == "raman":
     from .sample_stage import sx, sy, sz
     from .ventus_laser import laser
