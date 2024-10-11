@@ -345,7 +345,7 @@ def load_vortex(prefix="S4QX4:"):
             "Error connecting with PV='%s in %.2fs, %s",
             prefix, ttime() - t0, str(exinfo),
         )
-        logger.warning("Setting eiger1m to 'None'.")
+        logger.warning("Setting vortex to 'None'.")
         detector = None
         # fmt: on
 
