@@ -572,8 +572,6 @@ def flyscan_cycler(
         logger.info("Stopping the positioner stream, this can take time.")
         yield from mv(positioner_stream, 0)
 
-        # TODO: need to add a logic to wait for detector to process images before it
-        # stops
         logger.info("Stopping detectors")
         for det in detectors:
             if "wait_for_detector" in dir(det):
