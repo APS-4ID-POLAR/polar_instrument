@@ -13,6 +13,26 @@ except ImportError:
 class LocalMagics(BlueskyMagics):
 
     @line_magic
+    def uan2(self, line):
+        if len(line.split()) != 2:
+            raise TypeError("Wrong parameters. Expected: "
+                            "uan two_theta theta")
+        args = []
+        args.append("polar.gamma")
+        args.append(line.split()[0])
+        args.append("polar.mu")
+        args.append(line.split()[1])
+        plan = mv(*args)
+        self.RE.waiting_hook = self.pbar_manager
+        try:
+            self.RE(plan)
+        except RunEngineInterrupted:
+            pass
+        self.RE.waiting_hook = None
+        self._ensure_idle()
+        return None
+
+    @line_magic
     def mov(self, line):
         if len(line.split()) % 2 != 0:
             raise TypeError("Wrong parameters. Expected: "
@@ -49,3 +69,5 @@ class LocalMagics(BlueskyMagics):
         self.RE.waiting_hook = None
         self._ensure_idle()
         return None
+    
+
