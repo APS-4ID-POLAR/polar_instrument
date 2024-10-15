@@ -32,8 +32,8 @@ def _dma_fields(num=8, first_letter="I"):
     defn = OrderedDict()
     defn["enable"] = (EpicsSignal, "1acquireDmaEnable", {"kind":"config"})
     defn["scan"] = (EpicsSignal, "1acquireDma.SCAN", {"kind":"config"})
-    defn["read"] = (EpicsSignal, "1acquireDma.PROC", {"kind":"omitted"})
-    defn["clear"] = (EpicsSignal, "1acquireDma.D", {"kind":"omitted"})
+    defn["read_button"] = (EpicsSignal, "1acquireDma.PROC", {"kind":"omitted"})
+    defn["clear_button"] = (EpicsSignal, "1acquireDma.D", {"kind":"omitted"})
     defn["clear_buffer"] = (EpicsSignal, "1acquireDma.F", {"kind":"omitted"})
     defn["words_in_buffer"] = (EpicsSignalRO, "1acquireDma.VALJ", {"kind":"config"})
     defn["events"] = (EpicsSignalRO, "1acquireDma.VALI", {"kind":"config"})
@@ -147,11 +147,11 @@ class SoftGlueZynqDevice(Device):
         yield from mv(self.buffers.in1, "1!", self.buffers.in3, "1!")
     
     def clear_enable_dma(self):
-        yield from mv(self.dma.clear, 1, self.dma.clear_buffer, 1)
+        yield from mv(self.dma.clear_button, 1, self.dma.clear_buffer, 1)
         yield from mv(self.dma.enable, 1)
     
     def clear_disable_dma(self):
-        yield from mv(self.dma.clear, 1, self.dma.clear_buffer, 1)
+        yield from mv(self.dma.clear_button, 1, self.dma.clear_buffer, 1)
         yield from mv(self.dma.enable, 0)
 
     def setup_trigger_plan(self, period_time, pulse_width_time, pulse_delay_time=0):
