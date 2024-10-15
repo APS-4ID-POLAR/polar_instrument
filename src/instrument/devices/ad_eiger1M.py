@@ -17,7 +17,8 @@ from .ad_mixins import (
     PvaPlugin,
     PolarHDF5Plugin
 )
-from ..utils import logger, iconfig
+from ..utils._logging_setup import logger
+from ..utils.config import iconfig
 logger.info(__file__)
 
 __all__ = ["load_eiger1m"]
