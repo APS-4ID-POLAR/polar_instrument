@@ -216,7 +216,7 @@ class SoftGlueZynqDevice(Device):
 
         self.scaltostream.reset.signal.set("reset*").wait(timeout)
         self.scaltostream.chadv.signal.set("ckUser").wait(timeout)
-        self.scaltostream.dmawords.set("0x4000").wait(timeout)
+        self.scaltostream.dmawords.set(16384).wait(timeout)
 
         self.gate_trigger.input.signal.set("ckDet").wait(timeout)
         self.gate_trigger.clock.signal.set("ck10").wait(timeout)
