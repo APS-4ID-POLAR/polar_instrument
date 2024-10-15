@@ -229,7 +229,7 @@ class SoftGlueZynqDevice(Device):
         self.scaltostream.reset.signal.set("reset*").wait(timeout)
         self.scaltostream.chadv.signal.set("ckUser").wait(timeout)
         self.scaltostream.dmawords.set(16384).wait(timeout)
-        self.dma.scan.set("6").wait(timeout)
+        self.dma.scan.set(6).wait(timeout)
 
         logger.info("Setting up trigger transfer.")
 
