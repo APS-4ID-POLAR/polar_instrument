@@ -166,6 +166,8 @@ class SoftGlueZynqDevice(Device):
 
     def default_settings(self, timeout=10):
 
+        logger.info("Setting up clocks.")
+
         self.clocks.clock_10MHz.signal.set("ck10").wait(timeout)
 
         self.div_by_n_count.enable.signal.set("enable").wait(timeout)
@@ -186,6 +188,8 @@ class SoftGlueZynqDevice(Device):
         self.div_by_n_interrupt.out.signal.set("ckInt").wait(timeout)
         self.div_by_n_interrupt.n.set(100000).wait(timeout)
 
+        logger.info("Setting up buffers.")
+
         for i in range(1, 5):
             getattr(self.buffers, f"in{i}").signal.set("1!").wait(timeout)
 
@@ -193,6 +197,8 @@ class SoftGlueZynqDevice(Device):
         self.buffers.out2.signal.set("enableDet").wait(timeout)
         self.buffers.out3.signal.set("resetCnters").wait(timeout)
         self.buffers.out4.signal.set("reset").wait(timeout)
+
+        logger.info("Setting up counters.")
 
         self.up_counter_count.enable.signal.set("enable").wait(timeout)
         self.up_counter_count.clock.signal.set("ckUser").wait(timeout)
@@ -210,21 +216,28 @@ class SoftGlueZynqDevice(Device):
         self.up_counter_gate_on.clock.signal.set("gateTrigger*").wait(timeout)
         self.up_counter_gate_on.reset.signal.set("resetCnters").wait(timeout)
 
+
+        logger.info("Setting up outputs.")
+
         self.io.fo1.signal.set("gateTrigger").wait(timeout)
         self.io.fo15.signal.set("ckInt").wait(timeout)
         self.io.fo16.signal.set("reset").wait(timeout)
 
+
+        logger.info("Setting up DMA transfer.")
+
         self.scaltostream.reset.signal.set("reset*").wait(timeout)
         self.scaltostream.chadv.signal.set("ckUser").wait(timeout)
         self.scaltostream.dmawords.set(16384).wait(timeout)
+        self.dma.scan.set("6").wait(timeout)
+
+        logger.info("Setting up trigger transfer.")
 
         self.gate_trigger.input.signal.set("ckDet").wait(timeout)
         self.gate_trigger.clock.signal.set("ck10").wait(timeout)
         self.gate_trigger.out.signal.set("gateTrigger").wait(timeout)
         self.gate_trigger.delay.set(0).wait(timeout)
         self.gate_trigger.width.set(500000).wait(timeout)
-
-        self.dma.scan.set("6").wait(timeout)
 
 
 sgz = SoftGlueZynqDevice('4idIF:', name='sgz')
