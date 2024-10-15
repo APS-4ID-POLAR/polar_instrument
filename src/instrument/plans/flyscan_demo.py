@@ -520,6 +520,7 @@ def flyscan_cycler(
     yield from sgz.stop_detectors()
     yield from sgz.stop_softglue()
     yield from sgz.reset_plan()
+    yield from sgz.clear_enable_dma()
 
     # Stop positioner stream just in case
     yield from mv(positioner_stream, 0)
@@ -571,6 +572,8 @@ def flyscan_cycler(
 
         logger.info("Stopping the positioner stream, this can take time.")
         yield from mv(positioner_stream, 0)
+
+        yield from sgz.clear_disable_dma()
 
         logger.info("Stopping detectors")
         for det in detectors:
