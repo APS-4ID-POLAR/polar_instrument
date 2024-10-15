@@ -1,6 +1,7 @@
 from bluesky.magics import BlueskyMagics
 from IPython.core.magic import line_magic
 from ..plans import mv, mvr
+from ..devices.polar_diffractometer import polar
 from bluesky import RunEngineInterrupted
 
 try:
@@ -11,6 +12,26 @@ except ImportError:
 
 
 class LocalMagics(BlueskyMagics):
+
+    @line_magic
+    def uan2(self, line):
+        if len(line.split()) != 2:
+            raise TypeError("Wrong parameters. Expected: "
+                            "uan two_theta theta")
+        args = []
+        args.append(polar.gamma)
+        args.append(eval(line.split()[0], self.shell.user_ns))
+        args.append(polar.mu)
+        args.append(eval(line.split()[1], self.shell.user_ns))
+        plan = mv(*args)
+        self.RE.waiting_hook = self.pbar_manager
+        try:
+            self.RE(plan)
+        except RunEngineInterrupted:
+            pass
+        self.RE.waiting_hook = None
+        self._ensure_idle()
+        return None
 
     @line_magic
     def mov(self, line):
@@ -49,3 +70,5 @@ class LocalMagics(BlueskyMagics):
         self.RE.waiting_hook = None
         self._ensure_idle()
         return None
+    
+
