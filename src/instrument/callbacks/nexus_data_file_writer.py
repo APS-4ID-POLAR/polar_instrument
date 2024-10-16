@@ -47,6 +47,7 @@ class MyNXWriter(NXWriterAPS):
         # print(f"{nxentry=!r}")
 
         for name, path in self.externals.items():
+            logger.info(f"{name} - {path}")
             h5addr = f"/entry/externals/{name}"
             self.root[h5addr] = h5py.ExternalLink(
                 str(path),
