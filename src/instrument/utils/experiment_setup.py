@@ -30,19 +30,19 @@ logger.info(__file__)
 path_startup = Path("startup_experiment.py")
 
 def set_experiment(
-        name: str = None,
+        user_name: str = None,
         proposal_id: str = None,
         sample: str = None,
         dm_experiment_name: str =  None,
-        first_scan_number: int = -1,
+        next_scan_id: int = -1,
         use_vortex: bool = False,
     ):
 
-    _name = RE.md.get("user", "test")
+    _user_name = RE.md.get("user", "test")
     _proposal_id = RE.md.get("proposal_id", "test")
     _sample = RE.md.get("sample", "test")
 
-    name = name or input(f"User [{_name}]: ") or _name
+    name = user_name or input(f"User [{_user_name}]: ") or _user_name
     proposal_id = (
         proposal_id or 
         input(f"Proposal ID [{_proposal_id}]: ") or
@@ -54,13 +54,25 @@ def set_experiment(
     RE.md["proposal_id"] = proposal_id
     RE.md["sample"] = sample
 
-    # TODO: Add logic to check the experiment name and ask the user.
+    if dm_experiment_name is None:
+        use_dm = input("Are you using the data management? [no]: ") or "no"
+        if use_dm.lower() == "yes":
+            dm_experiment_name = input(
+                "Enter experiment name (needs to match the DM system): "
+            )
+
     if dm_experiment_name:
         _setup_dm(dm_experiment_name, sample, use_vortex)
 
-    if first_scan_number >= 0:
-        RE.md["scan_id"] = first_scan_number
+    if next_scan_id < 0:
+        reset_number =  input(
+            "Do you want to reset the scan_id number? [no]: "
+        ) or "no"
+        if reset_number.lower() == "yes":
+            next_scan_id = int(input("Next scan_id [1]: ")) or 1
 
+    if next_scan_id >= 0:
+        RE.md["scan_id"] = next_scan_id-1
 
     if path_startup.exists():
         for line in fileinput.input([path_startup.name], inplace=True):
