@@ -132,19 +132,19 @@ class SoftGlueZynqDevice(Device):
         self._reference_clock = reference_clock
 
     def start_softglue(self):
-        yield from mv(self.buffers.in4, "1")
+        yield from mv(self.buffers.in4.signal, "1")
 
     def stop_softglue(self):
-        yield from mv(self.buffers.in4, "0")
+        yield from mv(self.buffers.in4.signal, "0")
 
     def start_detectors(self):
-        yield from mv(self.buffers.in2, "1")
+        yield from mv(self.buffers.in2.signal, "1")
 
     def stop_detectors(self):
-        yield from mv(self.buffers.in2, "0")
+        yield from mv(self.buffers.in2.signal, "0")
 
     def reset_plan(self):
-        yield from mv(self.buffers.in1, "1!", self.buffers.in3, "1!")
+        yield from mv(self.buffers.in1.signal, "1!", self.buffers.in3.signal, "1!")
     
     def clear_enable_dma(self):
         yield from mv(self.dma.clear_button, 1, self.dma.clear_buffer, 1)
