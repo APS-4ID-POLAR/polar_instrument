@@ -37,16 +37,14 @@ class MyNXWriter(NXWriterAPS):
         self.root.attrs["layout_version"] = LAYOUT_VERSION
 
     def write_entry(self):
+        """Called after stop document has been received."""
+    
         nxentry = super().write_entry()
         ds = nxentry.create_dataset("layout_version", data=LAYOUT_VERSION)
         ds.attrs["target"] = ds.name
         nxentry["instrument/layout_version"] = ds
-
-    def write_entry(self):
-        """Called after stop document has been received."""
         # nxentry = super().write_entry()
         # print(f"{nxentry=!r}")
-        super().write_entry()
 
         for name, path in self.externals.items():
             h5addr = f"/entry/externals/{name}"

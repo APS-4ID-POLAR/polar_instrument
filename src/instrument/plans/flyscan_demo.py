@@ -431,6 +431,10 @@ def flyscan_cycler(
     # nxwriter - creates and setup the master file  #
     #################################################
 
+    logger.info("names and paths")
+    for name, path in _rel_dets_paths:
+        logger.info(f"{name} - {path}")
+
     # Sets the file names
     nxwriter.externals = _rel_dets_paths
     nxwriter.file_name = str(_master_fullpath)
