@@ -93,6 +93,7 @@ def set_experiment(
                             break
                         except ValueError:
                             print("Needs to be an integer number.")
+                break
             else:
                 print(f"{reset_number} is not a valid answer. Please use yes or no.")
 
