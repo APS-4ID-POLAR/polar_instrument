@@ -90,7 +90,7 @@ class TriggerTime(TriggerBase):
             self.cam.stage_sigs["num_images"] = MAX_NUM_IMAGES
             self.cam.stage_sigs["num_exposures"] = 1
             # TODO: We may not need this.
-            self.cam.stage_sigs["num_triggers"] = 1
+            self.cam.stage_sigs.pop("num_triggers")
 
     def stage(self):
         if self._flysetup:
