@@ -28,8 +28,8 @@ class MyNXWriter(NXWriterAPS):
     Modify the default behavior of NXWriter for XPCS.
     """
 
-    externals = {}
-    position_file_name = None
+    external_files = {}
+    # position_file_name = None
 
     def write_root(self, filename):
         super().write_root(filename)
@@ -46,26 +46,29 @@ class MyNXWriter(NXWriterAPS):
         # nxentry = super().write_entry()
         # print(f"{nxentry=!r}")
 
-        logger.info(f"{self.externals}")
-        for name, path in self.externals.items():
+        logger.info(f"{self.external_files}")
+        for name, path in self.external_files.items():
+            link_path = (
+                "/stream" if name == "positioner_stream" else "/entry/instrument"
+            )
             logger.info(f"{name} - {path}")
             h5addr = f"/entry/externals/{name}"
             self.root[h5addr] = h5py.ExternalLink(
                 str(path),
-                "/entry/instrument",  # link to the image dataset
+                link_path,  # link to the image dataset
             )
       
         # TODO: Positioner stream is treated as an area detector.
-        if self.position_file_name is not None:
-            h5addr = "/entry/instrument/softglue"  # TODO: final location to be decided
-            self.root[h5addr] = h5py.ExternalLink(
-                str(self.position_file_name),
-                "/stream",  # link to the root of the file
-            )
+        # if self.position_file_name is not None:
+        #     h5addr = "/entry/instrument/softglue"  # TODO: final location to be decided
+        #     self.root[h5addr] = h5py.ExternalLink(
+        #         str(self.position_file_name),
+        #         "/stream",  # link to the root of the file
+        #     )
         
         # TODO: Do they need to be reset!?
-        self.externals = {}
-        self.position_file_name = None
+        self.external_files = {}
+        # self.position_file_name = None
 
 
 nxwriter = MyNXWriter()  # create the callback instance
