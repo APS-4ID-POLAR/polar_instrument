@@ -177,7 +177,7 @@ class SoftGlueZynqDevice(Device):
         self.div_by_n_count.out.signal.set("ckUser").wait(timeout)
         self.div_by_n_count.n.set(10000).wait(timeout)
 
-        self.div_by_n_trigger.enable.signal.set("enable").wait(timeout)
+        self.div_by_n_trigger.enable.signal.set("enableDet").wait(timeout)
         self.div_by_n_trigger.clock.signal.set("ck10").wait(timeout)
         self.div_by_n_trigger.reset.signal.set("1").wait(timeout)
         self.div_by_n_trigger.reset.signal.set("0").wait(timeout)
