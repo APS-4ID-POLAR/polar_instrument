@@ -432,7 +432,7 @@ def flyscan_cycler(
     #################################################
 
     logger.info("names and paths")
-    for name, path in _rel_dets_paths:
+    for name, path in _rel_dets_paths.items():
         logger.info(f"{name} - {path}")
 
     # Sets the file names
