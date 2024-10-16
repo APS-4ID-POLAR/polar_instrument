@@ -163,3 +163,6 @@ class PositionerStream(Device):
 
 positioner_stream = PositionerStream("", name="positioner_stream")
 sd.baseline.append(positioner_stream)
+
+positioner_stream.start_stream().wait(10)
+positioner_stream.stop_stream().wait(10)
