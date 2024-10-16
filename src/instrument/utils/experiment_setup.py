@@ -35,7 +35,7 @@ def set_experiment(
         sample: str = None,
         dm_experiment_name: str =  None,
         next_scan_id: int = -1,
-        use_vortex: bool = False,
+        use_vortex: bool = None,
     ):
 
     _user_name = RE.md.get("user", "test")
@@ -55,21 +55,44 @@ def set_experiment(
     RE.md["sample"] = sample
 
     if dm_experiment_name is None:
-        use_dm = input("Are you using the data management? [no]: ") or "no"
-        if use_dm.lower() == "yes":
-            dm_experiment_name = input(
-                "Enter experiment name (needs to match the DM system): "
-            )
+        while True:
+            use_dm = input("Are you using the data management? [no]: ") or "no"
+            if use_dm.strip().lower() in "yes no".split():
+                if use_dm.strip().lower() == "yes":
+                    dm_experiment_name = input(
+                        "Enter experiment name (needs to match the DM system): "
+                    )
+                break
+            else:
+                print(f"{use_dm} is not a valid answer. Please use yes or no.")
 
     if dm_experiment_name:
+        if use_vortex is None:
+            while True:
+                _vortex = input("Are you using the Vortex detector? [no]: ") or "no"
+                if _vortex.strip().lower() in "yes no".split():
+                    use_vortex = True if _vortex.strip().lower() == "yes" else False
+                    break
+                else:
+                    print(f"{_vortex} is not a valid answer. Please use yes or no.")
+
         _setup_dm(dm_experiment_name, sample, use_vortex)
 
     if next_scan_id < 0:
-        reset_number =  input(
-            "Do you want to reset the scan_id number? [no]: "
-        ) or "no"
-        if reset_number.lower() == "yes":
-            next_scan_id = int(input("Next scan_id [1]: ")) or 1
+        while True:
+            reset_number =  input(
+                "Do you want to reset the scan_id number? [no]: "
+            ) or "no"
+            if reset_number.strip().lower() in "yes no".split():
+                if reset_number.strip().lower() == "yes":
+                    while True:
+                        try:
+                            next_scan_id = int(input("Next scan_id [1]: ")) or 1
+                            break
+                        except ValueError:
+                            print("Needs to be an integer number.")
+            else:
+                print(f"{reset_number} is not a valid answer. Please use yes or no.")
 
     if next_scan_id >= 0:
         RE.md["scan_id"] = next_scan_id-1
