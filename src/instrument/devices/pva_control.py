@@ -11,6 +11,7 @@ from ophyd import Device, Signal, Component
 from ophyd.utils import UnprimedPlugin
 from ophyd.status import Status
 from pathlib import Path
+from time import sleep
 from .data_management import dm_experiment
 from ..utils.dm_utils import dm_get_experiment_data_path
 from ..utils.run_engine import sd, RE
@@ -182,6 +183,7 @@ class PositionerStream(Device):
 		self.file_name.put("dummy.h5")
 
 		self.start_stream().wait(10)
+		sleep(1)
 		self.stop_stream().wait(10)
 		self._warmup_done_status = True
 
