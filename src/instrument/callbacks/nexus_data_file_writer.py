@@ -69,4 +69,8 @@ class MyNXWriter(NXWriterAPS):
 
 
 nxwriter = MyNXWriter()  # create the callback instance
-nxwriter.warn_on_missing_content = iconfig.get("NEXUS_WARN_MISSING_CONTENT", False)
+_nx_config = iconfig.get("NEXUS_DATA_FILE", None)
+if _nx_config is not None:
+    nxwriter.warn_on_missing_content = _nx_config.get(
+        "NEXUS_WARN_MISSING_CONTENT", False
+    )
