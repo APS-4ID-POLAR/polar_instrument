@@ -29,6 +29,8 @@ HDF1_NAME_TEMPLATE = iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"]
 HDF1_FILE_EXTENSION = iconfig["AREA_DETECTOR"]["HDF5_FILE_EXTENSION"]
 HDF1_NAME_FORMAT = HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION
 
+MAX_NUM_IMAGES = 2**30
+
 
 class TriggerTime(TriggerBase):
     """
@@ -65,14 +67,30 @@ class TriggerTime(TriggerBase):
         # TODO: I don't like this too much, would prefer that we set this for each scan.
         self.cam.stage_sigs["num_triggers"] = int(1e5)
 
-    def setup_external_trigger(self):
-        # Stage signals
-        self.cam.stage_sigs["trigger_mode"] = "External Enable"
-        self.cam.stage_sigs["manual_trigger"] = "Disable"
-        self.cam.stage_sigs["num_images"] = 1
-        self.cam.stage_sigs["num_exposures"] = 1
-        # TODO: We may not need this.
-        self.cam.stage_sigs["num_triggers"] = int(1e6)
+    def setup_external_trigger(self, trigger_type="gate"):
+        if trigger_type not in "gate rising_edge".split():
+            raise ValueError(
+                "trigger_type must be either 'gate' or 'rising_edge', but"
+                f"{trigger_type} was entered."
+            )
+
+        if trigger_type == "rising_edge":
+            # Stage signals
+            self.cam.stage_sigs["trigger_mode"] = "External Enable"
+            self.cam.stage_sigs["manual_trigger"] = "Disable"
+            self.cam.stage_sigs["num_images"] = 1
+            self.cam.stage_sigs["num_exposures"] = 1
+            # TODO: We may not need this.
+            self.cam.stage_sigs["num_triggers"] = int(1e6)
+
+        elif trigger_type == "gate":
+            # Stage signals
+            self.cam.stage_sigs["trigger_mode"] = "External Gate"
+            self.cam.stage_sigs["manual_trigger"] = "Disable"
+            self.cam.stage_sigs["num_images"] = MAX_NUM_IMAGES
+            self.cam.stage_sigs["num_exposures"] = 1
+            # TODO: We may not need this.
+            # self.cam.stage_sigs["num_triggers"] = int(1e6)
 
     def stage(self):
         if self._flysetup:

@@ -80,6 +80,7 @@ class EigerDetectorCam(CamMixin_V34, EigerDetectorCam):
     """Revise EigerDetectorCam for ADCore revisions."""
 
     initialize = ADComponent(EpicsSignal, "Initialize", kind="config")
+    counting_mode = ADComponent(EpicsSignal, "CountingMode", kind="config")
 
     # These components not found on Eiger 4M at 8-ID-I
     file_number_sync = None
