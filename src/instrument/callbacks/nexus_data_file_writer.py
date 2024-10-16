@@ -42,8 +42,6 @@ class MyNXWriter(NXWriterAPS):
         ds = nxentry.create_dataset("layout_version", data=LAYOUT_VERSION)
         ds.attrs["target"] = ds.name
         nxentry["instrument/layout_version"] = ds
-        # nxentry = super().write_entry()
-        # print(f"{nxentry=!r}")
 
         for name, path in self.external_files.items():
             link_path = (

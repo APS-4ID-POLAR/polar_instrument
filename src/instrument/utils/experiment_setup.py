@@ -138,8 +138,8 @@ def start_vortex_daq(path, sample):
 
     if dm_get_experiment_datadir_active_daq(dm_experiment.get(), str(full_path)) is None:
         logger.info(
-            "Starting DM DAQ: experiment %r in data directory %r",
+            "Starting DM DAQ for Vortex files: experiment %r in data directory %r",
             dm_experiment.get(),
-            str(vortex_path),
+            str(full_path),
         )
         dm_start_daq(dm_experiment.get(), full_path, destDirectory=f"{sample}/vortex")
