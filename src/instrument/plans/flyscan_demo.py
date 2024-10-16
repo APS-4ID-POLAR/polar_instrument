@@ -572,6 +572,8 @@ def flyscan_cycler(
             yield from move_per_step(step, pos_cache)
         yield from sgz.stop_detectors()
 
+
+        logger.info("Waiting for softglue to reach 100k words.")
         # This will wait for a full new set of packets.
         # TODO: It's an overkill, maybe Keenan's code can broadcast a signal?
         n = yield from rd(sgz.div_by_n_count.n)
