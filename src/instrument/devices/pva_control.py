@@ -6,7 +6,9 @@ Device to control the PositionerStream
 __all__ = ["positioner_stream"]
 
 from pvapy import Channel
+import os
 from ophyd import Device, Signal, Component
+from ophyd.utils import UnprimedPlugin
 from ophyd.status import Status
 from pathlib import Path
 from .data_management import dm_experiment
@@ -66,6 +68,10 @@ class PositionerStream(Device):
 		kind="normal"
 	)
 
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self._warmup_done_status = False
+
 	_status_obj = None
 
 	@property
@@ -113,6 +119,12 @@ class PositionerStream(Device):
 		return self._status_obj
 
 	def set(self, value, **kwargs):
+		if self._warmup_done_status is False:
+			raise UnprimedPlugin(
+				"Positioner stream needs to be primed before first use. Please run "
+				".warmup()."
+			)
+
 		if value not in [1, 0]:
 			raise ValueError ("Value must be 1 or 0.")
 		
@@ -159,10 +171,22 @@ class PositionerStream(Device):
 		self.file_name.put(str(_ps_fname))
 
 		return Path(full_path), Path(relative_path)
+	
+	def warmup(self):
+		stash = {}
+		for component in "file_path file_name".split():
+			attr = getattr(self, component)
+			stash[attr] = attr.get()
 
+		self.file_path.put(os.getenv("HOME") + "/PositionerStream")
+		self.file_name.put("dummy.h5")
+
+		self.start_stream().wait(10)
+		self.stop_stream().wait(10)
+		self._warmup_done_status = True
+
+		for attr, value in stash.items():
+			attr.put(value)
 
 positioner_stream = PositionerStream("", name="positioner_stream")
 sd.baseline.append(positioner_stream)
-
-positioner_stream.start_stream().wait(10)
-positioner_stream.stop_stream().wait(10)
