@@ -172,18 +172,21 @@ class SoftGlueZynqDevice(Device):
 
         self.div_by_n_count.enable.signal.set("enable").wait(timeout)
         self.div_by_n_count.clock.signal.set("ck10").wait(timeout)
+        self.div_by_n_count.reset.signal.set("1").wait(timeout)
         self.div_by_n_count.reset.signal.set("0").wait(timeout)
         self.div_by_n_count.out.signal.set("ckUser").wait(timeout)
         self.div_by_n_count.n.set(10000).wait(timeout)
 
         self.div_by_n_trigger.enable.signal.set("enable").wait(timeout)
         self.div_by_n_trigger.clock.signal.set("ck10").wait(timeout)
+        self.div_by_n_trigger.reset.signal.set("1").wait(timeout)
         self.div_by_n_trigger.reset.signal.set("0").wait(timeout)
         self.div_by_n_trigger.out.signal.set("ckDet").wait(timeout)
         self.div_by_n_trigger.n.set(1000000).wait(timeout)
 
         self.div_by_n_interrupt.enable.signal.set("enable").wait(timeout)
         self.div_by_n_interrupt.clock.signal.set("ck10").wait(timeout)
+        self.div_by_n_interrupt.reset.signal.set("1").wait(timeout)
         self.div_by_n_interrupt.reset.signal.set("0").wait(timeout)
         self.div_by_n_interrupt.out.signal.set("ckInt").wait(timeout)
         self.div_by_n_interrupt.n.set(100000).wait(timeout)
