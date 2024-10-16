@@ -11,6 +11,7 @@ from apstools.utils import (
     share_bluesky_metadata_with_dm,
 )
 from collections import defaultdict
+from collections.abc import Iterable
 from pathlib import Path
 from json import dumps
 from warnings import warn
@@ -32,7 +33,7 @@ HDF1_NAME_FORMAT = Path(iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"])
 
 
 def flyscan_snake(
-        detector,
+        detectors,
         stepping_motor,
         stepping_motor_start,
         stepping_motor_end,
@@ -103,8 +104,13 @@ def flyscan_snake(
     :func:`bluesky.plan_patterns.outter_product`
     :func:`flyscan_cycler`
     """
+    
+    if isinstance(detectors, str):
+        raise TypeError("The detector argument cannot be a string.")
+    
+    if not isinstance(detectors, Iterable):
+        detectors = [detectors]
 
-    detectors = [detector]
     args = (
         stepping_motor,
         stepping_motor_start,
@@ -174,7 +180,7 @@ def flyscan_snake(
         )
 
 def flyscan_1d(
-        detector,
+        detectors,
         motor,
         start,
         end,
@@ -238,7 +244,12 @@ def flyscan_1d(
     :func:`bluesky.plan_patterns.inner_product`
     :func:`flyscan_cycler`
     """
-    detectors = [detector]
+    if isinstance(detectors, str):
+        raise TypeError("The detector argument cannot be a string.")
+    
+    if not isinstance(detectors, Iterable):
+        detectors = [detectors]
+
     cycler = inner_product(2, (motor, start, end))
 
     _md = {
