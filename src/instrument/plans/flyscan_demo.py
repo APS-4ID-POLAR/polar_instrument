@@ -574,7 +574,7 @@ def flyscan_cycler(
 
         # This will wait for a full new set of packets.
         # TODO: It's an overkill, maybe Keenan's code can broadcast a signal?
-        n = yield from rd(sgz.div_by_n_interf.n)
+        n = yield from rd(sgz.div_by_n_count.n)
         _time_per_point = n/1e7
         _number_of_events_per_packet = 1e5/8
         yield from sleep(_time_per_point*_number_of_events_per_packet+ 0.1)
