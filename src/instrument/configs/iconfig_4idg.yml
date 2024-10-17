@@ -68,6 +68,8 @@ DM_SETUP_FILE: /home/dm/etc/dm.setup.sh
 DM_ROOT_PATH: /gdata/dm/4IDD
 DM_USE_PATH: true
 
+DSERV_ROOT_PATH: /net/s4data/export/sector4/4idd
+
 # ----------------------------------
 
 OPHYD:

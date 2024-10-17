@@ -29,93 +29,130 @@ from ._logging_setup import logger
 logger.info(__file__)
 path_startup = Path("startup_experiment.py")
 
-def set_experiment(
+
+class SetExperiment:
+    experiment_dm_folder = None
+    experiment_dserv_folder = None
+    use_dm = "yes"
+    # use_vortex = "no"
+
+    def __repr__(self):
+        output = f"User: {RE.md.get("user", None)}\n"
+        output += f"Proposal ID: {RE.md.get("proposal_id", None)}\n"
+        output += f"Sample: {RE.md.get("sample", None)}\n"
+        output += f"Next scan_id: {RE.md.get("scan_id", 0) + 1}\n"
+        output += f"Experiment folder: {self.experiment_dserv_folder}\n"
+        output += f"Use data management system: {self.use_dm}\n"
+        if self.use_dm == "yes":
+            output += f"Data management folder: {self.experiment_dm_folder}\n"
+        
+        return output
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __call__(
+        self,
         user_name: str = None,
         proposal_id: str = None,
         sample: str = None,
         dm_experiment_name: str =  None,
         next_scan_id: int = -1,
-        use_vortex: bool = None,
+        # use_vortex: bool = None,
     ):
 
-    _user_name = RE.md.get("user", "test")
-    _proposal_id = RE.md.get("proposal_id", "test")
-    _sample = RE.md.get("sample", "test")
+        _user_name = RE.md.get("user", "test")
+        _proposal_id = RE.md.get("proposal_id", "test")
+        _sample = RE.md.get("sample", "test")
 
-    name = user_name or input(f"User [{_user_name}]: ") or _user_name
-    proposal_id = (
-        proposal_id or 
-        input(f"Proposal ID [{_proposal_id}]: ") or
-        _proposal_id
-    )
-    sample = sample or input(f"Sample [{_sample}]: ") or _sample
+        name = user_name or input(f"User [{_user_name}]: ") or _user_name
+        proposal_id = (
+            proposal_id or 
+            input(f"Proposal ID [{_proposal_id}]: ") or
+            _proposal_id
+        )
+        sample = sample or input(f"Sample [{_sample}]: ") or _sample
 
-    RE.md["user"] = name
-    RE.md["proposal_id"] = proposal_id
-    RE.md["sample"] = sample
+        RE.md["user"] = name
+        RE.md["proposal_id"] = proposal_id
+        RE.md["sample"] = sample
 
-    if dm_experiment_name is None:
-        while True:
-            use_dm = input("Are you using the data management? [no]: ") or "no"
-            if use_dm.strip().lower() in "yes no".split():
-                if use_dm.strip().lower() == "yes":
-                    dm_experiment_name = input(
-                        "Enter experiment name (needs to match the DM system): "
-                    )
-                break
-            else:
-                print(f"{use_dm} is not a valid answer. Please use yes or no.")
-
-    if dm_experiment_name:
-        if use_vortex is None:
+        if dm_experiment_name is None:
             while True:
-                _vortex = input("Are you using the Vortex detector? [no]: ") or "no"
-                if _vortex.strip().lower() in "yes no".split():
-                    use_vortex = True if _vortex.strip().lower() == "yes" else False
+                self.use_dm = input(
+                    f"Are you using the data management? [{self.use_dm}]: "
+                ) or self.use_dm
+                if use_dm.strip().lower() in "yes no".split():
+                    if use_dm.strip().lower() == "yes":
+                        dm_experiment_name = input(
+                            "Enter experiment name (needs to match the DM system): "
+                        )
                     break
                 else:
-                    print(f"{_vortex} is not a valid answer. Please use yes or no.")
+                    print(f"{self.use_dm} is not a valid answer. Please use yes or no.")
 
-        _setup_dm(dm_experiment_name, sample, use_vortex)
+        if dm_experiment_name:
+            self.use_dm = "yes"
+            _setup_dm(dm_experiment_name, sample)
 
-    if next_scan_id < 0:
-        while True:
-            reset_number =  input(
-                "Do you want to reset the scan_id number? [no]: "
-            ) or "no"
-            if reset_number.strip().lower() in "yes no".split():
-                if reset_number.strip().lower() == "yes":
-                    while True:
-                        try:
-                            next_scan_id = int(input("Next scan_id [1]: ")) or 1
-                            break
-                        except ValueError:
-                            print("Needs to be an integer number.")
-                break
-            else:
-                print(f"{reset_number} is not a valid answer. Please use yes or no.")
+        # if dm_experiment_name:
+        #     self.use_dm = True
+        #     if use_vortex is None:
+        #         while True:
+        #             self.use_vortex = input(
+        #                 f"Are you using the Vortex detector? [{self.use_vortex}]: "
+        #             ).strip().lower() or self.use_vortex
+        #             if self.use_vortex in "yes no".split():
+        #                 break
+        #             else:
+        #                 print(
+        #                     f"{self.use_vortex} is not a valid answer. Please use yes "
+        #                     "or no."
+        #                 )
+        #     else:
+        #         self.use_vortex = use_vortex
 
-    if next_scan_id >= 0:
-        RE.md["scan_id"] = next_scan_id-1
+        #     _vortex = True if self.use_vortex == "yes" else False
+        #     _setup_dm(dm_experiment_name, sample, _vortex)
 
-    if path_startup.exists():
-        for line in fileinput.input([path_startup.name], inplace=True):
-            if line.strip().startswith("RE.md['user']"):
-                line = f"RE.md['user']='{name}'\n"
-            if line.strip().startswith("RE.md['proposal_id']"):
-                line = f"RE.md['proposal_id']='{proposal_id}'\n"
-            if line.strip().startswith("RE.md['sample']"):
-                line = f"RE.md['sample']='{sample}'\n"
-            sys.stdout.write(line)
-    else:
-        with open(path_startup.name, "w") as f:
-            f.write("from instrument.collection import RE\n")
-            f.write(f"RE.md['user']='{name}'\n")
-            f.write(f"RE.md['proposal_id']='{proposal_id}'\n")
-            f.write(f"RE.md['sample']='{sample}'\n")
+        if next_scan_id < 0:
+            while True:
+                reset_number =  input(
+                    "Do you want to reset the scan_id number? [no]: "
+                ) or "no"
+                if reset_number.strip().lower() in "yes no".split():
+                    if reset_number.strip().lower() == "yes":
+                        while True:
+                            try:
+                                next_scan_id = int(input("Next scan_id [1]: ")) or 1
+                                break
+                            except ValueError:
+                                print("Needs to be an integer number.")
+                    break
+                else:
+                    print(f"{reset_number} is not a valid answer. Please use yes or no.")
+
+        if next_scan_id >= 0:
+            RE.md["scan_id"] = next_scan_id-1
+
+        if path_startup.exists():
+            for line in fileinput.input([path_startup.name], inplace=True):
+                if line.strip().startswith("RE.md['user']"):
+                    line = f"RE.md['user']='{name}'\n"
+                if line.strip().startswith("RE.md['proposal_id']"):
+                    line = f"RE.md['proposal_id']='{proposal_id}'\n"
+                if line.strip().startswith("RE.md['sample']"):
+                    line = f"RE.md['sample']='{sample}'\n"
+                sys.stdout.write(line)
+        else:
+            with open(path_startup.name, "w") as f:
+                f.write("from instrument.collection import RE\n")
+                f.write(f"RE.md['user']='{name}'\n")
+                f.write(f"RE.md['proposal_id']='{proposal_id}'\n")
+                f.write(f"RE.md['sample']='{sample}'\n")
 
 
-def _setup_dm(dm_experiment_name: str, sample_name: str, use_vortex: bool):
+def _setup_dm(dm_experiment_name: str, sample_name: str):
     """
     Configure bluesky session for this user.
 
@@ -141,7 +178,7 @@ def _setup_dm(dm_experiment_name: str, sample_name: str, use_vortex: bool):
         # A single DAQ can be used to cover any subdirectories.
         # Anything in them will be uploaded.
         logger.info(
-            "Starting DM DAQ: experiment %r in data directory %r",
+            "Starting DM DAQ at Voyager: experiment %r in data directory %r",
             dm_experiment_name,
             data_directory,
         )
@@ -151,26 +188,26 @@ def _setup_dm(dm_experiment_name: str, sample_name: str, use_vortex: bool):
     sample_path = data_path / sample_name
     if not sample_path.is_dir():
         sample_path.mkdir()
-    
-    if use_vortex:
-        start_vortex_daq(sample_path, sample_name)
 
-def start_vortex_daq(path, sample):
+    _start_dserv_daq(sample_path)
+
+def _start_dserv_daq(path):
 
     DM_ROOT_PATH = Path(iconfig["DM_ROOT_PATH"])
-    IOC_FILES_ROOT = Path(iconfig["AREA_DETECTOR"]["VORTEX"]["IOC_FILES_ROOT"])
+    DSERV_ROOT_PATH = Path(iconfig["DSERV_ROOT_PATH"])
 
     rel_path = path.relative_to(DM_ROOT_PATH)
-    vortex_path = IOC_FILES_ROOT  / rel_path
+    dserv_path = DSERV_ROOT_PATH  / rel_path
 
-    full_path = vortex_path / "vortex"
-    if not full_path.is_dir():
-        full_path.mkdir(parents=True)
+    if not dserv_path.is_dir():
+        dserv_path.mkdir(parents=True)
 
-    if dm_get_experiment_datadir_active_daq(dm_experiment.get(), str(full_path)) is None:
+    if dm_get_experiment_datadir_active_daq(dm_experiment.get(), str(dserv_path)) is None:
         logger.info(
-            "Starting DM DAQ for Vortex files: experiment %r in data directory %r",
+            "Starting DM DAQ to upload dserv data: experiment %r in data directory %r",
             dm_experiment.get(),
-            str(full_path),
+            str(dserv_path),
         )
-        dm_start_daq(dm_experiment.get(), full_path, destDirectory=f"{sample}/vortex")
+        dm_start_daq(dm_experiment.get(), dserv_path)
+
+set_experiment = SetExperiment()
