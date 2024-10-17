@@ -29,8 +29,6 @@ from ._logging_setup import logger
 logger.info(__file__)
 path_startup = Path("startup_experiment.py")
 
-ALL_DETECTORS = "eiger1m positioner_stream "
-
 def set_experiment(
         user_name: str = None,
         proposal_id: str = None,
@@ -153,11 +151,6 @@ def _setup_dm(dm_experiment_name: str, sample_name: str, use_vortex: bool):
     sample_path = data_path / sample_name
     if not sample_path.is_dir():
         sample_path.mkdir()
-
-    # for subfolder in "eiger positioner_stream".split():
-    #     subpath = sample_path / subfolder
-    #     if not subpath.is_dir():
-    #         subpath.mkdir()
     
     if use_vortex:
         start_vortex_daq(sample_path, sample_name)
