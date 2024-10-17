@@ -187,7 +187,7 @@ def _setup_dm(dm_experiment_name: str, sample_name: str):
     # Make sure that the subfolder structure exists, if not creates it.
     sample_path = data_path / sample_name
     if not sample_path.is_dir():
-        sample_path.mkdir()
+        sample_path.mkdir(parents=True)
 
     _start_dserv_daq(sample_path)
 
