@@ -17,8 +17,6 @@ logger.info(__file__)
 EXPECTED_KWARGS = {}
 EXPECTED_KWARGS["ptychodus"] = [
     "workflow",
-    "wait",
-    "timeout",
     "filePath",
     "sampleName",
     "experimentName",
