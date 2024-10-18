@@ -132,8 +132,7 @@ def _setup_dm(dm_experiment_name: str, sample_name: str, use_vortex: bool):
     # Data is written to APS Voyager storage (path
     # starting with ``/gdata/``).  Use "@voyager" in this case.
     # DM sees this and knows not copy from voyager to voyager.
-    data_path = dm_get_experiment_data_path(dm_experiment_name)
-    data_directory = f"@voyager:{data_path}"
+    data_directory = f"@voyager"
 
     # Check DM DAQ is running for this experiment, if not then start it.
     if dm_get_experiment_datadir_active_daq(dm_experiment_name, data_directory) is None:
@@ -148,7 +147,7 @@ def _setup_dm(dm_experiment_name: str, sample_name: str, use_vortex: bool):
         dm_start_daq(dm_experiment_name, data_directory)
 
     # Make sure that the subfolder structure exists, if not creates it.
-    sample_path = data_path / sample_name
+    sample_path = dm_get_experiment_data_path(dm_experiment_name) / sample_name
     if not sample_path.is_dir():
         sample_path.mkdir()
     
