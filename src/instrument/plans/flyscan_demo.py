@@ -8,7 +8,6 @@ from bluesky.plan_patterns import outer_product, inner_product
 from apstools.utils import (
     validate_experiment_dataDirectory,
     build_run_metadata_dict,
-    share_bluesky_metadata_with_dm,
 )
 from collections import defaultdict
 from collections.abc import Iterable
@@ -19,7 +18,7 @@ from .local_scans import mv
 from .workflow_plan import run_workflow
 from ..devices.pva_control import positioner_stream
 from ..devices.softgluezynq import sgz
-from ..devices.data_management import dm_experiment, dm_workflow
+from ..devices.data_management import dm_experiment
 from ..utils import logger
 from ..utils.config import iconfig
 from ..utils.run_engine import RE
@@ -360,7 +359,6 @@ def flyscan_cycler(
             )
 
     # Check if any of these files exists
-    # for _fname in [_master_fullpath, _ps_fullpath] + list(_dets_file_paths.values()):
     for _fname in [Path(_master_fullpath)] + list(_dets_file_paths.values()):
         if _fname.is_file():
             raise FileExistsError(
@@ -442,10 +440,6 @@ def flyscan_cycler(
     #################################
 
     logger.info("Setting up devices.")
-
-    # Setup detectors count time --> detector is now gated.
-    # for det in detectors:
-    #     yield from mv(det.preset_monitor, detector_collection_time)
 
     # Stop and reset softglue just in case
     yield from sgz.stop_detectors()
