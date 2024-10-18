@@ -408,11 +408,6 @@ def flyscan_cycler(
             "nxwriter_warn_missing": nxwriter_warn_missing,
         },
         master_file_path = str(_master_fullpath),
-        # This assumes the first detector is the eiger.
-        # eiger_relative_file_path = str(_rel_eiger_path),
-        # eiger_full_file_path = str(_eiger_fullpath),
-        # positioner_stream_full_file_path = str(_ps_fullpath),
-        # positioner_stream_relative_file_path = str(_rel_ps_path),
         # TODO: a similar scan with a monitor (scaler...)
         hints = dict(monitor=None, detectors=[], scan_type="flyscan")
     )
