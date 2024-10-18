@@ -16,7 +16,7 @@ from apstools.utils import (
     validate_experiment_dataDirectory,
     dm_get_experiment_datadir_active_daq,
 )
-
+from os import getcwd
 import sys
 import fileinput
 from pathlib import Path
@@ -30,11 +30,12 @@ logger.info(__file__)
 path_startup = Path("startup_experiment.py")
 
 
+TODO: THIS NEEDS TO CHANGE TO BE EITHER SAVE DIRECTLY TO DM OR DVSERV + DAQ.
+
 class SetExperiment:
     experiment_dm_folder = None
     experiment_dserv_folder = None
     use_dm = "yes"
-    # use_vortex = "no"
 
     def __repr__(self):
         output = f"User: {RE.md.get("user", None)}\n"
@@ -58,7 +59,6 @@ class SetExperiment:
         sample: str = None,
         dm_experiment_name: str =  None,
         next_scan_id: int = -1,
-        # use_vortex: bool = None,
     ):
 
         _user_name = RE.md.get("user", "test")
@@ -93,27 +93,22 @@ class SetExperiment:
 
         if dm_experiment_name:
             self.use_dm = "yes"
-            _setup_dm(dm_experiment_name, sample)
+            while True:
+                _custom_folder = input(
+                    "Do you want to use the same folder naming as in data management? "
+                    "[yes]: "
+                ).strip().lower() or "yes"
+                if _custom_folder == "no":
+                    _folder = (
+                        self.experiment_dserv_folder if self.experiment_dserv_folder is 
+                        None else getcwd()
+                    )
+                    self.dserv_folder = (
+                        input(f"Enter experiment folder [{_folder}]: ") or _folder
+                    )
 
-        # if dm_experiment_name:
-        #     self.use_dm = True
-        #     if use_vortex is None:
-        #         while True:
-        #             self.use_vortex = input(
-        #                 f"Are you using the Vortex detector? [{self.use_vortex}]: "
-        #             ).strip().lower() or self.use_vortex
-        #             if self.use_vortex in "yes no".split():
-        #                 break
-        #             else:
-        #                 print(
-        #                     f"{self.use_vortex} is not a valid answer. Please use yes "
-        #                     "or no."
-        #                 )
-        #     else:
-        #         self.use_vortex = use_vortex
-
-        #     _vortex = True if self.use_vortex == "yes" else False
-        #     _setup_dm(dm_experiment_name, sample, _vortex)
+            _setup_dm(dm_experiment_name, sample, dserv = self.dserv_folder)
+            self.experiment_dm_folder = dm_get_experiment_data_path(dm_experiment_name)
 
         if next_scan_id < 0:
             while True:
@@ -130,7 +125,9 @@ class SetExperiment:
                                 print("Needs to be an integer number.")
                     break
                 else:
-                    print(f"{reset_number} is not a valid answer. Please use yes or no.")
+                    print(
+                        f"{reset_number} is not a valid answer. Please use yes or no."
+                    )
 
         if next_scan_id >= 0:
             RE.md["scan_id"] = next_scan_id-1
@@ -170,7 +167,8 @@ def _setup_dm(dm_experiment_name: str, sample_name: str):
     # starting with ``/gdata/``).  Use "@voyager" in this case.
     # DM sees this and knows not copy from voyager to voyager.
     data_path = dm_get_experiment_data_path(dm_experiment_name)
-    data_directory = f"@voyager:{data_path}"
+    # data_directory = f"@voyager:{data_path}"
+    data_directory = f"@voyager"
 
     # Check DM DAQ is running for this experiment, if not then start it.
     if dm_get_experiment_datadir_active_daq(dm_experiment_name, data_directory) is None:
