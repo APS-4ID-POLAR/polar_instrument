@@ -99,15 +99,15 @@ def run_workflow(
     dm_reporting_period: float = 10*60,
     dm_reporting_time_limit: float = 10**6,
     # Option to import DM workflow kwargs from a file ------------------------------
-    wf_settings_file_path: str = None,
+    settings_file_path: str = None,
     # Or you can enter the kwargs that will be just be passed to the workflow ------
     **_kwargs
 ):
     
     # Option to import workflow parameters from file.
     kwargs = {}
-    if wf_settings_file_path is not None:
-        path = Path(wf_settings_file_path)
+    if settings_file_path is not None:
+        path = Path(settings_file_path)
         if not path.exists():
             raise FileExistsError(f"Configuration file '{path}' does not exist.")
         kwargs = yload(open(path, "r").read(), yloader)
@@ -145,14 +145,14 @@ def run_workflow(
             run = full_cat[bluesky_id]
         except KeyError:
             raise KeyError(
-                f"Could not fild a Bluesky run associated with the {bluesky_id=}."
+                f"Could not find a Bluesky run associated with the {bluesky_id=}."
             )
     elif isinstance(bluesky_id, BlueskyRun):
         run = bluesky_id
     else:
         logger.warning(
             "Could not find the scan associated to the bluesky_id entered. Bluesky "
-            "metadata will not be sshared with DM."
+            "metadata will not be shared with DM."
         )
         run = None
 
