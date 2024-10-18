@@ -1,0 +1,22 @@
+# Configuration file example for the ptychodus workflow
+
+workflow : ptychodus
+filePath : scan_010_master.hdf
+sampleName : test_sample
+experimentName : Parraga_BDP_Polar2
+scanFilePath : fly001_pos.csv
+analysisMachine : polaris
+detectorName : eiger
+detectorDistanceInMeters : 335
+cropCenterXInPixels : 540
+cropCenterYInPixels : 259
+cropExtentXInPixels : 256
+cropExtentYInPixels : 256
+probeEnergyInElectronVolts : 10000
+numGpus : 2
+settings : /home/beams/POLAR/ptychodusDefaults/default-settings.ini
+demand : False
+name : fly001
+
+
+
