@@ -5,6 +5,8 @@ Run DM workflow
 from bluesky.plan_stubs import sleep
 from apstools.utils import share_bluesky_metadata_with_dm
 from databroker.core import BlueskyRun
+from pathlib import Path
+from yaml import load as yload, Loader as yloader
 from .local_scans import mv
 from ..devices import dm_workflow, dm_experiment
 from ..utils._logging_setup import logger
@@ -71,6 +73,24 @@ EXPECTED_KWARGS["ptycho-xrf"] = [
     "demand",
 ]
 
+def _load_yaml(path):
+    """
+    Load iconfig.yml (and other YAML) configuration files.
+
+    Parameters
+    ----------
+    iconfig_yml: str
+        Name of the YAML file to be loaded.  The name can be
+        absolute or relative to the current working directory.
+        Default: ``INSTRUMENT/configs/iconfig.yml``
+    """
+
+    if not path.exists():
+        raise FileExistsError(f"Configuration file '{path}' does not exist.")
+    
+    return yload(open(path, "r").read(), yloader)
+
+
 def run_workflow(
     bluesky_id = None,
     # internal kwargs --------------------------------------------------------------
@@ -79,15 +99,21 @@ def run_workflow(
     dm_reporting_period: float = 10*60,
     dm_reporting_time_limit: float = 10**6,
     # Option to import DM workflow kwargs from a file ------------------------------
-    wf_settings_file: str = None,
+    wf_settings_file_path: str = None,
     # Or you can enter the kwargs that will be just be passed to the workflow ------
-    **kwargs
+    **_kwargs
 ):
     
     # Option to import workflow parameters from file.
-    if wf_settings_file is not None:
-        logger.warning("Haven't implemented this, using kwargs")
+    kwargs = {}
+    if wf_settings_file_path is not None:
+        path = Path(wf_settings_file_path)
+        if not path.exists():
+            raise FileExistsError(f"Configuration file '{path}' does not exist.")
+        kwargs = yload(open(path, "r").read(), yloader)
 
+    # kwargs given in function call will have priority.
+    kwargs.update(_kwargs)
 
     # Check if kwargs have all argumnents needed.
     workflow = kwargs.get("workflow", None)
