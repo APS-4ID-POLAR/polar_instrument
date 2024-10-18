@@ -46,7 +46,6 @@ def flyscan_snake(
         detector_collection_time: float = 0.01,
         file_name_base: str = "scan",
         master_file_templates: list = [],
-        nxwriter_warn_missing: bool = False,
         md: dict = {},
         # internal kwargs ----------------------------------------
         dm_concise: bool = False,
