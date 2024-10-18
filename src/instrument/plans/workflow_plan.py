@@ -129,6 +129,8 @@ def run_workflow(
     for required in EXPECTED_KWARGS[workflow]:
         if required not in kwargs.keys():
             missing.append(required)
+        if kwargs[required] in ("None", "none"):
+            kwargs[required] = None
     
     if len(missing) > 0:
         raise ValueError(

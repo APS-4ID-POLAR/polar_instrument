@@ -19,7 +19,7 @@ quickAndDirty : False
 optimizeFitOverrideParams : None
 optimizer : None
 analysisMachine : polaris
-name : 003003
+name : "003003"
 sampleName : sample02
 ptychoFilePath : scan_003003_eiger1m.hdf5
 detectorName : ptycho
