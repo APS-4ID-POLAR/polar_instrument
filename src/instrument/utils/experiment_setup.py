@@ -163,14 +163,18 @@ def start_vortex_daq(path, sample):
     rel_path = path.relative_to(DM_ROOT_PATH)
     vortex_path = IOC_FILES_ROOT  / rel_path
 
-    full_path = vortex_path / "vortex"
-    if not full_path.is_dir():
-        full_path.mkdir(parents=True)
+    dserv_path = vortex_path / "vortex"
+    if not dserv_path.is_dir():
+        dserv_path.mkdir(parents=True)
 
-    if dm_get_experiment_datadir_active_daq(dm_experiment.get(), str(full_path)) is None:
+    dm_path = path / "vortex"
+    if not dm_path.is_dir():
+        dm_path.mkdir(parents=True)
+
+    if dm_get_experiment_datadir_active_daq(dm_experiment.get(), str(dserv_path)) is None:
         logger.info(
             "Starting DM DAQ for Vortex files: experiment %r in data directory %r",
             dm_experiment.get(),
-            str(full_path),
+            str(dserv_path),
         )
-        dm_start_daq(dm_experiment.get(), full_path, destDirectory=f"{sample}/vortex")
+        dm_start_daq(dm_experiment.get(), dserv_path, destDirectory=f"{sample}/vortex")
