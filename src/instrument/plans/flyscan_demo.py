@@ -523,7 +523,7 @@ def flyscan_cycler(
             destDirectory=f"{RE.md['sample']}",
             reprocessFiles=False,
         )
-        logger.info(f"DM upload of vortex files started, id = {upload_info["id"]}.")
+        logger.info(f"DM upload of vortex files started, id = {upload_info['id']}.")
 
     #############################
     # START THE APS DM WORKFLOW #
