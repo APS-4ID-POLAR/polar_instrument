@@ -30,21 +30,22 @@ logger.info(__file__)
 path_startup = Path("startup_experiment.py")
 
 
-class ExperimentClass:
-    experiment_folder = None
-    experiment_name = None
+TODO: THIS NEEDS TO CHANGE TO BE EITHER SAVE DIRECTLY TO DM OR DVSERV + DAQ.
+
+class SetExperiment:
+    experiment_dm_folder = None
+    experiment_dserv_folder = None
     use_dm = "yes"
-    esaf = None
 
     def __repr__(self):
         output = f"User: {RE.md.get("user", None)}\n"
         output += f"Proposal ID: {RE.md.get("proposal_id", None)}\n"
         output += f"Sample: {RE.md.get("sample", None)}\n"
         output += f"Next scan_id: {RE.md.get("scan_id", 0) + 1}\n"
-        output += f"Experiment folder: {self.experiment_folder}\n"
+        output += f"Experiment folder: {self.experiment_dserv_folder}\n"
         output += f"Use data management system: {self.use_dm}\n"
         if self.use_dm == "yes":
-            output += f"DM experiment name: {self.experiment_name}\n"
+            output += f"Data management folder: {self.experiment_dm_folder}\n"
         
         return output
 
