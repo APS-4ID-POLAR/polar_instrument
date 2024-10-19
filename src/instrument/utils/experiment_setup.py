@@ -166,9 +166,7 @@ def _setup_dm(dm_experiment_name: str, sample_name: str):
     # Data is written to APS Voyager storage (path
     # starting with ``/gdata/``).  Use "@voyager" in this case.
     # DM sees this and knows not copy from voyager to voyager.
-    data_path = dm_get_experiment_data_path(dm_experiment_name)
-    # data_directory = f"@voyager:{data_path}"
-    data_directory = f"@voyager"
+    data_directory = f"@voyager:{dm_get_experiment_data_path(dm_experiment_name)}"
 
     # Check DM DAQ is running for this experiment, if not then start it.
     if dm_get_experiment_datadir_active_daq(dm_experiment_name, data_directory) is None:
@@ -176,36 +174,15 @@ def _setup_dm(dm_experiment_name: str, sample_name: str):
         # A single DAQ can be used to cover any subdirectories.
         # Anything in them will be uploaded.
         logger.info(
-            "Starting DM DAQ at Voyager: experiment %r in data directory %r",
-            dm_experiment_name,
-            data_directory,
+            "Starting DM voyager DAQ: experiment %r",
+            dm_experiment_name
         )
-        dm_start_daq(dm_experiment_name, data_directory)
+        dm_start_daq(dm_experiment_name, "@voyager")
 
     # Make sure that the subfolder structure exists, if not creates it.
-    sample_path = data_path / sample_name
+    sample_path = dm_get_experiment_data_path(dm_experiment_name) / sample_name
     if not sample_path.is_dir():
-        sample_path.mkdir(parents=True)
-
-    _start_dserv_daq(sample_path)
-
-def _start_dserv_daq(path):
-
-    DM_ROOT_PATH = Path(iconfig["DM_ROOT_PATH"])
-    DSERV_ROOT_PATH = Path(iconfig["DSERV_ROOT_PATH"])
-
-    rel_path = path.relative_to(DM_ROOT_PATH)
-    dserv_path = DSERV_ROOT_PATH  / rel_path
-
-    if not dserv_path.is_dir():
-        dserv_path.mkdir(parents=True)
-
-    if dm_get_experiment_datadir_active_daq(dm_experiment.get(), str(dserv_path)) is None:
-        logger.info(
-            "Starting DM DAQ to upload dserv data: experiment %r in data directory %r",
-            dm_experiment.get(),
-            str(dserv_path),
-        )
-        dm_start_daq(dm_experiment.get(), dserv_path)
+        sample_path.mkdir()
 
 set_experiment = SetExperiment()
+

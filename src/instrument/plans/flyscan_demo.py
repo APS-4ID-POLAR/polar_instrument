@@ -8,7 +8,6 @@ from bluesky.plan_patterns import outer_product, inner_product
 from apstools.utils import (
     validate_experiment_dataDirectory,
     build_run_metadata_dict,
-    share_bluesky_metadata_with_dm,
 )
 from collections import defaultdict
 from collections.abc import Iterable
@@ -16,15 +15,16 @@ from pathlib import Path
 from json import dumps
 from warnings import warn
 from .local_scans import mv
+from .workflow_plan import run_workflow
 from ..devices.pva_control import positioner_stream
 from ..devices.softgluezynq import sgz
-from ..devices.data_management import dm_experiment, dm_workflow
+from ..devices.data_management import dm_experiment
 from ..utils import logger
 from ..utils.config import iconfig
 from ..utils.run_engine import RE
 from ..utils.catalog import full_cat
 from ..callbacks.nexus_data_file_writer import nxwriter
-from ..utils.dm_utils import dm_get_experiment_data_path
+from ..utils.dm_utils import dm_get_experiment_data_path, dm_upload, dm_upload_wait
 logger.info(__file__)
 
 __all__ = "flyscan_snake flyscan_1d flyscan_cycler".split()
@@ -46,30 +46,17 @@ def flyscan_snake(
         detector_collection_time: float = 0.01,
         file_name_base: str = "scan",
         master_file_templates: list = [],
-        nxwriter_warn_missing: bool = False,
         md: dict = {},
-        # DM workflow kwargs -------------------------------------
-        wf_run: bool = False,
-        wf_analysis_machine: str = "polaris",
-        wf_workflow_name: str = "ptychodus",
-        wf_detectorName: str = "eiger",
-        wf_detectorDistanceInMeters: float = 2.335,
-        wf_cropCenterXInPixels: int = 540,
-        wf_cropCenterYInPixels: int = 259,
-        wf_cropExtentXInPixels: int = 256,
-        wf_cropExtentYInPixels: int = 256,
-        wf_probeEnergyInElectronVolts: float = 10000,
-        wf_numGpus: int = 2,
-        wf_settings: str = "/home/beams/POLAR/ptychodusDefaults/default-settings.ini",
-        wf_demand: bool = False,
-        wf_scanFilePath: str = "fly001_pos.csv",
-        wf_name: str = "fly001",
         # internal kwargs ----------------------------------------
         dm_concise: bool = False,
         dm_wait: bool = False,
-        dm_reporting_period: float = 10*60,
-        dm_reporting_time_limit: float = 10**6,
-
+        dm_reporting_period: float = 10*60,  # TODO: change?
+        dm_reporting_time_limit: float = 10**6, # TODO: change?
+        nxwriter_warn_missing: bool = False,
+        wf_run: bool = False,
+        wf_settings_file_path: str = None,
+        # everything else is passed to the DM workflow ---------------------------------
+        **wf_kwargs,
     ):
 
     """
@@ -155,29 +142,17 @@ def flyscan_snake(
         master_file_templates=master_file_templates,
         file_name_base=file_name_base,
         md=_md,
-        # DM workflow kwargs -------------------------------------
-        wf_run=wf_run,
-        wf_analysis_machine=wf_analysis_machine,
-        wf_workflow_name=wf_workflow_name,
-        wf_detectorName=wf_detectorName,
-        wf_detectorDistanceInMeters=wf_detectorDistanceInMeters,
-        wf_cropCenterXInPixels=wf_cropCenterXInPixels,
-        wf_cropCenterYInPixels=wf_cropCenterYInPixels,
-        wf_cropExtentXInPixels=wf_cropExtentXInPixels,
-        wf_cropExtentYInPixels=wf_cropExtentYInPixels,
-        wf_probeEnergyInElectronVolts=wf_probeEnergyInElectronVolts,
-        wf_numGpus=wf_numGpus,
-        wf_settings=wf_settings,
-        wf_demand=wf_demand,
-        wf_scanFilePath=wf_scanFilePath,
-        wf_name=wf_name,
         # internal kwargs ----------------------------------------
         dm_concise=dm_concise,
         dm_wait=dm_wait,
-        dm_reporting_period=dm_reporting_period,
-        dm_reporting_time_limit=dm_reporting_time_limit,
+        dm_reporting_period=dm_reporting_period,  # TODO: change?
+        dm_reporting_time_limit=dm_reporting_time_limit, # TODO: change?
         nxwriter_warn_missing=nxwriter_warn_missing,
-        )
+        wf_run=wf_run,
+        wf_settings_file_path=wf_settings_file_path,
+        # everything else is passed to the DM workflow ---------------------------------
+        **wf_kwargs,
+    )
 
 def flyscan_1d(
         detectors,
@@ -190,28 +165,16 @@ def flyscan_1d(
         master_file_templates: list = [],
         file_name_base: str = "scan",
         md: dict = {},
-        # DM workflow kwargs -------------------------------------
-        wf_run: bool = False,
-        wf_analysis_machine: str = "polaris",
-        wf_workflow_name: str = "ptychodus",
-        wf_detectorName: str = "eiger",
-        wf_detectorDistanceInMeters: float = 2.335,
-        wf_cropCenterXInPixels: int = 540,
-        wf_cropCenterYInPixels: int = 259,
-        wf_cropExtentXInPixels: int = 256,
-        wf_cropExtentYInPixels: int = 256,
-        wf_probeEnergyInElectronVolts: float = 10000,
-        wf_numGpus: int = 2,
-        wf_settings: str = "/home/beams/POLAR/ptychodusDefaults/default-settings.ini",
-        wf_demand: bool = False,
-        wf_scanFilePath: str = "fly001_pos.csv",
-        wf_name: str = "fly001",
         # internal kwargs ----------------------------------------
         dm_concise: bool = False,
         dm_wait: bool = False,
         dm_reporting_period: float = 10*60,  # TODO: change?
         dm_reporting_time_limit: float = 10**6, # TODO: change?
         nxwriter_warn_missing: bool = False,
+        wf_run: bool = False,
+        wf_settings_file_path: str = None,
+        # everything else is passed to the DM workflow ---------------------------------
+        **wf_kwargs,
     ):
     """
     Flyscan in 1 dimension.
@@ -278,29 +241,17 @@ def flyscan_1d(
         master_file_templates=master_file_templates,
         file_name_base=file_name_base,
         md=_md,
-        # DM workflow kwargs -------------------------------------
-        wf_run=wf_run,
-        wf_analysis_machine=wf_analysis_machine,
-        wf_workflow_name=wf_workflow_name,
-        wf_detectorName=wf_detectorName,
-        wf_detectorDistanceInMeters=wf_detectorDistanceInMeters,
-        wf_cropCenterXInPixels=wf_cropCenterXInPixels,
-        wf_cropCenterYInPixels=wf_cropCenterYInPixels,
-        wf_cropExtentXInPixels=wf_cropExtentXInPixels,
-        wf_cropExtentYInPixels=wf_cropExtentYInPixels,
-        wf_probeEnergyInElectronVolts=wf_probeEnergyInElectronVolts,
-        wf_numGpus=wf_numGpus,
-        wf_settings=wf_settings,
-        wf_demand=wf_demand,
-        wf_scanFilePath=wf_scanFilePath,
-        wf_name=wf_name,
         # internal kwargs ----------------------------------------
         dm_concise=dm_concise,
         dm_wait=dm_wait,
         dm_reporting_period=dm_reporting_period,  # TODO: change?
         dm_reporting_time_limit=dm_reporting_time_limit, # TODO: change?
         nxwriter_warn_missing=nxwriter_warn_missing,
-        )
+        wf_run=wf_run,
+        wf_settings_file_path=wf_settings_file_path,
+        # everything else is passed to the DM workflow ---------------------------------
+        **wf_kwargs,
+    )
 
 def flyscan_cycler(
         detectors: list,
@@ -311,29 +262,16 @@ def flyscan_cycler(
         master_file_templates: list = [],
         file_name_base: str = "scan",
         md: dict = {},
-        # DM workflow kwargs -------------------------------------
-        wf_run: bool = False,
-        wf_analysis_machine: str = "polaris",
-        wf_workflow_name: str = "ptychodus",
-        wf_detectorName: str = "eiger",
-        wf_detectorDistanceInMeters: float = 2.335,
-        wf_cropCenterXInPixels: int = 540,
-        wf_cropCenterYInPixels: int = 259,
-        wf_cropExtentXInPixels: int = 256,
-        wf_cropExtentYInPixels: int = 256,
-        wf_probeEnergyInElectronVolts: float = 10000,
-        wf_numGpus: int = 2,
-        wf_settings: str = "/home/beams/POLAR/ptychodusDefaults/default-settings.ini",
-        # patternsFile (from area detector) --> ?
-        wf_demand: bool = False,
-        wf_scanFilePath: str = "fly001_pos.csv",
-        wf_name: str = "fly001",
-        # internal kwargs ----------------------------------------
+        # internal kwargs --------------------------------------------------------------
         dm_concise: bool = False,
         dm_wait: bool = False,
         dm_reporting_period: float = 10*60,
         dm_reporting_time_limit: float = 10**6,
         nxwriter_warn_missing: bool = False,
+        wf_run: bool = False,
+        wf_settings_file_path: str = None,
+        # everything else is passed to the DM workflow ---------------------------------
+        **wf_kwargs,
     ):
 
     """
@@ -420,7 +358,6 @@ def flyscan_cycler(
             )
 
     # Check if any of these files exists
-    # for _fname in [_master_fullpath, _ps_fullpath] + list(_dets_file_paths.values()):
     for _fname in [Path(_master_fullpath)] + list(_dets_file_paths.values()):
         if _fname.is_file():
             raise FileExistsError(
@@ -468,11 +405,6 @@ def flyscan_cycler(
             "nxwriter_warn_missing": nxwriter_warn_missing,
         },
         master_file_path = str(_master_fullpath),
-        # This assumes the first detector is the eiger.
-        # eiger_relative_file_path = str(_rel_eiger_path),
-        # eiger_full_file_path = str(_eiger_fullpath),
-        # positioner_stream_full_file_path = str(_ps_fullpath),
-        # positioner_stream_relative_file_path = str(_rel_ps_path),
         # TODO: a similar scan with a monitor (scaler...)
         hints = dict(monitor=None, detectors=[], scan_type="flyscan")
     )
@@ -493,26 +425,11 @@ def flyscan_cycler(
     if wf_run:
         _md = build_run_metadata_dict(
             _md,  # TODO: maybe it needs **_md?
-            workflow=wf_workflow_name,
-            wait=dm_wait,
-            timeout=dm_reporting_time_limit,
-            filePath=_master_fullpath.name,
-            sampleName = RE.md["sample"],
-            experimentName=dm_experiment.get(),
-            analysisMachine=wf_analysis_machine,
-            # TODO: What all can we switch to PV.gets?
-            detectorName = wf_detectorName,
-            detectorDistanceInMeters = wf_detectorDistanceInMeters,
-            cropCenterXInPixels = wf_cropCenterXInPixels,
-            cropCenterYInPixels = wf_cropCenterYInPixels,
-            cropExtentXInPixels = wf_cropExtentXInPixels,
-            cropExtentYInPixels = wf_cropExtentYInPixels,
-            probeEnergyInElectronVolts = wf_probeEnergyInElectronVolts,
-            numGpus = wf_numGpus,
-            settings = wf_settings,
-            demand = wf_demand,
-            name=wf_name,
-            scanFilePath=wf_scanFilePath,
+            dm_concise = dm_concise,
+            dm_reporting_period = dm_reporting_period,
+            dm_reporting_time_limit = dm_reporting_time_limit,
+            settings_file_path = wf_settings_file_path,
+            **wf_kwargs
         )
 
     _md.update(md)
@@ -522,10 +439,6 @@ def flyscan_cycler(
     #################################
 
     logger.info("Setting up devices.")
-
-    # Setup detectors count time --> detector is now gated.
-    # for det in detectors:
-    #     yield from mv(det.preset_monitor, detector_collection_time)
 
     # Stop and reset softglue just in case
     yield from sgz.stop_detectors()
@@ -598,56 +511,34 @@ def flyscan_cycler(
 
     uid = yield from inner_fly()
 
-    # Get the bluesky run
-    run = full_cat[uid]
-
     # Wait for the master file to finish writing.
     yield from nxwriter.wait_writer_plan_stub()
+
+    # TODO: this won't be needed when vortex saves directly to voyager.
+    # Upload vortex file
+    if "vortex" in _dets_file_paths.keys():  # Check we are using the vortex.
+        upload_info = dm_upload(
+            dm_experiment.get(),
+            _dets_file_paths["vortex"].parent.parent,
+            destDirectory=f"{RE.md['sample']}",
+            reprocessFiles=False,
+        )
+        logger.info(f"DM upload of vortex files started, id = {upload_info['id']}.")
 
     #############################
     # START THE APS DM WORKFLOW #
     #############################
 
     if wf_run:
-        yield from mv(
-            dm_workflow.concise_reporting, dm_concise,
-            dm_workflow.reporting_period, dm_reporting_period,
+        yield from dm_upload_wait(upload_info["id"])
+
+        yield from run_workflow(
+            bluesky_id = uid,
+            dm_concise = dm_concise,
+            dm_reporting_period = dm_reporting_period,
+            dm_reporting_time_limit = dm_reporting_time_limit,
+            settings_file_path = wf_settings_file_path,
+            **wf_kwargs
         )
-
-        logger.info(
-            "DM workflow %r, filePath=%r",
-            wf_workflow_name,
-            _master_fullpath.name,
-        )
-
-        yield from dm_workflow.run_as_plan(
-            workflow=wf_workflow_name,
-            wait=dm_wait,
-            timeout=dm_reporting_time_limit,
-            # all kwargs after this line are DM argsDict content
-            filePath=_master_fullpath.name,
-            sampleName = RE.md["sample"],
-            experimentName=dm_experiment.get(),
-            scanFilePath=wf_scanFilePath,
-            analysisMachine=wf_analysis_machine,
-            # TODO: What all can we switch to PV.gets?
-            detectorName = wf_detectorName,
-            detectorDistanceInMeters = wf_detectorDistanceInMeters,
-            cropCenterXInPixels = wf_cropCenterXInPixels,
-            cropCenterYInPixels = wf_cropCenterYInPixels,
-            cropExtentXInPixels = wf_cropExtentXInPixels,
-            cropExtentYInPixels = wf_cropExtentYInPixels,
-            probeEnergyInElectronVolts = wf_probeEnergyInElectronVolts,
-            numGpus = wf_numGpus,
-            settings = wf_settings,
-            demand = wf_demand,
-            name=wf_name,
-        )
-
-        yield from sleep(0.1)
-        logger.info(f"dm_workflow id: {dm_workflow.job_id.get()}")
-
-        # upload bluesky run metadata to APS DM
-        share_bluesky_metadata_with_dm(dm_experiment.get(), wf_workflow_name, run)
 
     logger.info("Finished!")
