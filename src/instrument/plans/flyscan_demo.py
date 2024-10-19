@@ -519,8 +519,8 @@ def flyscan_cycler(
     if "vortex" in _dets_file_paths.keys():  # Check we are using the vortex.
         upload_info = dm_upload(
             dm_experiment.get(),
-            _dets_file_paths["vortex"].parent,
-            destDirectory=f"{RE.md['sample']}/vortex",
+            _dets_file_paths["vortex"].parent.parent,
+            destDirectory=f"{RE.md['sample']}",
             reprocessFiles=False,
         )
         logger.info(f"DM upload of vortex files started, id = {upload_info["id"]}.")
