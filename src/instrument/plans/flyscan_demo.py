@@ -516,14 +516,14 @@ def flyscan_cycler(
 
     # TODO: this won't be needed when vortex uploads to voyager.
     # Upload vortex file
-    logger.info(str(_dets_file_paths["vortex"].parent))
-    logger.info(f"{RE.md['sample']}/vortex")
-    upload_info = dm_upload(
-        dm_experiment.get(),
-        _dets_file_paths["vortex"].parent,
-        destDirectory=f"{RE.md['sample']}/vortex",
-        reprocessFiles=False,
-    )
+    if "vortex" in _dets_file_paths.keys():  # Check we are using the vortex.
+        upload_info = dm_upload(
+            dm_experiment.get(),
+            _dets_file_paths["vortex"].parent,
+            destDirectory=f"{RE.md['sample']}/vortex",
+            reprocessFiles=False,
+        )
+        logger.info(f"DM upload of vortex files started, id = {upload_info["id"]}.")
 
     #############################
     # START THE APS DM WORKFLOW #
