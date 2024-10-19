@@ -514,7 +514,7 @@ def flyscan_cycler(
     # Wait for the master file to finish writing.
     yield from nxwriter.wait_writer_plan_stub()
 
-    # TODO: this won't be needed when vortex uploads to voyager.
+    # TODO: this won't be needed when vortex saves directly to voyager.
     # Upload vortex file
     if "vortex" in _dets_file_paths.keys():  # Check we are using the vortex.
         upload_info = dm_upload(
