@@ -166,9 +166,9 @@ def start_vortex_daq(path, sample):
     if not dserv_path.is_dir():
         dserv_path.mkdir(parents=True)
 
-    dm_path = path / "vortex"
-    if not dm_path.is_dir():
-        dm_path.mkdir(parents=True)
+    # dm_path = path / "vortex"
+    # if not dm_path.is_dir():
+    #     dm_path.mkdir(parents=True)
 
     if dm_get_experiment_datadir_active_daq(dm_experiment.get(), str(dserv_path)) is None:
         logger.info(
