@@ -516,6 +516,7 @@ def flyscan_cycler(
 
     # TODO: this won't be needed when vortex uploads to voyager.
     # Upload vortex file
+    logger.info(_dets_file_paths["vortex"].parent, f"{RE.md['sample']}/vortex")
     upload_info = dm_upload(
         dm_experiment.get(),
         _dets_file_paths["vortex"].parent,
