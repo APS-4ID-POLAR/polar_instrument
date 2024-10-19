@@ -14,6 +14,8 @@ logger.info(__file__)
 
 __all__ = """
     dm_get_experiment_data_path
+    dm_upload
+    dm_upload_info
 """.split()
 
 
