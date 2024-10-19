@@ -67,14 +67,14 @@ def set_experiment(
                 print(f"{use_dm} is not a valid answer. Please use yes or no.")
 
     if dm_experiment_name:
-        if use_vortex is None:
-            while True:
-                _vortex = input("Are you using the Vortex detector? [no]: ") or "no"
-                if _vortex.strip().lower() in "yes no".split():
-                    use_vortex = True if _vortex.strip().lower() == "yes" else False
-                    break
-                else:
-                    print(f"{_vortex} is not a valid answer. Please use yes or no.")
+        # if use_vortex is None:
+        #     while True:
+        #         _vortex = input("Are you using the Vortex detector? [no]: ") or "no"
+        #         if _vortex.strip().lower() in "yes no".split():
+        #             use_vortex = True if _vortex.strip().lower() == "yes" else False
+        #             break
+        #         else:
+        #             print(f"{_vortex} is not a valid answer. Please use yes or no.")
 
         _setup_dm(dm_experiment_name, sample, use_vortex)
 
@@ -150,8 +150,8 @@ def _setup_dm(dm_experiment_name: str, sample_name: str, use_vortex: bool):
     if not sample_path.is_dir():
         sample_path.mkdir()
     
-    if use_vortex:
-        start_vortex_daq(sample_path, sample_name)
+    # if use_vortex:
+    #     start_vortex_daq(sample_path, sample_name)
 
 def start_vortex_daq(path, sample):
 

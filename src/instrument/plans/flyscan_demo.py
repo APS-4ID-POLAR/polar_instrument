@@ -24,7 +24,7 @@ from ..utils.config import iconfig
 from ..utils.run_engine import RE
 from ..utils.catalog import full_cat
 from ..callbacks.nexus_data_file_writer import nxwriter
-from ..utils.dm_utils import dm_get_experiment_data_path
+from ..utils.dm_utils import dm_get_experiment_data_path, dm_upload, dm_upload_wait
 logger.info(__file__)
 
 __all__ = "flyscan_snake flyscan_1d flyscan_cycler".split()
@@ -514,11 +514,22 @@ def flyscan_cycler(
     # Wait for the master file to finish writing.
     yield from nxwriter.wait_writer_plan_stub()
 
+    # TODO: this won't be needed when vortex uploads to voyager.
+    # Upload vortex file
+    upload_info = dm_upload(
+        dm_experiment.get(),
+        _dets_file_paths["vortex"].parent,
+        destDirectory=f"{RE.md['sample']}/vortex",
+        reprocessFiles=False,
+    )
+
     #############################
     # START THE APS DM WORKFLOW #
     #############################
 
     if wf_run:
+        yield from dm_upload_wait(upload_info["id"])
+
         yield from run_workflow(
             bluesky_id = uid,
             dm_concise = dm_concise,
