@@ -71,7 +71,7 @@ class PositionerStream(Device):
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self._warmup_done_status = False
+		# self._warmup_done_status = False
 
 	_status_obj = None
 
@@ -120,11 +120,11 @@ class PositionerStream(Device):
 		return self._status_obj
 
 	def set(self, value, **kwargs):
-		if self._warmup_done_status is False:
-			raise UnprimedPlugin(
-				"Positioner stream needs to be primed before first use. Please run "
-				".warmup()."
-			)
+		# if self._warmup_done_status is False:
+		# 	raise UnprimedPlugin(
+		# 		"Positioner stream needs to be primed before first use. Please run "
+		# 		".warmup()."
+		# 	)
 
 		if value not in [1, 0]:
 			raise ValueError ("Value must be 1 or 0.")
@@ -173,22 +173,22 @@ class PositionerStream(Device):
 
 		return Path(full_path), Path(relative_path)
 	
-	def warmup(self):
-		stash = {}
-		for component in "file_path file_name".split():
-			attr = getattr(self, component)
-			stash[attr] = attr.get()
+	# def warmup(self):
+	# 	stash = {}
+	# 	for component in "file_path file_name".split():
+	# 		attr = getattr(self, component)
+	# 		stash[attr] = attr.get()
 
-		self.file_path.put(os.getenv("HOME") + "/PositionerStream")
-		self.file_name.put("dummy.h5")
+	# 	self.file_path.put(os.getenv("HOME") + "/PositionerStream")
+	# 	self.file_name.put("dummy.h5")
 
-		self.start_stream().wait(10)
-		sleep(1)
-		self.stop_stream().wait(10)
-		self._warmup_done_status = True
+	# 	self.start_stream().wait(10)
+	# 	sleep(1)
+	# 	self.stop_stream().wait(10)
+	# 	self._warmup_done_status = True
 
-		for attr, value in stash.items():
-			attr.put(value)
+	# 	for attr, value in stash.items():
+	# 		attr.put(value)
 
 positioner_stream = PositionerStream("", name="positioner_stream")
 sd.baseline.append(positioner_stream)
