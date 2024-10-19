@@ -65,6 +65,5 @@ def dm_upload_wait(
             return
 
     raise TimeoutError(
-        f"No such file={experiment_file!r} found" f" in DM {experiment_name=!r}"
-        f" after {time.time()-t0:.1f} s."
+        f"DM upload in DM {experiment_name=!r} timed out after {time()-t0 :.1f} s."
     )
