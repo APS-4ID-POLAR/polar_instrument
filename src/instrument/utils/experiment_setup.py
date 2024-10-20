@@ -8,7 +8,7 @@ Utility functions
 """
 
 __all__ = """
-    set_experiment
+    experiment
 """.split()
 
 from apstools.utils import (
@@ -45,11 +45,11 @@ class ExperimentClass:
 
     def __repr__(self):
         if self.proposal:
-            output = f"Proposal #{self.proposal["id"]} - {self.proposal["title"]}.\n"
+            output = f"Proposal #{self.proposal['id']} - {self.proposal['title']}.\n"
         else:
             output = "No proposal entered\n"   
         if self.esaf:
-            output += f"ESAF #{self.esaf["esafId"]}.\n"
+            output += f"ESAF #{self.esaf['esafId']}.\n"
         else:
             output += "No ESAF entered.\n"
 
