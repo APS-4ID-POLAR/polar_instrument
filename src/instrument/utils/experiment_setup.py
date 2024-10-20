@@ -44,6 +44,7 @@ class ExperimentClass:
     sample = None
 
     def __repr__(self):
+        print("\n-- Experiment setup --")
         if isinstance(self.proposal, dict):
             output = f"Proposal #{self.proposal['id']} - {self.proposal['title']}.\n"
         else:
