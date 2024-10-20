@@ -44,11 +44,11 @@ class ExperimentClass:
     sample = None
 
     def __repr__(self):
-        if self.proposal:
+        if "id" in dir(self.proposal):
             output = f"Proposal #{self.proposal['id']} - {self.proposal['title']}.\n"
         else:
             output = "No proposal entered\n"
-        if self.esaf:
+        if "esafId" in dir(self.esaf):
             output += f"ESAF #{self.esaf['esafId']}.\n"
         else:
             output += "No ESAF entered.\n"
