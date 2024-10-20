@@ -189,7 +189,7 @@ class ExperimentClass:
         dm_experiment_name *str*:
         """
         if self.use_dm:
-            data_directory = f"@voyager:{self.base_experiment_folder)}"
+            data_directory = f"@voyager:{self.base_experiment_folder}"
 
             # Check DM DAQ is running for this experiment, if not then start it.
             if dm_get_experiment_datadir_active_daq(
