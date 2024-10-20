@@ -13,18 +13,17 @@ __all__ = """
 
 from apstools.utils import (
     dm_start_daq,
-    validate_experiment_dataDirectory,
     dm_get_experiment_datadir_active_daq,
 )
 from dm import ObjectNotFound, DmException
 from os import getcwd, chdir
-import sys
-import fileinput
 from pathlib import Path
 from ..devices.data_management import dm_experiment
-from .config import iconfig
 from .dm_utils import (
-    dm_get_experiment_data_path, get_esaf_info, get_proposal_info, get_experiment
+    get_esaf_info,
+    get_proposal_info,
+    get_experiment,
+    dm_experiment_setup
 )
 from .run_engine import RE
 from ._logging_setup import logger
@@ -33,6 +32,7 @@ logger.info(__file__)
 path_startup = Path("startup_experiment.py")
 
 # TODO: enforce start and end times so that we don't overwrite experiments?
+
 
 class ExperimentClass:
     base_experiment_folder = None
@@ -47,7 +47,7 @@ class ExperimentClass:
         if self.proposal:
             output = f"Proposal #{self.proposal['id']} - {self.proposal['title']}.\n"
         else:
-            output = "No proposal entered\n"   
+            output = "No proposal entered\n"
         if self.esaf:
             output += f"ESAF #{self.esaf['esafId']}.\n"
         else:
@@ -68,7 +68,7 @@ class ExperimentClass:
 
     def esaf_input(self, esaf_id: int = None):
         while True:
-            esaf_id = esaf_id or input(f"Enter ESAF number: ") or None
+            esaf_id = esaf_id or input("Enter ESAF number: ") or None
             if esaf_id == "dev":
                 print("No ESAF will be associated to this experiment.")
                 self.esaf = esaf_id
@@ -94,7 +94,7 @@ class ExperimentClass:
 
     def proposal_input(self, proposal_id: int = None):
         while True:
-            proposal_id = proposal_id or input(f"Enter proposal number: ") or None
+            proposal_id = proposal_id or input("Enter proposal number: ") or None
             if proposal_id == "dev":
                 print("No proposal will be associated to this experiment.")
                 self.proposal = proposal_id
@@ -126,7 +126,7 @@ class ExperimentClass:
 
     def sample_input(self, sample_label: str = None):
         self.sample = (
-            sample_label or input(f"Enter sample name [sample1]: ") or "sample1"
+            sample_label or input("Enter sample name [sample1]: ") or "sample1"
         )
 
     def dm_use_input(self, use_dm: str = None):
@@ -206,17 +206,17 @@ class ExperimentClass:
                 dm_start_daq(self.experiment_name, "@voyager")
 
         # Make sure that the subfolder structure exists, if not creates it.
-        sample_path = Path(self.base_experiment_folder) / sample_name
+        sample_path = Path(self.base_experiment_folder) / self.sample
         if not sample_path.is_dir():
             sample_path.mkdir()
-        
+
         print(f"Moving to the sample folder: {sample_path}")
         chdir(sample_path)
 
     def scan_number_input(self, reset_scan_id: int = None):
         while True:
             reset_scan_id = (
-                reset_scan_id or input(f"Reset Bluesky scan_id? [yes]: ") or "yes"
+                reset_scan_id or input("Reset Bluesky scan_id? [yes]: ") or "yes"
             ).strip().lower()
             if reset_scan_id not in "yes no".split():
                 print("Answer must be yes or no.")
@@ -241,7 +241,7 @@ class ExperimentClass:
             self.setup_folder()
 
         print(self)
-    
+
     def save_params_to_yaml(self):
         pass
 
@@ -256,7 +256,7 @@ class ExperimentClass:
             use_dm: str = None,
             experiment_name: str = None,
             reset_scan_id: int = None
-        ):
+    ):
         self.esaf_input(esaf_id)
         self.proposal_input(proposal_id)
         self.sample_input(sample_label)
@@ -265,7 +265,7 @@ class ExperimentClass:
             self.dm_experiment_input(experiment_name)
         if self.data_management:
             chdir(self.data_management["dataDirectory"])
-        
+
         print(f"Base experiment folder: {getcwd()}.")
         self.base_experiment_folder = getcwd()
         self.setup_folder()
@@ -301,7 +301,7 @@ class ExperimentClass:
             use_dm: str = None,
             experiment_name: str = None,
             reset_scan_id: int = None
-        ):
+    ):
 
         self.new_experiment(
             esaf_id, proposal_id, sample_label, use_dm, experiment_name, reset_scan_id
@@ -309,4 +309,3 @@ class ExperimentClass:
 
 
 experiment = ExperimentClass()
-
