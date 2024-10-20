@@ -155,6 +155,17 @@ class ExperimentClass:
 
             try:
                 _exp = get_experiment(experiment_name)
+                while True:
+                    _reuse = input(
+                        "This experiment name already exist. Do you want to re-use "
+                        "this experiment? [no]: "
+                    ).lower().strip() or "no"
+                    if _reuse not in "yes no".split():
+                        print("Answer must be yes or no.")
+                    else:
+                        break
+                if _reuse == "no":
+                    continue
             except ObjectNotFound:
                 while True:
                     _new_exp = (input(
