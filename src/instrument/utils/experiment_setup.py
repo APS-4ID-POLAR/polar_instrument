@@ -72,6 +72,7 @@ class ExperimentClass:
             if esaf_id == "dev":
                 print("No ESAF will be associated to this experiment.")
                 self.esaf = esaf_id
+                break
             elif esaf_id is None:
                 print("An ESAF ID must be provided.")
             else:
@@ -97,6 +98,7 @@ class ExperimentClass:
             if proposal_id == "dev":
                 print("No proposal will be associated to this experiment.")
                 self.proposal = proposal_id
+                break
             elif proposal_id is None:
                 logger.info("Proposal ID must be provided.")
             else:
