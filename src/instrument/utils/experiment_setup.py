@@ -230,7 +230,7 @@ class ExperimentClass:
         for key in (
             "data_management esaf proposal sample base_experiment_folder"
         ).split():
-            getattr(self, key) = RE.md[key]
+            setattr(self, key, RE.md[key])
 
         self.use_dm = "yes" if self.data_management else "no"
         if self.base_experiment_folder:
