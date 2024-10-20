@@ -260,7 +260,7 @@ class ExperimentClass:
         if isinstance(self.data_management, dict):
             self.experiment_name = self.data_management["name"]
             chdir(self.data_management["dataDirectory"])
-        
+
         self.base_experiment_folder = getcwd()
         self.setup_folder()
 
