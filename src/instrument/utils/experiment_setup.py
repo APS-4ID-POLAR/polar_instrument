@@ -233,7 +233,7 @@ class ExperimentClass:
     def scan_number_input(self, reset_scan_id: int = None):
         while True:
             reset_scan_id = (
-                reset_scan_id or input("Reset Bluesky scan_id? [yes]: ") or "yes"
+                reset_scan_id or input("Reset Bluesky scan_id to 1? [yes]: ") or "yes"
             ).strip().lower()
             if reset_scan_id not in "yes no".split():
                 print("Answer must be yes or no.")
