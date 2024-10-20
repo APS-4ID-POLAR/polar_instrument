@@ -173,7 +173,6 @@ class ExperimentClass:
                     _esaf_id = (
                         self.esaf["esafId"] if isinstance(self.esaf, dict) else None
                     )
-                    logger.info(experiment_name, _esaf_id)
                     _exp, _ = dm_experiment_setup(
                         experiment_name, esaf_id=_esaf_id
                     )
@@ -224,6 +223,7 @@ class ExperimentClass:
             else:
                 if reset_scan_id == "yes":
                     RE.md["scan_id"] = 0
+                break
 
     def send_params_to_bluesky(self):
         for key in (
@@ -271,6 +271,7 @@ class ExperimentClass:
         self.base_experiment_folder = getcwd()
         self.setup_folder()
         self.scan_number_input(reset_scan_id)
+
         self.send_params_to_bluesky()
         self.save_params_to_yaml()
 
