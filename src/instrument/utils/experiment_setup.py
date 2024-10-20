@@ -182,6 +182,7 @@ class ExperimentClass:
             f"Using experiment {experiment_name} in folder {_exp['dataDirectory']}."
         )
         self.data_management = _exp
+        self.experiment_name = experiment_name
         dm_experiment.put(experiment_name)
 
     def setup_folder(self):
