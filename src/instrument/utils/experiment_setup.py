@@ -59,7 +59,7 @@ class ExperimentClass:
         if self.use_dm == "yes":
             output += f"DM experiment name: {self.experiment_name}.\n"
 
-        output += f"Next Bluesky scan_id: {RE.md.get("scan_id", 0) + 1}.\n"
+        output += f"Next Bluesky scan_id: {RE.md.get('scan_id', 0) + 1}.\n"
 
         return output
 
