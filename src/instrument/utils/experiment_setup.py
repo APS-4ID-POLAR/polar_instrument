@@ -169,7 +169,6 @@ class ExperimentClass:
                     print("\tDM will not be used.")
                     self.data_management = None
                     self.use_dm = "no"
-                    break
                 else:
                     _esaf_id = (
                         self.esaf["esafId"] if isinstance(self.esaf, dict) else None
@@ -178,12 +177,12 @@ class ExperimentClass:
                     _exp, _ = dm_experiment_setup(
                         experiment_name, esaf_id=_esaf_id
                     )
-            
-            print(
-                f"Using experiment {experiment_name} in folder {_exp['dataDirectory']}."
-            )
-            self.data_management = _exp
-            dm_experiment.put(experiment_name)
+            break
+        print(
+            f"Using experiment {experiment_name} in folder {_exp['dataDirectory']}."
+        )
+        self.data_management = _exp
+        dm_experiment.put(experiment_name)
 
     def setup_folder(self):
         """
