@@ -171,7 +171,9 @@ class ExperimentClass:
                     self.use_dm = "no"
                     break
                 else:
-                    _esaf_id = self.esaf["esafId"] if self.esaf else None
+                    _esaf_id = (
+                        self.esaf["esafId"] if isinstance(self.esaf, dict) else None
+                    )
                     logger.info(experiment_name, _esaf_id)
                     _exp, _ = dm_experiment_setup(
                         experiment_name, esaf_id=_esaf_id
