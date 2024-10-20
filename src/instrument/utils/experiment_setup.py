@@ -125,10 +125,9 @@ class ExperimentClass:
                     )
 
     def sample_input(self, sample_label: str = None):
-        while True:
-            self.sample = (
-                sample_label or input(f"Enter sample name [sample1]: ") or "sample1"
-            )
+        self.sample = (
+            sample_label or input(f"Enter sample name [sample1]: ") or "sample1"
+        )
 
     def dm_use_input(self, use_dm: str = None):
         while True:
