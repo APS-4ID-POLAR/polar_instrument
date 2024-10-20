@@ -100,7 +100,7 @@ class ExperimentClass:
                 self.proposal = proposal_id
                 break
             elif proposal_id is None:
-                logger.info("Proposal ID must be provided.")
+                print("Proposal ID must be provided.")
             else:
                 try:
                     proposal_id = int(proposal_id)

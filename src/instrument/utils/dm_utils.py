@@ -120,7 +120,9 @@ def dm_experiment_setup(
 	if kwargs.get("startDate", None) is None:
 		kwargs["startDate"] = datetime.now().strftime("%d-%b-%y")
 	if kwargs.get("endDate", None) is None:
-		kwargs["endDate"] = datetime.fromisoformat(r["endTime"]).strftime("%d-%b-%y")
+		kwargs["endDate"] = datetime.fromisoformat(
+			get_current_run()["endTime"]
+		).strftime("%d-%b-%y")
 
 	exp = create_dm_experiment(experiment_name, **kwargs)
 	users = add_dm_users(experiment_name, users_name_list)
