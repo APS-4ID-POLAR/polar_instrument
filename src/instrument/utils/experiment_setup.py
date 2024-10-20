@@ -175,7 +175,7 @@ class ExperimentClass:
                     )
             
             print(
-                f"Using experiment {experiment_name} in folder {_exp["dataDirectory"]}."
+                f"Using experiment {experiment_name} in folder {_exp['dataDirectory']}."
             )
             self.data_management = _exp
             dm_experiment.put(experiment_name)
