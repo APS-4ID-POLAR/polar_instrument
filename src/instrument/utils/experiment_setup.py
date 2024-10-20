@@ -80,6 +80,7 @@ class ExperimentClass:
                     esaf_id = int(esaf_id)
                 except ValueError:
                     print(f"ESAF must be a number, but {esaf_id} was entered.")
+                    esaf_id = None
                     continue
                 try:
                     self.esaf = dict(get_esaf_info(esaf_id))
@@ -109,6 +110,7 @@ class ExperimentClass:
                         f"The proposal number must be a number, but {proposal_id} was "
                         "entered."
                     )
+                    proposal_id = None
                     continue
                 try:
                     self.proposal = dict(get_proposal_info(proposal_id))
@@ -123,6 +125,7 @@ class ExperimentClass:
                         "appears to be an error, you can cancel this setup and check "
                         "the `list_proposals` function, or use Proposal = dev."
                     )
+                    proposal_id = None
 
     def sample_input(self, sample_label: str = None):
         self.sample = (
@@ -141,6 +144,7 @@ class ExperimentClass:
             ).lower().strip()
             if self.use_dm not in "yes no".split():
                 print("Answer must be either yes or no.")
+                self.use_dm = None
             else:
                 break
 
@@ -231,6 +235,7 @@ class ExperimentClass:
             ).strip().lower()
             if reset_scan_id not in "yes no".split():
                 print("Answer must be yes or no.")
+                reset_scan_id = None
             else:
                 if reset_scan_id == "yes":
                     RE.md["scan_id"] = 0
