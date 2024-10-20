@@ -82,7 +82,7 @@ class ExperimentClass:
                     print(f"ESAF must be a number, but {esaf_id} was entered.")
                     continue
                 try:
-                    self.esaf = get_esaf_info(esaf_id).getFullJsonRep()
+                    self.esaf = dict(get_esaf_info(esaf_id))
                     print(f"ESAF #{self.esaf['esaf_id']} found.")
                     break
                 except ObjectNotFound:
@@ -111,7 +111,7 @@ class ExperimentClass:
                     )
                     continue
                 try:
-                    self.proposal = get_proposal_info(proposal_id).getFullJsonRep()
+                    self.proposal = dict(get_proposal_info(proposal_id))
                     print(
                         f"Proposal #{self.proposal['id']} found - "
                         f"{self.proposal['title']}."
@@ -180,7 +180,7 @@ class ExperimentClass:
         print(
             f"Using experiment {experiment_name} in folder {_exp['dataDirectory']}."
         )
-        self.data_management = _exp.getFullJsonRep()
+        self.data_management = dict(_exp)
         self.experiment_name = experiment_name
         dm_experiment.put(experiment_name)
 
