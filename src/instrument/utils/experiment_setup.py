@@ -241,7 +241,8 @@ class ExperimentClass:
     def save_params_to_yaml(self):
         pass
 
-    def load_params_from_yaml(self)
+    def load_params_from_yaml(self):
+        pass
 
     def new_experiment(
             self,
