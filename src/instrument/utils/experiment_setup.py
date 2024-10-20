@@ -163,7 +163,8 @@ class ExperimentClass:
                     ) or "yes").lower().strip()
                     if _new_exp not in "yes no".strip():
                         print("\tAnswer must be yes or no.")
-                        continue
+                    else:
+                        break
                 if _new_exp == "no":
                     print("\tDM will not be used.")
                     self.data_management = None
