@@ -84,7 +84,7 @@ class ExperimentClass:
                     continue
                 try:
                     self.esaf = dict(get_esaf_info(esaf_id))
-                    print(f"ESAF #{self.esaf['esaf_id']} found.")
+                    print(f"ESAF #{self.esaf['esafId']} found.")
                     break
                 except ObjectNotFound:
                     print(
