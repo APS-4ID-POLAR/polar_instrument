@@ -47,7 +47,7 @@ class ExperimentClass:
         if "id" in dir(self.proposal):
             output = f"Proposal #{self.proposal['id']} - {self.proposal['title']}.\n"
         else:
-            output = "No proposal entered\n"
+            output = "No proposal entered.\n"
         if "esafId" in dir(self.esaf):
             output += f"ESAF #{self.esaf['esafId']}.\n"
         else:
@@ -82,7 +82,7 @@ class ExperimentClass:
                     print(f"ESAF must be a number, but {esaf_id} was entered.")
                     continue
                 try:
-                    self.esaf = get_esaf_info(esaf_id)
+                    self.esaf = get_esaf_info(esaf_id).getFullJsonRep()
                     print(f"ESAF #{self.esaf['esaf_id']} found.")
                     break
                 except ObjectNotFound:
@@ -111,7 +111,7 @@ class ExperimentClass:
                     )
                     continue
                 try:
-                    self.proposal = get_proposal_info(proposal_id)
+                    self.proposal = get_proposal_info(proposal_id).getFullJsonRep()
                     print(
                         f"Proposal #{self.proposal['id']} found - "
                         f"{self.proposal['title']}."
@@ -135,7 +135,7 @@ class ExperimentClass:
                 use_dm or
                 input(
                     "Do you want to use the data management system? "
-                    f"[{self.use_dm}]"
+                    f"[{self.use_dm}]: "
                 ) or
                 self.use_dm
             ).lower().strip()
@@ -180,7 +180,7 @@ class ExperimentClass:
         print(
             f"Using experiment {experiment_name} in folder {_exp['dataDirectory']}."
         )
-        self.data_management = _exp
+        self.data_management = _exp.getFullJsonRep()
         self.experiment_name = experiment_name
         dm_experiment.put(experiment_name)
 
