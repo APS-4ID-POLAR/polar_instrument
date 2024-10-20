@@ -92,6 +92,7 @@ class ExperimentClass:
                         "error, you can cancel this setup and check the `list_esafs` "
                         "function, or use ESAF = dev."
                     )
+                    esaf_id = None
 
     def proposal_input(self, proposal_id: int = None):
         while True:
