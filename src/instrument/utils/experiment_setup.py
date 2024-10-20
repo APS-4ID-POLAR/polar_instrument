@@ -256,8 +256,13 @@ class ExperimentClass:
             setattr(self, key, RE.md[key])
 
         self.use_dm = "yes" if self.data_management else "no"
-        if self.base_experiment_folder:
-            self.setup_folder()
+
+        if isinstance(self.data_management, dict):
+            self.experiment_name = self.data_management["name"]
+            chdir(self.data_management["dataDirectory"])
+        
+        self.base_experiment_folder = getcwd()
+        self.setup_folder()
 
         print(self)
 
