@@ -170,6 +170,7 @@ class ExperimentClass:
                     else:
                         break
                 if _reuse == "no":
+                    experiment_name = None
                     continue
             except ObjectNotFound:
                 while True:
