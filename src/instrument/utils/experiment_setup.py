@@ -44,11 +44,11 @@ class ExperimentClass:
     sample = None
 
     def __repr__(self):
-        if "id" in self.proposal.keys():
+        if isinstance(self.proposal, dict):
             output = f"Proposal #{self.proposal['id']} - {self.proposal['title']}.\n"
         else:
             output = "No proposal entered.\n"
-        if "esafId" in self.esaf.keys():
+        if isinstance(self.esaf, dict):
             output += f"ESAF #{self.esaf['esafId']}.\n"
         else:
             output += "No ESAF entered.\n"
