@@ -3,9 +3,9 @@
 workflow : ptycho-xrf
 experimentName :  Parraga_BDP_Polar2
 fit : roi,nnls
-filePath : 003003.hdf5
+filePath : 003003.h5
 dataDir : sample02/express3
-nthreads : all
+# nthreads : all
 quantifyWith : None
 detectors : 3
 generateAvgH5 : False
