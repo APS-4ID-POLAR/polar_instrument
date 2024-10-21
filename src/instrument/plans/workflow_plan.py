@@ -10,7 +10,6 @@ from yaml import load as yload, Loader as yloader
 from .local_scans import mv
 from ..devices import dm_workflow, dm_experiment
 from ..utils._logging_setup import logger
-from ..utils.run_engine import RE
 from ..utils.catalog import full_cat
 logger.info(__file__)
 
@@ -72,6 +71,7 @@ EXPECTED_KWARGS["ptycho-xrf"] = [
     "demand",
 ]
 
+
 def _load_yaml(path):
     """
     Load iconfig.yml (and other YAML) configuration files.
@@ -86,12 +86,12 @@ def _load_yaml(path):
 
     if not path.exists():
         raise FileExistsError(f"Configuration file '{path}' does not exist.")
-    
+
     return yload(open(path, "r").read(), yloader)
 
 
 def run_workflow(
-    bluesky_id = None,
+    bluesky_id=None,
     # internal kwargs --------------------------------------------------------------
     dm_concise: bool = False,
     dm_wait: bool = False,
@@ -102,7 +102,7 @@ def run_workflow(
     # Or you can enter the kwargs that will be just be passed to the workflow ------
     **_kwargs
 ):
-    
+
     # Option to import workflow parameters from file.
     kwargs = {}
     if settings_file_path is not None:
@@ -111,12 +111,11 @@ def run_workflow(
             raise FileExistsError(f"Configuration file '{path}' does not exist.")
         kwargs = yload(open(path, "r").read(), yloader)
 
-
     # kwargs given in function call will have priority.
     kwargs.update(_kwargs)
     for key in kwargs.keys():  # Clean up "None".
         if kwargs[key] in ("None", "none"):
-            kwargs[required] = None
+            kwargs[key] = None
 
     # Check if kwargs have all argumnents needed.
     workflow = kwargs.get("workflow", None)
@@ -132,7 +131,7 @@ def run_workflow(
     for required in EXPECTED_KWARGS[workflow]:
         if required not in kwargs.keys():
             missing.append(required)
-    
+
     if len(missing) > 0:
         raise ValueError(
             "The following arguments were not found, but are required for the "
@@ -159,7 +158,7 @@ def run_workflow(
     logger.info(
         f"DM workflow {workflow}."
     )
-        
+
     yield from mv(
         dm_workflow.concise_reporting, dm_concise,
         dm_workflow.reporting_period, dm_reporting_period,
