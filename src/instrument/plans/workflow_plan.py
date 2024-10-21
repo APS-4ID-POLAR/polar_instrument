@@ -114,9 +114,9 @@ def run_workflow(
         )
 
     missing = []
-    for required in EXPECTED_KWARGS[workflow]:
-        if required not in kwargs.keys():
-            missing.append(required)
+    # for required in EXPECTED_KWARGS[workflow]:
+    #     if required not in kwargs.keys():
+    #         missing.append(required)
 
     if len(missing) > 0:
         raise ValueError(
