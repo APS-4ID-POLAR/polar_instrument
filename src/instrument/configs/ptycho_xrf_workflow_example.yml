@@ -4,7 +4,7 @@ workflow : ptycho-xrf
 experimentName :  Parraga_BDP_Polar2
 fit : roi,nnls
 filePath : 003003.hdf5
-dataDir : sample02/xrf
+dataDir : sample02/express3
 nthreads : all
 quantifyWith : None
 detectors : 3
@@ -18,12 +18,11 @@ updateQuantAmps : None
 quickAndDirty : False
 optimizeFitOverrideParams : None
 optimizer : None
-analysisMachine : polaris
+analysisMachine : artemis
 name : "003003"
 sampleName : sample02
 ptychoFilePath : scan_003003_eiger1m.hdf5
-detectorName : ptycho
-settings : nanomax3003.ini
+ptychoDetectorName : eiger
 cropCenterXInPixels : None
 cropCenterYInPixels : None
 cropExtentXInPixels : None
@@ -32,4 +31,5 @@ numGpus : None
 probeEnergyInElectronVolts : None
 detectorDistanceInMeters : None
 preprocessingMachine : artemis
+settings : /home/beams/POLAR/ptychodusDefaults/nanomax3003.ini
 demand : True
