@@ -29,14 +29,15 @@ from ._logging_setup import logger
 logger.info(__file__)
 path_startup = Path("startup_experiment.py")
 
+
 def set_experiment(
         user_name: str = None,
         proposal_id: str = None,
         sample: str = None,
-        dm_experiment_name: str =  None,
-        next_scan_id: int = -1,
+        dm_experiment_name: str = None,
+        next_scan_id: int = None,
         use_vortex: bool = None,
-    ):
+):
 
     _user_name = RE.md.get("user", "test")
     _proposal_id = RE.md.get("proposal_id", "test")
@@ -44,7 +45,7 @@ def set_experiment(
 
     name = user_name or input(f"User [{_user_name}]: ") or _user_name
     proposal_id = (
-        proposal_id or 
+        proposal_id or
         input(f"Proposal ID [{_proposal_id}]: ") or
         _proposal_id
     )
@@ -78,9 +79,9 @@ def set_experiment(
 
         _setup_dm(dm_experiment_name, sample, use_vortex)
 
-    if next_scan_id < 0:
+    if next_scan_id is None:
         while True:
-            reset_number =  input(
+            reset_number = input(
                 "Do you want to reset the scan_id number? [no]: "
             ) or "no"
             if reset_number.strip().lower() in "yes no".split():
@@ -149,9 +150,10 @@ def _setup_dm(dm_experiment_name: str, sample_name: str, use_vortex: bool):
     sample_path = dm_get_experiment_data_path(dm_experiment_name) / sample_name
     if not sample_path.is_dir():
         sample_path.mkdir()
-    
+
     # if use_vortex:
     #     start_vortex_daq(sample_path, sample_name)
+
 
 def start_vortex_daq(path, sample):
 
@@ -159,7 +161,7 @@ def start_vortex_daq(path, sample):
     IOC_FILES_ROOT = Path(iconfig["AREA_DETECTOR"]["VORTEX"]["IOC_FILES_ROOT"])
 
     rel_path = path.relative_to(DM_ROOT_PATH)
-    vortex_path = IOC_FILES_ROOT  / rel_path
+    vortex_path = IOC_FILES_ROOT / rel_path
 
     dserv_path = vortex_path / "vortex"
     if not dserv_path.is_dir():
@@ -169,7 +171,9 @@ def start_vortex_daq(path, sample):
     # if not dm_path.is_dir():
     #     dm_path.mkdir(parents=True)
 
-    if dm_get_experiment_datadir_active_daq(dm_experiment.get(), str(dserv_path)) is None:
+    if dm_get_experiment_datadir_active_daq(
+        dm_experiment.get(), str(dserv_path)
+    ) is None:
         logger.info(
             "Starting DM DAQ for Vortex files: experiment %r in data directory %r",
             dm_experiment.get(),
