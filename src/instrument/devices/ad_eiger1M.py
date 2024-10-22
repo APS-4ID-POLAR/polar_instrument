@@ -84,18 +84,18 @@ class TriggerTime(TriggerBase):
             self.cam.stage_sigs["num_triggers"] = MAX_NUM_IMAGES
 
         elif trigger_type == "gate":
+
             # Stage signals
+            self.cam.stage_sigs["num_triggers"] = 1
             # The num_triggers need to be the first in the Ordered dict! This is because
             # in EPICS, if trigger_mode = External Gate, then cannot change the
             # num_triggers.
             self.cam.stage_sigs.move_to_end("num_triggers", last=False)
-            self.cam.stage_sigs["num_triggers"] = 1
+
             self.cam.stage_sigs["trigger_mode"] = "External Gate"
             self.cam.stage_sigs["manual_trigger"] = "Disable"
             self.cam.stage_sigs["num_images"] = MAX_NUM_IMAGES
             self.cam.stage_sigs["num_exposures"] = 1
-            # TODO: We may not need this.
-            # self.cam.stage_sigs.pop("num_triggers")
 
     def stage(self):
         if self._flysetup:
