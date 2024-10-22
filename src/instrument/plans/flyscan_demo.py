@@ -14,6 +14,7 @@ from collections.abc import Iterable
 from pathlib import Path
 from json import dumps
 from warnings import warn
+from dm import ObjectNotFound
 from .local_scans import mv
 from .workflow_plan import run_workflow
 from ..devices.pva_control import positioner_stream
@@ -22,7 +23,6 @@ from ..devices.data_management import dm_experiment
 from ..utils import logger
 from ..utils.config import iconfig
 from ..utils.run_engine import RE
-from ..utils.catalog import full_cat
 from ..callbacks.nexus_data_file_writer import nxwriter
 from ..utils.dm_utils import dm_get_experiment_data_path, dm_upload, dm_upload_wait
 logger.info(__file__)
@@ -51,13 +51,13 @@ def flyscan_snake(
         dm_concise: bool = False,
         dm_wait: bool = False,
         dm_reporting_period: float = 10*60,  # TODO: change?
-        dm_reporting_time_limit: float = 10**6, # TODO: change?
+        dm_reporting_time_limit: float = 10**6,  # TODO: change?
         nxwriter_warn_missing: bool = False,
         wf_run: bool = False,
         wf_settings_file_path: str = None,
         # everything else is passed to the DM workflow ---------------------------------
         **wf_kwargs,
-    ):
+):
 
     """
     Flyscan using a "snake" trajectory.
@@ -91,10 +91,10 @@ def flyscan_snake(
     :func:`bluesky.plan_patterns.outter_product`
     :func:`flyscan_cycler`
     """
-    
+
     if isinstance(detectors, str):
         raise TypeError("The detector argument cannot be a string.")
-    
+
     if not isinstance(detectors, Iterable):
         detectors = [detectors]
 
@@ -146,13 +146,14 @@ def flyscan_snake(
         dm_concise=dm_concise,
         dm_wait=dm_wait,
         dm_reporting_period=dm_reporting_period,  # TODO: change?
-        dm_reporting_time_limit=dm_reporting_time_limit, # TODO: change?
+        dm_reporting_time_limit=dm_reporting_time_limit,  # TODO: change?
         nxwriter_warn_missing=nxwriter_warn_missing,
         wf_run=wf_run,
         wf_settings_file_path=wf_settings_file_path,
         # everything else is passed to the DM workflow ---------------------------------
         **wf_kwargs,
     )
+
 
 def flyscan_1d(
         detectors,
@@ -169,13 +170,13 @@ def flyscan_1d(
         dm_concise: bool = False,
         dm_wait: bool = False,
         dm_reporting_period: float = 10*60,  # TODO: change?
-        dm_reporting_time_limit: float = 10**6, # TODO: change?
+        dm_reporting_time_limit: float = 10**6,  # TODO: change?
         nxwriter_warn_missing: bool = False,
         wf_run: bool = False,
         wf_settings_file_path: str = None,
         # everything else is passed to the DM workflow ---------------------------------
         **wf_kwargs,
-    ):
+):
     """
     Flyscan in 1 dimension.
 
@@ -209,7 +210,7 @@ def flyscan_1d(
     """
     if isinstance(detectors, str):
         raise TypeError("The detector argument cannot be a string.")
-    
+
     if not isinstance(detectors, Iterable):
         detectors = [detectors]
 
@@ -245,13 +246,14 @@ def flyscan_1d(
         dm_concise=dm_concise,
         dm_wait=dm_wait,
         dm_reporting_period=dm_reporting_period,  # TODO: change?
-        dm_reporting_time_limit=dm_reporting_time_limit, # TODO: change?
+        dm_reporting_time_limit=dm_reporting_time_limit,  # TODO: change?
         nxwriter_warn_missing=nxwriter_warn_missing,
         wf_run=wf_run,
         wf_settings_file_path=wf_settings_file_path,
         # everything else is passed to the DM workflow ---------------------------------
         **wf_kwargs,
     )
+
 
 def flyscan_cycler(
         detectors: list,
@@ -272,7 +274,7 @@ def flyscan_cycler(
         wf_settings_file_path: str = None,
         # everything else is passed to the DM workflow ---------------------------------
         **wf_kwargs,
-    ):
+):
 
     """
     Flyscan using a generic path.
@@ -311,7 +313,7 @@ def flyscan_cycler(
 
     try:
         validate_experiment_dataDirectory(dm_experiment.get())
-    except:
+    except ObjectNotFound:
         raise ValueError(
             f"Cannot find an experiment named: {dm_experiment.get()} in DM. Please see"
             "and run the setup_user function."
@@ -319,10 +321,10 @@ def flyscan_cycler(
 
     if detector_collection_time > detector_trigger_period:
         raise ValueError(
-            f"The collection time ({detector_collection_time}) cannot be larger than the time "
-            f"between triggers ({detector_trigger_period})."
+            f"The collection time ({detector_collection_time}) cannot be larger than "
+            f"the time between triggers ({detector_trigger_period})."
         )
-    
+
     # Sample metadata will be used to sort data
     if "sample" not in RE.md.keys():
         RE.md["sample"] = "sample01"
@@ -343,7 +345,9 @@ def flyscan_cycler(
 
     # TODO: simplify
     # Master file
-    _master_fullpath = str(HDF1_NAME_FORMAT) % (str(_base_path), file_name_base, _scan_id)
+    _master_fullpath = str(HDF1_NAME_FORMAT) % (
+        str(_base_path), file_name_base, _scan_id
+    )
     _master_fullpath += "_master.hdf"
 
     # Setup area detectors
@@ -391,10 +395,10 @@ def flyscan_cycler(
     motors = list(cycler.keys)  # the cycler inverts the list.
 
     _md = dict(
-        detectors = [det.name for det in detectors],
-        motors = [motor.name for motor in motors], 
-        plan_name = "flyscan_cycler",
-        plan_args = {
+        detectors=[det.name for det in detectors],
+        motors=[motor.name for motor in motors],
+        plan_name="flyscan_cycler",
+        plan_args={
             "detectors": list(map(repr, detectors)),
             "motors": repr(motors),
             "cycler": repr(cycler),
@@ -404,9 +408,9 @@ def flyscan_cycler(
             "master_file_templates": master_file_templates,
             "nxwriter_warn_missing": nxwriter_warn_missing,
         },
-        master_file_path = str(_master_fullpath),
+        master_file_path=str(_master_fullpath),
         # TODO: a similar scan with a monitor (scaler...)
-        hints = dict(monitor=None, detectors=[], scan_type="flyscan")
+        hints=dict(monitor=None, detectors=[], scan_type="flyscan")
     )
 
     for _name, _fpath in _dets_file_paths.items():
@@ -417,18 +421,17 @@ def flyscan_cycler(
 
     for item in detectors:
         _md['hints']['detectors'].extend(item.hints['fields'])
-    
+
     dimensions = [(motor.hints["fields"], "primary") for motor in motors]
     _md["hints"].setdefault("dimensions", dimensions)
-
 
     if wf_run:
         _md = build_run_metadata_dict(
             _md,  # TODO: maybe it needs **_md?
-            dm_concise = dm_concise,
-            dm_reporting_period = dm_reporting_period,
-            dm_reporting_time_limit = dm_reporting_time_limit,
-            settings_file_path = wf_settings_file_path,
+            dm_concise=dm_concise,
+            dm_reporting_period=dm_reporting_period,
+            dm_reporting_time_limit=dm_reporting_time_limit,
+            settings_file_path=wf_settings_file_path,
             **wf_kwargs
         )
 
@@ -472,10 +475,15 @@ def flyscan_cycler(
     # RUNNING SCAN #
     ################
 
+    logger.info("here1")
+
     @subs_decorator(nxwriter.receiver)
     @stage_decorator(list(detectors) + motors)
     @run_decorator(md=_md)
     def inner_fly():
+
+        logger.info("here2")
+
         yield from mv(positioner_stream, 1)
         yield from sgz.start_softglue()
 
@@ -485,14 +493,13 @@ def flyscan_cycler(
             yield from move_per_step(step, pos_cache)
         yield from sgz.stop_detectors()
 
-
         logger.info("Waiting for softglue to reach 100k words.")
         # This will wait for a full new set of packets.
         # TODO: It's an overkill, maybe Keenan's code can broadcast a signal?
         n = yield from rd(sgz.div_by_n_count.n)
         _time_per_point = n/1e7
         _number_of_events_per_packet = 1e5/8
-        yield from sleep(_time_per_point*_number_of_events_per_packet+ 0.1)
+        yield from sleep(_time_per_point*_number_of_events_per_packet + 0.1)
 
         yield from sgz.stop_softglue()
 
@@ -507,7 +514,7 @@ def flyscan_cycler(
                 yield from det.wait_for_detector()
 
         logger.info("Scan done, unstaging...")
-        return (yield from null()) # Is there something better to do here?
+        return (yield from null())  # Is there something better to do here?
 
     uid = yield from inner_fly()
 
@@ -533,11 +540,11 @@ def flyscan_cycler(
         yield from dm_upload_wait(upload_info["id"])
 
         yield from run_workflow(
-            bluesky_id = uid,
-            dm_concise = dm_concise,
-            dm_reporting_period = dm_reporting_period,
-            dm_reporting_time_limit = dm_reporting_time_limit,
-            settings_file_path = wf_settings_file_path,
+            bluesky_id=uid,
+            dm_concise=dm_concise,
+            dm_reporting_period=dm_reporting_period,
+            dm_reporting_time_limit=dm_reporting_time_limit,
+            settings_file_path=wf_settings_file_path,
             **wf_kwargs
         )
 

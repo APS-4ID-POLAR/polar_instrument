@@ -81,16 +81,17 @@ class TriggerTime(TriggerBase):
             self.cam.stage_sigs["num_images"] = 1
             self.cam.stage_sigs["num_exposures"] = 1
             # TODO: We may not need this.
-            self.cam.stage_sigs["num_triggers"] = int(1e6)
+            self.cam.stage_sigs["num_triggers"] = MAX_NUM_IMAGES
 
         elif trigger_type == "gate":
             # Stage signals
+            self.cam.stage_sigs["num_triggers"] = 1
             self.cam.stage_sigs["trigger_mode"] = "External Gate"
             self.cam.stage_sigs["manual_trigger"] = "Disable"
             self.cam.stage_sigs["num_images"] = MAX_NUM_IMAGES
             self.cam.stage_sigs["num_exposures"] = 1
             # TODO: We may not need this.
-            self.cam.stage_sigs.pop("num_triggers")
+            # self.cam.stage_sigs.pop("num_triggers")
 
     def stage(self):
         if self._flysetup:
