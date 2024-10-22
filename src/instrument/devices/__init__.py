@@ -11,6 +11,7 @@ if iconfig.get("STATION") == "4idg":
     from .simulated_new_diffractometer import diffract
     from .simulated_detector import simdet
     from .polar_diffractometer import polar, polar_psi
+    from .ad_eiger1M import load_eiger1m
 elif iconfig.get("STATION") == "raman":
     from .sample_stage import sx, sy, sz
     from .ventus_laser import laser
