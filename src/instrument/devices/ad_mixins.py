@@ -2,7 +2,7 @@
 
 from ophyd import ADComponent, EpicsSignal, Signal, Component
 from ophyd.areadetector import EigerDetectorCam, Xspress3DetectorCam, EpicsSignalWithRBV
-from ophyd.areadetector.plugins import(
+from ophyd.areadetector.plugins import (
     PluginBase_V34,
     ImagePlugin_V34,
     PvaPlugin_V34,
@@ -152,7 +152,7 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
             if self._ioc_path_root:
                 rel_path = path.relative_to(DM_ROOT_PATH)
                 path = Path(self._ioc_path_root) / rel_path
-            #self.file_path.set(str(path)).wait(timeout=10)
+            # self.file_path.set(str(path)).wait(timeout=10)
 
             # Add the sample name from metadata to the folder.
             path /= RE.md["sample"]
@@ -183,7 +183,7 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
 
             if self.file_write_mode.get(as_string=True) != "Single":
                 self.capture.set(0).wait()
-            
+
             path, full_path, _ = self.make_write_read_paths()
 
             if isfile(full_path):
@@ -213,7 +213,7 @@ class FileStoreHDF5IterativeWriteEpicsName(FileStorePluginBaseEpicsName):
             [
                 ("file_template", "%s%s_%6.6d.h5"),
                 ("file_write_mode", "Stream"),
-                ("capture", 0), # TODO: Is this true for the EIGER???? --> NO!
+                ("capture", 0),  # TODO: Is this true for the EIGER???? --> NO!
             ]
         )
         self._point_counter = None
@@ -288,7 +288,7 @@ def AD_plugin_primed_vortex(plugin):
 
     Uses the timestamp = 0 as a sign of an unprimed plugin. Not sure this is generic.
     """
-    
+
     return plugin.time_stamp.get() != 0
 
 
