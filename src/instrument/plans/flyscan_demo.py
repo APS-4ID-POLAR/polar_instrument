@@ -475,14 +475,12 @@ def flyscan_cycler(
     # RUNNING SCAN #
     ################
 
-    logger.info("here1")
+    logger.info("Staging...")
 
     @subs_decorator(nxwriter.receiver)
     @stage_decorator(list(detectors) + motors)
     @run_decorator(md=_md)
     def inner_fly():
-
-        logger.info("here2")
 
         yield from mv(positioner_stream, 1)
         yield from sgz.start_softglue()
