@@ -18,7 +18,8 @@ from ..utils import iconfig, logger
 # from ..framework.initialize import RE
 logger.info(__file__)
 
-LAYOUT_VERSION = "APS-POLAR-2024-06"
+# LAYOUT_VERSION = "APS-POLAR-2024-06"
+LAYOUT_VERSION = "APS-POLAR-2024-10"
 NEXUS_RELEASE = "v2022.07"  # NeXus release to which this file is written
 
 
@@ -27,8 +28,7 @@ class MyNXWriter(NXWriterAPS):
     Modify the default behavior of NXWriter for XPCS.
     """
 
-    ad_file_name = None  # AD_full_file_name_local(adsimdet.hdf1)
-    position_file_name = None
+    external_files = {}
 
     def write_root(self, filename):
         super().write_root(filename)
@@ -36,31 +36,30 @@ class MyNXWriter(NXWriterAPS):
         self.root.attrs["layout_version"] = LAYOUT_VERSION
 
     def write_entry(self):
+        """Called after stop document has been received."""
+    
         nxentry = super().write_entry()
         ds = nxentry.create_dataset("layout_version", data=LAYOUT_VERSION)
         ds.attrs["target"] = ds.name
         nxentry["instrument/layout_version"] = ds
 
-    def write_entry(self):
-        """Called after stop document has been received."""
-        # nxentry = super().write_entry()
-        # print(f"{nxentry=!r}")
-        super().write_entry()
-
-        if self.ad_file_name is not None:
-            h5addr = "/entry/detectors/eiger"  # TODO: final location to be decided
-            self.root[h5addr] = h5py.ExternalLink(
-                str(self.ad_file_name),
-                "/entry/instrument",  # link to the image dataset
+        for name, path in self.external_files.items():
+            link_path = (
+                "/stream" if name == "positioner_stream" else "/entry/instrument"
             )
-      
-        if self.position_file_name is not None:
-            h5addr = "/entry/instrument/softglue"  # TODO: final location to be decided
+            h5addr = f"/entry/externals/{name}"
             self.root[h5addr] = h5py.ExternalLink(
-                str(self.position_file_name),
-                "/stream",  # link to the root of the file
+                str(path),
+                link_path,  # link to the image dataset
             )
+        
+        # TODO: Do they need to be reset!?
+        self.external_files = {}
 
 
 nxwriter = MyNXWriter()  # create the callback instance
-nxwriter.warn_on_missing_content = iconfig.get("NEXUS_WARN_MISSING_CONTENT", False)
+_nx_config = iconfig.get("NEXUS_DATA_FILE", None)
+if _nx_config is not None:
+    nxwriter.warn_on_missing_content = _nx_config.get(
+        "NEXUS_WARN_MISSING_CONTENT", False
+    )

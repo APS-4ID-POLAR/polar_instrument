@@ -6,11 +6,22 @@ Device to control the PositionerStream
 __all__ = ["positioner_stream"]
 
 from pvapy import Channel
+import os
 from ophyd import Device, Signal, Component
+from ophyd.utils import UnprimedPlugin
 from ophyd.status import Status
-from ..utils.run_engine import sd
+from pathlib import Path
+from time import sleep
+from .data_management import dm_experiment
+from ..utils.dm_utils import dm_get_experiment_data_path
+from ..utils.run_engine import sd, RE
+from ..utils.config import iconfig
 from ..utils import logger
 logger.info(__file__)
+
+HDF1_NAME_TEMPLATE = iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"]
+HDF1_FILE_EXTENSION = iconfig["AREA_DETECTOR"]["HDF5_FILE_EXTENSION"]
+HDF1_NAME = Path(HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION)
 
 
 class PVASignal(Signal):
@@ -58,8 +69,10 @@ class PositionerStream(Device):
 		kind="normal"
 	)
 
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
 	_status_obj = None
-	_done_signal = None
 
 	@property
 	def status(self):
@@ -77,14 +90,15 @@ class PositionerStream(Device):
 				self._status_obj.set_finished()
 				self.status_pva.stopMonitor()
 
-		self._done_signal = False
-		self.start_pva.stopMonitor()
 		self._status_obj = Status()
-
-		self.start_signal()
-
-		self.status_pva.monitor(_status_sub, "field(value, alarm, timeStamp)")
 		
+		if self.status != "Acquiring":
+			self.start_pva.stopMonitor()
+			self.start_signal()
+			self.status_pva.monitor(_status_sub, "field(value, alarm, timeStamp)")
+		else:
+			self._status_obj.set_finished()
+
 		return self._status_obj
 
 	def stop_stream(self):
@@ -93,17 +107,19 @@ class PositionerStream(Device):
 				self._status_obj.set_finished()
 				self.status_pva.stopMonitor()
 
-		self._done_signal = False
-		self.start_pva.stopMonitor()
 		self._status_obj = Status()
 
-		self.stop_signal()
+		if self.status != 'Idle':
+			self.start_pva.stopMonitor()
+			self.stop_signal()
+			self.status_pva.monitor(_status_sub, "field(value, alarm, timeStamp)")
+		else:
+			self._status_obj.set_finished()
 
-		self.status_pva.monitor(_status_sub, "field(value, alarm, timeStamp)")
-		
 		return self._status_obj
 
 	def set(self, value, **kwargs):
+
 		if value not in [1, 0]:
 			raise ValueError ("Value must be 1 or 0.")
 		
@@ -112,6 +128,44 @@ class PositionerStream(Device):
 	def stop(self, **kwargs):
 		super().stop(**kwargs)
 		self.stop_signal()
+
+	def setup_file_path_name(self, name_base, file_number):
+		path = Path(dm_get_experiment_data_path(dm_experiment.get()))
+		# Add the sample name from metadata to the folder.
+		path /= RE.md["sample"]
+		# Add the name of the device
+		path /= self.name
+
+		full_path = str(HDF1_NAME) % (
+			str(path), name_base, file_number
+		)
+
+		relative_path = str(HDF1_NAME) % (
+			self.name, name_base, file_number
+		)
+
+		return path, full_path, relative_path
+
+
+	def setup_images(
+            self, name_base, file_number, flyscan=False
+        ):
+
+		folder, full_path, relative_path = self.setup_file_path_name(
+			name_base, file_number
+		)
+
+		# Setup positioner stream
+		if not folder.is_dir():
+			folder.mkdir()
+
+		_ps_fname = Path(full_path).relative_to(folder)
+
+		# Setup path and file name in positioner_stream
+		self.file_path.put(str(folder))
+		self.file_name.put(str(_ps_fname))
+
+		return Path(full_path), Path(relative_path)
 
 
 positioner_stream = PositionerStream("", name="positioner_stream")

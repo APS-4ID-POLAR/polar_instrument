@@ -11,6 +11,12 @@ if iconfig.get("STATION") == "4idg":
     from .simulated_new_diffractometer import diffract
     from .simulated_detector import simdet
     from .polar_diffractometer import polar, polar_psi
+    from .xspress import load_vortex
+    from .ad_eiger1M import load_eiger1m
+    from .nanopositioner import diff_nano
+    from .softgluezynq import sgz
+    from .pva_control import positioner_stream
+    from .data_management import dm_experiment, dm_workflow
 elif iconfig.get("STATION") == "raman":
     from .sample_stage import sx, sy, sz
     from .ventus_laser import laser
