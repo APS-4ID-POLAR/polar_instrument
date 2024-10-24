@@ -68,15 +68,6 @@ def set_experiment(
                 print(f"{use_dm} is not a valid answer. Please use yes or no.")
 
     if dm_experiment_name:
-        # if use_vortex is None:
-        #     while True:
-        #         _vortex = input("Are you using the Vortex detector? [no]: ") or "no"
-        #         if _vortex.strip().lower() in "yes no".split():
-        #             use_vortex = True if _vortex.strip().lower() == "yes" else False
-        #             break
-        #         else:
-        #             print(f"{_vortex} is not a valid answer. Please use yes or no.")
-
         _setup_dm(dm_experiment_name, sample, use_vortex)
 
     if next_scan_id is None:
@@ -92,6 +83,8 @@ def set_experiment(
                             break
                         except ValueError:
                             print("Needs to be an integer number.")
+                else:
+                    next_scan_id = -1
                 break
             else:
                 print(f"{reset_number} is not a valid answer. Please use yes or no.")
