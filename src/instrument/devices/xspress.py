@@ -1,7 +1,6 @@
 """ Eiger 1M setup """
 
 from ophyd import ADComponent, Staged, Component, EpicsSignalRO, Device, EpicsSignal
-from ophyd.status import Status
 from ophyd.areadetector import DetectorBase, EpicsSignalWithRBV
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
 from bluesky.plan_stubs import wait_for
@@ -24,7 +23,6 @@ logger.info(__file__)
 __all__ = ["load_vortex"]
 
 # Bluesky and IOC have the same path root.
-# BLUESKY_FILES_ROOT = PurePath(iconfig["AREA_DETECTOR"]["VORTEX"]["BLUESKY_FILES_ROOT"])
 IOC_FILES_ROOT = Path(iconfig["AREA_DETECTOR"]["VORTEX"]["IOC_FILES_ROOT"])
 
 DEFAULT_FOLDER = Path(iconfig["AREA_DETECTOR"]["VORTEX"]["DEFAULT_FOLDER"])
@@ -104,7 +102,7 @@ class Trigger(TriggerBase):
             self.generate_datum(self._image_name, ttime(), {})
 
         return self._status
-    
+
     def _acquire_changed(self, value=None, old_value=None, **kwargs):
         "This is called when the 'acquire_busy' signal changes."
 
@@ -140,7 +138,7 @@ class ROIStatN(Device):
 
 
 class VortexROIStatPlugin(ROIStatPlugin):
-    #ROIs
+    # ROIs
     roi1 = Component(ROIStatN, "1:", kind="normal")
     roi2 = Component(ROIStatN, "2:", kind="omitted")
     roi3 = Component(ROIStatN, "3:", kind="omitted")
@@ -161,8 +159,8 @@ class VortexSCA(AttributePlugin):
     window2 = Component(EpicsSignalRO, '6:Value_RBV', kind="normal")
     pileup = Component(EpicsSignalRO, '7:Value_RBV', kind="normal")
     event_width = Component(EpicsSignalRO, '8:Value_RBV', kind="normal")
-    dt_factor = Component(EpicsSignalRO,'9:Value_RBV', kind="normal")
-    dt_percent = Component(EpicsSignalRO,'10:Value_RBV', kind="normal")
+    dt_factor = Component(EpicsSignalRO, '9:Value_RBV', kind="normal")
+    dt_percent = Component(EpicsSignalRO, '10:Value_RBV', kind="normal")
 
 
 class VortexHDF1Plugin(PolarHDF5Plugin):
@@ -187,7 +185,7 @@ class VortexDetector(Trigger, DetectorBase):
     )
 
     cam = ADComponent(VortexDetectorCam, "det1:")
-    
+
     chan1 = ADComponent(ROIPlugin, "ROI1:")
     chan2 = ADComponent(ROIPlugin, "ROI2:")
     chan3 = ADComponent(ROIPlugin, "ROI3:")
@@ -202,7 +200,7 @@ class VortexDetector(Trigger, DetectorBase):
     sca2 = ADComponent(VortexSCA, "C2SCA:")
     sca3 = ADComponent(VortexSCA, "C3SCA:")
     sca4 = ADComponent(VortexSCA, "C4SCA:")
-    
+
     hdf1 = ADComponent(
         VortexHDF1Plugin,
         "HDF1:",
@@ -234,7 +232,7 @@ class VortexDetector(Trigger, DetectorBase):
 
     def auto_save_on(self):
         self.hdf1.autosave.put("on")
-    
+
     def auto_save_off(self):
         self.hdf1.autosave.put("off")
 
@@ -245,7 +243,7 @@ class VortexDetector(Trigger, DetectorBase):
 
             async def set_future_done(future):
                 # This is really just needed when running the detector very fast. Seems
-                # like that anything beyond ~50 ms count period is not a problem. So I 
+                # like that anything beyond ~50 ms count period is not a problem. So I
                 # think this 0.5 sec can be hardcoded.
                 sleep_time = 0.5
 
@@ -261,7 +259,7 @@ class VortexDetector(Trigger, DetectorBase):
                     new = self.cam.array_counter.read()[
                         "vortex_cam_array_counter"
                         ]["timestamp"]
-                
+
                 future.set_result("Detector done!")
 
             # Schedule setting the future as done after 10 seconds
@@ -284,14 +282,13 @@ class VortexDetector(Trigger, DetectorBase):
         self.hdf1.stage_sigs.pop("enable")
         self.hdf1.stage_sigs["num_capture"] = 0
         self.hdf1.stage_sigs["capture"] = 1
-    
+
         self.setup_manual_trigger()
         self.save_images_off()
         self.plot_roi1()
 
         self.stage_sigs.pop("cam.image_mode")
         self.cam.stage_sigs["erase_on_start"] = "No"
-
 
         # TODO: Not sure why this is needed. It will timeout otherwise.
         connection_timeout = iconfig.get("OPHYD", {}).get("TIMEOUTS", {}).get(
@@ -311,11 +308,11 @@ class VortexDetector(Trigger, DetectorBase):
 
     def plot_roi1(self):
         # TODO: This is just temporary to have something.
-        self.stats1.roi1.total_value.kind="hinted"
+        self.stats1.roi1.total_value.kind = "hinted"
 
     def setup_images(
             self, file_name_base, file_number, flyscan=False
-        ):
+    ):
 
         self.hdf1.file_name.set(file_name_base).wait(timeout=10)
         self.hdf1.file_number.set(file_number).wait(timeout=10)
