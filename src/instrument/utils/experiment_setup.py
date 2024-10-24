@@ -38,7 +38,7 @@ class ExperimentClass:
     base_experiment_folder = None
     experiment_name = None
     data_management = None
-    use_dm = "yes"
+    use_dm = "no"
     esaf = None
     proposal = None
     sample = None
@@ -60,7 +60,9 @@ class ExperimentClass:
         if self.use_dm == "yes":
             output += f"DM experiment name: {self.experiment_name}.\n"
 
-        output += f"Next Bluesky scan_id: {RE.md.get('scan_id', 0) + 1}.\n"
+        _id = RE.md.get('scan_id', None)
+        _id = _id + 1 if isinstance(_id, int) else None
+        output += f"Next Bluesky scan_id: {_id}.\n"
 
         return output
 
@@ -176,8 +178,8 @@ class ExperimentClass:
             except ObjectNotFound:
                 while True:
                     _new_exp = (input(
-                        f"\tExperiment {experiment_name} does not exist. Do you want to "
-                        "create a new experiment? [yes]: "
+                        f"\tExperiment {experiment_name} does not exist in DM. Do you "
+                        "want to create a new experiment? [yes]: "
                     ) or "yes").lower().strip()
                     if _new_exp not in "yes no".strip():
                         print("\tAnswer must be yes or no.")
