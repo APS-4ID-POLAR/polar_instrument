@@ -46,7 +46,10 @@ class ExperimentClass:
     def __repr__(self):
         print("\n-- Experiment setup --")
         if isinstance(self.proposal, dict):
-            output = f"Proposal #{self.proposal['id']} - {self.proposal['title']}.\n"
+            output = (
+                f"Proposal #{self.proposal['id']} - {self.proposal['title']}."
+                "\n"
+            )
         else:
             output = "No proposal entered.\n"
         if isinstance(self.esaf, dict):
@@ -91,15 +94,17 @@ class ExperimentClass:
                     break
                 except ObjectNotFound:
                     print(
-                        f"The ESAF #{esaf_id} was not found. If this appears to be an "
-                        "error, you can cancel this setup and check the `list_esafs` "
-                        "function, or use ESAF = dev."
+                        f"The ESAF #{esaf_id} was not found. If this appears "
+                        "to be an error, you can cancel this setup and check "
+                        "the `list_esafs` function, or use ESAF = dev."
                     )
                     esaf_id = None
 
     def proposal_input(self, proposal_id: int = None):
         while True:
-            proposal_id = proposal_id or input("Enter proposal number: ") or None
+            proposal_id = (
+                proposal_id or input("Enter proposal number: ") or None
+            )
             if proposal_id == "dev":
                 print("No proposal will be associated to this experiment.")
                 self.proposal = proposal_id
@@ -111,8 +116,8 @@ class ExperimentClass:
                     proposal_id = int(proposal_id)
                 except ValueError:
                     print(
-                        f"The proposal number must be a number, but {proposal_id} was "
-                        "entered."
+                        "The proposal number must be a number, but "
+                        f"{proposal_id} was entered."
                     )
                     proposal_id = None
                     continue
@@ -125,9 +130,10 @@ class ExperimentClass:
                     break
                 except DmException:
                     print(
-                        f"The proposal_id #{proposal_id} was not found. If this "
-                        "appears to be an error, you can cancel this setup and check "
-                        "the `list_proposals` function, or use Proposal = dev."
+                        f"The proposal_id #{proposal_id} was not found. If "
+                        "this appears to be an error, you can cancel this "
+                        "setup and check the `list_proposals` function, or use "
+                        "Proposal = dev."
                     )
                     proposal_id = None
 
@@ -165,8 +171,8 @@ class ExperimentClass:
                 _exp = get_experiment(experiment_name)
                 while True:
                     _reuse = input(
-                        "This experiment name already exist. Do you want to re-use "
-                        "this experiment? [no]: "
+                        "This experiment name already exist. Do you want to "
+                        "re-use this experiment? [no]: "
                     ).lower().strip() or "no"
                     if _reuse not in "yes no".split():
                         print("Answer must be yes or no.")
@@ -178,8 +184,8 @@ class ExperimentClass:
             except ObjectNotFound:
                 while True:
                     _new_exp = (input(
-                        f"\tExperiment {experiment_name} does not exist in DM. Do you "
-                        "want to create a new experiment? [yes]: "
+                        f"\tExperiment {experiment_name} does not exist in DM. "
+                        "Do you want to create a new experiment? [yes]: "
                     ) or "yes").lower().strip()
                     if _new_exp not in "yes no".strip():
                         print("\tAnswer must be yes or no.")
@@ -191,20 +197,22 @@ class ExperimentClass:
                     self.use_dm = "no"
                 else:
                     _esaf_id = (
-                        self.esaf["esafId"] if isinstance(self.esaf, dict) else None
+                        self.esaf["esafId"] if isinstance(self.esaf, dict) else
+                        None
                     )
                     _exp, _ = dm_experiment_setup(
                         experiment_name, esaf_id=_esaf_id
                     )
             break
         print(
-            f"Using experiment {experiment_name} in folder {_exp['dataDirectory']}."
+            f"Using experiment {experiment_name} in folder "
+            f"{_exp['dataDirectory']}."
         )
         self.data_management = dict(_exp)
         self.experiment_name = experiment_name
         dm_experiment.put(experiment_name)
 
-    def setup_folder(self):
+    def setup_dm_daq(self):
         """
         Configure bluesky session for this user.
 
@@ -225,6 +233,7 @@ class ExperimentClass:
                 )
                 dm_start_daq(self.experiment_name, "@voyager")
 
+    def setup_path(self):
         # Make sure that the subfolder structure exists, if not creates it.
         sample_path = Path(self.base_experiment_folder) / self.sample
         if not sample_path.is_dir():
@@ -234,9 +243,15 @@ class ExperimentClass:
         chdir(sample_path)
 
     def scan_number_input(self, reset_scan_id: int = None):
+        if not isinstance(reset_scan_id, (int, type(None))):
+            print(
+                f"WARNING: {reset_scan_id = } is not valid. Must be an integer."
+            )
+
         while True:
             reset_scan_id = (
-                reset_scan_id or input("Reset Bluesky scan_id to 1? [yes]: ") or "yes"
+                reset_scan_id or input("Reset Bluesky scan_id to 1? [yes]: ") or
+                "yes"
             ).strip().lower()
             if reset_scan_id not in "yes no".split():
                 print("Answer must be yes or no.")
@@ -286,7 +301,6 @@ class ExperimentClass:
     ):
         self.esaf_input(esaf_id)
         self.proposal_input(proposal_id)
-        self.sample_input(sample_label)
         self.dm_use_input(use_dm)
         if self.use_dm == "yes":
             self.dm_experiment_input(experiment_name)
@@ -295,7 +309,9 @@ class ExperimentClass:
 
         print(f"Base experiment folder: {getcwd()}.")
         self.base_experiment_folder = getcwd()
-        self.setup_folder()
+        self.sample_input(sample_label)
+        self.setup_dm_daq()
+        self.setup_path()
         self.scan_number_input(reset_scan_id)
 
         self.send_params_to_bluesky()
@@ -321,6 +337,11 @@ class ExperimentClass:
         #         f.write(f"RE.md['proposal_id']='{proposal_id}'\n")
         #         f.write(f"RE.md['sample']='{sample}'\n")
 
+    def new_sample(self, sample_name: str = None, reset_scan_id: int = None):
+        self.sample_input(sample_name)
+        self.setup_path()
+        self.scan_number_input(reset_scan_id)
+
     def __call__(
             self,
             esaf_id: int = None,
@@ -332,7 +353,12 @@ class ExperimentClass:
     ):
 
         self.new_experiment(
-            esaf_id, proposal_id, sample_label, use_dm, experiment_name, reset_scan_id
+            esaf_id,
+            proposal_id,
+            sample_label,
+            use_dm,
+            experiment_name,
+            reset_scan_id
         )
 
 
