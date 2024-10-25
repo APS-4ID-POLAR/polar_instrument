@@ -121,6 +121,9 @@ dependencies:
   # LibMambaUnsatisfiableError: Encountered problems while solving:
   #   - package c2dataviewer-1.7.6-py37_0 requires python >=3.7,<3.8.0a0, but none of the providers can be installed
 
+  # POLAR
+  - streamz
+
   - pip:
     - apsbss  # only works on APS subnet
     - ophyd-registry
