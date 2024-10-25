@@ -36,5 +36,7 @@ class ToroidalMirror(Device):
     alpha = Component(EpicsSignalRO, 'alpha')
 
 
-hhl_mirror = ToroidalMirror('4idHHLM:', name='toroidal_mirror', label=("mirror",))
+hhl_mirror = ToroidalMirror(
+    '4idHHLM:', name='toroidal_mirror', labels=("mirror",)
+)
 sd.baseline.append(hhl_mirror)
