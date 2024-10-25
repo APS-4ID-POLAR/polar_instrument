@@ -371,7 +371,8 @@ pr2._set_d_spacing()
 pr3 = PRDeviceBase(
     '4ida',
     'pr3',
-    {'x': 'm10', 'y': 'm11', 'th': 'm12'}
+    {'x': 'm10', 'y': 'm11', 'th': 'm12'},
+    labels=("phase_retarder",)
 )
 pr3.d_spacing.put(3.135)
 
