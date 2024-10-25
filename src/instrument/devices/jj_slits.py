@@ -8,7 +8,7 @@ __all__ = [
 from ophyd import Device, FormattedComponent, EpicsMotor
 from apstools.devices import PVPositionerSoftDoneWithStop
 from ..utils.run_engine import sd
-from ..utils import logger
+from ..utils._logging_setup import logger
 logger.info(__file__)
 
 

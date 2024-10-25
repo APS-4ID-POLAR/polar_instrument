@@ -6,7 +6,7 @@ __all__ = ['hhl_mirror']
 
 from ophyd import Component, Device, EpicsMotor, EpicsSignal, EpicsSignalRO
 from ..utils.run_engine import sd
-from ..utils import logger
+from ..utils._logging_setup import logger
 logger.info(__file__)
 
 

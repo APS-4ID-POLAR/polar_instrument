@@ -2,18 +2,21 @@
 """
 Flags
 """
+
 __all__ = [
-    'flag_4ida_up_',
+    'flag_4ida_up',
     'flag_4ida_down'
 ]
 
 from ophyd import EpicsMotor
 from ..utils.run_engine import sd
-from ..utils import logger
+from ..utils._logging_setup import logger
 logger.info(__file__)
 
+flag_4ida_up = EpicsMotor(
+    "4idVDCM:m6", name="flag_4ida_up", label=("motor", "flag")
+)
 
-flag_4ida_up = EpicsMotor("4idVDCM:m6", name="flag_4ida_up", label=("motor", "flag"))
 sd.baseline.append(flag_4ida_up)
 
 flag_4ida_down = EpicsMotor(

@@ -4,6 +4,12 @@ local, custom Device definitions
 
 from ..utils.config import iconfig
 
+if iconfig.get("STATION") == "4idb":
+    from .scaler_4idtest import scaler_4tst
+    from .hhl_mirror import hhl_mirror
+    from .flags import flag_4ida_up, flag_4ida_down
+    from .monochromator import mono
+    from .phaseplates import pr1, pr2, pr3
 if iconfig.get("STATION") == "4idg":
     from .simulated_scaler import scaler
     from .scaler_4idtest import scaler_4tst
@@ -31,4 +37,3 @@ from .counters_class import counters
 # from .softgluezynq import sgz
 # from .pva_control import positioner_stream
 # from .data_management import dm_experiment, dm_workflow
-

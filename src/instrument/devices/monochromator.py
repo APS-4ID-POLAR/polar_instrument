@@ -4,14 +4,19 @@ Monochromator motors
 
 __all__ = ['mono']
 
-from apstools.devices import KohzuSeqCtl_Monochromator
+from apstools.devices import KohzuSeqCtl_Monochromator, LakeShore336Device
 from ophyd import (
-    Component, Device, FormattedComponent, EpicsMotor, EpicsSignal,
-    EpicsSignalRO, PVPositioner
+    Component,
+    Device,
+    FormattedComponent,
+    EpicsMotor,
+    EpicsSignal,
+    EpicsSignalRO,
+    PVPositioner
 )
 from ophyd.status import Status
 from ..utils.run_engine import sd
-from ..utils import logger
+from ..utils._logging_setup import logger
 logger.info(__file__)
 
 
@@ -126,6 +131,13 @@ class Monochromator(KohzuSeqCtl_Monochromator):
     thf2 = Component(EpicsMotor, 'm4', labels=('motor', 'mono'))
     chi2 = Component(EpicsMotor, 'm5', labels=('motor', 'mono'))
 
+    temp1 = FormattedComponent(
+        LakeShore336Device, "4idaSoft:LS336:TC1:", labels=("lakeshore",)
+    )
+    temp2 = FormattedComponent(
+        LakeShore336Device, "4idaSoft:LS336:TC2:", labels=("lakeshore",)
+    )
+
     # feedback = FormattedComponent(MonoFeedback, '4id:')
 
     def calibrate_energy(self, value):
@@ -140,5 +152,5 @@ class Monochromator(KohzuSeqCtl_Monochromator):
         self.use_set.put('Use', use_complete=True)
 
 
-mono = Monochromator('4idVDCM:', name='mono')
+mono = Monochromator('4idVDCM:', name='mono', labels=("monochromator",))
 sd.baseline.append(mono)
