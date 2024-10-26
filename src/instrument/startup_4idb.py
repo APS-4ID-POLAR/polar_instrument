@@ -61,4 +61,4 @@ cat = db_query(
 
 # TODO: this is useful while we are doing pre-commissioning tests
 # Remove everything from baseline.
-sd.baseline = []
+# sd.baseline = []
