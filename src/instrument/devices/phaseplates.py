@@ -18,7 +18,7 @@ from ..utils._logging_setup import logger
 # This is here because PRDevice.select_pr has a micron symbol that utf-8
 # cannot read. See: https://github.com/bluesky/ophyd/issues/930
 from epics import utils
-utils.EPICS_STR_ENCODING = "latin-1"
+utils.IOENCODING = "latin-1"
 
 logger.info(__file__)
 
