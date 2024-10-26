@@ -131,12 +131,13 @@ class Monochromator(KohzuSeqCtl_Monochromator):
     thf2 = Component(EpicsMotor, 'm4', labels=('motor', 'mono'))
     chi2 = Component(EpicsMotor, 'm5', labels=('motor', 'mono'))
 
-    temp1 = FormattedComponent(
-        LakeShore336Device, "4idaSoft:LS336:TC1:", labels=("lakeshore",)
-    )
-    temp2 = FormattedComponent(
-        LakeShore336Device, "4idaSoft:LS336:TC2:", labels=("lakeshore",)
-    )
+    # TODO: these are offline for some reason
+    # temp1 = FormattedComponent(
+    #     LakeShore336Device, "4idaSoft:LS336:TC1:", labels=("lakeshore",)
+    # )
+    # temp2 = FormattedComponent(
+    #     LakeShore336Device, "4idaSoft:LS336:TC2:", labels=("lakeshore",)
+    # )
 
     # feedback = FormattedComponent(MonoFeedback, '4id:')
 
