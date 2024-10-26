@@ -12,7 +12,7 @@ class VimbaCam(CamBase):
 
 
 class VimbaDetector(DetectorBase):
-    cam = ADComponent(VimbaCam, "cam1")
+    cam = ADComponent(VimbaCam, "cam1:")
 
 
 flag_camera_4idb = VimbaDetector(
