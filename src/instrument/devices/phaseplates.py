@@ -71,20 +71,20 @@ class PRPzt(Device):
 
     selectDC = FormattedComponent(
         EpicsSignal,
-        '4idb:232DRIO:1:OFF_ch{_prnum}.PROC',
+        '4idaSoft:232DRIO:1:OFF_ch{_prnum}.PROC',
         kind='omitted',
         put_complete=True
     )
 
     selectAC = FormattedComponent(
         EpicsSignal,
-        '4idb:232DRIO:1:ON_ch{_prnum}.PROC',
+        '4idaSoft:232DRIO:1:ON_ch{_prnum}.PROC',
         kind='omitted',
         put_complete=True
     )
 
     ACstatus = FormattedComponent(
-        EpicsSignalRO, '4idb:232DRIO:1:status', kind='config'
+        EpicsSignalRO, '4idaSoft:232DRIO:1:status', kind='config'
     )
 
     conversion_factor = Component(Signal, value=0.1, kind='config')
