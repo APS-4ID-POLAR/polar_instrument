@@ -158,7 +158,7 @@ class PRDeviceBase(PseudoPositioner):
 
 class PRDevice(PRDeviceBase):
 
-    pzt = FormattedComponent(PRPzt, '{prefix}:E665:{_prnum}:')
+    pzt = FormattedComponent(PRPzt, '{prefix}Soft:E665:{_prnum}:')
     select_pr = FormattedComponent(
         EpicsSignal,
         '{prefix}:PRA{_prnum}',
