@@ -12,7 +12,6 @@ from pathlib import Path
 from ..utils.run_engine import sd
 from ..utils.config import iconfig
 from ..utils import logger
-from ..utils.experiment_setup import experiment
 logger.info(__file__)
 
 HDF1_NAME_TEMPLATE = iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"]
@@ -133,9 +132,10 @@ class PositionerStream(Device):
     def setup_file_path_name(self, path, name_base, file_number):
 
         if path is None:
-            path = Path(experiment.base_experiment_folder)
+            path = Path(self.file_path.get())
+
         # Add the sample name from metadata to the folder.
-        path /= experiment.sample
+        # path /= experiment.sample
         # Add the name of the device
         path /= self.name
 
