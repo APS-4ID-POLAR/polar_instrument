@@ -315,7 +315,11 @@ class ExperimentClass:
             chdir(self.data_management["dataDirectory"])
         else:
             print("Using current folder in this experiment.")
-            print("WARNING: area detector images will be saved in this folder.")
+            print(
+                "WARNING: area detector images will be saved in this folder. "
+                "Please, change it if this folder is not visible from the area "
+                "detector computer."
+            )
 
         print(f"Base experiment folder: {getcwd()}.")
         self.base_experiment_folder = Path(getcwd())
