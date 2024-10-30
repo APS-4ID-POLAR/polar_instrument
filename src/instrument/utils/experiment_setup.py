@@ -321,7 +321,8 @@ class ExperimentClass:
         self.base_experiment_folder = Path(getcwd())
         self.base_name_input(base_name)
         self.sample_input(sample_label)
-        self.setup_dm_daq()
+        if self.data_management:
+            self.setup_dm_daq()
         self.setup_path()
         self.scan_number_input(reset_scan_id)
 
