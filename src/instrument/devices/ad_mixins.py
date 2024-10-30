@@ -2,7 +2,7 @@
 
 from ophyd import ADComponent, EpicsSignal, Signal, Component
 from ophyd.areadetector import EigerDetectorCam, Xspress3DetectorCam, EpicsSignalWithRBV
-from ophyd.areadetector.plugins import(
+from ophyd.areadetector.plugins import (
     PluginBase_V34,
     ImagePlugin_V34,
     PvaPlugin_V34,
@@ -21,10 +21,7 @@ from itertools import count
 from time import sleep
 from collections import OrderedDict
 from pathlib import Path
-from .data_management import dm_experiment
-from ..utils.run_engine import RE
 from ..utils.config import iconfig
-from ..utils.dm_utils import dm_get_experiment_data_path
 from ..utils import logger
 logger.info(__file__)
 
@@ -171,7 +168,7 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
 
             if self.file_write_mode.get(as_string=True) != "Single":
                 self.capture.set(0).wait()
-            
+
             path, full_path, _ = self.make_write_read_paths()
 
             if isfile(full_path):
@@ -201,7 +198,7 @@ class FileStoreHDF5IterativeWriteEpicsName(FileStorePluginBaseEpicsName):
             [
                 ("file_template", "%s%s_%6.6d.h5"),
                 ("file_write_mode", "Stream"),
-                ("capture", 0), # TODO: Is this true for the EIGER???? --> NO!
+                ("capture", 0),  # TODO: Is this true for the EIGER???? --> NO!
             ]
         )
         self._point_counter = None
@@ -276,7 +273,7 @@ def AD_plugin_primed_vortex(plugin):
 
     Uses the timestamp = 0 as a sign of an unprimed plugin. Not sure this is generic.
     """
-    
+
     return plugin.time_stamp.get() != 0
 
 
