@@ -206,20 +206,20 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.plot_roi1()
 
     def plot_roi1(self):
-        self.stats1.total.kind="hinted"
+        self.stats1.total.kind = "hinted"
 
     def setup_images(
-            self, name_template, file_number, flyscan=False
-        ):
+            self, base_path, name_template, file_number, flyscan=False
+    ):
 
         self.hdf1.file_number.set(file_number).wait(timeout=10)
-        self.hdf1.file_name.set(name_template).wait(timeout=10)       
+        self.hdf1.file_name.set(name_template).wait(timeout=10)
         # Make sure eiger will save image
         self.auto_save_on()
         # Changes the stage_sigs to the external trigger mode
         self._flysetup = flyscan
 
-        _, full_path, relative_path = self.hdf1.make_write_read_paths()
+        _, full_path, relative_path = self.hdf1.make_write_read_paths(base_path)
 
         return Path(full_path), Path(relative_path)
 
