@@ -312,7 +312,7 @@ class VortexDetector(Trigger, DetectorBase):
         self.stats1.roi1.total_value.kind = "hinted"
 
     def setup_images(
-            self, file_name_base, file_number, flyscan=False
+            self, base_folder, file_name_base, file_number, flyscan=False
     ):
 
         self.hdf1.file_name.set(file_name_base).wait(timeout=10)
@@ -320,7 +320,9 @@ class VortexDetector(Trigger, DetectorBase):
         self.auto_save_on()
         self._flysetup = flyscan
 
-        _, full_path, relative_path = self.hdf1.make_write_read_paths()
+        _, full_path, relative_path = self.hdf1.make_write_read_paths(
+            base_folder
+        )
 
         return Path(full_path), Path(relative_path)
 
