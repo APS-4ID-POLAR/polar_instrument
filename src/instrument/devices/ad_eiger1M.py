@@ -6,7 +6,7 @@ from ophyd.areadetector import DetectorBase
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
 from apstools.devices import AD_plugin_primed, AD_prime_plugin2
 from apstools.utils import run_in_thread
-from pathlib import PurePath, Path
+from pathlib import Path
 from time import time as ttime, sleep
 from .ad_mixins import (
     EigerDetectorCam,
@@ -144,7 +144,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
 
     _default_configuration_attrs = ('roi1', 'codec1', 'image', 'pva')
     _default_read_attrs = ('cam', 'hdf1', 'stats1')
-    
+
     cam = ADComponent(EigerDetectorCam, "cam1:")
     codec1 = ADComponent(CodecPlugin, "Codec1:")
     image = ADComponent(ImagePlugin, "image1:")
@@ -183,10 +183,10 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
 
     def auto_save_on(self):
         self.hdf1.autosave.put("on")
-    
+
     def auto_save_off(self):
         self.hdf1.autosave.put("off")
-      
+
     def default_settings(self):
         self.cam.num_triggers.put(1)
         self.cam.manual_trigger.put("Disable")
@@ -200,7 +200,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.hdf1.stage_sigs.pop("enable")
         self.hdf1.stage_sigs["num_capture"] = 0
         self.hdf1.stage_sigs["capture"] = 1
-    
+
         self.setup_manual_trigger()
         self.save_images_off()
         self.plot_roi1()
