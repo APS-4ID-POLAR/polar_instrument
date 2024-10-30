@@ -306,9 +306,12 @@ class ExperimentClass:
             self.dm_experiment_input(experiment_name)
         if self.data_management:
             chdir(self.data_management["dataDirectory"])
+        else:
+            print("Using current folder in this experiment.")
+            print("WARNING: area detector images will be saved in this folder.")
 
         print(f"Base experiment folder: {getcwd()}.")
-        self.base_experiment_folder = getcwd()
+        self.base_experiment_folder = Path(getcwd())
         self.sample_input(sample_label)
         self.setup_dm_daq()
         self.setup_path()
