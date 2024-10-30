@@ -32,7 +32,8 @@ class PVASignal(Signal):
     def put(self, value, **kwargs):
         if not isinstance(value, str):
             raise ValueError(
-                f"file_path needs to be a string, but {type(value)} was entered."
+                f"file_path needs to be a string, but {type(value)} was "
+                "entered."
             )
         self._pva.putString(value, self._pva_label)
 
@@ -91,7 +92,9 @@ class PositionerStream(Device):
         if self.status != "Acquiring":
             self.start_pva.stopMonitor()
             self.start_signal()
-            self.status_pva.monitor(_status_sub, "field(value, alarm, timeStamp)")
+            self.status_pva.monitor(
+                _status_sub, "field(value, alarm, timeStamp)"
+            )
         else:
             self._status_obj.set_finished()
 
