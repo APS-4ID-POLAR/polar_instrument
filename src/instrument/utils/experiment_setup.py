@@ -16,7 +16,7 @@ from apstools.utils import (
     dm_get_experiment_datadir_active_daq,
 )
 from dm import ObjectNotFound, DmException
-from os import getcwd, chdir
+from os import chdir
 from pathlib import Path
 from ..devices.data_management import dm_experiment
 from .dm_utils import (
@@ -294,26 +294,31 @@ class ExperimentClass:
 
     def send_params_to_bluesky(self):
         for key in (
-            "data_management esaf proposal sample base_experiment_folder"
+            "data_management esaf proposal sample"
         ).split():
             RE.md[key] = getattr(self, key)
 
+        for key in "base_experiment_folder experiment_folder".split():
+            RE.md[key] = str(getattr(self, key))
+
     def load_params_from_bluesky(self):
-        for key in (
-            "data_management esaf proposal sample base_experiment_folder"
-        ).split():
-            setattr(self, key, RE.md[key])
+        # TODO!!!!
+        # for key in (
+        #     "data_management esaf proposal sample base_experiment_folder"
+        # ).split():
+        #     setattr(self, key, RE.md[key])
 
-        self.use_dm = "yes" if self.data_management else "no"
+        # self.use_dm = "yes" if self.data_management else "no"
 
-        if isinstance(self.data_management, dict):
-            self.experiment_name = self.data_management["name"]
-            chdir(self.data_management["dataDirectory"])
+        # if isinstance(self.data_management, dict):
+        #     self.experiment_name = self.data_management["name"]
+        #     chdir(self.data_management["dataDirectory"])
 
-        self.base_experiment_folder = getcwd()
-        self.setup_folder()
+        # self.base_experiment_folder = getcwd()
+        # self.setup_folder()
 
-        print(self.__repr__)
+        # print(self.__repr__)
+        pass
 
     def save_params_to_yaml(self):
         pass
