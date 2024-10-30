@@ -90,12 +90,12 @@ class ExperimentClass:
         output += f"Data server: {self.server}\n"
         output += f"Sample: {self.sample}.\n"
         output += f"Experiment name: {self.experiment_name}\n"
-        output += f"Base experiment folder: {self.base_experiment_folder}.\n"
-        output += f"Experiment folder: {self.base_experiment_folder}.\n"
+        output += f"Base experiment folder: {self.base_experiment_folder}\n"
+        output += f"Experiment folder: {self.base_experiment_folder}\n"
 
         _id = RE.md.get('scan_id', None)
         _id = _id + 1 if isinstance(_id, int) else None
-        output += f"Next Bluesky scan_id: {_id}.\n"
+        output += f"Next Bluesky scan_id: {_id}\n"
 
         return output
 
@@ -293,13 +293,15 @@ class ExperimentClass:
                 break
 
     def send_params_to_bluesky(self):
-        for key in (
-            "data_management esaf proposal sample"
-        ).split():
-            RE.md[key] = getattr(self, key)
+        # TODO: Move this to the scans, not here!!!
+        # for key in (
+        #     "data_management esaf proposal sample"
+        # ).split():
+        #     RE.md[key] = getattr(self, key)
 
-        for key in "base_experiment_folder experiment_folder".split():
-            RE.md[key] = str(getattr(self, key))
+        # for key in "base_experiment_folder experiment_folder".split():
+        #     RE.md[key] = str(getattr(self, key))
+        pass
 
     def load_params_from_bluesky(self):
         # TODO!!!!
@@ -377,7 +379,7 @@ class ExperimentClass:
         self.save_params_to_yaml()
 
         print("\nSettings:")
-        print(self.__repr__)
+        print(self.__repr__())
 
         # TODO: What to do about this?
         # if path_startup.exists():
