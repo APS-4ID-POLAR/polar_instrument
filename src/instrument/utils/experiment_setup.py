@@ -18,7 +18,7 @@ from apstools.utils import (
 from dm import ObjectNotFound, DmException
 from os import getcwd, chdir
 from pathlib import Path
-from ..devices.data_management import dm_experiment
+# from ..devices.data_management import dm_experiment
 from .dm_utils import (
     get_esaf_info,
     get_proposal_info,
@@ -241,7 +241,7 @@ class ExperimentClass:
 
         if self.server == "data management":
             self.data_management = dict(_exp)
-            dm_experiment.put(self.experiment_name)
+            # dm_experiment.put(self.experiment_name)
         return True
 
     def setup_dm_daq(self):
