@@ -87,11 +87,11 @@ class ExperimentClass:
         else:
             output += "No ESAF entered.\n"
 
+        output += f"Data server: {self.server}\n"
         output += f"Sample: {self.sample}.\n"
+        output += f"Experiment name: {self.experiment_name}\n"
         output += f"Base experiment folder: {self.base_experiment_folder}.\n"
-        output += f"Use data management system: {self.use_dm}.\n"
-        if self.use_dm == "yes":
-            output += f"DM experiment name: {self.experiment_name}.\n"
+        output += f"Experiment folder: {self.base_experiment_folder}.\n"
 
         _id = RE.md.get('scan_id', None)
         _id = _id + 1 if isinstance(_id, int) else None
@@ -313,7 +313,7 @@ class ExperimentClass:
         self.base_experiment_folder = getcwd()
         self.setup_folder()
 
-        print(self)
+        print(self.__repr__)
 
     def save_params_to_yaml(self):
         pass
@@ -372,7 +372,7 @@ class ExperimentClass:
         self.save_params_to_yaml()
 
         print("\nSettings:")
-        print(self)
+        print(self.__repr__)
 
         # TODO: What to do about this?
         # if path_startup.exists():
