@@ -42,6 +42,7 @@ class ExperimentClass:
     esaf = None
     proposal = None
     sample = None
+    base_name = None
 
     def __repr__(self):
         print("\n-- Experiment setup --")
@@ -140,6 +141,11 @@ class ExperimentClass:
     def sample_input(self, sample_label: str = None):
         self.sample = (
             sample_label or input("Enter sample name [sample1]: ") or "sample1"
+        )
+
+    def base_name_input(self, base_name: str = None):
+        self.base_name = (
+            base_name or input("Enter files base name [scan_]: ") or "scan_"
         )
 
     def dm_use_input(self, use_dm: str = None):
@@ -294,6 +300,7 @@ class ExperimentClass:
             self,
             esaf_id: int = None,
             proposal_id: int = None,
+            base_name: str = None,
             sample_label: str = None,
             use_dm: str = None,
             experiment_name: str = None,
@@ -312,6 +319,7 @@ class ExperimentClass:
 
         print(f"Base experiment folder: {getcwd()}.")
         self.base_experiment_folder = Path(getcwd())
+        self.base_name_input(base_name)
         self.sample_input(sample_label)
         self.setup_dm_daq()
         self.setup_path()
