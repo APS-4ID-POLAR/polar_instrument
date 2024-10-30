@@ -194,7 +194,7 @@ class ExperimentClass:
     def experiment_name_input(self, experiment_name: str = None):
         while True:
             self.experiment_name = experiment_name = (
-                experiment_name or input("\tEnter experiment name: ") or None
+                experiment_name or input("Enter experiment name: ") or None
             )
             if experiment_name is None:
                 print("An experiment name must be entered.")
@@ -268,7 +268,7 @@ class ExperimentClass:
         # Make sure that the subfolder structure exists, if not creates it.
         sample_path = Path(self.base_experiment_folder) / self.sample
         if not sample_path.is_dir():
-            sample_path.mkdir()
+            sample_path.mkdir(parents=True)
 
         print(f"Moving to the sample folder: {sample_path}")
         chdir(sample_path)
