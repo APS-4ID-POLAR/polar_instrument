@@ -129,11 +129,13 @@ def count(
     if detectors is None:
         detectors = counters.detectors
 
-    _base_path, _master_fullpath, _dets_file_paths, _rel_dets_paths = (
+    _master_fullpath, _dets_file_paths, _rel_dets_paths = (
         _setup_paths(detectors)
     )
 
-    setup_nxwritter(_base_path, _master_fullpath, _rel_dets_paths)
+    setup_nxwritter(
+        experiment.experiment_path, _master_fullpath, _rel_dets_paths
+    )
 
     extras = _collect_extras()
 
@@ -231,14 +233,14 @@ def ascan(*args, time=None, detectors=None, per_step=None, md=None):
 
     _md = dict(
         hints={'monitor': counters.monitor, 'detectors': []},
-        data_management=experiment.data_management,
-        esaf=experiment.esaf,
-        proposal=experiment.proposal,
-        base_experiment_path=str(experiment.base_experiment_path),
-        experiment_path=str(experiment.experiment_path),
-        master_file_path=str(_master_fullpath),
-        detectors_file_full_path=_dets_file_paths,
-        detectors_file_relative_path=_rel_dets_paths,
+        # data_management=experiment.data_management,
+        # esaf=experiment.esaf,
+        # proposal=experiment.proposal,
+        # base_experiment_path=str(experiment.base_experiment_path),
+        # experiment_path=str(experiment.experiment_path),
+        # master_file_path=str(_master_fullpath),
+        # detectors_file_full_path=_dets_file_paths,
+        # detectors_file_relative_path=_rel_dets_paths,
     )
 
     for item in detectors:
