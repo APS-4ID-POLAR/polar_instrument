@@ -183,7 +183,7 @@ class ExperimentClass:
 
     def base_name_input(self, base_name: str = None):
         self.file_base_name = (
-            base_name or input("Enter files base name [scan_]: ") or "scan_"
+            base_name or input("Enter files base name [scan]: ") or "scan"
         )
 
     def server_input(self, server: str = None):
