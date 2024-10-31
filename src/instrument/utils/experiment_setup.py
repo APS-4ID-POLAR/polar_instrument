@@ -364,10 +364,10 @@ class ExperimentClass:
                 get_current_run()["name"] /
                 self.experiment_name
             )
-            self.windows_base_experiment_path = (
-                rf"{SERVERS[self.server + '_windows']}"
-                rf"\{get_current_run()['name']}\{self.experiment_name}"
-            )
+            # self.windows_base_experiment_path = (
+            #     rf"{SERVERS[self.server + '_windows']}"
+            #     rf"\{get_current_run()['name']}\{self.experiment_name}"
+            # )
 
         # Sample name. In practice this is used to create another folder layer.
         self.sample_input(sample_label)
