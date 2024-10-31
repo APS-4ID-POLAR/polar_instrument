@@ -322,6 +322,9 @@ class VortexDetector(Trigger, DetectorBase):
         self.auto_save_on()
         self._flysetup = flyscan
 
+        base_folder = str(base_folder) + f"/{self.name}/"
+        self.hdf1.file_path.set(base_folder).wait(timeout=10)
+
         _, full_path, relative_path = self.hdf1.make_write_read_paths(
             base_folder
         )
