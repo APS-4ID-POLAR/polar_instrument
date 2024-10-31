@@ -33,7 +33,7 @@ logger.info(__file__)
 
 SERVERS = {
     "dserv": Path("/net/s4data/export/sector4/4idd/"),
-    "dserv_windows": Path(r"Z:\4idd"),
+    # "dserv_windows": Path(r"Z:\4idd"),
     "data management": Path("/gdata/dm/4IDD/")
 }
 

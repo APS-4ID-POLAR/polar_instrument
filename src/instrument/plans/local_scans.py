@@ -65,12 +65,11 @@ def _setup_paths(detectors):
     # Relative paths are used in the master file so that data can be copied.
     _rel_dets_paths = {}
     for det in list(detectors):
-        _windows = getattr(det, "iswindows", False)
         _setup_images = getattr(det, "setup_images", None)
         if _setup_images:
             _dets_file_paths[det.name], _rel_dets_paths[det.name] = (
                 _setup_images(
-                    experiment.experiment_path(_windows),
+                    experiment.experiment_path,
                     experiment.file_base_name,
                     _scan_id,
                     flyscan=False
