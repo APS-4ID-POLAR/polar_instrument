@@ -282,23 +282,29 @@ class ExperimentClass:
         chdir(self.experiment_path)
 
     def scan_number_input(self, reset_scan_id: int = None):
-        if not isinstance(reset_scan_id, (int, type(None))):
+        if isinstance(reset_scan_id, type(None)):
+            while True:
+                reset_scan_id = (
+                    reset_scan_id
+                    or input("Reset Bluesky scan_id to 1? [yes]: ")
+                    or "yes"
+                ).strip().lower()
+                if reset_scan_id not in "yes no".split():
+                    print("Answer must be yes or no.")
+                    reset_scan_id = None
+                else:
+                    if reset_scan_id == "yes":
+                        RE.md["scan_id"] = 0
+                    break
+        elif isinstance(reset_scan_id, int):
+            if reset_scan_id >= 0:
+                RE.md["scan_id"] = reset_scan_id - 1
+        else:
             print(
-                f"WARNING: {reset_scan_id = } is not valid. Must be an integer."
+                f"WARNING: {reset_scan_id = } is not valid. It must be an "
+                "integer. Will not reset it. Next scan_id = "
+                f"{RE.md['scan_id'] + 1}."
             )
-
-        while True:
-            reset_scan_id = (
-                reset_scan_id or input("Reset Bluesky scan_id to 1? [yes]: ") or
-                "yes"
-            ).strip().lower()
-            if reset_scan_id not in "yes no".split():
-                print("Answer must be yes or no.")
-                reset_scan_id = None
-            else:
-                if reset_scan_id == "yes":
-                    RE.md["scan_id"] = 0
-                break
 
     def load_params_from_bluesky(self):
         # TODO!!!!
