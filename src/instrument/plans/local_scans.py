@@ -133,15 +133,9 @@ def count(
         _setup_paths(detectors)
     )
 
-    logger.info(_master_fullpath)
-    logger.info(_dets_file_paths)
-    logger.info(_rel_dets_paths)
-
     setup_nxwritter(
         experiment.experiment_path, _master_fullpath, _rel_dets_paths
     )
-
-    logger.info("here")
 
     extras = _collect_extras()
 
@@ -158,8 +152,6 @@ def count(
         detectors_file_full_path=_dets_file_paths,
         detectors_file_relative_path=_rel_dets_paths,
     )
-
-    logger.info("here2")
 
     for item in detectors:
         _md['hints']['detectors'].extend(item.hints['fields'])
