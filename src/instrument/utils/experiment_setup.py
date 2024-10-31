@@ -97,7 +97,7 @@ class ExperimentClass:
         output += f"Sample: {self.sample}.\n"
         output += f"Experiment name: {self.experiment_name}\n"
         output += f"Base experiment folder: {self.base_experiment_path}\n"
-        output += f"Experiment folder: {self.base_experiment_path}\n"
+        output += f"Current experiment folder: {self.experiment_path}\n"
 
         _id = RE.md.get('scan_id', None)
         _id = _id + 1 if isinstance(_id, int) else None
