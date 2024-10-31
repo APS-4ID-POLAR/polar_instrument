@@ -167,7 +167,9 @@ class VortexSCA(AttributePlugin):
 class VortexHDF1Plugin(PolarHDF5Plugin):
     # The array counter readback pv is different...
     array_counter = Component(EpicsSignal, "ArrayCounter", kind="config")
-    array_counter_readback = Component(EpicsSignalRO, "ArrayCounter_RBV", kind="config")
+    array_counter_readback = Component(
+        EpicsSignalRO, "ArrayCounter_RBV", kind="config"
+    )
 
 
 class VortexDetector(Trigger, DetectorBase):

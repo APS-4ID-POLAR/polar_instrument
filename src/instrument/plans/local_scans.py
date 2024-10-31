@@ -47,21 +47,16 @@ def _collect_extras():
 
 def _setup_paths(detectors):
 
-    if None in (experiment.base_experiment_folder, experiment.base_name):
+    if None in (experiment.base_experiment_path, experiment.file_base_name):
         raise ValueError(
             "The experiment needs to be setup, please run setup_experiment()"
         )
-
-    # Collect information to make file names
-    _base_path = experiment.base_experiment_folder / experiment.sample
-    if not _base_path.is_dir():
-        _base_path.mkdir()
 
     _scan_id = RE.md["scan_id"] + 1
 
     # Master file
     _master_fullpath = str(HDF1_NAME_FORMAT) % (
-        str(_base_path), experiment.base_name, _scan_id
+        str(experiment.experiment_path), experiment.file_base_name, _scan_id
     )
     _master_fullpath += "_master.hdf"
 
@@ -70,12 +65,13 @@ def _setup_paths(detectors):
     # Relative paths are used in the master file so that data can be copied.
     _rel_dets_paths = {}
     for det in list(detectors):
+        _windows = getattr(det, "iswindows", False)
         _setup_images = getattr(det, "setup_images", None)
         if _setup_images:
             _dets_file_paths[det.name], _rel_dets_paths[det.name] = (
                 _setup_images(
-                    _base_path,
-                    experiment.base_name,
+                    experiment.experiment_path(_windows),
+                    experiment.file_base_name,
                     _scan_id,
                     flyscan=False
                 )
@@ -89,7 +85,7 @@ def _setup_paths(detectors):
                 "quitting."
             )
 
-    return _base_path, _master_fullpath, _dets_file_paths, _rel_dets_paths
+    return _master_fullpath, _dets_file_paths, _rel_dets_paths
 
 
 def setup_nxwritter(_base_path, _master_fullpath, _rel_dets_paths):
@@ -146,9 +142,14 @@ def count(
     # TODO: May need to add reference to stream.
     _md = dict(
         hints={'monitor': counters.monitor, 'detectors': []},
+        data_management=experiment.data_management,
+        esaf=experiment.esaf,
+        proposal=experiment.proposal,
+        base_experiment_path=str(experiment.base_experiment_path),
+        experiment_path=str(experiment.experiment_path),
         master_file_path=str(_master_fullpath),
         detectors_file_full_path=_dets_file_paths,
-        detectors_file_relative_path=_rel_dets_paths
+        detectors_file_relative_path=_rel_dets_paths,
     )
 
     for item in detectors:
@@ -219,19 +220,26 @@ def ascan(*args, time=None, detectors=None, per_step=None, md=None):
     if detectors is None:
         detectors = counters.detectors
 
-    _base_path, _master_fullpath, _dets_file_paths, _rel_dets_paths = (
+    _master_fullpath, _dets_file_paths, _rel_dets_paths = (
         _setup_paths(detectors)
     )
 
-    setup_nxwritter(_base_path, _master_fullpath, _rel_dets_paths)
+    setup_nxwritter(
+        experiment.experiment_path, _master_fullpath, _rel_dets_paths
+    )
 
     extras = _collect_extras()
 
     _md = dict(
         hints={'monitor': counters.monitor, 'detectors': []},
+        data_management=experiment.data_management,
+        esaf=experiment.esaf,
+        proposal=experiment.proposal,
+        base_experiment_path=str(experiment.base_experiment_path),
+        experiment_path=str(experiment.experiment_path),
         master_file_path=str(_master_fullpath),
         detectors_file_full_path=_dets_file_paths,
-        detectors_file_relative_path=_rel_dets_paths
+        detectors_file_relative_path=_rel_dets_paths,
     )
 
     for item in detectors:
@@ -386,10 +394,16 @@ def grid_scan(*args, time=None, detectors=None, snake_axes=None, per_step=None, 
 
     _md = dict(
         hints={'monitor': counters.monitor, 'detectors': []},
+        data_management=experiment.data_management,
+        esaf=experiment.esaf,
+        proposal=experiment.proposal,
+        base_experiment_path=str(experiment.base_experiment_path),
+        experiment_path=str(experiment.experiment_path),
         master_file_path=str(_master_fullpath),
         detectors_file_full_path=_dets_file_paths,
-        detectors_file_relative_path=_rel_dets_paths
+        detectors_file_relative_path=_rel_dets_paths,
     )
+
     for item in detectors:
         _md['hints']['detectors'].extend(item.hints['fields'])
 
