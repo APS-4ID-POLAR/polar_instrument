@@ -67,18 +67,18 @@ def _setup_paths(detectors):
     for det in list(detectors):
         _setup_images = getattr(det, "setup_images", None)
         if _setup_images:
-            _dets_file_paths[det.name], _rel_dets_paths[det.name] = (
-                _setup_images(
-                    experiment.experiment_path,
-                    experiment.file_base_name,
-                    _scan_id,
-                    flyscan=False
-                )
+            _fp, _rp = _setup_images(
+                experiment.experiment_path,
+                experiment.file_base_name,
+                _scan_id,
+                flyscan=False
             )
+            _dets_file_paths[det.name] = str(_fp)
+            _rel_dets_paths[det.name] = str(_rp)
 
     # Check if any of these files exists
-    for _fname in [Path(_master_fullpath)] + list(_dets_file_paths.values()):
-        if _fname.is_file():
+    for _fname in [_master_fullpath] + list(_dets_file_paths.values()):
+        if Path(_fname).is_file():
             raise FileExistsError(
                 f"The file {_fname} already exists! Will not overwrite, "
                 "quitting."
