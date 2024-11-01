@@ -198,7 +198,7 @@ class LightFieldFilePlugin(Device, FileStoreBase):
             'filename': self.parent.cam.file_name_base.get(),
             'frame_per_point': ipf,
             }
-        self._generate_resource(res_kwargs)
+        # self._generate_resource(res_kwargs)
 
     def generate_datum(self, key, timestamp, datum_kwargs):
         """Using the num_images_counter to pick image from scan."""
@@ -300,10 +300,6 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
 
         # Changes the stage_sigs to the external trigger mode
         self._flysetup = flyscan
-
-        # _, _, _ = (
-        #     self.file.make_write_read_paths(write_path, read_path)
-        # )
 
         self.auto_save_on()
 
