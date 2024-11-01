@@ -34,7 +34,7 @@ lf_config = ad_config["LIGHTFIELD"]
 BLUESKY_FILES_ROOT = Path(lf_config["BLUESKY_FILES_ROOT"])
 WINDOWS_FILES_ROOT = Path(lf_config["IOC_FILES_ROOT"])
 DEFAULT_IOC_FOLDER = (
-    f"{WINDOWS_FILES_ROOT}\\{lf_config['RELATIVE_DEFAULT_FOLDER']}"
+    rf"{WINDOWS_FILES_ROOT}\{lf_config['RELATIVE_DEFAULT_FOLDER']}"
 ).replace("/", "\\")
 
 
@@ -89,9 +89,33 @@ class MySingleTrigger(TriggerBase):
             self._status = None
 
 
-# TODO: I will leave this here for now in case we switch to HDF5.
-# class MyHDF5Plugin(FileStoreHDF5SingleIterativeWrite, HDF5Plugin_V34):
-#     pass
+# class LF_HDF(PolarHDF5Plugin):
+#     def make_write_read_paths(self, path=None):
+#         # This will generate the folder name and the full path.
+#         # - Folder is either determined by data management, or just use the one in
+#         # EPICS.
+#         # - File name uses everything from EPICS (template, base name and file number).
+
+#         # Setting up the path.
+#         # If not using DM, it will simply take the values from EPICS!!
+#         if path is None:
+#             path = Path(self.file_path.get())
+
+#         # Create full path based on EPICS file template - assumes some sort of
+#         # %s%s_5.5%d.h5 format
+#         full_path = self.file_template.get() % (
+#             str(path) + "/",
+#             self.file_name.get(),
+#             int(self.file_number.get())
+#         )
+
+#         relative_path = self.file_template.get() % (
+#             f"{self.parent.name}/",
+#             self.file_name.get(),
+#             int(self.file_number.get())
+#         )
+
+#         return str(path), full_path, relative_path
 
 
 # Based on Eiger
@@ -150,6 +174,8 @@ class LightFieldFilePlugin(Device, FileStoreBase):
 
         full_path = Path(read_path) / fname
         relative_path = Path(f"{read_path.name}/{fname}")
+
+        logger.info("test")
 
         return read_path, full_path, relative_path
 
@@ -272,9 +298,16 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
         _rel = read_path.relative_to(BLUESKY_FILES_ROOT)
         write_path = Path(str(WINDOWS_FILES_ROOT / _rel).replace("/", "\\"))
 
+        logger.info("setup images")
+        logger.info(str(write_path)+"\\")
+
         self.cam.file_path.set(str(write_path)+"\\").wait(timeout=10)
         self.cam.file_number.set(file_number).wait(timeout=10)
         self.cam.file_name_base.set(name_template).wait(timeout=10)
+
+        self.hdf1.file_path.set(str(write_path)+"\\").wait(timeout=10)
+        self.hdf1.file_number.set(file_number).wait(timeout=10)
+        self.hdf1.file_path.set(str(write_path)+"\\").wait(timeout=10)
 
         # Changes the stage_sigs to the external trigger mode
         self._flysetup = flyscan
