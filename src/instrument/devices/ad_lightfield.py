@@ -114,8 +114,15 @@ class LightFieldFilePlugin(Device, FileStoreBase):
         if write_path is None:
             write_path = Path(self.parent.cam.file_path.get(as_string=True))
         if read_path is None:
-            _rel_path = write_path.relative_to(WINDOWS_FILES_ROOT)
+            _rel_path = Path(
+                str(write_path).replace("\\", "/")
+            ).relative_to(
+                str(WINDOWS_FILES_ROOT).replace("\\", "/")
+            )
             read_path = Path(UNIX_FILES_ROOT) / _rel_path
+
+        logger.info(write_path)
+        logger.info(read_path)
 
         fname_template = (
             self.parent.cam.file_template.get(as_string=True) + ".spe"
@@ -124,6 +131,8 @@ class LightFieldFilePlugin(Device, FileStoreBase):
         fname_base = self.parent.cam.file_name_base.get()
         fname_number = self.parent.cam.file_number.get()
         fname = fname_template % (fname_base, fname_number)
+
+        logger.info(fname)
 
         full_path = Path(read_path) / fname
         relative_path = Path(read_path).name / fname
@@ -277,6 +286,8 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
         _, full_path, relative_path = (
             self.file.make_write_read_paths(write_path, read_path)
         )
+
+        logger.info("here")
 
         return Path(full_path), Path(relative_path)
 
