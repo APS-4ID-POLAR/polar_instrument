@@ -198,7 +198,7 @@ class LightFieldFilePlugin(Device, FileStoreBase):
             'filename': self.parent.cam.file_name_base.get(),
             'frame_per_point': ipf,
             }
-        # self._generate_resource(res_kwargs)
+        self._generate_resource(res_kwargs)
 
     def generate_datum(self, key, timestamp, datum_kwargs):
         """Using the num_images_counter to pick image from scan."""
