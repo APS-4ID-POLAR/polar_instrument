@@ -61,7 +61,7 @@ AREA_DETECTOR:
         DEFAULT_FOLDER: /net/s4data/export/sector4/4idd/bluesky_images/vortex
         ALLOW_PLUGIN_WARMUP: true
     LIGHTFIELD:
-        IOC_FILES_ROOT: Z:\4idd\
+        IOC_FILES_ROOT: Z:\4idd
         BLUESKY_FILES_ROOT: *dserv_root
         RELATIVE_DEFAULT_FOLDER: bluesky_images/vortex
         ALLOW_PLUGIN_WARMUP: true
