@@ -111,9 +111,6 @@ class LF_HDF(PolarHDF5Plugin):
             read_path.name, fname_base, fname_number
         )
 
-        logger.info(full_path)
-        logger.info(relative_path)
-
         return str(write_path), Path(full_path), Path(relative_path)
 
 
@@ -177,15 +174,22 @@ class LightFieldFilePlugin(Device, FileStoreBase):
         # that the IOC is in another windows machine.
         read_path, full_path, _ = self.make_write_read_paths()
 
+        logger.info(read_path)
+        logger.info(full_path)
+
         if full_path.is_file():
             raise FileExistsError(
                 f"The file {full_path} already exists! Please change the file "
                 "name."
             )
 
-        self._fn = Path(read_path)
+        self._fn = str(read_path)
+
+        logger.info(read_path)
 
         super().stage()
+
+        logger.info(read_path)
 
         ipf = int(self.parent.cam.num_images.get())
 
@@ -199,6 +203,8 @@ class LightFieldFilePlugin(Device, FileStoreBase):
             'frame_per_point': ipf,
             }
         self._generate_resource(res_kwargs)
+
+        logger.info(read_path)
 
     def generate_datum(self, key, timestamp, datum_kwargs):
         """Using the num_images_counter to pick image from scan."""
