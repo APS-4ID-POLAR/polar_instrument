@@ -18,7 +18,7 @@ if iconfig.get("STATION") == "4idg":
     from .pva_control import positioner_stream
     from .data_management import dm_experiment, dm_workflow
 elif iconfig.get("STATION") == "raman":
-    from .sample_stage import sx, sy, sz
+    from .laser_sample_stage import sx, sy, sz
     from .ventus_laser import laser
     from .ad_lightfield import spectrometer
     from .ge_controller import ge_apply, ge_release
