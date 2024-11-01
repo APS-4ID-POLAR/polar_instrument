@@ -290,4 +290,3 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
 
 spectrometer = LightFieldDetector("4LF1:", name="spectrometer")
 spectrometer.default_settings()
-spectrometer.default_kinds()
