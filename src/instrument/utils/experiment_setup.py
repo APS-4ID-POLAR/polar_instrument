@@ -28,13 +28,13 @@ from .dm_utils import (
 )
 from .run_engine import RE
 from ._logging_setup import logger
+from .config import iconfig
 
 logger.info(__file__)
 
 SERVERS = {
-    "dserv": Path("/net/s4data/export/sector4/4idd/"),
-    # "dserv_windows": Path(r"Z:\4idd"),
-    "data management": Path("/gdata/dm/4IDD/")
+    "dserv": Path(iconfig["DSERV_ROOT_PATH"]),
+    "data management": Path(iconfig["DM_ROOT_PATH"])
 }
 
 path_startup = Path("startup_experiment.py")
