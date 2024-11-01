@@ -21,7 +21,7 @@ from ..utils._logging_setup import logger
 logger.info(__file__)
 
 UNIX_FILES_ROOT = Path(iconfig["DSERV_ROOT_PATH"])
-WINDOWS_FILES_ROOT = Path(r"Z:\4idd")
+WINDOWS_FILES_ROOT = Path("Z:\\4idd")
 
 
 class MySingleTrigger(TriggerBase):
@@ -265,7 +265,9 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
         _rel = read_path.relative_to(UNIX_FILES_ROOT)
         write_path = Path(str(WINDOWS_FILES_ROOT / _rel).replace("/", "\\"))
 
-        self.cam.file_path.set(str(write_path)).wait(timeout=10)
+        logger.info(write_path)
+
+        self.cam.file_path.set(str(write_path)+"\\").wait(timeout=10)
         self.cam.file_number.set(file_number).wait(timeout=10)
         self.cam.file_name.set(name_template).wait(timeout=10)
         # Make sure eiger will save image
