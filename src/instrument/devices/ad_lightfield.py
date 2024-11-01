@@ -135,7 +135,7 @@ class LightFieldFilePlugin(Device, FileStoreBase):
         logger.info(fname)
 
         full_path = Path(read_path) / fname
-        relative_path = Path(read_path).name / fname
+        relative_path = Path(f"{read_path.name}/{fname}")
 
         return read_path, full_path, relative_path
 
@@ -289,7 +289,7 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
 
         logger.info("here")
 
-        return Path(full_path), Path(relative_path)
+        return full_path, relative_path
 
 
 spectrometer = LightFieldDetector("4LF1:", name="spectrometer")
