@@ -269,7 +269,7 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
 
         self.cam.file_path.set(str(write_path)+"\\").wait(timeout=10)
         self.cam.file_number.set(file_number).wait(timeout=10)
-        self.cam.file_name.set(name_template).wait(timeout=10)
+        self.cam.file_name_base.set(name_template).wait(timeout=10)
         # Make sure eiger will save image
         self.auto_save_on()
         # Changes the stage_sigs to the external trigger mode
