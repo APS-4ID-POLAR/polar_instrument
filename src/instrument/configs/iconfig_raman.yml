@@ -63,7 +63,7 @@ AREA_DETECTOR:
     LIGHTFIELD:
         IOC_FILES_ROOT: Z:\4idd
         BLUESKY_FILES_ROOT: *dserv_root
-        RELATIVE_DEFAULT_FOLDER: bluesky_images/vortex
+        RELATIVE_DEFAULT_FOLDER: bluesky_images/spectrometer
         ALLOW_PLUGIN_WARMUP: true
 
 ### Support for known output file formats.
