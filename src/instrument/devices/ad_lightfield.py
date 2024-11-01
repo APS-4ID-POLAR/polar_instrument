@@ -106,7 +106,7 @@ class LightFieldFilePlugin(Device, FileStoreBase):
 
     def __init__(self, *args, **kwargs):
         self.filestore_spec = "AD_SPE_APSPolar"
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, write_path_template="", **kwargs)
         self.enable.subscribe(self._set_kind)
 
     def _set_kind(self, value, **kwargs):
