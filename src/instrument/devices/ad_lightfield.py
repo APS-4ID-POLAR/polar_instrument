@@ -15,7 +15,12 @@ from os.path import join
 import time as ttime
 from pathlib import Path
 
-UNIX_FILES_ROOT = Path("/net/s4data/export/sector4/4idd/")
+from ..utils.config import iconfig
+from ..utils._logging_setup import logger
+
+logger.info(__file__)
+
+UNIX_FILES_ROOT = Path(iconfig["DSERV_ROOT_PATH"])
 WINDOWS_FILES_ROOT = Path(r"Z:\4idd")
 
 
