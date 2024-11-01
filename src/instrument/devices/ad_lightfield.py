@@ -93,7 +93,7 @@ class LF_HDF(PolarHDF5Plugin):
     def make_write_read_paths(self, write_path=None, read_path=None):
 
         if write_path is None:
-            write_path = Path(self.hdf1.file_path.get(as_string=True))
+            write_path = Path(self.file_path.get(as_string=True))
         if read_path is None:
             _rel_path = Path(
                 str(write_path).replace("\\", "/")
@@ -102,12 +102,10 @@ class LF_HDF(PolarHDF5Plugin):
             )
             read_path = Path(BLUESKY_FILES_ROOT) / _rel_path
 
-        fname_template = (
-            self.parent.cam.file_template.get(as_string=True) + ".spe"
-        )
+        fname_template = self.file_template.get(as_string=True)
 
-        fname_base = self.parent.cam.file_name_base.get()
-        fname_number = self.parent.cam.file_number.get()
+        fname_base = self.file_name.get()
+        fname_number = self.file_number.get()
         fname = fname_template % (fname_base, fname_number)
 
         full_path = Path(read_path) / fname
