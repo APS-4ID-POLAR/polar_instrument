@@ -270,7 +270,7 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
             self, base_path, name_template, file_number, flyscan=False
     ):
 
-        read_path = base_path
+        read_path = base_path / self.parent.name
         _rel = read_path.relative_to(UNIX_FILES_ROOT)
         write_path = Path(str(WINDOWS_FILES_ROOT / _rel).replace("/", "\\"))
 
