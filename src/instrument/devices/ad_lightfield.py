@@ -215,7 +215,7 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
     )
 
     def __init__(self, *args, **kwargs):
-        super().init(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._flyscan = False
 
     @property
