@@ -295,7 +295,7 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
         )
 
         self.cam.file_path.set(str(write_path_spe)+"\\").wait(timeout=10)
-        self.cam.file_number.set(0).wait(timeout=10)
+        self.cam.file_number.set(1).wait(timeout=10)
         self.cam.file_name_base.set(name_template).wait(timeout=10)
 
         # HDF1 is one file per scan
