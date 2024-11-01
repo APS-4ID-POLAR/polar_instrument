@@ -6,7 +6,11 @@ __all__ = ["spectrometer"]
 
 from ophyd import ADComponent, EpicsSignalRO, Staged, Device, Signal
 from ophyd.areadetector import (
-    EpicsSignalWithRBV, EpicsSignal, DetectorBase, TriggerBase, LightFieldDetectorCam
+    EpicsSignalWithRBV,
+    EpicsSignal,
+    DetectorBase,
+    TriggerBase,
+    LightFieldDetectorCam
 )
 from ophyd.areadetector.trigger_mixins import ADTriggerStatus
 from ophyd.areadetector.filestore_mixins import FileStoreBase
@@ -15,13 +19,23 @@ from os.path import join
 import time as ttime
 from pathlib import Path
 
+from .ad_mixins import PolarHDF5Plugin, ImagePlugin
 from ..utils.config import iconfig
 from ..utils._logging_setup import logger
 
 logger.info(__file__)
 
-UNIX_FILES_ROOT = Path(iconfig["DSERV_ROOT_PATH"])
-WINDOWS_FILES_ROOT = Path("Z:\\4idd")
+ad_config = iconfig["AREA_DETECTOR"]
+HDF1_NAME_TEMPLATE = ad_config["HDF5_FILE_TEMPLATE"]
+HDF1_FILE_EXTENSION = ad_config["HDF5_FILE_EXTENSION"]
+HDF1_NAME_FORMAT = HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION
+
+lf_config = ad_config["LIGHTFIELD"]
+BLUESKY_FILES_ROOT = Path(lf_config["BLUESKY_FILES_ROOT"])
+WINDOWS_FILES_ROOT = Path(lf_config["IOC_FILES_ROOT"])
+DEFAULT_IOC_FOLDER = (
+    f"{WINDOWS_FILES_ROOT}\\{lf_config['RELATIVE_DEFAULT_FOLDER']}"
+).replace("/", "\\")
 
 
 class MySingleTrigger(TriggerBase):
@@ -119,7 +133,7 @@ class LightFieldFilePlugin(Device, FileStoreBase):
             ).relative_to(
                 str(WINDOWS_FILES_ROOT).replace("\\", "/")
             )
-            read_path = Path(UNIX_FILES_ROOT) / _rel_path
+            read_path = Path(BLUESKY_FILES_ROOT) / _rel_path
 
         logger.info(write_path)
         logger.info(read_path)
@@ -204,29 +218,13 @@ class MyLightFieldCam(LightFieldDetectorCam):
 
 class LightFieldDetector(MySingleTrigger, DetectorBase):
 
-    _default_read_attrs = (
-        'cam', 'file'
-    )
+    _default_read_attrs = ('cam', 'file', 'hdf1')
+    _default_configuration_attrs = ("image",)
 
-    cam = ADComponent(MyLightFieldCam, 'cam1:', kind='normal')
-
-    # TODO: I will leave this here in case we switch to HDF5 at some point. Note
-    # that 'hdf1' needs to be added to the _default_read_attrs.
-    # hdf1 = ADComponent(
-    #     MyHDF5Plugin,
-    #     "HDF1:",
-    #     write_path_template=rf"{LIGHTFIELD_FILES_ROOT}\{IMAGE_DIR_WINDOWS}" ,
-    #     read_path_template=join(BLUESKY_FILES_ROOT, IMAGE_DIR_UNIX),
-    #     kind='normal'
-    # )
-
-    file = ADComponent(
-        LightFieldFilePlugin,
-        "cam1:",
-        write_path_template="",
-        read_path_template="",
-        kind="normal"
-    )
+    cam = ADComponent(MyLightFieldCam, 'cam1:')
+    image = ADComponent(ImagePlugin, "image1:")
+    hdf1 = ADComponent(PolarHDF5Plugin, "HDF1:")
+    file = ADComponent(LightFieldFilePlugin, "cam1:")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -236,45 +234,43 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
     def preset_monitor(self):
         return self.cam.acquire_time
 
-    def default_kinds(self):
+    def save_images_on(self):
+        self.hdf1.enable.set("Enable").wait(timeout=10)
 
-        self.cam.configuration_attrs += [
-            item for item in MyLightFieldCam.component_names
-        ]
+    def save_images_off(self):
+        self.hdf1.enable.set("Disable").wait(timeout=10)
 
-        # TODO: I will leave this here in case we want to use ROIs/Stats later. Note
-        # that will probably need to redefine _remove_from_config, see the lambda setup.
-        # for name in self.component_names:
-        #     comp = getattr(self, name)
-        #     if isinstance(
-        #         comp, (ROIPlugin_V34, StatsPlugin_V34, ProcessPlugin_V34)
-        #     ):
-        #         comp.configuration_attrs += [
-        #             item for item in comp.component_names if item not in
-        #             _remove_from_config
-        #         ]
-        #     if isinstance(comp, StatsPlugin_V34):
-        #         comp.total.kind = Kind.hinted
-        #         comp.read_attrs += ["max_value", "min_value"]
+    def auto_save_on(self):
+        self.hdf1.autosave.put("on")
+
+    def auto_save_off(self):
+        self.hdf1.autosave.put("off")
 
     def default_settings(self):
         self.stage_sigs['cam.image_mode'] = 0
 
         # Default to preview mode
         self.cam.trigger_mode.put(1)
-
         self.cam.file_path.kind = "normal"
         self.cam.file_name.kind = "normal"
+
+        self.save_images_off()
+
+        self.hdf1.file_template.put(HDF1_NAME_FORMAT)
+        self.hdf1.file_path.put(str(DEFAULT_IOC_FOLDER))
+        self.hdf1.num_capture.put(0)
+
+        self.hdf1.stage_sigs.pop("enable")
+        self.hdf1.stage_sigs["num_capture"] = 0
+        self.hdf1.stage_sigs["capture"] = 1
 
     def setup_images(
             self, base_path, name_template, file_number, flyscan=False
     ):
 
         read_path = base_path / self.name
-        _rel = read_path.relative_to(UNIX_FILES_ROOT)
+        _rel = read_path.relative_to(BLUESKY_FILES_ROOT)
         write_path = Path(str(WINDOWS_FILES_ROOT / _rel).replace("/", "\\"))
-
-        logger.info(write_path)
 
         self.cam.file_path.set(str(write_path)+"\\").wait(timeout=10)
         self.cam.file_number.set(file_number).wait(timeout=10)
@@ -287,7 +283,7 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
             self.file.make_write_read_paths(write_path, read_path)
         )
 
-        logger.info("here")
+        self.auto_save_on()
 
         return full_path, relative_path
 

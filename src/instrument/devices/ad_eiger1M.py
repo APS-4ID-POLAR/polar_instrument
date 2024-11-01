@@ -152,10 +152,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
     stats1 = ADComponent(StatsPlugin, "Stats1:", kind="normal")
     pva = ADComponent(PvaPlugin, "Pva1:")
 
-    hdf1 = ADComponent(
-        PolarHDF5Plugin,
-        "HDF1:"
-    )
+    hdf1 = ADComponent(PolarHDF5Plugin, "HDF1:")
 
     # Make this compatible with other detectors
     @property
