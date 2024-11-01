@@ -275,7 +275,7 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
         self._flysetup = flyscan
 
         _, full_path, relative_path = (
-            self.hdf1.make_write_read_paths(write_path, read_path)
+            self.file.make_write_read_paths(write_path, read_path)
         )
 
         return Path(full_path), Path(relative_path)
