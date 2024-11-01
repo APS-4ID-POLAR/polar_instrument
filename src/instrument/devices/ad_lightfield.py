@@ -265,7 +265,7 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
         _rel = read_path.relative_to(UNIX_FILES_ROOT)
         write_path = Path(str(WINDOWS_FILES_ROOT / _rel).replace("/", "\\"))
 
-        self.cam.file_path.set(write_path).wait(timeout=10)
+        self.cam.file_path.set(str(write_path)).wait(timeout=10)
         self.cam.file_number.set(file_number).wait(timeout=10)
         self.cam.file_name.set(name_template).wait(timeout=10)
         # Make sure eiger will save image
