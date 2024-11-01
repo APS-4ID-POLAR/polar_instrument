@@ -283,13 +283,25 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
             self, base_path, name_template, file_number, flyscan=False
     ):
 
+        # SPE has to be one file per point, so I'll put it in a new folder!
+        # In the new folder, the file number will follow the point number.
+        scan_folder = self.cam.file_template.get(as_string=True) % (
+            name_template, file_number
+        )
+        read_path_spe = base_path / self.name / scan_folder
+        _rel_spe = read_path_spe.relative_to(BLUESKY_FILES_ROOT)
+        write_path_spe = Path(
+            str(WINDOWS_FILES_ROOT / _rel_spe).replace("/", "\\")
+        )
+
+        self.cam.file_path.set(str(write_path_spe)+"\\").wait(timeout=10)
+        self.cam.file_number.set(0).wait(timeout=10)
+        self.cam.file_name_base.set(name_template).wait(timeout=10)
+
+        # HDF1 is one file per scan
         read_path = base_path / self.name
         _rel = read_path.relative_to(BLUESKY_FILES_ROOT)
         write_path = Path(str(WINDOWS_FILES_ROOT / _rel).replace("/", "\\"))
-
-        self.cam.file_path.set(str(write_path)+"\\").wait(timeout=10)
-        self.cam.file_number.set(file_number).wait(timeout=10)
-        self.cam.file_name_base.set(name_template).wait(timeout=10)
 
         self.hdf1.file_path.set(str(write_path)+"\\").wait(timeout=10)
         self.hdf1.file_number.set(file_number).wait(timeout=10)
