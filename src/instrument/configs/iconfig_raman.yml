@@ -39,31 +39,36 @@ RUN_ENGINE:
 #     TABLE: false
 
 AREA_DETECTOR:
-    ### General configuration for area detectors.
-    ALLOW_PLUGIN_WARMUP: true
-    BLUESKY_FILES_ROOT: &BLUESKY_DATA_ROOT "/path/to/data/"
-    IMAGE_DIR: "sub/directory/path"
-    HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
-    ### Add configuration for specific detector(s).
-    ### Suggestion:
-    # ADSIM_16M:
-    #     # IOC host: workstation_name
-    #     IOC_FILES_ROOT: *BLUESKY_DATA_ROOT
-    #     NAME: simdet16M
-    #     PV_PREFIX: "simdet16m:"
+    # TODO: switch to the Voyager-based path structure: "/gdata/..."
+    HDF5_FILE_TEMPLATE: "%s/%s_%6.6d"
+    HDF5_FILE_EXTENSION: h5
+    EIGER_1M:
+        # BLUESKY_FILES_ROOT: /gdata/dm/4IDD/  # forced to be the same
+        # IOC_FILES_ROOT: /gdata/dm/4IDD  # unnecessary, uses DM or EPICS value
+        DEFAULT_FOLDER: /net/s4data/export/sector4/4idd/bluesky_images/eiger1M
+        ALLOW_PLUGIN_WARMUP: true
+    VORTEX:
+        # BLUESKY_FILES_ROOT: /net/s4data/export/sector4/4idd  # forced to be the same
+        IOC_FILES_ROOT: /net/s4data/export/sector4/4idd
+        DEFAULT_FOLDER: /net/s4data/export/sector4/4idd/bluesky_images/vortex
+        ALLOW_PLUGIN_WARMUP: true
 
 ### Support for known output file formats.
 ### Uncomment to use.  If undefined, will not write that type of file.
 ### Each callback should apply its configuration from here.
-# NEXUS_DATA_FILES:
-#     FILE_EXTENSION: hdf
-#     WARN_MISSING_CONTENT: true
+NEXUS_DATA_FILES:
+    FILE_EXTENSION: hdf
+    WARN_MISSING_CONTENT: false
 SPEC_DATA_FILES:
     FILE_EXTENSION: dat
 
 ### APS Data Management
 ### Use bash shell, deactivate all conda environments, source this file:
-DM_SETUP_FILE: "/home/dm/etc/dm.setup.sh"
+DM_SETUP_FILE: /home/dm/etc/dm.setup.sh
+DM_ROOT_PATH: /gdata/dm/4IDD
+DM_USE_PATH: true
+
+DSERV_ROOT_PATH: /net/s4data/export/sector4/4idd
 
 # ----------------------------------
 
