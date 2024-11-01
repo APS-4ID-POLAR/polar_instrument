@@ -174,9 +174,6 @@ class LightFieldFilePlugin(Device, FileStoreBase):
         # that the IOC is in another windows machine.
         read_path, full_path, _ = self.make_write_read_paths()
 
-        logger.info(read_path)
-        logger.info(full_path)
-
         if full_path.is_file():
             raise FileExistsError(
                 f"The file {full_path} already exists! Please change the file "
@@ -185,11 +182,7 @@ class LightFieldFilePlugin(Device, FileStoreBase):
 
         self._fn = str(read_path)
 
-        logger.info(read_path)
-
         super().stage()
-
-        logger.info(read_path)
 
         ipf = int(self.parent.cam.num_images.get())
 
@@ -204,14 +197,12 @@ class LightFieldFilePlugin(Device, FileStoreBase):
             }
         self._generate_resource(res_kwargs)
 
-        logger.info(read_path)
-
     def generate_datum(self, key, timestamp, datum_kwargs):
         """Using the num_images_counter to pick image from scan."""
         datum_kwargs.update(
             {'point_number': int(self.parent.cam.file_number.get())}
         )
-        return super().generate_datum(key, timestamp, datum_kwargs)
+        return super().generate_datum(key+"_spe", timestamp, datum_kwargs)
 
 
 class MyLightFieldCam(LightFieldDetectorCam):
