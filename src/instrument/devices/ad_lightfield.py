@@ -103,15 +103,18 @@ class LF_HDF(PolarHDF5Plugin):
             read_path = Path(BLUESKY_FILES_ROOT) / _rel_path
 
         fname_template = self.file_template.get(as_string=True)
-
         fname_base = self.file_name.get()
         fname_number = self.file_number.get()
-        fname = fname_template % (fname_base, fname_number)
 
-        full_path = Path(read_path) / fname
-        relative_path = Path(f"{read_path.name}/{fname}")
+        full_path = fname_template % (read_path, fname_base, fname_number)
+        relative_path = fname_template % (
+            read_path.name, fname_base, fname_number
+        )
 
-        return str(write_path), full_path, relative_path
+        logger.info(full_path)
+        logger.info(relative_path)
+
+        return str(write_path), Path(full_path), Path(relative_path)
 
 
 # Based on Eiger
