@@ -8,7 +8,15 @@ from ophyd.areadetector import CamBase, DetectorBase, ADComponent
 
 
 class VimbaCam(CamBase):
-    pass
+    file_number_sync = None
+    file_number_write = None
+    fw_clear = None
+    link_0 = None
+    link_1 = None
+    link_2 = None
+    link_3 = None
+    dcu_buff_free = None
+    offset = None
 
 
 class VimbaDetector(DetectorBase):
