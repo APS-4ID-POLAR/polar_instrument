@@ -50,7 +50,6 @@ class Trigger(TriggerBase):
         self._acquire_busy_signal = self.cam.acquire_busy
         self._flysetup = False
         self._status = None
-        self._collect_image = False
 
     def setup_manual_trigger(self):
         # Stage signals
@@ -70,9 +69,6 @@ class Trigger(TriggerBase):
 
         if self._flysetup:
             self.setup_external_trigger()
-
-        if self.hdf1.enable.get() in (True, 1, "on", "Enable"):
-            self._collect_image = True
 
         # Make sure that detector is not armed.
         self._acquisition_signal.set(0).wait(timeout=10)
@@ -99,7 +95,7 @@ class Trigger(TriggerBase):
         # Click the Acquire_button
         self._status = self._status_type(self)
         self._acquisition_signal.put(1, wait=False)
-        if self._collect_image:
+        if self.hdf1.enable.get() in (True, 1, "on", "Enable"):
             self.generate_datum(self._image_name, ttime(), {})
 
         return self._status
