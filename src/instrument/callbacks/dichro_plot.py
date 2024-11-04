@@ -11,7 +11,7 @@ from bluesky_widgets.models.plot_builders import Lines
 from bluesky_widgets.models.plot_specs import Axes, Figure
 from numpy import log, array
 
-from ..session_logs import logger
+from ..utils._logging_setup import logger
 logger.info(__file__)
 
 

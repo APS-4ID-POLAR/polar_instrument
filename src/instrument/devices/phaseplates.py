@@ -4,7 +4,6 @@ Phase retarders.
 
 __all__ = ['pr1', 'pr2', 'pr3', 'pr_setup']
 
-from ..callbacks.dichro_stream import plot_dichro_settings
 from ophyd import Device, EpicsMotor, PseudoPositioner, PseudoSingle
 from ophyd import Component, FormattedComponent
 from ophyd import EpicsSignal, EpicsSignalRO, Signal, DerivedSignal
@@ -13,6 +12,7 @@ from scipy.constants import speed_of_light, Planck
 from numpy import arcsin, pi, sin
 from apstools.devices import TrackingSignal, PVPositionerSoftDoneWithStop
 from ..utils.run_engine import sd
+from ..callbacks.dichro_stream import plot_dichro_settings
 from ..utils._logging_setup import logger
 
 # This is here because PRDevice.select_pr has a micron symbol that utf-8

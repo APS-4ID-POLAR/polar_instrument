@@ -10,7 +10,9 @@ if iconfig.get("STATION") == "4idb":
     from .flags import flag_4ida_up, flag_4ida_down
     from .monochromator import mono
     from .jj_slits import monoslt
+    print("here")
     from .phaseplates import pr1, pr2, pr3
+    print("here")
 if iconfig.get("STATION") == "4idg":
     from .simulated_scaler import scaler
     from .scaler_4idtest import scaler_4tst
@@ -30,6 +32,8 @@ elif iconfig.get("STATION") == "raman":
     from .ad_lightfield import spectrometer
     from .ge_controller import ge_apply, ge_release
 
+
+print("here")
 from .counters_class import counters
 
 # from .nanopositioner import diff_nano
@@ -44,3 +48,5 @@ from .counters_class import counters
 # from .softgluezynq import sgz
 # from .pva_control import positioner_stream
 # from .data_management import dm_experiment, dm_workflow
+
+print("here")

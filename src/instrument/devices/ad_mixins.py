@@ -22,7 +22,7 @@ from time import sleep
 from collections import OrderedDict
 from pathlib import Path
 from ..utils.config import iconfig
-from ..utils import logger
+from ..utils._logging_setup import logger
 logger.info(__file__)
 
 
