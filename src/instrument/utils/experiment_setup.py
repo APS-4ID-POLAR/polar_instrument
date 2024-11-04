@@ -418,8 +418,9 @@ class ExperimentClass:
             self,
             esaf_id: int = None,
             proposal_id: int = None,
+            base_name: str = None,
             sample_label: str = None,
-            use_dm: str = None,
+            server: str = None,
             experiment_name: str = None,
             reset_scan_id: int = None
     ):
@@ -427,8 +428,9 @@ class ExperimentClass:
         self.setup_experiment(
             esaf_id,
             proposal_id,
+            base_name,
             sample_label,
-            use_dm,
+            server,
             experiment_name,
             reset_scan_id
         )
@@ -440,16 +442,18 @@ experiment = ExperimentClass()
 def setup_experiment(
         esaf_id: int = None,
         proposal_id: int = None,
+        base_name: str = None,
         sample_label: str = None,
-        use_dm: str = None,
+        server: str = None,
         experiment_name: str = None,
         reset_scan_id: int = None
 ):
     experiment.setup_experiment(
         esaf_id,
         proposal_id,
+        base_name,
         sample_label,
-        use_dm,
+        server,
         experiment_name,
         reset_scan_id
     )
