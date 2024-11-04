@@ -29,7 +29,7 @@ HDF1_NAME_TEMPLATE = iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"]
 HDF1_FILE_EXTENSION = iconfig["AREA_DETECTOR"]["HDF5_FILE_EXTENSION"]
 HDF1_NAME_FORMAT = HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION
 
-MAX_NUM_IMAGES = 2**30
+MAX_NUM_IMAGES = 600000
 
 
 class TriggerTime(TriggerBase):
@@ -81,16 +81,21 @@ class TriggerTime(TriggerBase):
             self.cam.stage_sigs["num_images"] = 1
             self.cam.stage_sigs["num_exposures"] = 1
             # TODO: We may not need this.
-            self.cam.stage_sigs["num_triggers"] = int(1e6)
+            self.cam.stage_sigs["num_triggers"] = MAX_NUM_IMAGES
 
         elif trigger_type == "gate":
+
             # Stage signals
+            self.cam.stage_sigs["num_triggers"] = 1
+            # The num_triggers need to be the first in the Ordered dict! This is because
+            # in EPICS, if trigger_mode = External Gate, then cannot change the
+            # num_triggers.
+            self.cam.stage_sigs.move_to_end("num_triggers", last=False)
+
             self.cam.stage_sigs["trigger_mode"] = "External Gate"
             self.cam.stage_sigs["manual_trigger"] = "Disable"
             self.cam.stage_sigs["num_images"] = MAX_NUM_IMAGES
             self.cam.stage_sigs["num_exposures"] = 1
-            # TODO: We may not need this.
-            self.cam.stage_sigs.pop("num_triggers")
 
     def stage(self):
         if self._flysetup:
@@ -185,6 +190,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.hdf1.autosave.put("off")
 
     def default_settings(self):
+
         self.cam.num_triggers.put(1)
         self.cam.manual_trigger.put("Disable")
         self.cam.trigger_mode.put("Internal Enable")

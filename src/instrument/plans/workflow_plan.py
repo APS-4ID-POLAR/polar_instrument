@@ -57,7 +57,7 @@ EXPECTED_KWARGS["ptycho-xrf"] = [
     "name",
     "sampleName",
     "ptychoFilePath",
-    "detectorName",
+    "ptychoDetectorName",
     "settings",
     "cropCenterXInPixels",
     "cropCenterYInPixels",
@@ -67,6 +67,7 @@ EXPECTED_KWARGS["ptycho-xrf"] = [
     "probeEnergyInElectronVolts",
     "detectorDistanceInMeters",
     "preprocessingMachine",
+    "settings",
     "demand",
 ]
 

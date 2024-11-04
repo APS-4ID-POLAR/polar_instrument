@@ -41,8 +41,6 @@ SERVERS = {
 
 path_startup = Path("startup_experiment.py")
 
-# TODO: enforce start and end times so that we don't overwrite experiments?
-
 
 class ExperimentClass:
     esaf = None
@@ -381,7 +379,6 @@ class ExperimentClass:
         self.sample_input(sample_label)
 
         self.setup_path()
-
         self.base_name_input(base_name)
         self.scan_number_input(reset_scan_id)
 
