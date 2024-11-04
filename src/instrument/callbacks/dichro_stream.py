@@ -11,7 +11,7 @@ from bluesky.callbacks.best_effort import BestEffortCallback
 from streamz import Source
 from numpy import mean, log, array
 from ophyd import Signal, Device, Component
-# from ..utils.run_engine import sd
+from ..utils.run_engine import sd
 
 
 class DichroDevice(Device):
@@ -148,7 +148,7 @@ class DichroLivePlot(LivePlot):
 
 
 dichro = DichroDevice("", name="dichro")
-# sd.monitors.append(dichro)
+sd.monitors.append(dichro)
 dichro.xmcd.kind = "hinted"
 dichro.xas.kind = "hinted"
 

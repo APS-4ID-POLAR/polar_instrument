@@ -29,6 +29,7 @@ from .utils.run_engine import sd  # noqa
 
 # Configure the session with callbacks, devices, and plans.
 # These imports must come after the above setup.
+from .callbacks import *  # noqa
 if running_in_queueserver():
     from apstools.plans import lineup2  # noqa
     from bluesky.plans import *  # noqa
@@ -42,7 +43,6 @@ else:
     # Their plans can find the devices & signals they need in the oregistry.
     from .devices import *  # noqa
 
-from .callbacks import *  # noqa
 from .plans import *  # noqa
 from .utils.polartools_hklpy_imports import *  # noqa
 from .utils import *
