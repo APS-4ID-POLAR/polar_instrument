@@ -8,14 +8,16 @@ from ._logging_setup import logger  # noqa
 from .aps_dm_setup import *  # noqa
 from .debug_setup import *  # noqa
 from .mpl_setup import *  # noqa
-from .experiment_setup import *
+from .experiment_setup import experiment, change_sample, setup_experiment
 from .dm_utils import (
     dm_get_experiment_data_path,
     dm_upload,
     dm_upload_info,
 )
 
-# from .dm_utils import setup_user, dm_get_experiment_data_path, get_processing_job_status
+# from .dm_utils import (
+#   setup_user, dm_get_experiment_data_path, get_processing_job_status
+# )
 # from .local_magics import LocalMagics
 
 from .config import iconfig

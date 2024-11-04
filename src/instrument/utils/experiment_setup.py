@@ -9,6 +9,8 @@ Utility functions
 
 __all__ = """
     experiment
+    change_sample
+    setup_experiment
 """.split()
 
 from apstools.utils import (
@@ -331,7 +333,7 @@ class ExperimentClass:
     def load_params_from_yaml(self):
         pass
 
-    def new_experiment(
+    def setup_experiment(
             self,
             esaf_id: int = None,
             proposal_id: int = None,
@@ -404,7 +406,7 @@ class ExperimentClass:
         #         f.write(f"RE.md['proposal_id']='{proposal_id}'\n")
         #         f.write(f"RE.md['sample']='{sample}'\n")
 
-    def new_sample(
+    def change_sample(
             self,
             sample_name: str = None,
             base_name: str = None,
@@ -425,7 +427,7 @@ class ExperimentClass:
             reset_scan_id: int = None
     ):
 
-        self.new_experiment(
+        self.setup_experiment(
             esaf_id,
             proposal_id,
             sample_label,
@@ -436,3 +438,32 @@ class ExperimentClass:
 
 
 experiment = ExperimentClass()
+
+
+def setup_experiment(
+        esaf_id: int = None,
+        proposal_id: int = None,
+        sample_label: str = None,
+        use_dm: str = None,
+        experiment_name: str = None,
+        reset_scan_id: int = None
+):
+    experiment.setup_experiment(
+        esaf_id,
+        proposal_id,
+        sample_label,
+        use_dm,
+        experiment_name,
+        reset_scan_id
+    )
+
+
+def change_sample(
+    sample_name: str = None,
+    base_name: str = None,
+    reset_scan_id: int = None
+):
+    experiment.sample_input(sample_name)
+    experiment.setup_path()
+    experiment.scan_number_input(reset_scan_id)
+    experiment.base_name_input(base_name)
