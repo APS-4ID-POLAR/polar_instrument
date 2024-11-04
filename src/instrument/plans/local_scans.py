@@ -18,19 +18,26 @@ from bluesky.plans import (
 )
 from bluesky.plan_stubs import mv as bps_mv, abs_set as bps_abs_set
 from bluesky.preprocessors import (
-    reset_positions_decorator, relative_set_decorator
+    reset_positions_decorator, relative_set_decorator, subs_decorator
 )
 from bluesky.plan_patterns import chunk_outer_product_args
 from .local_preprocessors import (
     configure_counts_decorator,
     extra_devices_decorator
 )
-from ..devices import counters
 
 from toolz import partition
+from pathlib import Path
 
-from ..utils import logger
+from ..callbacks.nexus_data_file_writer import nxwriter
+from ..devices import counters
+from ..utils._logging_setup import logger
+from ..utils.experiment_setup import experiment
+from ..utils.run_engine import RE
+from ..utils.config import iconfig
 logger.info(__file__)
+
+HDF1_NAME_FORMAT = Path(iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"])
 
 
 def _collect_extras():
@@ -38,7 +45,64 @@ def _collect_extras():
     return counters.extra_devices.copy()
 
 
-def count(detectors=None, num=1, time=None, delay=None, md=None, per_shot=None):
+def _setup_paths(detectors):
+
+    if None in (experiment.base_experiment_path, experiment.file_base_name):
+        raise ValueError(
+            "The experiment needs to be setup, please run setup_experiment()"
+        )
+
+    _scan_id = RE.md["scan_id"] + 1
+
+    # Master file
+    _master_fullpath = str(HDF1_NAME_FORMAT) % (
+        str(experiment.experiment_path), experiment.file_base_name, _scan_id
+    )
+    _master_fullpath += "_master.hdf"
+
+    # Setup area detectors
+    _dets_file_paths = {}
+    # Relative paths are used in the master file so that data can be copied.
+    _rel_dets_paths = {}
+    for det in list(detectors):
+        # Check if we can and want to get images from this detector
+        _setup_images = getattr(det, "setup_images", None)
+        _flag = getattr(det, "save_image_flag", False)
+        if _setup_images and _flag:
+            _fp, _rp = _setup_images(
+                experiment.experiment_path,
+                experiment.file_base_name,
+                _scan_id,
+                flyscan=False
+            )
+            _dets_file_paths[det.name] = str(_fp)
+            _rel_dets_paths[det.name] = str(_rp)
+
+    # Check if any of these files exists
+    for _fname in [_master_fullpath] + list(_dets_file_paths.values()):
+        if Path(_fname).is_file():
+            raise FileExistsError(
+                f"The file {_fname} already exists! Will not overwrite, "
+                "quitting."
+            )
+
+    return _master_fullpath, _dets_file_paths, _rel_dets_paths
+
+
+def setup_nxwritter(_base_path, _master_fullpath, _rel_dets_paths):
+    nxwriter.external_files = _rel_dets_paths
+    nxwriter.file_name = str(_master_fullpath)
+    nxwriter.file_path = str(_base_path)
+
+
+def count(
+        detectors=None,
+        num=1,
+        time=None,
+        delay=None,
+        md=None,
+        per_shot=None,
+):
     """
     Take one or more readings from detectors.
     This is a local version of `bluesky.plans.count`. Note that the `per_shot`
@@ -67,16 +131,36 @@ def count(detectors=None, num=1, time=None, delay=None, md=None, per_shot=None):
     if detectors is None:
         detectors = counters.detectors
 
+    _master_fullpath, _dets_file_paths, _rel_dets_paths = (
+        _setup_paths(detectors)
+    )
+
+    setup_nxwritter(
+        experiment.experiment_path, _master_fullpath, _rel_dets_paths
+    )
+
     extras = _collect_extras()
 
     # TODO: The md handling might go well in a decorator.
     # TODO: May need to add reference to stream.
-    _md = {'hints': {'monitor': counters.monitor, 'detectors': []}}
+    _md = dict(
+        hints={'monitor': counters.monitor, 'detectors': []},
+        data_management=experiment.data_management or "None",
+        esaf=experiment.esaf,
+        proposal=experiment.proposal,
+        base_experiment_path=str(experiment.base_experiment_path),
+        experiment_path=str(experiment.experiment_path),
+        master_file_path=str(_master_fullpath),
+        detectors_file_full_path=_dets_file_paths,
+        detectors_file_relative_path=_rel_dets_paths,
+    )
+
     for item in detectors:
         _md['hints']['detectors'].extend(item.hints['fields'])
 
     _md.update(md or {})
 
+    @subs_decorator(nxwriter.receiver)
     @configure_counts_decorator(detectors, time)
     @extra_devices_decorator(extras)
     def _inner_count():
@@ -86,7 +170,9 @@ def count(detectors=None, num=1, time=None, delay=None, md=None, per_shot=None):
             per_shot=per_shot,
             delay=delay,
             md=_md
-            )
+        )
+        # Wait for the master file to finish writing.
+        yield from nxwriter.wait_writer_plan_stub()
 
     return (yield from _inner_count())
 
@@ -137,17 +223,28 @@ def ascan(*args, time=None, detectors=None, per_step=None, md=None):
     if detectors is None:
         detectors = counters.detectors
 
-    # TODO: why yield from!?
-    # extras = yield from _collect_extras(energy in args, "fourc" in str(args))
+    _master_fullpath, _dets_file_paths, _rel_dets_paths = (
+        _setup_paths(detectors)
+    )
+
+    setup_nxwritter(
+        experiment.experiment_path, _master_fullpath, _rel_dets_paths
+    )
+
     extras = _collect_extras()
 
-    # for det in detectors + extras:
-    #     if isinstance(det, EIGER_DETECTORS):
-    #         det.file.base_name = f"scan{RE.md['scan_id'] + 1}"
+    _md = dict(
+        hints={'monitor': counters.monitor, 'detectors': []},
+        data_management=experiment.data_management or "None",
+        esaf=experiment.esaf,
+        proposal=experiment.proposal,
+        base_experiment_path=str(experiment.base_experiment_path),
+        experiment_path=str(experiment.experiment_path),
+        master_file_path=str(_master_fullpath),
+        detectors_file_full_path=_dets_file_paths,
+        detectors_file_relative_path=_rel_dets_paths,
+    )
 
-    # TODO: The md handling might go well in a decorator.
-    # TODO: May need to add reference to stream.
-    _md = {'hints': {'monitor': counters.monitor, 'detectors': []}}
     for item in detectors:
         _md['hints']['detectors'].extend(item.hints['fields'])
 
@@ -155,6 +252,7 @@ def ascan(*args, time=None, detectors=None, per_step=None, md=None):
 
     _md.update(md or {})
 
+    @subs_decorator(nxwriter.receiver)
     @configure_counts_decorator(detectors, time)
     @extra_devices_decorator(extras)
     def _inner_ascan():
@@ -163,7 +261,9 @@ def ascan(*args, time=None, detectors=None, per_step=None, md=None):
             *args,
             per_step=per_step,
             md=_md
-            )
+        )
+
+        yield from nxwriter.wait_writer_plan_stub()
 
     return (yield from _inner_ascan())
 
@@ -287,16 +387,26 @@ def grid_scan(*args, time=None, detectors=None, snake_axes=None, per_step=None, 
     if detectors is None:
         detectors = counters.detectors
 
-    # extras = yield from _collect_extras(energy in args, "fourc" in str(args))
+    _base_path, _master_fullpath, _dets_file_paths, _rel_dets_paths = (
+        _setup_paths(detectors)
+    )
+
+    setup_nxwritter(_base_path, _master_fullpath, _rel_dets_paths)
+
     extras = _collect_extras()
 
-    # for det in detectors + extras:
-    #     if isinstance(det, EIGER_DETECTORS):
-    #         det.file.base_name = f"scan{RE.md['scan_id'] + 1}"
+    _md = dict(
+        hints={'monitor': counters.monitor, 'detectors': []},
+        data_management=experiment.data_management,
+        esaf=experiment.esaf,
+        proposal=experiment.proposal,
+        base_experiment_path=str(experiment.base_experiment_path),
+        experiment_path=str(experiment.experiment_path),
+        master_file_path=str(_master_fullpath),
+        detectors_file_full_path=_dets_file_paths,
+        detectors_file_relative_path=_rel_dets_paths,
+    )
 
-    # TODO: The md handling might go well in a decorator.
-    # TODO: May need to add reference to stream.
-    _md = {'hints': {'monitor': counters.monitor, 'detectors': []}}
     for item in detectors:
         _md['hints']['detectors'].extend(item.hints['fields'])
 
@@ -304,6 +414,7 @@ def grid_scan(*args, time=None, detectors=None, snake_axes=None, per_step=None, 
 
     _md.update(md or {})
 
+    @subs_decorator(nxwriter.receiver)
     @configure_counts_decorator(detectors, time)
     @extra_devices_decorator(extras)
     def _inner_grid_scan():
@@ -314,6 +425,9 @@ def grid_scan(*args, time=None, detectors=None, snake_axes=None, per_step=None, 
             per_step=per_step,
             md=_md
         )
+
+        yield from nxwriter.wait_writer_plan_stub()
+
     return (yield from _inner_grid_scan())
 
 

@@ -6,21 +6,36 @@ __all__ = ["spectrometer"]
 
 from ophyd import ADComponent, EpicsSignalRO, Staged, Device, Signal
 from ophyd.areadetector import (
-    EpicsSignalWithRBV, EpicsSignal, DetectorBase, TriggerBase, LightFieldDetectorCam
+    EpicsSignalWithRBV,
+    EpicsSignal,
+    DetectorBase,
+    TriggerBase,
+    LightFieldDetectorCam
 )
 from ophyd.areadetector.trigger_mixins import ADTriggerStatus
 from ophyd.areadetector.filestore_mixins import FileStoreBase
 
-from os.path import join, isfile
+from os.path import join
 import time as ttime
-from pathlib import PurePath
-from datetime import datetime
+from pathlib import Path
 
+from .ad_mixins import PolarHDF5Plugin, ImagePlugin
+from ..utils.config import iconfig
+from ..utils._logging_setup import logger
 
-LIGHTFIELD_FILES_ROOT = r"Z:\4idd\bluesky_images\raman"
-BLUESKY_FILES_ROOT = "/home/sector4/4idd/bluesky_images/raman"
-IMAGE_DIR_UNIX = "%Y/%m/%d/"
-IMAGE_DIR_WINDOWS = r"%Y\%m\%d"
+logger.info(__file__)
+
+ad_config = iconfig["AREA_DETECTOR"]
+HDF1_NAME_TEMPLATE = ad_config["HDF5_FILE_TEMPLATE"]
+HDF1_FILE_EXTENSION = ad_config["HDF5_FILE_EXTENSION"]
+HDF1_NAME_FORMAT = HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION
+
+lf_config = ad_config["LIGHTFIELD"]
+BLUESKY_FILES_ROOT = Path(lf_config["BLUESKY_FILES_ROOT"])
+WINDOWS_FILES_ROOT = Path(lf_config["IOC_FILES_ROOT"])
+DEFAULT_IOC_FOLDER = (
+    rf"{WINDOWS_FILES_ROOT}\{lf_config['RELATIVE_DEFAULT_FOLDER']}"
+).replace("/", "\\")
 
 
 class MySingleTrigger(TriggerBase):
@@ -74,9 +89,29 @@ class MySingleTrigger(TriggerBase):
             self._status = None
 
 
-# TODO: I will leave this here for now in case we switch to HDF5.
-# class MyHDF5Plugin(FileStoreHDF5SingleIterativeWrite, HDF5Plugin_V34):
-#     pass
+class LF_HDF(PolarHDF5Plugin):
+    def make_write_read_paths(self, write_path=None, read_path=None):
+
+        if write_path is None:
+            write_path = Path(self.file_path.get(as_string=True))
+        if read_path is None:
+            _rel_path = Path(
+                str(write_path).replace("\\", "/")
+            ).relative_to(
+                str(WINDOWS_FILES_ROOT).replace("\\", "/")
+            )
+            read_path = Path(BLUESKY_FILES_ROOT) / _rel_path
+
+        fname_template = self.file_template.get(as_string=True)
+        fname_base = self.file_name.get()
+        fname_number = self.file_number.get()
+
+        full_path = fname_template % (read_path, fname_base, fname_number)
+        relative_path = fname_template % (
+            read_path.name, fname_base, fname_number
+        )
+
+        return str(write_path), Path(full_path), Path(relative_path)
 
 
 # Based on Eiger
@@ -91,21 +126,15 @@ class LightFieldFilePlugin(Device, FileStoreBase):
 
     def __init__(self, *args, **kwargs):
         self.filestore_spec = "AD_SPE_APSPolar"
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, write_path_template="", **kwargs)
         self.enable.subscribe(self._set_kind)
-        # This is a workaround to enable setting these values in the detector
-        # startup. Needed because we don't have a stable solution on where
-        # these images would be.
-        #TODO: not sure how to handle windows paths...
-        self.write_path_template = rf"{LIGHTFIELD_FILES_ROOT}\{IMAGE_DIR_WINDOWS}"
-        self.read_path_template = join(BLUESKY_FILES_ROOT, IMAGE_DIR_UNIX)
 
     def _set_kind(self, value, **kwargs):
         if value in (True, 1, "on", "enable"):
             self.kind = "normal"
         else:
             self.kind = "omitted"
-    
+
     @property
     def base_name(self):
         return self.parent.cam.file_name_base.get()
@@ -114,128 +143,186 @@ class LightFieldFilePlugin(Device, FileStoreBase):
     def base_name(self, value):
         self.parent.cam.file_name_base.put(value)
 
-    def make_write_read_paths(self):
-        formatter = datetime.now().strftime
-        write_path = formatter(self.write_path_template)
-        read_path = formatter(self.read_path_template)
-        return write_path, read_path
+    def make_write_read_paths(self, write_path=None, read_path=None):
 
-    def stage(self):
+        if write_path is None:
+            write_path = Path(self.parent.cam.file_path.get(as_string=True))
+        if read_path is None:
+            _rel_path = Path(
+                str(write_path).replace("\\", "/")
+            ).relative_to(
+                str(WINDOWS_FILES_ROOT).replace("\\", "/")
+            )
+            read_path = Path(BLUESKY_FILES_ROOT) / _rel_path
 
-        # TODO: is there a way to check if the file already exists? The issue is that
-        # the IOC is in another windows machine.
-        write_path, read_path = self.make_write_read_paths()
-        fname_template = self.parent.cam.file_template.get(as_string=True) + ".spe"
+        fname_template = (
+            self.parent.cam.file_template.get(as_string=True) + ".spe"
+        )
 
         fname_base = self.parent.cam.file_name_base.get()
         fname_number = self.parent.cam.file_number.get()
         fname = fname_template % (fname_base, fname_number)
 
-        if isfile(join(read_path, fname)):
+        full_path = Path(read_path) / fname
+        relative_path = Path(f"{read_path.name}/{fname}")
+
+        return read_path, full_path, relative_path
+
+    def stage(self):
+
+        # TODO: is there a way to check if the file already exists? The issue is
+        # that the IOC is in another windows machine.
+        read_path, full_path, _ = self.make_write_read_paths()
+
+        if full_path.is_file():
             raise FileExistsError(
-                f"The file {join(read_path, fname)} already exists! Please change the "
-                "file name."
+                f"The file {full_path} already exists! Please change the file "
+                "name."
             )
 
-        self.parent.cam.file_path.put(write_path)
-        self._fn = PurePath(read_path)
-    
+        self._fn = str(read_path)
+
         super().stage()
 
         ipf = int(self.parent.cam.num_images.get())
-    
+
+        fname_template = (
+            self.parent.cam.file_template.get(as_string=True) + ".spe"
+        )
+
         res_kwargs = {
-            'template' : join('%s', fname_template),
-            'filename' : self.parent.cam.file_name_base.get(),
-            'frame_per_point' : ipf,
+            'template': join('%s', fname_template),
+            'filename': self.parent.cam.file_name_base.get(),
+            'frame_per_point': ipf,
             }
         self._generate_resource(res_kwargs)
 
     def generate_datum(self, key, timestamp, datum_kwargs):
         """Using the num_images_counter to pick image from scan."""
-        datum_kwargs.update({'point_number': int(self.parent.cam.file_number.get())})
-        return super().generate_datum(key, timestamp, datum_kwargs)
+        datum_kwargs.update(
+            {'point_number': int(self.parent.cam.file_number.get())}
+        )
+        return super().generate_datum(key+"_spe", timestamp, datum_kwargs)
 
 
 class MyLightFieldCam(LightFieldDetectorCam):
     file_name_base = ADComponent(EpicsSignal, "FileName", string=True)
-    file_path = ADComponent(EpicsSignalWithRBV, "FilePath", string=True, kind="normal")
-    file_name = ADComponent(EpicsSignalRO, "LFFileName_RBV", string=True, kind="normal")
+    file_path = ADComponent(
+        EpicsSignalWithRBV, "FilePath", string=True, kind="normal"
+    )
+    file_name = ADComponent(
+        EpicsSignalRO, "LFFileName_RBV", string=True, kind="normal"
+    )
     file_number = ADComponent(EpicsSignalWithRBV, "FileNumber")
     file_template = ADComponent(EpicsSignalWithRBV, "FileTemplate")
     num_images_counter = ADComponent(EpicsSignalRO, 'NumImagesCounter_RBV')
-    # The PV below works better as an EpicsSignal as it gets reported done after the
-    # grating reached the target.
+    # The PV below works better as an EpicsSignal as it gets reported done after
+    # the grating reached the target.
     grating_wavelength = ADComponent(EpicsSignal, "LFGratingWL")
     pool_max_buffers = None
-    background_file = ADComponent(EpicsSignalWithRBV, "LFBackgroundFile", string=True)
+    background_file = ADComponent(
+        EpicsSignalWithRBV, "LFBackgroundFile", string=True
+    )
     background_full_file = ADComponent(
         EpicsSignalRO, "LFBackgroundFullFile_RBV", string=True
     )
-    background_path = ADComponent(EpicsSignalWithRBV, "LFBackgroundPath", string=True)
+    background_path = ADComponent(
+        EpicsSignalWithRBV, "LFBackgroundPath", string=True
+    )
 
 
 class LightFieldDetector(MySingleTrigger, DetectorBase):
 
-    _default_read_attrs = (
-        'cam', 'file'
-    )
+    _default_read_attrs = ('cam', 'file', 'hdf1')
+    _default_configuration_attrs = ("image",)
 
-    cam = ADComponent(MyLightFieldCam, 'cam1:', kind='normal')
+    cam = ADComponent(MyLightFieldCam, 'cam1:')
+    image = ADComponent(ImagePlugin, "image1:")
+    hdf1 = ADComponent(LF_HDF, "HDF1:")
+    file = ADComponent(LightFieldFilePlugin, "cam1:")
 
-    # TODO: I will leave this here in case we switch to HDF5 at some point. Note that
-    # 'hdf1' needs to be added to the _default_read_attrs.
-    # hdf1 = ADComponent(
-    #     MyHDF5Plugin,
-    #     "HDF1:",
-    #     write_path_template=rf"{LIGHTFIELD_FILES_ROOT}\{IMAGE_DIR_WINDOWS}" ,  
-    #     read_path_template=join(BLUESKY_FILES_ROOT, IMAGE_DIR_UNIX),
-    #     kind='normal'
-    # )
-
-    file = ADComponent(
-        LightFieldFilePlugin,
-        "cam1:",
-        write_path_template="",
-        read_path_template="",
-        kind="normal"
-    )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._flyscan = False
 
     @property
     def preset_monitor(self):
         return self.cam.acquire_time
 
-    def default_kinds(self):
+    def save_images_on(self):
+        self.hdf1.enable.set("Enable").wait(timeout=10)
 
-        self.cam.configuration_attrs += [
-            item for item in MyLightFieldCam.component_names
-        ]
+    def save_images_off(self):
+        self.hdf1.enable.set("Disable").wait(timeout=10)
 
-        # TODO: I will leave this here in case we want to use ROIs/Stats later. Note
-        # that will probably need to redefine _remove_from_config, see the lambda setup.
-        # for name in self.component_names:
-        #     comp = getattr(self, name)
-        #     if isinstance(
-        #         comp, (ROIPlugin_V34, StatsPlugin_V34, ProcessPlugin_V34)
-        #     ):
-        #         comp.configuration_attrs += [
-        #             item for item in comp.component_names if item not in
-        #             _remove_from_config
-        #         ]
-        #     if isinstance(comp, StatsPlugin_V34):
-        #         comp.total.kind = Kind.hinted
-        #         comp.read_attrs += ["max_value", "min_value"]
+    def auto_save_on(self):
+        self.hdf1.autosave.put("on")
+
+    def auto_save_off(self):
+        self.hdf1.autosave.put("off")
 
     def default_settings(self):
         self.stage_sigs['cam.image_mode'] = 0
 
         # Default to preview mode
         self.cam.trigger_mode.put(1)
-
         self.cam.file_path.kind = "normal"
         self.cam.file_name.kind = "normal"
+
+        self.save_images_on()
+        self.auto_save_on()
+
+        self.hdf1.file_template.put(HDF1_NAME_FORMAT)
+        self.hdf1.file_path.put(str(DEFAULT_IOC_FOLDER))
+        self.hdf1.num_capture.put(0)
+
+        self.hdf1.stage_sigs.pop("enable")
+        self.hdf1.stage_sigs["num_capture"] = 0
+        self.hdf1.stage_sigs["capture"] = 1
+
+    def setup_images(
+            self, base_path, name_template, file_number, flyscan=False
+    ):
+
+        # SPE has to be one file per point, so I'll put it in a new folder!
+        # In the new folder, the file number will follow the point number.
+        scan_folder = self.cam.file_template.get(as_string=True) % (
+            name_template, file_number
+        )
+        read_path_spe = base_path / self.name / scan_folder
+        _rel_spe = read_path_spe.relative_to(BLUESKY_FILES_ROOT)
+        write_path_spe = Path(
+            str(WINDOWS_FILES_ROOT / _rel_spe).replace("/", "\\")
+        )
+
+        self.cam.file_path.set(str(write_path_spe)+"\\").wait(timeout=10)
+        self.cam.file_number.set(1).wait(timeout=10)
+        self.cam.file_name_base.set(name_template).wait(timeout=10)
+
+        # HDF1 is one file per scan
+        read_path = base_path / self.name
+        _rel = read_path.relative_to(BLUESKY_FILES_ROOT)
+        write_path = Path(str(WINDOWS_FILES_ROOT / _rel).replace("/", "\\"))
+
+        self.hdf1.file_path.set(str(write_path)+"\\").wait(timeout=10)
+        self.hdf1.file_number.set(file_number).wait(timeout=10)
+        self.hdf1.file_path.set(str(write_path)+"\\").wait(timeout=10)
+
+        # Changes the stage_sigs to the external trigger mode
+        self._flysetup = flyscan
+
+        self.auto_save_on()
+
+        _, full_path, relative_path = (
+            self.hdf1.make_write_read_paths(write_path, read_path)
+        )
+
+        return full_path, relative_path
+
+    @property
+    def save_image_flag(self):
+        return True  # Forced to always save images.
 
 
 spectrometer = LightFieldDetector("4LF1:", name="spectrometer")
 spectrometer.default_settings()
-spectrometer.default_kinds()

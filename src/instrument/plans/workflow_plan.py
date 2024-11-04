@@ -8,7 +8,7 @@ from databroker.core import BlueskyRun
 from pathlib import Path
 from yaml import load as yload, Loader as yloader
 from .local_scans import mv
-from ..devices import dm_workflow, dm_experiment
+from ..devices.data_management import dm_workflow, dm_experiment
 from ..utils._logging_setup import logger
 from ..utils.catalog import full_cat
 logger.info(__file__)
@@ -72,16 +72,34 @@ EXPECTED_KWARGS["ptycho-xrf"] = [
 ]
 
 
+def _load_yaml(path):
+    """
+    Load iconfig.yml (and other YAML) configuration files.
+
+    Parameters
+    ----------
+    iconfig_yml: str
+        Name of the YAML file to be loaded.  The name can be
+        absolute or relative to the current working directory.
+        Default: ``INSTRUMENT/configs/iconfig.yml``
+    """
+
+    if not path.exists():
+        raise FileExistsError(f"Configuration file '{path}' does not exist.")
+
+    return yload(open(path, "r").read(), yloader)
+
+
 def run_workflow(
     bluesky_id=None,
-    # internal kwargs --------------------------------------------------------------
+    # internal kwargs ----------------------------------------------------------
     dm_concise: bool = False,
     dm_wait: bool = False,
     dm_reporting_period: float = 10*60,
     dm_reporting_time_limit: float = 10**6,
-    # Option to import DM workflow kwargs from a file ------------------------------
+    # Option to import DM workflow kwargs from a file --------------------------
     settings_file_path: str = None,
-    # Or you can enter the kwargs that will be just be passed to the workflow ------
+    # Or you can enter the kwargs that will be just be passed to the workflow --
     **_kwargs
 ):
 
@@ -90,7 +108,9 @@ def run_workflow(
     if settings_file_path is not None:
         path = Path(settings_file_path)
         if not path.exists():
-            raise FileExistsError(f"Configuration file '{path}' does not exist.")
+            raise FileExistsError(
+                f"Configuration file '{path}' does not exist."
+            )
         kwargs = yload(open(path, "r").read(), yloader)
 
     # kwargs given in function call will have priority.
@@ -102,17 +122,19 @@ def run_workflow(
     # Check if kwargs have all argumnents needed.
     workflow = kwargs.get("workflow", None)
     if workflow is None:
-        raise ValueError("The 'workflow'  argument is required, but was not found.")
+        raise ValueError(
+            "The 'workflow'  argument is required, but was not found."
+        )
     if workflow not in EXPECTED_KWARGS.keys():
         raise ValueError(
-            f"The 'workflow' argument must be one of {EXPECTED_KWARGS.keys()}, but "
-            f"{workflow} was entered."
+            f"The 'workflow' argument must be one of {EXPECTED_KWARGS.keys()}, "
+            f"but {workflow} was entered."
         )
 
     missing = []
-    # for required in EXPECTED_KWARGS[workflow]:
-    #     if required not in kwargs.keys():
-    #         missing.append(required)
+    for required in EXPECTED_KWARGS[workflow]:
+        if required not in kwargs.keys():
+            missing.append(required)
 
     if len(missing) > 0:
         raise ValueError(
@@ -125,14 +147,15 @@ def run_workflow(
             run = full_cat[bluesky_id]
         except KeyError:
             raise KeyError(
-                f"Could not find a Bluesky run associated with the {bluesky_id=}."
+                "Could not find a Bluesky run associated with the "
+                f"{bluesky_id=}."
             )
     elif isinstance(bluesky_id, BlueskyRun):
         run = bluesky_id
     else:
         logger.warning(
-            "Could not find the scan associated to the bluesky_id entered. Bluesky "
-            "metadata will not be shared with DM."
+            "Could not find the scan associated to the bluesky_id entered. "
+            "Bluesky metadata will not be shared with DM."
         )
         run = None
 

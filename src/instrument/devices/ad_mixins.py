@@ -21,10 +21,7 @@ from itertools import count
 from time import sleep
 from collections import OrderedDict
 from pathlib import Path
-from .data_management import dm_experiment
-from ..utils.run_engine import RE
 from ..utils.config import iconfig
-from ..utils.dm_utils import dm_get_experiment_data_path
 from ..utils import logger
 logger.info(__file__)
 
@@ -137,7 +134,7 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
                 f"use_dm must be set to True or False, but {value} was entered."
             )
 
-    def make_write_read_paths(self):
+    def make_write_read_paths(self, path=None):
         # This will generate the folder name and the full path.
         # - Folder is either determined by data management, or just use the one in
         # EPICS.
@@ -145,20 +142,8 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
 
         # Setting up the path.
         # If not using DM, it will simply take the values from EPICS!!
-        if self.use_dm:
-            # Get the path name from data management.
-            path = Path(dm_get_experiment_data_path(dm_experiment.get()))
-            # But the IOC may not be able to direcly write to the DM folder.
-            if self._ioc_path_root:
-                rel_path = path.relative_to(DM_ROOT_PATH)
-                path = Path(self._ioc_path_root) / rel_path
-            # self.file_path.set(str(path)).wait(timeout=10)
-
-            # Add the sample name from metadata to the folder.
-            path /= RE.md["sample"]
-            path /= self.parent.name
-        else:
-            path = self.file_path.get()
+        if path is None:
+            path = Path(self.file_path.get())
 
         # Create full path based on EPICS file template - assumes some sort of
         # %s%s_5.5%d.h5 format

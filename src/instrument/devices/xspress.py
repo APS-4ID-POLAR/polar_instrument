@@ -49,7 +49,6 @@ class Trigger(TriggerBase):
         self._acquire_busy_signal = self.cam.acquire_busy
         self._flysetup = False
         self._status = None
-        self._collect_image = False
 
     def setup_manual_trigger(self):
         # Stage signals
@@ -69,9 +68,6 @@ class Trigger(TriggerBase):
 
         if self._flysetup:
             self.setup_external_trigger()
-
-        if self.hdf1.enable.get() in (True, 1, "on", "Enable"):
-            self._collect_image = True
 
         # Make sure that detector is not armed.
         self._acquisition_signal.set(0).wait(timeout=10)
@@ -98,7 +94,7 @@ class Trigger(TriggerBase):
         # Click the Acquire_button
         self._status = self._status_type(self)
         self._acquisition_signal.put(1, wait=False)
-        if self._collect_image:
+        if self.hdf1.enable.get() in (True, 1, "on", "Enable"):
             self.generate_datum(self._image_name, ttime(), {})
 
         return self._status
@@ -166,7 +162,9 @@ class VortexSCA(AttributePlugin):
 class VortexHDF1Plugin(PolarHDF5Plugin):
     # The array counter readback pv is different...
     array_counter = Component(EpicsSignal, "ArrayCounter", kind="config")
-    array_counter_readback = Component(EpicsSignalRO, "ArrayCounter_RBV", kind="config")
+    array_counter_readback = Component(
+        EpicsSignalRO, "ArrayCounter_RBV", kind="config"
+    )
 
 
 class VortexDetector(Trigger, DetectorBase):
@@ -242,13 +240,13 @@ class VortexDetector(Trigger, DetectorBase):
             future = asyncio.Future()
 
             async def set_future_done(future):
-                # This is really just needed when running the detector very fast. Seems
-                # like that anything beyond ~50 ms count period is not a problem. So I
-                # think this 0.5 sec can be hardcoded.
+                # This is really just needed when running the detector very
+                # fast. Seems like that anything beyond ~50 ms count period is
+                # not a problem. So I think this 0.5 sec can be hardcoded.
                 sleep_time = 0.5
 
-                # Checks if there is a new image being read. Stops when there is no
-                # new image for >  sleep_time.
+                # Checks if there is a new image being read. Stops when there is
+                # no new image for >  sleep_time.
                 old = 0
                 new = self.cam.array_counter.read()[
                     "vortex_cam_array_counter"
@@ -311,7 +309,7 @@ class VortexDetector(Trigger, DetectorBase):
         self.stats1.roi1.total_value.kind = "hinted"
 
     def setup_images(
-            self, file_name_base, file_number, flyscan=False
+            self, base_folder, file_name_base, file_number, flyscan=False
     ):
 
         self.hdf1.file_name.set(file_name_base).wait(timeout=10)
@@ -319,9 +317,20 @@ class VortexDetector(Trigger, DetectorBase):
         self.auto_save_on()
         self._flysetup = flyscan
 
-        _, full_path, relative_path = self.hdf1.make_write_read_paths()
+        base_folder = str(base_folder) + f"/{self.name}/"
+        self.hdf1.file_path.set(base_folder).wait(timeout=10)
+
+        _, full_path, relative_path = self.hdf1.make_write_read_paths(
+            base_folder
+        )
 
         return Path(full_path), Path(relative_path)
+
+    @property
+    def save_image_flag(self):
+        _hdf1_auto = True if self.hdf1.autosave.get() == "on" else False
+        _hdf1_on = True if self.hdf1.enable.get() == "Enable" else False
+        return _hdf1_on or _hdf1_auto
 
 
 def load_vortex(prefix="S4QX4:"):

@@ -157,10 +157,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
     stats1 = ADComponent(StatsPlugin, "Stats1:", kind="normal")
     pva = ADComponent(PvaPlugin, "Pva1:")
 
-    hdf1 = ADComponent(
-        PolarHDF5Plugin,
-        "HDF1:"
-    )
+    hdf1 = ADComponent(PolarHDF5Plugin, "HDF1:")
 
     # Make this compatible with other detectors
     @property
@@ -215,7 +212,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.stats1.total.kind = "hinted"
 
     def setup_images(
-            self, name_template, file_number, flyscan=False
+            self, base_path, name_template, file_number, flyscan=False
     ):
 
         self.hdf1.file_number.set(file_number).wait(timeout=10)
@@ -225,9 +222,17 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         # Changes the stage_sigs to the external trigger mode
         self._flysetup = flyscan
 
-        _, full_path, relative_path = self.hdf1.make_write_read_paths()
+        base_path = str(base_path) + f"/{self.name}/"
+
+        _, full_path, relative_path = self.hdf1.make_write_read_paths(base_path)
 
         return Path(full_path), Path(relative_path)
+
+    @property
+    def save_image_flag(self):
+        _hdf1_auto = True if self.hdf1.autosave.get() == "on" else False
+        _hdf1_on = True if self.hdf1.enable.get() == "Enable" else False
+        return _hdf1_on or _hdf1_auto
 
 
 def load_eiger1m(prefix="4idEiger:"):
