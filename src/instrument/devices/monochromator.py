@@ -4,7 +4,7 @@ Monochromator motors
 
 __all__ = ['mono']
 
-from apstools.devices import KohzuSeqCtl_Monochromator, LakeShore336Device
+from apstools.devices import KohzuSeqCtl_Monochromator
 from ophyd import (
     Component,
     Device,
