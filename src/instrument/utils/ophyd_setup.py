@@ -60,4 +60,5 @@ set_control_layer()
 set_timeouts()  # MUST happen before ANY EpicsSignalBase (or subclass) is created.
 
 # oregistry = Registry(auto_register=True)
+oregistry = None
 """Registry of all ophyd-style Devices and Signals."""

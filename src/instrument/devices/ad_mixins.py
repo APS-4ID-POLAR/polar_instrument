@@ -1,24 +1,33 @@
 """ AD mixins """
 
-from ophyd import ADComponent, EpicsSignal, Signal
-from ophyd.areadetector import EigerDetectorCam
-from ophyd.areadetector.plugins import(
+from ophyd import ADComponent, EpicsSignal, Signal, Component
+from ophyd.areadetector import EigerDetectorCam, Xspress3DetectorCam, EpicsSignalWithRBV
+from ophyd.areadetector.plugins import (
     PluginBase_V34,
     ImagePlugin_V34,
     PvaPlugin_V34,
     ROIPlugin_V34,
     StatsPlugin_V34,
     CodecPlugin_V34,
-    HDF5Plugin_V34
+    HDF5Plugin_V34,
+    ROIStatPlugin_V34,
+    ROIStatNPlugin_V25,
+    AttributePlugin_V34,
 )
 from ophyd.areadetector.filestore_mixins import FileStoreBase
 from apstools.devices import CamMixin_V34
-from pathlib import PurePath
 from os.path import isfile
-from datetime import datetime
 from itertools import count
+from time import sleep
+from collections import OrderedDict
+from pathlib import Path
+from ..utils.config import iconfig
 from ..utils import logger
 logger.info(__file__)
+
+
+USE_DM_PATH = iconfig["DM_USE_PATH"]
+DM_ROOT_PATH = iconfig["DM_ROOT_PATH"]
 
 
 class PluginMixin(PluginBase_V34):
@@ -47,10 +56,28 @@ class CodecPlugin(PluginMixin, CodecPlugin_V34):
     """Remove property attribute found in AD IOCs now."""
 
 
+class ROIStatPlugin(PluginMixin, ROIStatPlugin_V34):
+    """Remove property attribute found in AD IOCs now."""
+
+
+class ROIStatNPlugin(PluginMixin, ROIStatNPlugin_V25):
+    """Remove property attribute found in AD IOCs now."""
+
+
+class AttributePlugin(PluginMixin, AttributePlugin_V34):
+    """Remove property attribute found in AD IOCs now."""
+    ts_acquiring = None
+    ts_control = None
+    ts_current_point = None
+    ts_num_points = None
+    ts_read = None
+
+
 class EigerDetectorCam(CamMixin_V34, EigerDetectorCam):
     """Revise EigerDetectorCam for ADCore revisions."""
 
     initialize = ADComponent(EpicsSignal, "Initialize", kind="config")
+    counting_mode = ADComponent(EpicsSignal, "CountingMode", kind="config")
 
     # These components not found on Eiger 4M at 8-ID-I
     file_number_sync = None
@@ -64,9 +91,19 @@ class EigerDetectorCam(CamMixin_V34, EigerDetectorCam):
     offset = None
 
 
+class VortexDetectorCam(CamMixin_V34, Xspress3DetectorCam):
+    trigger_mode = Component(EpicsSignalWithRBV, "TriggerMode", kind="config")
+    erase_on_start = Component(EpicsSignal, "EraseOnStart", string=True, kind="config")
+
+    # Removed
+    offset = None
+    num_exposures = None
+    acquire_period = None
+
+
 class FileStorePluginBaseEpicsName(FileStoreBase):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, ioc_path_root=None, **kwargs):
         super().__init__(*args, **kwargs)
         if hasattr(self, "create_directory"):
             self.stage_sigs.update({"create_directory": -3})
@@ -81,32 +118,48 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
         # This is needed if you want to start bluesky and run a no-image scan first.
         self._fn = None
         self._fp = None
+        self._use_dm = USE_DM_PATH
+        self._ioc_path_root = ioc_path_root
 
-    # This is the part to change if a different file scheme is chosen.
-    def make_write_read_paths(self):
-        # Folders - this allows for using dates for folders, but we won't use it for now
-        # formatter = datetime.now().strftime
-        # write_path = formatter(self.write_path_template)
-        # read_path = formatter(self.read_path_template)
+    @property
+    def use_dm(self):
+        return self._use_dm
 
-        # Folders - uses whatever is defined in epics.
-        write_path = self.file_path.get()
-        read_path = write_path
+    @use_dm.setter
+    def use_dm(self, value):
+        if isinstance(value, bool):
+            self._use_dm = value
+        else:
+            raise ValueError(
+                f"use_dm must be set to True or False, but {value} was entered."
+            )
 
-        # File name -- assumes some sort of %s%s_5.5%d.h5 format
-        file_read = self.file_template.get() % (
-            read_path,
+    def make_write_read_paths(self, path=None):
+        # This will generate the folder name and the full path.
+        # - Folder is either determined by data management, or just use the one in
+        # EPICS.
+        # - File name uses everything from EPICS (template, base name and file number).
+
+        # Setting up the path.
+        # If not using DM, it will simply take the values from EPICS!!
+        if path is None:
+            path = Path(self.file_path.get())
+
+        # Create full path based on EPICS file template - assumes some sort of
+        # %s%s_5.5%d.h5 format
+        full_path = self.file_template.get() % (
+            str(path) + "/",
             self.file_name.get(),
             int(self.file_number.get())
         )
 
-        file_write = self.file_template.get() % (
-            write_path + "/",
+        relative_path = self.file_template.get() % (
+            f"{self.parent.name}/",
             self.file_name.get(),
             int(self.file_number.get())
         )
 
-        return write_path, file_write, read_path, file_read
+        return str(path), full_path, relative_path
 
     def stage(self):
 
@@ -115,24 +168,26 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
 
             if self.file_write_mode.get(as_string=True) != "Single":
                 self.capture.set(0).wait()
-            
-            write_path, file_write, read_path, file_read = self.make_write_read_paths()
 
-            if isfile(file_write):
+            path, full_path, _ = self.make_write_read_paths()
+
+            if isfile(full_path):
                 raise OSError(
-                    f"{file_write} already exists! Cannot overwrite it, so please "
+                    f"{full_path} already exists! Cannot overwrite it, so please "
                     "change the file name."
                 )
 
-            self.file_path.set(write_path).wait()
-            super().stage()
-
-            self._fn = file_read
-            self._fp = read_path
             if not self.file_path_exists.get():
                 raise IOError(
-                    "Path %s does not exist on IOC." "" % self.file_path.get()
+                    f"Path {self.file_path.get()} does not exist on IOC."
                 )
+
+            self.file_path.set(path).wait(timeout=10)
+
+            super().stage()
+
+            self._fn = full_path
+            self._fp = full_path
 
 
 class FileStoreHDF5IterativeWriteEpicsName(FileStorePluginBaseEpicsName):
@@ -143,7 +198,7 @@ class FileStoreHDF5IterativeWriteEpicsName(FileStorePluginBaseEpicsName):
             [
                 ("file_template", "%s%s_%6.6d.h5"),
                 ("file_write_mode", "Stream"),
-                ("capture", 1),
+                ("capture", 0),  # TODO: Is this true for the EIGER???? --> NO!
             ]
         )
         self._point_counter = None
@@ -182,7 +237,7 @@ class HDF5Plugin(PluginMixin, HDF5Plugin_V34):
     pass
 
 
-class EigerHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
+class PolarHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
 
     """
     Using the filename from EPICS.
@@ -210,3 +265,51 @@ class EigerHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
         if self.autosave.get() in (True, 1, "on", "Enable"):
             self.parent.save_images_off()
         super().unstage()
+
+
+def AD_plugin_primed_vortex(plugin):
+    """
+    Modification of the APS AD_plugin_primed for Vortex.
+
+    Uses the timestamp = 0 as a sign of an unprimed plugin. Not sure this is generic.
+    """
+
+    return plugin.time_stamp.get() != 0
+
+
+def AD_prime_plugin2_vortex(plugin):
+    """
+    Modification of the APS AD_plugin_primed for Vortex.
+
+    Some area detectors PVs are not setup in the Vortex.
+    """
+    if AD_plugin_primed_vortex(plugin):
+        logger.debug("'%s' plugin is already primed", plugin.name)
+        return
+
+    sigs = OrderedDict(
+        [
+            (plugin.enable, 1),
+            (plugin.parent.cam.array_callbacks, 1),  # set by number
+            (plugin.parent.cam.image_mode, 0),  # Single, set by number
+            # Trigger mode names are not identical for every camera.
+            # Assume here that the first item in the list is
+            # the best default choice to prime the plugin.
+            (plugin.parent.cam.trigger_mode, 1),  # set by number
+            # just in case the acquisition time is set very long...
+            (plugin.parent.cam.acquire_time, 1),
+            (plugin.parent.cam.acquire, 1),  # set by number
+        ]
+    )
+
+    original_vals = {sig: sig.get() for sig in sigs}
+
+    for sig, val in sigs.items():
+        sleep(0.1)  # abundance of caution
+        sig.set(val).wait()
+
+    sleep(2)  # wait for acquisition
+
+    for sig, val in reversed(list(original_vals.items())):
+        sleep(0.1)
+        sig.set(val).wait()

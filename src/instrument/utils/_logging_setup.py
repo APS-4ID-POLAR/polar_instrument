@@ -11,15 +11,23 @@ names, or others which you may find useful:
 logger name                 description
 ==========================  ====================================================
 ``bluesky``                 logger to which all bluesky log records propagate
-``bluesky.emit_document``   when a Document is emitted. The log record does not contain the full content of the Document.
-``bluesky.RE``              Records from a RunEngine. INFO-level notes state changes. DEBUG-level notes when each message from a plan is about to be processed and when a status object has completed.
+``bluesky.emit_document``   when a Document is emitted. The log record does not
+                            contain the full content of the Document.
+``bluesky.RE``              Records from a RunEngine. INFO-level notes state
+                            changes. DEBUG-level notes when each message from a
+                            plan is about to be processed and when a status
+                            object has completed.
 ``bluesky.RE.msg``          when each ``Msg`` is about to be processed.
 ``bluesky.RE.state``        when the RunEngine’s state changes.
 ``databroker``              logger to which all databroker log records propagate
 ``ophyd``                   logger to which all ophyd log records propagate
-``ophyd.objects``           records from all devices and signals (that is, OphydObject subclasses)
-``ophyd.control_layer``     requests issued to the underlying control layer (e.g. pyepics, caproto)
-``ophyd.event_dispatcher``  regular summaries of the backlog of updates from the control layer that are being processed on background threads
+``ophyd.objects``           records from all devices and signals (that is,
+                            OphydObject subclasses)
+``ophyd.control_layer``     requests issued to the underlying control layer
+                            (e.g. pyepics, caproto)
+``ophyd.event_dispatcher``  regular summaries of the backlog of updates from the
+                            control layer that are being processed on background
+                            threads
 ==========================  ====================================================
 
 References:

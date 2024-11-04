@@ -6,7 +6,7 @@ from ophyd.areadetector import DetectorBase
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
 from apstools.devices import AD_plugin_primed, AD_prime_plugin2
 from apstools.utils import run_in_thread
-from pathlib import PurePath
+from pathlib import Path
 from time import time as ttime, sleep
 from .ad_mixins import (
     EigerDetectorCam,
@@ -15,16 +15,21 @@ from .ad_mixins import (
     ROIPlugin,
     StatsPlugin,
     PvaPlugin,
-    EigerHDF5Plugin
+    PolarHDF5Plugin
 )
-from ..utils import logger, iconfig
+from ..utils._logging_setup import logger
+from ..utils.config import iconfig
 logger.info(__file__)
 
 __all__ = ["load_eiger1m"]
 
-BLUESKY_FILES_ROOT = PurePath(iconfig["AREA_DETECTOR"]["BLUESKY_FILES_ROOT"])
-IOC_FILES_ROOT = PurePath(iconfig["AREA_DETECTOR"]["EIGER_1M"]["IOC_FILES_ROOT"])
-IMAGE_DIR = iconfig["AREA_DETECTOR"].get("IMAGE_DIR", "%Y/%m/%d/")
+DEFAULT_FOLDER = Path(iconfig["AREA_DETECTOR"]["EIGER_1M"]["DEFAULT_FOLDER"])
+
+HDF1_NAME_TEMPLATE = iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"]
+HDF1_FILE_EXTENSION = iconfig["AREA_DETECTOR"]["HDF5_FILE_EXTENSION"]
+HDF1_NAME_FORMAT = HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION
+
+MAX_NUM_IMAGES = 600000
 
 
 class TriggerTime(TriggerBase):
@@ -62,14 +67,35 @@ class TriggerTime(TriggerBase):
         # TODO: I don't like this too much, would prefer that we set this for each scan.
         self.cam.stage_sigs["num_triggers"] = int(1e5)
 
-    def setup_external_trigger(self):
-        # Stage signals
-        self.cam.stage_sigs["trigger_mode"] = "External Enable"
-        self.cam.stage_sigs["manual_trigger"] = "Disable"
-        self.cam.stage_sigs["num_images"] = 1
-        self.cam.stage_sigs["num_exposures"] = 1
-        # TODO: We may not need this.
-        self.cam.stage_sigs["num_triggers"] = int(1e6)
+    def setup_external_trigger(self, trigger_type="gate"):
+        if trigger_type not in "gate rising_edge".split():
+            raise ValueError(
+                "trigger_type must be either 'gate' or 'rising_edge', but"
+                f"{trigger_type} was entered."
+            )
+
+        if trigger_type == "rising_edge":
+            # Stage signals
+            self.cam.stage_sigs["trigger_mode"] = "External Enable"
+            self.cam.stage_sigs["manual_trigger"] = "Disable"
+            self.cam.stage_sigs["num_images"] = 1
+            self.cam.stage_sigs["num_exposures"] = 1
+            # TODO: We may not need this.
+            self.cam.stage_sigs["num_triggers"] = MAX_NUM_IMAGES
+
+        elif trigger_type == "gate":
+
+            # Stage signals
+            self.cam.stage_sigs["num_triggers"] = 1
+            # The num_triggers need to be the first in the Ordered dict! This is because
+            # in EPICS, if trigger_mode = External Gate, then cannot change the
+            # num_triggers.
+            self.cam.stage_sigs.move_to_end("num_triggers", last=False)
+
+            self.cam.stage_sigs["trigger_mode"] = "External Gate"
+            self.cam.stage_sigs["manual_trigger"] = "Disable"
+            self.cam.stage_sigs["num_images"] = MAX_NUM_IMAGES
+            self.cam.stage_sigs["num_exposures"] = 1
 
     def stage(self):
         if self._flysetup:
@@ -123,7 +149,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
 
     _default_configuration_attrs = ('roi1', 'codec1', 'image', 'pva')
     _default_read_attrs = ('cam', 'hdf1', 'stats1')
-    
+
     cam = ADComponent(EigerDetectorCam, "cam1:")
     codec1 = ADComponent(CodecPlugin, "Codec1:")
     image = ADComponent(ImagePlugin, "image1:")
@@ -131,12 +157,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
     stats1 = ADComponent(StatsPlugin, "Stats1:", kind="normal")
     pva = ADComponent(PvaPlugin, "Pva1:")
 
-    hdf1 = ADComponent(
-        EigerHDF5Plugin,
-        "HDF1:",
-        write_path_template=f"{IOC_FILES_ROOT / IMAGE_DIR}/",
-        read_path_template=f"{BLUESKY_FILES_ROOT / IMAGE_DIR}/",
-    )
+    hdf1 = ADComponent(PolarHDF5Plugin, "HDF1:")
 
     # Make this compatible with other detectors
     @property
@@ -164,28 +185,54 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
 
     def auto_save_on(self):
         self.hdf1.autosave.put("on")
-    
+
     def auto_save_off(self):
         self.hdf1.autosave.put("off")
-      
+
     def default_settings(self):
+
         self.cam.num_triggers.put(1)
         self.cam.manual_trigger.put("Disable")
         self.cam.trigger_mode.put("Internal Enable")
         self.cam.acquire.put(0)
 
-        self.hdf1.file_template.put("%s%s_%6.6d.h5")
+        self.hdf1.file_template.put(HDF1_NAME_FORMAT)
+        self.hdf1.file_path.put(str(DEFAULT_FOLDER))
         self.hdf1.num_capture.put(0)
 
         self.hdf1.stage_sigs.pop("enable")
         self.hdf1.stage_sigs["num_capture"] = 0
-    
+        self.hdf1.stage_sigs["capture"] = 1
+
         self.setup_manual_trigger()
         self.save_images_off()
         self.plot_roi1()
 
     def plot_roi1(self):
-        self.stats1.total.kind="hinted"
+        self.stats1.total.kind = "hinted"
+
+    def setup_images(
+            self, base_path, name_template, file_number, flyscan=False
+    ):
+
+        self.hdf1.file_number.set(file_number).wait(timeout=10)
+        self.hdf1.file_name.set(name_template).wait(timeout=10)
+        # Make sure eiger will save image
+        self.auto_save_on()
+        # Changes the stage_sigs to the external trigger mode
+        self._flysetup = flyscan
+
+        base_path = str(base_path) + f"/{self.name}/"
+
+        _, full_path, relative_path = self.hdf1.make_write_read_paths(base_path)
+
+        return Path(full_path), Path(relative_path)
+
+    @property
+    def save_image_flag(self):
+        _hdf1_auto = True if self.hdf1.autosave.get() == "on" else False
+        _hdf1_on = True if self.hdf1.enable.get() == "Enable" else False
+        return _hdf1_on or _hdf1_auto
 
 
 def load_eiger1m(prefix="4idEiger:"):
