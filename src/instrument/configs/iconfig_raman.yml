@@ -9,6 +9,9 @@ STATION: raman
 ### The short name for the databroker catalog.
 DATABROKER_CATALOG: &databroker_catalog 4id_polar
 
+LOGGING:
+  LOG_PATH: /net/s4data/export/sector4/4idd/bluesky_logs
+
 ### RunEngine configuration
 RUN_ENGINE:
     DEFAULT_METADATA:
