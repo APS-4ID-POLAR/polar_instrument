@@ -54,6 +54,8 @@ log_path = logging_setup.get("LOG_PATH", None)
 if log_path is not None:
     log_path = pathlib.Path(log_path)
 
+print(log_path)
+
 CHOICES = dict(
     LOG_PATH=log_path,
     MAX_BYTES=logging_setup.get("MAX_BYTES", 1 * MB),
@@ -75,6 +77,8 @@ ACTIVATE_LOGGERS = {
 
 logger = logging.getLogger(SESSION_NAME)
 """Basic-level logging object"""
+
+print(CHOICES)
 
 logger.setLevel(logging.DEBUG)  # allow any log content at this level
 logger.addHandler(stream_log_handler())  # terse log to the console
