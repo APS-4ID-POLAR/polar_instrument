@@ -9,9 +9,6 @@ STATION: 4idg
 ### The short name for the databroker catalog.
 DATABROKER_CATALOG: &databroker_catalog 4id_polar
 
-LOGGING:
-  LOG_PATH: /net/s4data/export/sector4/4idd/bluesky_logs
-
 ### RunEngine configuration
 RUN_ENGINE:
     DEFAULT_METADATA:
@@ -91,7 +88,7 @@ LOGGING:
     ### Uncomment any of these to override the defaults
     # MAX_BYTES: 1000000
     NUMBER_OF_PREVIOUS_BACKUPS: 9
-    # LOG_PATH: /tmp
+    LOG_PATH: /net/s4data/export/sector4/4idd/bluesky_logs
     ### If LOG_PATH undefined, this session will log into PWD/logs/
     ### where PWD is present working directory when session is started
 
