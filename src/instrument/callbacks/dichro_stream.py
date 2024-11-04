@@ -8,10 +8,10 @@ __all__ = ["dichro", "plot_dichro_settings", "dichro_bec"]
 from bluesky.callbacks.stream import LiveDispatcher
 from bluesky.callbacks.mpl_plotting import LivePlot
 from bluesky.callbacks.best_effort import BestEffortCallback
-from ..utils.run_engine import sd
 from streamz import Source
 from numpy import mean, log, array
 from ophyd import Signal, Device, Component
+from ..utils.run_engine import sd
 
 
 class DichroDevice(Device):

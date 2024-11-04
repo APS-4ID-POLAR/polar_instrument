@@ -11,4 +11,4 @@ if iconfig.get("SPEC_DATA_FILES") is not None:
 # from dichro_plot import AutoDichroPlot
 # from dichro_stream import dichro, plot_dichro_settings, dichro_bec
 
-del iconfig
+# del iconfig
