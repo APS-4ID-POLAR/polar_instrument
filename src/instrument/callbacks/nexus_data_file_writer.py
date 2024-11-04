@@ -15,7 +15,8 @@ import h5py
 from apstools.callbacks import NXWriterAPS
 from numpy import array
 from datetime import datetime
-from ..utils import iconfig, logger
+from ..utils.config import iconfig
+from ..utils._logging_setup import logger
 
 # from ..framework.initialize import RE
 logger.info(__file__)
