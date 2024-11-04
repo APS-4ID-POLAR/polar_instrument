@@ -65,8 +65,10 @@ def _setup_paths(detectors):
     # Relative paths are used in the master file so that data can be copied.
     _rel_dets_paths = {}
     for det in list(detectors):
+        # Check if we can and want to get images from this detector
         _setup_images = getattr(det, "setup_images", None)
-        if _setup_images:
+        _flag = getattr(det, "save_image_flag", False)
+        if _setup_images and _flag:
             _fp, _rp = _setup_images(
                 experiment.experiment_path,
                 experiment.file_base_name,

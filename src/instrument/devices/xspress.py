@@ -327,6 +327,12 @@ class VortexDetector(Trigger, DetectorBase):
 
         return Path(full_path), Path(relative_path)
 
+    @property
+    def save_image_flag(self):
+        _hdf1_auto = True if self.hdf1.autosave.get() == "on" else False
+        _hdf1_on = True if self.hdf1.enable.get() == "Enable" else False
+        return _hdf1_on or _hdf1_auto
+
 
 def load_vortex(prefix="S4QX4:"):
 

@@ -269,7 +269,8 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
         self.cam.file_path.kind = "normal"
         self.cam.file_name.kind = "normal"
 
-        self.save_images_off()
+        self.save_images_on()
+        self.auto_save_on()
 
         self.hdf1.file_template.put(HDF1_NAME_FORMAT)
         self.hdf1.file_path.put(str(DEFAULT_IOC_FOLDER))
@@ -317,6 +318,10 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
         )
 
         return full_path, relative_path
+
+    @property
+    def save_image_flag(self):
+        return True  # Forced to always save images.
 
 
 spectrometer = LightFieldDetector("4LF1:", name="spectrometer")
