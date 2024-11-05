@@ -11,6 +11,7 @@ from ophyd.areadetector import (
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
 from pathlib import Path
 from time import time as ttime
+from apstools.devices import AD_plugin_primed, AD_prime_plugin2
 from .ad_mixins import PolarHDF5Plugin, StatsPlugin, ROIPlugin
 from ..utils.config import iconfig
 from ..utils._logging_setup import logger
@@ -50,6 +51,8 @@ class Trigger(TriggerBase):
         self.cam.stage_sigs["image_mode"] = "Single"
         self.cam.stage_sigs["num_images"] = 1
         self.cam.stage_sigs["wait_for_plugins"] = "Yes"
+        self.cam.stage_sigs["exposure_auto"] = "Off"
+        self.cam.stage_sigs["gain_auto"] = "Off"
 
     def setup_external_trigger(self):
         # Stage signals
@@ -260,4 +263,16 @@ class VimbaDetector(Trigger, DetectorBase):
 flag_camera_4idb = VimbaDetector(
     "4idbPostToroBeam:", name="flag_camera_4idb", labels=("camera",)
 )
+
+flag_camera_4idb.cam.stage_sigs["wait_for_plugins"] = "Yes"
+for nm in flag_camera_4idb.component_names:
+    obj = getattr(flag_camera_4idb, nm)
+    if "blocking_callbacks" in dir(obj):  # is it a plugin?
+        obj.stage_sigs["blocking_callbacks"] = "No"
+
+if vimba_iconfig.get("ALLOW_PLUGIN_WARMUP", False):
+    if flag_camera_4idb.connected:
+        if not AD_plugin_primed(flag_camera_4idb.hdf1):
+            AD_prime_plugin2(flag_camera_4idb.hdf1)
+
 flag_camera_4idb.default_settings()
