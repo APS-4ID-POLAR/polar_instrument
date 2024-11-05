@@ -154,7 +154,7 @@ class VimbaCam(CamBase):
     packets_errors = ADComponent(EpicsSignalRO, "GC_StatPacketErrors_RBV")
     packets_requested = ADComponent(EpicsSignalRO, "GC_StatPacketRequested_RBV")
     packets_resent = ADComponent(EpicsSignalRO, "GC_StatPacketResent_RBV")
-    poll_features = ADComponent(EpicsSignal, "ReadStatus.SCAN", as_string=True)
+    poll_features = ADComponent(EpicsSignal, "ReadStatus.SCAN", string=True)
     temperature = ADComponent(EpicsSignalRO, "TemperatureActual")
 
     # Gain
