@@ -49,8 +49,8 @@ class EnergySignal(Signal):
                 status = AndStatus(status, pr_status)
 
         # Undulator
-        if undulators.tracking.get():
-            for und in [undulators.us, undulators.ds]:
+        for und in [undulators.us, undulators.ds]:
+            if und.tracking.get():
                 und_pos = position + und.energy.offset.get()
                 und_status = und.energy.move(
                     und_pos, wait=wait, timeout=timeout, moved_cb=moved_cb
@@ -61,8 +61,12 @@ class EnergySignal(Signal):
             status_wait(status)
 
         md_for_callback = {'timestamp': ttime()}
-        self._run_subs(sub_type=self.SUB_VALUE, old_value=old_value,
-                       value=position, **md_for_callback)
+        self._run_subs(
+            sub_type=self.SUB_VALUE,
+            old_value=old_value,
+            value=position,
+            **md_for_callback
+        )
 
         return status
 
