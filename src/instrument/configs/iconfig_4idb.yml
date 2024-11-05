@@ -38,6 +38,14 @@ RUN_ENGINE:
 #     PLOTS: false
 #     TABLE: false
 
+### APS Data Management
+### Use bash shell, deactivate all conda environments, source this file:
+DM_SETUP_FILE: /home/dm/etc/dm.setup.sh
+DM_ROOT_PATH: /gdata/dm/4IDD
+DM_USE_PATH: true
+
+DSERV_ROOT_PATH: &dserv_root /net/s4data/export/sector4/4idd
+
 AREA_DETECTOR:
     # TODO: switch to the Voyager-based path structure: "/gdata/..."
     HDF5_FILE_TEMPLATE: "%s/%s_%6.6d"
@@ -52,6 +60,15 @@ AREA_DETECTOR:
         IOC_FILES_ROOT: /net/s4data/export/sector4/4idd
         DEFAULT_FOLDER: /net/s4data/export/sector4/4idd/bluesky_images/vortex
         ALLOW_PLUGIN_WARMUP: true
+    LIGHTFIELD:
+        IOC_FILES_ROOT: Z:\4idd
+        BLUESKY_FILES_ROOT: *dserv_root
+        RELATIVE_DEFAULT_FOLDER: bluesky_images/spectrometer
+        ALLOW_PLUGIN_WARMUP: true
+    VIMBA:
+        IOC_FILES_ROOT: *dserv_root
+        RELATIVE_DEFAULT_FOLDER: bluesky_images/vimba
+        ALLOW_PLUGIN_WARMUP: true
 
 ### Support for known output file formats.
 ### Uncomment to use.  If undefined, will not write that type of file.
@@ -61,14 +78,6 @@ NEXUS_DATA_FILES:
     WARN_MISSING_CONTENT: false
 SPEC_DATA_FILES:
     FILE_EXTENSION: dat
-
-### APS Data Management
-### Use bash shell, deactivate all conda environments, source this file:
-DM_SETUP_FILE: /home/dm/etc/dm.setup.sh
-DM_ROOT_PATH: /gdata/dm/4IDD
-DM_USE_PATH: true
-
-DSERV_ROOT_PATH: /net/s4data/export/sector4/4idd
 
 # ----------------------------------
 
