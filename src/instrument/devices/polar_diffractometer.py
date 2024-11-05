@@ -75,5 +75,5 @@ class SixcPSI(ApsPolar):
 
 polar_psi = SixcPSI("4idsoftmotors:", name="polar_psi", engine="psi")
 select_diffractometer(polar)
-sd.baseline.append(polar)
+# sd.baseline.append(polar)
 

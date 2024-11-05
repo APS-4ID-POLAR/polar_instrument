@@ -207,4 +207,4 @@ scaler_ctr8 = LocalScalerCH(
 scaler_ctr8.monitor = 'chan01'
 scaler_ctr8.select_read_channels()
 scaler_ctr8.select_plot_channels()
-sd.baseline.append(scaler_ctr8)
+# sd.baseline.append(scaler_ctr8)

@@ -295,4 +295,4 @@ for pa in [preamp1, preamp2]:
     ).split():
         getattr(pa, item).put_complete = True
 
-    sd.baseline.append(pa)
+    # sd.baseline.append(pa)

@@ -26,4 +26,4 @@ class NanoPositioner(MotorBundle):
 
 
 diff_nano = NanoPositioner('4idIF:', name='diff_nano', labels=('motors',))
-sd.baseline.append(diff_nano)
+# sd.baseline.append(diff_nano)

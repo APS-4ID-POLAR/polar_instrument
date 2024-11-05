@@ -37,4 +37,4 @@ class InterferometerDevice(Device):
 
 
 interferometer = InterferometerDevice("4idIF:SG:", name="interferometer")
-sd.append(interferometer)
+# sd.append(interferometer)

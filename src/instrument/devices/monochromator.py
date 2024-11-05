@@ -154,4 +154,4 @@ class Monochromator(KohzuSeqCtl_Monochromator):
 
 
 mono = Monochromator('4idVDCM:', name='mono', labels=("monochromator",))
-sd.baseline.append(mono)
+# sd.baseline.append(mono)

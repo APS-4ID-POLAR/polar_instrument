@@ -3,6 +3,7 @@ local, custom Device definitions
 """
 
 from ..utils.config import iconfig
+from ..utils.run_engine import sd
 
 if iconfig.get("STATION") == "4idb":
     from .scaler_4idtest import scaler_4tst
@@ -11,6 +12,17 @@ if iconfig.get("STATION") == "4idb":
     from .monochromator import mono
     from .jj_slits import monoslt
     from .phaseplates import pr1, pr2, pr3
+    sd.baseline.append(
+        scaler_4tst,
+        hhl_mirror,
+        flag_4ida_down,
+        flag_4ida_up,
+        mono,
+        monoslt,
+        pr1,
+        pr2,
+        pr3,
+    )
 if iconfig.get("STATION") == "4idg":
     from .simulated_scaler import scaler
     from .scaler_4idtest import scaler_4tst

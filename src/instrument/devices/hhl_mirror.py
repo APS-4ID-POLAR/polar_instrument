@@ -39,4 +39,4 @@ class ToroidalMirror(Device):
 hhl_mirror = ToroidalMirror(
     '4idHHLM:', name='toroidal_mirror', labels=("mirror",)
 )
-sd.baseline.append(hhl_mirror)
+# sd.baseline.append(hhl_mirror)

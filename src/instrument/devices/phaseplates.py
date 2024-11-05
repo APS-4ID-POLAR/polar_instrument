@@ -378,6 +378,6 @@ pr3.d_spacing.put(3.135)
 
 pr_setup = PRSetup()
 
-sd.baseline.append(pr1)
-sd.baseline.append(pr2)
-sd.baseline.append(pr3)
+# sd.baseline.append(pr1)
+# sd.baseline.append(pr2)
+# sd.baseline.append(pr3)

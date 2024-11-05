@@ -207,4 +207,4 @@ scaler = LocalScalerCH(
 scaler.monitor = 'Time'
 scaler.select_read_channels()
 scaler.select_plot_channels()
-sd.baseline.append(scaler)
+# sd.baseline.append(scaler)

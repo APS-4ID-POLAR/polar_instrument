@@ -37,4 +37,4 @@ class VentusLaser(Device):
 
 
 laser = VentusLaser("4tst:LQE1:", name="laser")
-sd.baseline.append(laser)
+# sd.baseline.append(laser)

@@ -17,4 +17,4 @@ class NanoPositioner(MotorBundle):
 
 
 magnet_nano = NanoPositioner('cpscIOC:', name='magnet_nano')
-sd.baseline.append(magnet_nano)
+# sd.baseline.append(magnet_nano)

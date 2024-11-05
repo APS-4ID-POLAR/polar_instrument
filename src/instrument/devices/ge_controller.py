@@ -58,5 +58,5 @@ ge_release = GEController(
     setpoint_pv="Setpoint", tolerance=0.01, labels=('ge_controller',)
 )
 
-sd.baseline.append(ge_apply)
-sd.baseline.append(ge_release)
+# sd.baseline.append(ge_apply)
+# sd.baseline.append(ge_release)

@@ -47,4 +47,4 @@ class CustomMeasCompCtr(MeasCompCtr):
 
 
 ctr8 = CustomMeasCompCtr("4idCTR8_1:", name="ctr8")
-sd.baseline.append(ctr8)
+# sd.baseline.append(ctr8)
