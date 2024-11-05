@@ -12,7 +12,7 @@ if iconfig.get("STATION") == "4idb":
     from .monochromator import mono
     from .jj_slits import monoslt
     from .phaseplates import pr1, pr2, pr3
-    sd.baseline.append(
+    for dev in (
         scaler_4tst,
         hhl_mirror,
         flag_4ida_down,
@@ -22,7 +22,9 @@ if iconfig.get("STATION") == "4idb":
         pr1,
         pr2,
         pr3,
-    )
+    ):
+        sd.append(dev)
+
 if iconfig.get("STATION") == "4idg":
     from .simulated_scaler import scaler
     from .scaler_4idtest import scaler_4tst
