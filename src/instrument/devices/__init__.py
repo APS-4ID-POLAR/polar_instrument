@@ -23,7 +23,7 @@ if iconfig.get("STATION") == "4idb":
         pr2,
         pr3,
     ):
-        sd.append(dev)
+        sd.baseline.append(dev)
 
 if iconfig.get("STATION") == "4idg":
     from .simulated_scaler import scaler
