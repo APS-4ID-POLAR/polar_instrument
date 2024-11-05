@@ -14,6 +14,7 @@ if iconfig.get("STATION") == "4idb":
     from .labjacks import labjack_4ida
     from .phaseplates import pr1, pr2, pr3
     from .ad_vimba import flag_camera_4idb
+    from .s4idundulator import undulators
 
     for dev in (
         scaler_4tst,
@@ -26,6 +27,7 @@ if iconfig.get("STATION") == "4idb":
         pr1,
         pr2,
         pr3,
+        undulators,
     ):
         sd.baseline.append(dev)
 
