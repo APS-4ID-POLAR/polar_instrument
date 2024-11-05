@@ -218,7 +218,7 @@ class VimbaDetector(Trigger, DetectorBase):
     def default_settings(self):
 
         self.cam.num_images.put(1)
-        self.cam.trigger_mode.put("Single")
+        self.cam.trigger_mode.put(0)
         self.cam.acquire.put(0)
 
         self.hdf1.file_template.put(HDF1_NAME_FORMAT)
