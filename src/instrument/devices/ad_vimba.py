@@ -62,8 +62,6 @@ class Trigger(TriggerBase):
 
     def stage(self):
 
-        self.cam.erase.set(1).wait(timeout=10)
-
         # if self._flysetup:
         #     self.setup_external_trigger()
 
