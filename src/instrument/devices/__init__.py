@@ -11,6 +11,7 @@ if iconfig.get("STATION") == "4idb":
     from .flags import flag_4ida_up, flag_4ida_down
     from .monochromator import mono
     from .jj_slits import monoslt
+    from .labjacks import labjack_4ida
     from .phaseplates import pr1, pr2, pr3
     from .ad_vimba import flag_camera_4idb
 
@@ -20,6 +21,7 @@ if iconfig.get("STATION") == "4idb":
         flag_4ida_down,
         flag_4ida_up,
         mono,
+        labjack_4ida,
         monoslt,
         pr1,
         pr2,
