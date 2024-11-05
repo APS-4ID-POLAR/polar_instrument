@@ -112,7 +112,9 @@ class VimbaCam(CamBase):
     # NOTE: There are A LOT of camera-specific EPICS features that are not added
     # here.
     pool_max_buffers = None
-    num_exposures = None  # PV exists, but not used.
+
+    # PV exists, but not used.
+    num_exposures = ADComponent(EpicsSignalRO, "NumExposures")  
 
     # Trigger
     trigger_source = ADComponent(
