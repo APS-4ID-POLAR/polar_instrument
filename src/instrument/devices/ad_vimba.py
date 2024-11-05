@@ -115,9 +115,6 @@ class VimbaCam(CamBase):
     num_exposures = ADComponent(EpicsSignalRO, "NumExposures")
 
     # Trigger
-    trigger_mode = ADComponent(
-        EpicsSignalWithRBV, "TriggerMode", string=True
-    )
     trigger_source = ADComponent(
         EpicsSignalWithRBV, "TriggerSource", string=True
     )
@@ -195,7 +192,7 @@ class VimbaDetector(Trigger, DetectorBase):
         """Start detector in alignment mode"""
         self.save_images_off()
         self.cam.num_images.set(MAX_IMAGES).wait(timeout=10)
-        self.cam.trigger_mode.set("Continuous").wait(timeout=10)
+        self.cam.image_mode.set("Continuous").wait(timeout=10)
         self.preset_monitor.set(time).wait(timeout=10)
         self.cam.acquire.set(1).wait(timeout=10)
 
@@ -218,7 +215,7 @@ class VimbaDetector(Trigger, DetectorBase):
     def default_settings(self):
 
         self.cam.num_images.put(1)
-        self.cam.trigger_mode.put(0)
+        self.cam.image_mode.put("Single")
         self.cam.acquire.put(0)
 
         self.hdf1.file_template.put(HDF1_NAME_FORMAT)
