@@ -248,6 +248,7 @@ class VimbaDetector(Trigger, DetectorBase):
         self._flysetup = flyscan
 
         base_path = str(base_path) + f"/{self.name}/"
+        self.hdf1.file_path.set(base_path).wait(timeout=10)
 
         _, full_path, relative_path = self.hdf1.make_write_read_paths(base_path)
 
