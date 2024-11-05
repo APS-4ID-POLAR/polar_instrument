@@ -231,6 +231,7 @@ class VimbaDetector(Trigger, DetectorBase):
 
         self.setup_manual_trigger()
         self.save_images_off()
+        self.auto_save_on()
         self.plot_roi1()
 
     def plot_roi1(self):
@@ -261,19 +262,28 @@ class VimbaDetector(Trigger, DetectorBase):
         return _hdf1_on or _hdf1_auto
 
 
+# flag_camera_4ida_up = VimbaDetector(
+#     "4idaPostMirrBeam:", name="flag_camera_4ida_up", labels=("camera",)
+# )
+
+# flag_camera_4ida_down = VimbaDetector(
+#     "4idaPostMonoBeam:", name="flag_camera_4ida_down", labels=("camera",)
+# )
+
 flag_camera_4idb = VimbaDetector(
     "4idbPostToroBeam:", name="flag_camera_4idb", labels=("camera",)
 )
 
-flag_camera_4idb.cam.stage_sigs["wait_for_plugins"] = "Yes"
-for nm in flag_camera_4idb.component_names:
-    obj = getattr(flag_camera_4idb, nm)
-    if "blocking_callbacks" in dir(obj):  # is it a plugin?
-        obj.stage_sigs["blocking_callbacks"] = "No"
+for det in [flag_camera_4idb]:
+    det.cam.stage_sigs["wait_for_plugins"] = "Yes"
+    for nm in flag_camera_4idb.component_names:
+        obj = getattr(det, nm)
+        if "blocking_callbacks" in dir(obj):  # is it a plugin?
+            obj.stage_sigs["blocking_callbacks"] = "No"
 
-if vimba_iconfig.get("ALLOW_PLUGIN_WARMUP", False):
-    if flag_camera_4idb.connected:
-        if not AD_plugin_primed(flag_camera_4idb.hdf1):
-            AD_prime_plugin2(flag_camera_4idb.hdf1)
+    if vimba_iconfig.get("ALLOW_PLUGIN_WARMUP", False):
+        if det.connected:
+            if not AD_plugin_primed(det.hdf1):
+                AD_prime_plugin2(det.hdf1)
 
-flag_camera_4idb.default_settings()
+    det.default_settings()

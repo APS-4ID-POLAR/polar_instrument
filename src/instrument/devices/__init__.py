@@ -12,6 +12,8 @@ if iconfig.get("STATION") == "4idb":
     from .monochromator import mono
     from .jj_slits import monoslt
     from .phaseplates import pr1, pr2, pr3
+    from .ad_vimba import flag_camera_4idb
+
     for dev in (
         scaler_4tst,
         hhl_mirror,

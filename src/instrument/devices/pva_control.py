@@ -171,4 +171,4 @@ class PositionerStream(Device):
 
 
 positioner_stream = PositionerStream("", name="positioner_stream")
-sd.baseline.append(positioner_stream)
+# sd.baseline.append(positioner_stream)
