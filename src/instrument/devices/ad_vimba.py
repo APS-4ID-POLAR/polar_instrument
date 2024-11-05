@@ -112,9 +112,12 @@ class VimbaCam(CamBase):
     pool_max_buffers = None
 
     # PV exists, but not used.
-    num_exposures = ADComponent(EpicsSignalRO, "NumExposures")  
+    num_exposures = ADComponent(EpicsSignalRO, "NumExposures")
 
     # Trigger
+    trigger_mode = ADComponent(
+        EpicsSignalWithRBV, "TriggerMode", string=True
+    )
     trigger_source = ADComponent(
         EpicsSignalWithRBV, "TriggerSource", string=True
     )
