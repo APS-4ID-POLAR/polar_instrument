@@ -7,7 +7,6 @@ __all__ = [
 
 from ophyd import Device, FormattedComponent, EpicsMotor
 from apstools.devices import PVPositionerSoftDoneWithStop
-from ..utils.run_engine import sd
 from ..utils._logging_setup import logger
 logger.info(__file__)
 
@@ -31,29 +30,29 @@ class SlitDevice(Device):
     vcen = FormattedComponent(
         PVPositionerSoftDoneWithStop,
         '{prefix}{_slit_prefix}',
-        readback_pv='Vt2.D',
-        setpoint_pv='Vcenter.VAL',
+        readback_pv='V:t2.D',
+        setpoint_pv='V:center.VAL',
     )
 
     vsize = FormattedComponent(
         PVPositionerSoftDoneWithStop,
         '{prefix}{_slit_prefix}',
-        readback_pv='Vt2.C',
-        setpoint_pv='Vsize.VAL',
+        readback_pv='V:t2.C',
+        setpoint_pv='V:size.VAL',
     )
 
     hcen = FormattedComponent(
         PVPositionerSoftDoneWithStop,
         '{prefix}{_slit_prefix}',
-        readback_pv='Ht2.D',
-        setpoint_pv='Hcenter.VAL',
+        readback_pv='H:t2.D',
+        setpoint_pv='H:center.VAL',
     )
 
     hsize = FormattedComponent(
         PVPositionerSoftDoneWithStop,
         '{prefix}{_slit_prefix}',
-        readback_pv='Ht2.C',
-        setpoint_pv='Hsize.VAL',
+        readback_pv='H:t2.C',
+        setpoint_pv='H:size.VAL',
     )
 
     def __init__(self, PV, name, motorsDict, slitnum, **kwargs):
