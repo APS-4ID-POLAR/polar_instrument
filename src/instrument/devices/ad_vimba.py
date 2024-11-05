@@ -263,3 +263,4 @@ class VimbaDetector(Trigger, DetectorBase):
 flag_camera_4idb = VimbaDetector(
     "4idbPostToroBeam:", name="flag_camera_4idb", labels=("camera",)
 )
+flag_camera_4idb.default_settings()
