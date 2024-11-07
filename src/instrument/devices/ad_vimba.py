@@ -2,7 +2,11 @@
 Vimba cameras
 """
 
-__all__ = ["flag_camera_4idb"]
+__all__ = [
+    "flag_camera_4ida_up",
+    "flag_camera_4ida_down",
+    # "flag_camera_4idb",
+]
 
 from ophyd import EpicsSignal, EpicsSignalRO, Staged
 from ophyd.areadetector import (
@@ -270,9 +274,9 @@ flag_camera_4ida_down = VimbaDetector(
     "4idaPostMonoBeam:", name="flag_camera_4ida_down", labels=("camera",)
 )
 
-flag_camera_4idb = VimbaDetector(
-    "4idbPostToroBeam:", name="flag_camera_4idb", labels=("camera",)
-)
+# flag_camera_4idb = VimbaDetector(
+#     "4idbPostToroBeam:", name="flag_camera_4idb", labels=("camera",)
+# )
 
 dets = (
     flag_camera_4ida_up,
@@ -282,7 +286,7 @@ dets = (
 
 for det in dets:
     det.cam.stage_sigs["wait_for_plugins"] = "Yes"
-    for nm in flag_camera_4idb.component_names:
+    for nm in det.component_names:
         obj = getattr(det, nm)
         if "blocking_callbacks" in dir(obj):  # is it a plugin?
             obj.stage_sigs["blocking_callbacks"] = "No"
