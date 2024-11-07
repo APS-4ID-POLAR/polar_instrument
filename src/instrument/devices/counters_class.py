@@ -1,5 +1,4 @@
-from .simulated_scaler import scaler
-from .scaler_4idtest import scaler_4tst
+from .scaler_4idCTR8 import scaler_ctr8 as scaler
 from ..utils import logger
 logger.info(__file__)
 
@@ -110,7 +109,7 @@ class CountersClass:
 
     @default_scaler.setter
     def default_scaler(self, value):
-        available = {0: scaler, 1: scaler_4tst}
+        available = {0: scaler}  # TODO: change this for names.
         if value is not None:
             if value in [item for _, item in available.items()]:
                 self._default_scaler = value
