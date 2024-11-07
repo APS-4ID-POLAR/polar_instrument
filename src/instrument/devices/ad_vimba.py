@@ -262,19 +262,25 @@ class VimbaDetector(Trigger, DetectorBase):
         return _hdf1_on or _hdf1_auto
 
 
-# flag_camera_4ida_up = VimbaDetector(
-#     "4idaPostMirrBeam:", name="flag_camera_4ida_up", labels=("camera",)
-# )
+flag_camera_4ida_up = VimbaDetector(
+    "4idaPostMirrBeam:", name="flag_camera_4ida_up", labels=("camera",)
+)
 
-# flag_camera_4ida_down = VimbaDetector(
-#     "4idaPostMonoBeam:", name="flag_camera_4ida_down", labels=("camera",)
-# )
+flag_camera_4ida_down = VimbaDetector(
+    "4idaPostMonoBeam:", name="flag_camera_4ida_down", labels=("camera",)
+)
 
 flag_camera_4idb = VimbaDetector(
     "4idbPostToroBeam:", name="flag_camera_4idb", labels=("camera",)
 )
 
-for det in [flag_camera_4idb]:
+dets = (
+    flag_camera_4ida_up,
+    flag_camera_4ida_down,
+    # flag_camera_4idb,
+)
+
+for det in dets:
     det.cam.stage_sigs["wait_for_plugins"] = "Yes"
     for nm in flag_camera_4idb.component_names:
         obj = getattr(det, nm)
