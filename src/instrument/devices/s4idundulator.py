@@ -3,16 +3,16 @@ Undulator support
 """
 
 from apstools.devices import STI_Undulator, TrackingSignal
-from ophyd import Component
+from ophyd import Component, Device
 
 
 class PolarUndulator(STI_Undulator):
     tracking = Component(TrackingSignal, value=False, kind='config')
 
 
-class PolarUndulatorPair(PolarUndulator):
-    us = Component(STI_Undulator, "USID:")
-    ds = Component(STI_Undulator, "DSID:")
+class PolarUndulatorPair(Device):
+    us = Component(PolarUndulator, "USID:")
+    ds = Component(PolarUndulator, "DSID:")
 
 
 undulators = PolarUndulatorPair("S04ID:", name="undulators")
