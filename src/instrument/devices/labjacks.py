@@ -84,5 +84,5 @@ class CustomLabJackT7(LabJackT7):
 labjack_t7_1 = CustomLabJackT7("4idLabJackT7_1:", name="labjack_t7_1")
 # sd.baseline.append(labjack_t7_1)
 
-labjack_4ida = CustomLabJackT7("4idaSoft:", name="labjack_4ida")
+labjack_4ida = CustomLabJackT7("4idaSoft:LJ:", name="labjack_4ida")
 # sd.baseline.append(labjack_4ida)
