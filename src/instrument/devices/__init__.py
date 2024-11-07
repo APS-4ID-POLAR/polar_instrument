@@ -5,8 +5,11 @@ local, custom Device definitions
 from ..utils.config import iconfig
 from ..utils.run_engine import sd
 
+from .counters_class import counters
+
 if iconfig.get("STATION") == "4idb":
-    from .scaler_4idtest import scaler_4tst
+    from .scaler_4idCTR8 import scaler_ctr8 as scaler
+    counters.default_scaler = scaler
     from .hhl_mirror import hhl_mirror
     from .flags import flag_4ida_up, flag_4ida_down
     from .monochromator import mono
@@ -18,7 +21,7 @@ if iconfig.get("STATION") == "4idb":
     from .energy_device import energy
 
     for dev in (
-        scaler_4tst,
+        scaler,
         hhl_mirror,
         flag_4ida_down,
         flag_4ida_up,
@@ -52,8 +55,6 @@ elif iconfig.get("STATION") == "raman":
     from .ad_lightfield import spectrometer
     from .ge_controller import ge_apply, ge_release
 
-
-from .counters_class import counters
 
 # from .nanopositioner import diff_nano
 # from .interferometers_4IDG import interferometer
