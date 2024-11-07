@@ -13,7 +13,6 @@ from apstools.devices.labjack import (
 )
 from ophyd import DynamicDeviceComponent, EpicsSignalRO, Component, EpicsSignal
 from ..utils._logging_setup import logger
-from ..utils.run_engine import sd
 logger.info(__file__)
 
 
@@ -77,11 +76,13 @@ class CustomLabJackT7(LabJackT7):
         kind=KIND_CONFIG_OR_NORMAL
     )
 
-    digital_ios = make_digital_ios(list(range(0, 16)) + list(range(20, 23)))
+    digital_ios = DynamicDeviceComponent(
+        make_digital_ios(list(range(0, 16)) + list(range(20, 23)))
+    )
 
 
 labjack_t7_1 = CustomLabJackT7("4idLabJackT7_1:", name="labjack_t7_1")
 # sd.baseline.append(labjack_t7_1)
 
-labjack_4ida = CustomLabJackT7("4idLabJackT7_2:", name="labjack_4ida")
+labjack_4ida = CustomLabJackT7("4idaSoft:", name="labjack_4ida")
 # sd.baseline.append(labjack_4ida)

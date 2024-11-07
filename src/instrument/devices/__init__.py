@@ -17,7 +17,7 @@ if iconfig.get("STATION") == "4idb":
     from .labjacks import labjack_4ida
     from .phaseplates import pr1, pr2, pr3
     from .ad_vimba import (
-        flag_camera_4ida_up, flag_camera_4ida_down, # flag_camera_4idb
+        flag_camera_4ida_up, flag_camera_4ida_down,  # flag_camera_4idb
     )
     from .s4idundulator import undulators
     from .energy_device import energy
