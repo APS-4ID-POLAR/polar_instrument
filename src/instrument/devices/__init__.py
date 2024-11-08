@@ -8,24 +8,6 @@ from ..utils.config import iconfig
 from ..utils.dynamic_import import device_import
 from .counters_class import counters
 
-# devs_a = dict(
-#     s4idundulator=[["undulators", True]],
-#     hhl_mirror=[["hhl_mirror", True]],
-#     wb_slit=[["wbslt", True]],
-#     monochromator=[["mono", True]],
-#     labjacks=[["labjack_4ida", True]],
-#     ad_vimba=[
-#         ["flag_camera_4ida_up", False],
-#         ["flag_camera_4ida_down", False]
-#     ],
-#     flags=[["flag_4ida_up", True], ["flag_4ida_down", True]],
-#     jj_slits=[["monoslt", True]],
-#     phaseplates=[["pr1", True], ["pr2", True], ["pr3", True]],
-#     energy_device=[["energy", True]],
-#     qxscan_setup=[["qxscan_params", True]],
-#     data_management=[["dm_experiment", True], ["dm_workflow", True]]
-# )
-
 current_folder = dirname(abspath(__file__))
 
 devs_a = yload(
@@ -62,8 +44,18 @@ elif iconfig.get("STATION") == "raman":
 
 # is there a better way?
 for module, items in devs.items():
-    locals()[items["device"]] = device_import(
-        module, items["device"], items["baseline"]
+    devices = (
+        [items["device"]]
+        if isinstance(items["device"], str) else
+        items["device"]
     )
+    baselines = (
+        [items["baseline"]]
+        if isinstance(items["baseline"], str) else
+        items["baseline"]
+    )
+    for device, baseline in zip(devices, baselines):
+        locals()[device] = device_import(module, device, baseline)
 
-counters.default_scaler = locals()[scaler_name]
+if scaler_name is not None:
+    counters.default_scaler = locals()[scaler_name]

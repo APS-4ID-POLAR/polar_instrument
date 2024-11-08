@@ -1,12 +1,8 @@
 # 4ID-A setup
 
 polar_diffractometer:
-  device: polar
-  baseline: True
-
-polar_diffractometer:
-  device: polar_psi
-  baseline: True
+  device: [polar, polar_psi]
+  baseline: [True, True]
 
 simulated_fourc_vertical:
   device: fourc
