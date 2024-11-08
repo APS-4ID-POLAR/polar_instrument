@@ -7,7 +7,6 @@ __all__ = [
 ]
 
 from ophyd import Device, FormattedComponent, EpicsMotor
-from ..utils.run_engine import sd
 from ..utils import logger
 logger.info(__file__)
 
@@ -33,25 +32,25 @@ class SlitDevice(Device):
 
     # Setting pseudo positioners
     vcen = FormattedComponent(
-        EpicsMotor, '{prefix}vCenter', labels=('motor',)
+        EpicsMotor, '{prefix}{_slit_prefix}vCenter', labels=('motor',)
     )
 
     vsize = FormattedComponent(
-        EpicsMotor, '{prefix}vSize', labels=('motor',)
+        EpicsMotor, '{prefix}{_slit_prefix}vSize', labels=('motor',)
     )
 
     hcen = FormattedComponent(
-        EpicsMotor, '{prefix}hCenter', labels=('motor',)
+        EpicsMotor, '{prefix}{_slit_prefix}hCenter', labels=('motor',)
     )
 
     hsize = FormattedComponent(
-        EpicsMotor, '{prefix}hSize', labels=('motor',)
+        EpicsMotor, '{prefix}{_slit_prefix}hSize', labels=('motor',)
     )
 
     def __init__(self, PV, name, motorsDict, slitnum, **kwargs):
 
         self._motorsDict = motorsDict
-        self._slit_prefix = f'Slit{slitnum}'
+        self._slit_prefix = f'Slit{slitnum}:'
 
         super().__init__(prefix=PV, name=name, **kwargs)
 

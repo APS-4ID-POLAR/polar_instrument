@@ -14,6 +14,7 @@ if iconfig.get("STATION") == "4idb":
     from .flags import flag_4ida_up, flag_4ida_down
     from .monochromator import mono
     from .jj_slits import monoslt
+    from .wb_slit import wbslt
     from .labjacks import labjack_4ida
     from .phaseplates import pr1, pr2, pr3
     from .ad_vimba import (
@@ -35,6 +36,7 @@ if iconfig.get("STATION") == "4idb":
         pr3,
         undulators,
         energy,
+        wbslt,
     ):
         sd.baseline.append(dev)
 
