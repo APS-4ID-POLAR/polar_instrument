@@ -170,5 +170,5 @@ class PositionerStream(Device):
 
 
 positioner_stream = PositionerStream(
-    "", name="positioner_stream", label=("detector",)
+    "", name="positioner_stream", labels=("detector",)
 )
