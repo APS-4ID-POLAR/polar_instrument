@@ -47,6 +47,6 @@ def device_import(module_name, obj_name, baseline):
     if defaults is not None:
         defaults()
 
-    oregistry.registry(obj)
+    oregistry.register(obj)
 
     return obj
