@@ -1,5 +1,6 @@
 from importlib import import_module
 from time import time as ttime
+from ophyd.signal import ConnectionTimeoutError
 from apstools.devices import AD_plugin_primed, AD_prime_plugin2
 from .config import iconfig
 from .run_engine import sd
@@ -16,7 +17,9 @@ def device_import(module_name, obj_name, baseline):
         module = import_module(module_path)
         obj = getattr(module, obj_name)
         obj.wait_for_connection(timeout=TIMEOUT)
-    except (KeyError, NameError, TimeoutError) as exinfo:
+    except (
+        KeyError, NameError, TimeoutError, ConnectionTimeoutError
+    ) as exinfo:
         logger.warning(
             "Error connecting with '%s in %.2fs, %s",
             obj_name,
