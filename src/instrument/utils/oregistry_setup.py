@@ -8,9 +8,9 @@ oregistry = Registry(auto_register=False)
 
 def get_devices(label):
     objs = oregistry.findall(label=label, allow_none=True)
-    table = {"Object names": [], "PV prefix": [], "Labels": []}
+    table = {"Object name": [], "PV prefix": [], "Label": []}
     for obj in objs:
         table["Object name"].append(obj.name)
         table["PV prefix"].append(obj.prefix)
-        table["Labels"].append(obj._ophyd_labels_)
+        table["Label"].append(obj._ophyd_labels_)
     return DataFrame(table)
