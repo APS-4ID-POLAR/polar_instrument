@@ -14,7 +14,7 @@ if not environ.get("POLAR_INSTRUMENT"):
     environ["POLAR_INSTRUMENT"] = "4idb"
 
 # logging setup first
-from .utils import logger
+from .utils._logging_setup import logger
 
 logger.info(__file__)
 
