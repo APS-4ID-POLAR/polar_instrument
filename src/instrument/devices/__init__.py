@@ -3,40 +3,57 @@ local, custom Device definitions
 """
 
 from ..utils.config import iconfig
-from ..utils.run_engine import sd
-
+from ..utils.dynamic_import import device_import
+# from ..utils.run_engine import sd
 from .counters_class import counters
 
 if iconfig.get("STATION") == "4idb":
-    from .scaler_4idCTR8 import scaler_ctr8 as scaler
-    counters.default_scaler = scaler
-    from .hhl_mirror import hhl_mirror
-    from .flags import flag_4ida_up, flag_4ida_down
-    from .monochromator import mono
-    from .jj_slits import monoslt
-    from .labjacks import labjack_4ida
-    from .phaseplates import pr1, pr2, pr3
-    from .ad_vimba import (
-        flag_camera_4ida_up, flag_camera_4ida_down,  # flag_camera_4idb
-    )
-    from .s4idundulator import undulators
-    from .energy_device import energy
 
-    for dev in (
-        scaler,
-        hhl_mirror,
-        flag_4ida_down,
-        flag_4ida_up,
-        mono,
-        labjack_4ida,
-        monoslt,
-        pr1,
-        pr2,
-        pr3,
-        undulators,
-        energy,
-    ):
-        sd.baseline.append(dev)
+    devs = dict(
+        scaler_4idCTR=[["scaler_ctr8", True]],
+        jj_slits=[["monoslt", True]],
+        ad_vimba=[
+            ["flag_camera_4ida_up", False],
+            ["flag_camera_4ida_down", False]
+        ]
+    )
+
+    # is there a better way?
+    for module, items in devs.items():
+        for obj, baseline in items:
+            locals()[obj] = device_import(module, obj, baseline)
+
+    counters.default_scaler = locals()["scaler_ctr8"]
+
+    # from .scaler_4idCTR8 import scaler_ctr8 as scaler
+    # counters.default_scaler = scaler
+    # from .hhl_mirror import hhl_mirror
+    # from .flags import flag_4ida_up, flag_4ida_down
+    # from .monochromator import mono
+    # from .jj_slits import monoslt
+    # from .labjacks import labjack_4ida
+    # from .phaseplates import pr1, pr2, pr3
+    # from .ad_vimba import (
+    #     flag_camera_4ida_up, flag_camera_4ida_down,  # flag_camera_4idb
+    # )
+    # from .s4idundulator import undulators
+    # from .energy_device import energy
+
+    # for dev in (
+    #     scaler,
+    #     hhl_mirror,
+    #     flag_4ida_down,
+    #     flag_4ida_up,
+    #     mono,
+    #     labjack_4ida,
+    #     monoslt,
+    #     pr1,
+    #     pr2,
+    #     pr3,
+    #     undulators,
+    #     energy,
+    # ):
+    #     sd.baseline.append(dev)
 
 if iconfig.get("STATION") == "4idg":
     from .simulated_scaler import scaler
