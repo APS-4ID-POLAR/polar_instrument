@@ -57,5 +57,5 @@ for module, items in devs.items():
     for device, baseline in zip(devices, baselines):
         locals()[device] = device_import(module, device, baseline)
 
-if scaler_name is not None:
+if scaler_name is not None and locals()[scaler_name] is not None:
     counters.default_scaler = locals()[scaler_name]
