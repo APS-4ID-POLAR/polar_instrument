@@ -27,14 +27,15 @@ from .counters_class import counters
 # )
 
 current_folder = dirname(abspath(__file__))
+
 devs_a = yload(
     open(join(current_folder, "../configs/4ida_devices.yml"), "r").read(),
     yloader
 )
 
-devs_b = dict(
-    scaler_4idCTR8=[["scaler_ctr8", True]],
-    ad_vimba=[["flag_camera_4idb", False]],
+devs_b = yload(
+    open(join(current_folder, "../configs/4idb_devices.yml"), "r").read(),
+    yloader
 )
 
 devs_g = dict(
