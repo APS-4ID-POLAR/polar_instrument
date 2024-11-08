@@ -14,7 +14,7 @@ from .dm_utils import (
     dm_upload,
     dm_upload_info,
 )
-from .oregistry_setup import oregistry, get_devices
+from .oregistry_setup import get_devices
 
 # from .dm_utils import (
 #   setup_user, dm_get_experiment_data_path, get_processing_job_status
