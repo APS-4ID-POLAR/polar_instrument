@@ -1,0 +1,69 @@
+# 4ID-A setup
+
+s4idundulator:
+  device: undulators
+  baseline: True
+
+hhl_mirror:
+  device: hhl_mirror
+  baseline: True
+
+wb_slit: 
+  device: wbslt
+  baseline: True
+
+monochromator:
+  device: mono
+  baseline: True
+
+labjacks:
+  device: labjack_4ida
+  baseline: True
+
+ad_vimba:
+  device: flag_camera_4ida_up
+  baseline: False
+
+ad_vimba:
+  device: flag_camera_4ida_down
+  baseline: False
+
+flags:
+  device: flag_4ida_up
+  baseline: True
+
+flags:
+  device: flag_4ida_down
+  baseline: True
+
+jj_slits:
+  device: monoslt
+  baseline: True
+
+phaseplates:
+  device: pr1
+  baseline: true
+
+phaseplates:
+  device: pr2
+  baseline: true
+
+phaseplates:
+  device: pr3
+  baseline: true
+
+energy_device:
+  device: energy
+  baseline: True
+
+qxscan_setup:
+  device: qxscan_params
+  baseline: True
+
+data_management:
+  device: dm_experiment
+  baseline: True
+
+data_management:
+  device: dm_workflow
+  baseline: True

@@ -2,27 +2,30 @@
 local, custom Device definitions
 """
 
+from yaml import load as yload, Loader as yloader
 from ..utils.config import iconfig
 from ..utils.dynamic_import import device_import
 from .counters_class import counters
 
-devs_a = dict(
-    s4idundulator=[["undulators", True]],
-    hhl_mirror=[["hhl_mirror", True]],
-    wb_slit=[["wbslt", True]],
-    monochromator=[["mono", True]],
-    labjacks=[["labjack_4ida", True]],
-    ad_vimba=[
-        ["flag_camera_4ida_up", False],
-        ["flag_camera_4ida_down", False]
-    ],
-    flags=[["flag_4ida_up", True], ["flag_4ida_down", True]],
-    jj_slits=[["monoslt", True]],
-    phaseplates=[["pr1", True], ["pr2", True], ["pr3", True]],
-    energy_device=[["energy", True]],
-    qxscan_setup=[["qxscan_params", True]],
-    data_management=[["dm_experiment", True], ["dm_workflow", True]]
-)
+# devs_a = dict(
+#     s4idundulator=[["undulators", True]],
+#     hhl_mirror=[["hhl_mirror", True]],
+#     wb_slit=[["wbslt", True]],
+#     monochromator=[["mono", True]],
+#     labjacks=[["labjack_4ida", True]],
+#     ad_vimba=[
+#         ["flag_camera_4ida_up", False],
+#         ["flag_camera_4ida_down", False]
+#     ],
+#     flags=[["flag_4ida_up", True], ["flag_4ida_down", True]],
+#     jj_slits=[["monoslt", True]],
+#     phaseplates=[["pr1", True], ["pr2", True], ["pr3", True]],
+#     energy_device=[["energy", True]],
+#     qxscan_setup=[["qxscan_params", True]],
+#     data_management=[["dm_experiment", True], ["dm_workflow", True]]
+# )
+
+devs_a = yload(open("../configs/4ida_devices.yml", "r").read(), yloader)
 
 devs_b = dict(
     scaler_4idCTR8=[["scaler_ctr8", True]],
@@ -50,13 +53,10 @@ scaler_name = None
 devs = dict()
 
 if iconfig.get("STATION") == "4idb":
-    devs = devs_a
-    devs.update(devs_b)
+    devs = devs_a | devs_b
     scaler_name = "scaler_ctr8"
 elif iconfig.get("STATION") == "4idg":
-    devs = devs_a
-    devs.update(devs_b)
-    devs.update(devs_g)
+    devs = devs_a | devs_b | devs_g
     scaler_name = "scaler_ctr8"
 elif iconfig.get("STATION") == "raman":
     devs = devs_raman
