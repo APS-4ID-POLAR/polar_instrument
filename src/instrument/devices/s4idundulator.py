@@ -8,6 +8,7 @@ from ophyd import Component, Device
 
 class PolarUndulator(STI_Undulator):
     tracking = Component(TrackingSignal, value=False, kind='config')
+    version_hpmu = None
 
 
 class PolarUndulatorPair(Device):
