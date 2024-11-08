@@ -3,6 +3,7 @@ local, custom Device definitions
 """
 
 from yaml import load as yload, Loader as yloader
+from os.path import dirname, abspath
 from ..utils.config import iconfig
 from ..utils.dynamic_import import device_import
 from .counters_class import counters
@@ -25,7 +26,10 @@ from .counters_class import counters
 #     data_management=[["dm_experiment", True], ["dm_workflow", True]]
 # )
 
-devs_a = yload(open("../configs/4ida_devices.yml", "r").read(), yloader)
+current_folder = dirname(abspath(__file__))
+devs_a = yload(
+    open(current_folder / "../configs/4ida_devices.yml", "r").read(), yloader
+)
 
 devs_b = dict(
     scaler_4idCTR8=[["scaler_ctr8", True]],
