@@ -324,5 +324,7 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
         return True  # Forced to always save images.
 
 
-spectrometer = LightFieldDetector("4LF1:", name="spectrometer")
+spectrometer = LightFieldDetector(
+    "4LF1:", name="spectrometer", labels=("detector", "raman")
+)
 spectrometer.default_settings()

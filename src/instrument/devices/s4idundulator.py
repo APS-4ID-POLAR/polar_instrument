@@ -16,4 +16,4 @@ class PolarUndulatorPair(Device):
     ds = Component(PolarUndulator, "DSID:")
 
 
-undulators = PolarUndulatorPair("S04ID:", name="undulators")
+undulators = PolarUndulatorPair("S04ID:", name="undulators", label=("energy",))

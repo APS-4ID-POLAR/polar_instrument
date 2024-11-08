@@ -8,5 +8,7 @@ from .ad_vimba import VimbaDetector
 
 
 flag_camera_4ida_up = VimbaDetector(
-    "4idaPostMirrBeam:", name="flag_camera_4ida_up", labels=("camera",)
+    "4idaPostMirrBeam:",
+    name="flag_camera_4ida_up",
+    labels=("camera", "detector", "flag")
 )

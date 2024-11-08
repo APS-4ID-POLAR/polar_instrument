@@ -9,7 +9,6 @@ from pvapy import Channel
 from ophyd import Device, Signal, Component
 from ophyd.status import Status
 from pathlib import Path
-from ..utils.run_engine import sd
 from ..utils.config import iconfig
 from ..utils import logger
 logger.info(__file__)
@@ -170,5 +169,6 @@ class PositionerStream(Device):
         return Path(full_path), Path(relative_path)
 
 
-positioner_stream = PositionerStream("", name="positioner_stream")
-# sd.baseline.append(positioner_stream)
+positioner_stream = PositionerStream(
+    "", name="positioner_stream", label=("detector",)
+)

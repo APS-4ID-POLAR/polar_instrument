@@ -5,7 +5,6 @@ HHL mirror
 __all__ = ['hhl_mirror']
 
 from ophyd import Component, Device, EpicsMotor, EpicsSignal, EpicsSignalRO
-from ..utils.run_engine import sd
 from ..utils._logging_setup import logger
 logger.info(__file__)
 
@@ -39,4 +38,3 @@ class ToroidalMirror(Device):
 hhl_mirror = ToroidalMirror(
     '4idHHLM:', name='toroidal_mirror', labels=("mirror",)
 )
-# sd.baseline.append(hhl_mirror)

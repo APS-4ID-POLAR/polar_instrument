@@ -375,4 +375,4 @@ def load_vortex(prefix="S4QX4:"):
     return detector
 
 
-vortex = VortexDetector("S4QX4:", name="vortex")
+vortex = VortexDetector("S4QX4:", name="vortex", labels=("detector",))

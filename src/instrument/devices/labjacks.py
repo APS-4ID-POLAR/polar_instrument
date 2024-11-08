@@ -77,12 +77,10 @@ class CustomLabJackT7(LabJackT7):
     )
 
     digital_ios = DynamicDeviceComponent(
-        make_digital_ios(list(range(0, 16)) + list(range(20, 23)))
+        make_digital_ios(list(range(0, 16)) + list(range(20, 23))),
+        kind=KIND_CONFIG_OR_NORMAL
     )
 
 
 labjack_t7_1 = CustomLabJackT7("4idLabJackT7_1:", name="labjack_t7_1")
-# sd.baseline.append(labjack_t7_1)
-
 labjack_4ida = CustomLabJackT7("4idaSoft:LJ:", name="labjack_4ida")
-# sd.baseline.append(labjack_4ida)

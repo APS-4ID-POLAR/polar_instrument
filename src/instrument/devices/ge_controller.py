@@ -7,7 +7,6 @@ __all__ = ['ge_apply', 'ge_release']
 from ophyd import Component, EpicsSignalRO, EpicsSignalWithRBV
 from apstools.devices import PVPositionerSoftDoneWithStop
 from ..utils import logger
-from ..utils.run_engine import sd
 logger.info(__file__)
 
 
@@ -50,13 +49,18 @@ class GEController(PVPositionerSoftDoneWithStop):
 
 
 ge_apply = GEController(
-    "4idPace:PC1:", name="ge_apply", readback_pv="Pressure_RBV",
-    setpoint_pv="Setpoint", tolerance=0.01, labels=('ge_controller',)
+    "4idPace:PC1:",
+    name="ge_apply",
+    readback_pv="Pressure_RBV",
+    setpoint_pv="Setpoint",
+    tolerance=0.01,
+    labels=('pressure', 'high_pressure')
 )
 ge_release = GEController(
-    "4idPace:PC2:", name="ge_release", readback_pv="Pressure_RBV",
-    setpoint_pv="Setpoint", tolerance=0.01, labels=('ge_controller',)
+    "4idPace:PC2:",
+    name="ge_release",
+    readback_pv="Pressure_RBV",
+    setpoint_pv="Setpoint",
+    tolerance=0.01,
+    labels=('pressure', 'high_pressure')
 )
-
-# sd.baseline.append(ge_apply)
-# sd.baseline.append(ge_release)

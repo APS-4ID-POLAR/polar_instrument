@@ -10,7 +10,6 @@ import json
 from ophyd import Signal, Device
 from ophyd import Component
 from numpy import sqrt, arange
-from ..utils.run_engine import sd
 from ..utils.catalog import full_cat as cat
 from ..utils._logging_setup import logger
 logger.info(__file__)
@@ -429,5 +428,4 @@ class QxscanParams(Device):
                     _update_value(item + f".region{i}.{component}")
 
 
-qxscan_params = QxscanParams(name='qxscan_setup')
-# sd.baseline.append(qxscan_params)
+qxscan_params = QxscanParams(name='qxscan_setup', labels=("qxscan", "energy"))
