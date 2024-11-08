@@ -10,7 +10,7 @@ from .counters_class import counters
 if iconfig.get("STATION") == "4idb":
 
     devs = dict(
-        scaler_4idCTR=[["scaler_ctr8", True]],
+        scaler_4idCTR8=[["scaler_ctr8", True]],
         jj_slits=[["monoslt", True]],
         ad_vimba=[
             ["flag_camera_4ida_up", False],
