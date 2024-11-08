@@ -29,28 +29,16 @@ labjacks:
   baseline: False
 
 flags:
-  device: flag_4ida_up
-  baseline: True
-
-flags:
-  device: flag_4ida_down
-  baseline: True
+  device: [flag_4ida_up, flag_4ida_down]
+  baseline: [True, True]
 
 jj_slits:
   device: monoslt
   baseline: True
 
 phaseplates:
-  device: pr1
-  baseline: true
-
-phaseplates:
-  device: pr2
-  baseline: true
-
-phaseplates:
-  device: pr3
-  baseline: true
+  device: [pr1, pr2, pr3]
+  baseline: [true, true, true]
 
 energy_device:
   device: energy
@@ -61,9 +49,5 @@ qxscan_setup:
   baseline: True
 
 data_management:
-  device: dm_experiment
-  baseline: True
-
-data_management:
-  device: dm_workflow
-  baseline: True
+  device: [dm_experiment, dm_workflow]
+  baseline: [True, True]
