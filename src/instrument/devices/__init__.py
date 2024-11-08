@@ -51,7 +51,7 @@ for module, items in devs.items():
     )
     baselines = (
         [items["baseline"]]
-        if isinstance(items["baseline"], str) else
+        if isinstance(items["baseline"], bool) else
         items["baseline"]
     )
     for device, baseline in zip(devices, baselines):
