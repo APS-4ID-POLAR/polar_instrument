@@ -1,0 +1,33 @@
+# 4ID-A setup
+
+polar_diffractometer:
+  device: polar
+  baseline: True
+
+polar_diffractometer:
+  device: polar_psi
+  baseline: True
+
+simulated_fourc_vertical:
+  device: fourc
+  baseline: True
+
+pva_control:
+  device: positioner_stream
+  baseline: True
+
+softgluezynq:
+  device: sgz
+  baseline: True
+
+nanopositioner:
+  device: diff_nano
+  baseline: True
+
+ad_eiger1M:
+  device: eiger1m
+  baseline: True
+
+xspress:
+  device: vortex
+  baseline: True

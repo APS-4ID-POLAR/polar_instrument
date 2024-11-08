@@ -38,21 +38,14 @@ devs_b = yload(
     yloader
 )
 
-devs_g = dict(
-    polar_diffractometer=[["polar", True], ["polar_psi", True]],
-    simulated_fourc_vertical=[["fourc", True]],
-    pva_control=["positioner_stream", True],
-    softgluezynq=[["sgz", True]],
-    nanopositioner=[["diff_nano", True]],
-    xspress=[["load_vortex", True]],  # TODO: Replace by import device?
-    ad_eiger1M=[["load_eiger1m", True]],  # TODO: Replace by import device?
+devs_g = yload(
+    open(join(current_folder, "../configs/4idg_devices.yml"), "r").read(),
+    yloader
 )
 
-devs_raman = dict(
-    laser_sample_stage=[["sx", True], ["sy", True], ["sz", True]],
-    ventus_laser=[["laser", True]],
-    ad_lightfield=[["spectrometer", True]],
-    ge_controller=[["ge_apply", True], ["ge_release", True]]
+devs_raman = yload(
+    open(join(current_folder, "../configs/4idraman_devices.yml"), "r").read(),
+    yloader
 )
 
 scaler_name = None
