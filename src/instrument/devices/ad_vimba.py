@@ -2,12 +2,6 @@
 Vimba cameras
 """
 
-__all__ = [
-    "flag_camera_4ida_up",
-    "flag_camera_4ida_down",
-    "flag_camera_4idb",
-]
-
 from ophyd import EpicsSignal, EpicsSignalRO, Staged
 from ophyd.areadetector import (
     CamBase, DetectorBase, ADComponent, EpicsSignalWithRBV
@@ -263,36 +257,3 @@ class VimbaDetector(Trigger, DetectorBase):
         _hdf1_auto = True if self.hdf1.autosave.get() == "on" else False
         _hdf1_on = True if self.hdf1.enable.get() == "Enable" else False
         return _hdf1_on or _hdf1_auto
-
-
-flag_camera_4ida_up = VimbaDetector(
-    "4idaPostMirrBeam:", name="flag_camera_4ida_up", labels=("camera",)
-)
-
-flag_camera_4ida_down = VimbaDetector(
-    "4idaPostMonoBeam:", name="flag_camera_4ida_down", labels=("camera",)
-)
-
-flag_camera_4idb = VimbaDetector(
-    "4idbPostToroBeam:", name="flag_camera_4idb", labels=("camera",)
-)
-
-# dets = (
-#     flag_camera_4ida_up,
-#     flag_camera_4ida_down,
-#     flag_camera_4idb,
-# )
-
-# for det in dets:
-#     det.cam.stage_sigs["wait_for_plugins"] = "Yes"
-#     for nm in det.component_names:
-#         obj = getattr(det, nm)
-#         if "blocking_callbacks" in dir(obj):  # is it a plugin?
-#             obj.stage_sigs["blocking_callbacks"] = "No"
-
-#     if vimba_iconfig.get("ALLOW_PLUGIN_WARMUP", False):
-#         if det.connected:
-#             if not AD_plugin_primed(det.hdf1):
-#                 AD_prime_plugin2(det.hdf1)
-
-#     det.default_settings()
