@@ -7,7 +7,6 @@ __all__ = ['scaler']
 
 from ophyd.scaler import ScalerCH
 from ophyd.signal import Signal
-from ..utils.run_engine import sd
 from ophyd import Kind, Component
 import time
 
@@ -201,8 +200,7 @@ class LocalScalerCH(ScalerCH):
 
 
 scaler = LocalScalerCH(
-    #'4idsoftmotors:scaler1', name='scaler', labels=('detectors',)
-    '4tst:scaler1', name='scaler', labels=('detectors',)
+    '4idsoftmotors:scaler1', name='scaler', labels=('detectors', 'scaler')
 )
 scaler.monitor = 'Time'
 scaler.select_read_channels()

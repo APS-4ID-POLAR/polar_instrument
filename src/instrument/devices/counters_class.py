@@ -25,8 +25,13 @@ class CountersClass:
         super().__init__()
         # This will hold the devices instances.
         self._default_scaler = scaler
-        self._dets = [self._default_scaler]
-        self._mon = scaler.monitor
+        if scaler is not None:
+            self._dets = [scaler]
+            self._mon = scaler.monitor
+        else:
+            self._dets = []
+            self._mon = None
+
         self._extra_devices = []
         self._default_scaler = scaler
 
@@ -109,14 +114,20 @@ class CountersClass:
 
     @default_scaler.setter
     def default_scaler(self, value):
-        available = {0: scaler}  # TODO: change this for names.
+        if value is None:
+            self._default_scaler = value
+            return
+
+        # TODO: change it to look into the registry. but put a failsafe if not
+        # available.
+        available = {0: scaler}
         if value is not None:
             if value in [item for _, item in available.items()]:
                 self._default_scaler = value
             else:
                 print("Invalid entry!")
         else:
-            print("Available scaler:")
+            print("Available scalers:")
             for i, item in available.items():
                 print(f"Option {i} - {item.name}")
             while True:
@@ -150,9 +161,12 @@ class CountersClass:
             except TypeError:
                 value = [value]
 
-            # self._dets will hold the device instance.
-            # default scaler is always a detector even if it's not plotted.
-            self._dets = [self._default_scaler]
+            self._dets = (
+                [self.default_scaler]
+                if self.default_scaler is not None else
+                []
+            )
+
             scaler_list = []
             for item in value:
                 if isinstance(item, str):
@@ -165,14 +179,22 @@ class CountersClass:
                         )
                         scaler_list.append(ch.s.name)
                 else:
-                    # item.select_plot_channels(True) This needs to be improved
+                    # TODO: how to auto select dets plot channels?
                     self._dets.append(item)
 
             # This is needed to select no scaler channel.
             if len(scaler_list) == 0:
                 scaler_list = ['']
 
-            self.default_scaler.select_plot_channels(scaler_list)
+            if self.default_scaler is not None:
+                self.default_scaler.select_plot_channels(scaler_list)
+            else:
+                if scaler_list != ['']:
+                    raise ValueError(
+                        "Scaler channels were selected, but no standard scaler "
+                        "device is defined. Please see "
+                        "`counters.default_scaler`"
+                    )
 
     @property
     def monitor(self):
