@@ -21,7 +21,7 @@ from ..utils._logging_setup import logger
 from ..utils.config import iconfig
 logger.info(__file__)
 
-__all__ = ["load_eiger1m"]
+__all__ = ["load_eiger1m", "eiger1m"]
 
 DEFAULT_FOLDER = Path(iconfig["AREA_DETECTOR"]["EIGER_1M"]["DEFAULT_FOLDER"])
 
@@ -274,3 +274,6 @@ def load_eiger1m(prefix="4idEiger:"):
             _ = getattr(eiger1m.hdf1, component).get(use_monitor=False)
 
     return eiger1m
+
+
+eiger1m = Eiger1MDetector("4idEiger:", name="eiger1m")

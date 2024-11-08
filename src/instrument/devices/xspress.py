@@ -20,7 +20,7 @@ from ..utils.config import iconfig
 from ..utils._logging_setup import logger
 logger.info(__file__)
 
-__all__ = ["load_vortex"]
+__all__ = ["load_vortex", "vortex"]
 
 # Bluesky and IOC have the same path root.
 IOC_FILES_ROOT = Path(iconfig["AREA_DETECTOR"]["VORTEX"]["IOC_FILES_ROOT"])
@@ -373,3 +373,6 @@ def load_vortex(prefix="S4QX4:"):
             _ = getattr(detector.hdf1, component).get(use_monitor=False)
 
     return detector
+
+
+vortex = VortexDetector("S4QX4:", name="vortex")

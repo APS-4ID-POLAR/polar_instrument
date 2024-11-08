@@ -7,7 +7,6 @@ __all__ = ['scaler_4tst']
 
 from ophyd.scaler import ScalerCH
 from ophyd.signal import Signal
-from ..utils.run_engine import sd
 from ophyd import Kind, Component
 import time
 
@@ -202,9 +201,8 @@ class LocalScalerCH(ScalerCH):
 
 
 scaler_4tst = LocalScalerCH(
-    '4tst:scaler1', name='scaler_4tst', labels=('detectors',)
+    '4tst:scaler1', name='scaler_4tst', labels=('detectors', 'scaler')
 )
 scaler_4tst.monitor = 'chan01'
 scaler_4tst.select_read_channels()
 scaler_4tst.select_plot_channels()
-# sd.baseline.append(scaler_4tst)

@@ -1,4 +1,5 @@
-from .scaler_4idCTR8 import scaler_ctr8 as scaler
+# from .scaler_4idCTR8 import scaler_ctr8 as scaler
+from .simulated_scaler import scaler_sim as scaler
 from ..utils import logger
 logger.info(__file__)
 

@@ -2,7 +2,9 @@
 Flyscan using area detector
 """
 
-from bluesky.preprocessors import stage_decorator, run_decorator, subs_decorator
+from bluesky.preprocessors import (
+    stage_decorator, run_decorator, subs_decorator
+)
 from bluesky.plan_stubs import rd, null, move_per_step, sleep
 from bluesky.plan_patterns import outer_product, inner_product
 from apstools.utils import (
@@ -20,11 +22,13 @@ from .workflow_plan import run_workflow
 from ..devices.pva_control import positioner_stream
 from ..devices.softgluezynq import sgz
 from ..devices.data_management import dm_experiment
-from ..utils import logger
+from ..utils._logging_setup import logger
 from ..utils.config import iconfig
 from ..utils.run_engine import RE
 from ..callbacks.nexus_data_file_writer import nxwriter
-from ..utils.dm_utils import dm_get_experiment_data_path, dm_upload, dm_upload_wait
+from ..utils.dm_utils import (
+    dm_get_experiment_data_path, dm_upload, dm_upload_wait
+)
 logger.info(__file__)
 
 __all__ = "flyscan_snake flyscan_1d flyscan_cycler".split()

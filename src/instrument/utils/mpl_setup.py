@@ -7,7 +7,7 @@ MatPlotLib setup.
     ~is_notebook
 """
 
-__all__ = ["is_notebook"]
+__all__ = ["is_notebook", "plt"]
 
 import logging
 
@@ -43,3 +43,5 @@ if not running_in_queueserver():
 
     if not is_notebook():
         plt.ion()
+else:
+    plt = None

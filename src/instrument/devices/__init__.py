@@ -2,73 +2,60 @@
 local, custom Device definitions
 """
 
+from yaml import load as yload, Loader as yloader
+from os.path import dirname, abspath, join
 from ..utils.config import iconfig
-from ..utils.run_engine import sd
-
+from ..utils.dynamic_import import device_import
 from .counters_class import counters
 
+current_folder = dirname(abspath(__file__))
+
+devs_a = yload(
+    open(join(current_folder, "../configs/4ida_devices.yml"), "r").read(),
+    yloader
+)
+
+devs_b = yload(
+    open(join(current_folder, "../configs/4idb_devices.yml"), "r").read(),
+    yloader
+)
+
+devs_g = yload(
+    open(join(current_folder, "../configs/4idg_devices.yml"), "r").read(),
+    yloader
+)
+
+devs_raman = yload(
+    open(join(current_folder, "../configs/4idraman_devices.yml"), "r").read(),
+    yloader
+)
+
+scaler_name = None
+devs = dict()
+
 if iconfig.get("STATION") == "4idb":
-    from .scaler_4idCTR8 import scaler_ctr8 as scaler
-    counters.default_scaler = scaler
-    from .hhl_mirror import hhl_mirror
-    from .flags import flag_4ida_up, flag_4ida_down
-    from .monochromator import mono
-    from .jj_slits import monoslt
-    from .wb_slit import wbslt
-    from .labjacks import labjack_4ida
-    from .phaseplates import pr1, pr2, pr3
-    from .ad_vimba import (
-        flag_camera_4ida_up, flag_camera_4ida_down,  # flag_camera_4idb
-    )
-    from .s4idundulator import undulators
-    from .energy_device import energy
-
-    for dev in (
-        scaler,
-        hhl_mirror,
-        flag_4ida_down,
-        flag_4ida_up,
-        mono,
-        labjack_4ida,
-        monoslt,
-        pr1,
-        pr2,
-        pr3,
-        undulators,
-        energy,
-        wbslt,
-    ):
-        sd.baseline.append(dev)
-
-if iconfig.get("STATION") == "4idg":
-    from .simulated_scaler import scaler
-    from .scaler_4idtest import scaler_4tst
-    from .simulated_fourc_vertical import fourc
-    from .simulated_new_diffractometer import diffract
-    from .simulated_detector import simdet
-    from .polar_diffractometer import polar, polar_psi
-    from .xspress import load_vortex
-    from .ad_eiger1M import load_eiger1m
-    from .nanopositioner import diff_nano
-    from .softgluezynq import sgz
-    from .pva_control import positioner_stream
-    from .data_management import dm_experiment, dm_workflow
+    devs = devs_a | devs_b
+    scaler_name = "scaler_ctr8"
+elif iconfig.get("STATION") == "4idg":
+    devs = devs_a | devs_b | devs_g
+    scaler_name = "scaler_ctr8"
 elif iconfig.get("STATION") == "raman":
-    from .laser_sample_stage import sx, sy, sz
-    from .ventus_laser import laser
-    from .ad_lightfield import spectrometer
-    from .ge_controller import ge_apply, ge_release
+    devs = devs_raman
 
+# is there a better way?
+for module, items in devs.items():
+    devices = (
+        [items["device"]]
+        if isinstance(items["device"], str) else
+        items["device"]
+    )
+    baselines = (
+        [items["baseline"]]
+        if isinstance(items["baseline"], bool) else
+        items["baseline"]
+    )
+    for device, baseline in zip(devices, baselines):
+        locals()[device] = device_import(module, device, baseline)
 
-# from .nanopositioner import diff_nano
-# from .interferometers_4IDG import interferometer
-# from .magnet_nanopositioner import magnet_nano
-
-# from .preamps import preamp1, preamp2
-# preamp1._scaler_channel = scaler_4tst.channels.chan02
-# preamp2._scaler_channel = scaler_4tst.channels.chan03
-
-# from .ad_eiger1M import load_eiger1m
-# from .softgluezynq import sgz
-# from .pva_control import positioner_stream
-# from .data_management import dm_experiment, dm_workflow
+if scaler_name is not None and locals()[scaler_name] is not None:
+    counters.default_scaler = locals()[scaler_name]
