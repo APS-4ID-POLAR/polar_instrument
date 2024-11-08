@@ -1,5 +1,6 @@
 from importlib import import_module
 from time import time as ttime
+from apstools.devices import AD_plugin_primed, AD_prime_plugin2
 from .config import iconfig
 from .run_engine import sd
 from ._logging_setup import logger
@@ -26,5 +27,23 @@ def device_import(module_name, obj_name, baseline):
 
     if obj is not None and baseline:
         sd.baseline.append(obj)
+
+    cam = getattr(obj, "cam", None)
+    if cam is not None:
+        cam.stage_sigs["wait_for_plugins"] = "Yes"
+        for nm in obj.component_names:
+            item = getattr(obj, nm)
+            if "blocking_callbacks" in dir(item):  # is it a plugin?
+                item.stage_sigs["blocking_callbacks"] = "No"
+
+    hdf1 = getattr(obj, "hdf1", None)
+    if hdf1 is not None:
+        if obj.connected:
+            if not AD_plugin_primed(hdf1):
+                AD_prime_plugin2(hdf1)
+
+    defaults = getattr(obj, "default_settings", None)
+    if defaults is not None:
+        defaults()
 
     return obj

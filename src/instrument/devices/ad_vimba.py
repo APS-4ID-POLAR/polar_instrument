@@ -15,7 +15,6 @@ from ophyd.areadetector import (
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
 from pathlib import Path
 from time import time as ttime
-from apstools.devices import AD_plugin_primed, AD_prime_plugin2
 from .ad_mixins import PolarHDF5Plugin, StatsPlugin, ROIPlugin
 from ..utils.config import iconfig
 from ..utils._logging_setup import logger
@@ -278,22 +277,22 @@ flag_camera_4idb = VimbaDetector(
     "4idbPostToroBeam:", name="flag_camera_4idb", labels=("camera",)
 )
 
-dets = (
-    flag_camera_4ida_up,
-    flag_camera_4ida_down,
-    flag_camera_4idb,
-)
+# dets = (
+#     flag_camera_4ida_up,
+#     flag_camera_4ida_down,
+#     flag_camera_4idb,
+# )
 
-for det in dets:
-    det.cam.stage_sigs["wait_for_plugins"] = "Yes"
-    for nm in det.component_names:
-        obj = getattr(det, nm)
-        if "blocking_callbacks" in dir(obj):  # is it a plugin?
-            obj.stage_sigs["blocking_callbacks"] = "No"
+# for det in dets:
+#     det.cam.stage_sigs["wait_for_plugins"] = "Yes"
+#     for nm in det.component_names:
+#         obj = getattr(det, nm)
+#         if "blocking_callbacks" in dir(obj):  # is it a plugin?
+#             obj.stage_sigs["blocking_callbacks"] = "No"
 
-    if vimba_iconfig.get("ALLOW_PLUGIN_WARMUP", False):
-        if det.connected:
-            if not AD_plugin_primed(det.hdf1):
-                AD_prime_plugin2(det.hdf1)
+#     if vimba_iconfig.get("ALLOW_PLUGIN_WARMUP", False):
+#         if det.connected:
+#             if not AD_plugin_primed(det.hdf1):
+#                 AD_prime_plugin2(det.hdf1)
 
-    det.default_settings()
+#     det.default_settings()
