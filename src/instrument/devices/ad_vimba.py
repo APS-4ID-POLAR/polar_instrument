@@ -5,7 +5,7 @@ Vimba cameras
 __all__ = [
     "flag_camera_4ida_up",
     "flag_camera_4ida_down",
-    # "flag_camera_4idb",
+    "flag_camera_4idb",
 ]
 
 from ophyd import EpicsSignal, EpicsSignalRO, Staged
@@ -274,14 +274,14 @@ flag_camera_4ida_down = VimbaDetector(
     "4idaPostMonoBeam:", name="flag_camera_4ida_down", labels=("camera",)
 )
 
-# flag_camera_4idb = VimbaDetector(
-#     "4idbPostToroBeam:", name="flag_camera_4idb", labels=("camera",)
-# )
+flag_camera_4idb = VimbaDetector(
+    "4idbPostToroBeam:", name="flag_camera_4idb", labels=("camera",)
+)
 
 dets = (
     flag_camera_4ida_up,
     flag_camera_4ida_down,
-    # flag_camera_4idb,
+    flag_camera_4idb,
 )
 
 for det in dets:
