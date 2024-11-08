@@ -68,7 +68,8 @@ elif iconfig.get("STATION") == "raman":
 
 # is there a better way?
 for module, items in devs.items():
-    for obj, baseline in items:
-        locals()[obj] = device_import(module, obj, baseline)
+    locals()[items["device"]] = device_import(
+        module, items["device"], items["baseline"]
+    )
 
 counters.default_scaler = locals()[scaler_name]
