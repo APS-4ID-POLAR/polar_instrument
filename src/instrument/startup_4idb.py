@@ -24,13 +24,11 @@ set_control_layer()
 set_timeouts()
 
 # Bluesky data acquisition setup
-from .utils.best_effort import bec  # noqa
-from .utils.best_effort import peaks  # noqa
+from .utils.best_effort import bec, peaks  # noqa
 from .utils.catalog import full_cat  # noqa
 from .utils.functions import running_in_queueserver  # noqa
 from .utils.oregistry_setup import oregistry, get_devices  # noqa
-from .utils.run_engine import RE  # noqa
-from .utils.run_engine import sd  # noqa
+from .utils.run_engine import RE, sd  # noqa
 
 # Configure the session with callbacks, devices, and plans.
 # These imports must come after the above setup.
@@ -51,6 +49,12 @@ from .callbacks import *  # noqa
 from .plans import *  # noqa
 from .utils.polartools_hklpy_imports import *  # noqa
 from .utils import *
+from utils.experiment_setup import experiment, change_sample, setup_experiment
+from utils.dm_utils import (
+    dm_get_experiment_data_path,
+    dm_upload,
+    dm_upload_info,
+)
 
 # TODO: Loads plans for development, remove for production.
 from .utils.tests.common import *  # noqa
