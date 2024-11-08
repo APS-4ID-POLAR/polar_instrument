@@ -63,4 +63,3 @@ wbslt = SlitDevice(
     1,
     labels=('slit',)
 )
-# sd.baseline.append(wbslt)

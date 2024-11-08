@@ -276,4 +276,4 @@ def load_eiger1m(prefix="4idEiger:"):
     return eiger1m
 
 
-eiger1m = Eiger1MDetector("4idEiger:", name="eiger1m")
+eiger1m = Eiger1MDetector("4idEiger:", name="eiger1m", labels=("detector",))

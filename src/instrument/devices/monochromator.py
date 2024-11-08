@@ -15,7 +15,6 @@ from ophyd import (
     PVPositioner
 )
 from ophyd.status import Status
-from ..utils.run_engine import sd
 from ..utils._logging_setup import logger
 logger.info(__file__)
 
@@ -122,14 +121,14 @@ class Monochromator(KohzuSeqCtl_Monochromator):
     )
 
     y1 = None
-    crystal_select = Component(EpicsMotor, 'm2', labels=('motor', 'mono'))
+    crystal_select = Component(EpicsMotor, 'm2', labels=('motor',))
 
     x2 = None
-    y2 = Component(EpicsSignal, 'm3', labels=('motor', 'mono'))
-    z2 = Component(EpicsSignalRO, 'Zdummy', labels=('motor', 'mono'))
+    y2 = Component(EpicsSignal, 'm3', labels=('motor',))
+    z2 = Component(EpicsSignalRO, 'Zdummy', labels=('motor',))
 
-    thf2 = Component(EpicsMotor, 'm4', labels=('motor', 'mono'))
-    chi2 = Component(EpicsMotor, 'm5', labels=('motor', 'mono'))
+    thf2 = Component(EpicsMotor, 'm4', labels=('motor',))
+    chi2 = Component(EpicsMotor, 'm5', labels=('motor',))
 
     # TODO: these are offline for some reason
     # temp1 = FormattedComponent(
@@ -153,5 +152,6 @@ class Monochromator(KohzuSeqCtl_Monochromator):
         self.use_set.put('Use', use_complete=True)
 
 
-mono = Monochromator('4idVDCM:', name='mono', labels=("monochromator",))
-# sd.baseline.append(mono)
+mono = Monochromator(
+    '4idVDCM:', name='mono', labels=("monochromator", "energy")
+)

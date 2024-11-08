@@ -352,7 +352,7 @@ pr1 = PRDevice(
     'pr1',
     1,
     {'x': 'm1', 'y': 'm2', 'th': 'm4'},
-    labels=("phase_retarder",)
+    labels=("phase_retarder", "energy")
 )
 pr1.pzt.conversion_factor.put(0.001636)
 pr1._set_d_spacing()
@@ -362,7 +362,7 @@ pr2 = PRDevice(
     'pr2',
     2,
     {'x': 'm6', 'y': 'm7', 'th': 'm9'},
-    labels=("phase_retarder",)
+    labels=("phase_retarder", "energy")
 )
 pr2.pzt.conversion_factor.put(0.0019324)
 pr2._set_d_spacing()
@@ -371,12 +371,8 @@ pr3 = PRDeviceBase(
     '4ida',
     'pr3',
     {'x': 'm10', 'y': 'm11', 'th': 'm12'},
-    labels=("phase_retarder",)
+    labels=("phase_retarder", "energy")
 )
 pr3.d_spacing.put(3.135)
 
 pr_setup = PRSetup()
-
-# sd.baseline.append(pr1)
-# sd.baseline.append(pr2)
-# sd.baseline.append(pr3)

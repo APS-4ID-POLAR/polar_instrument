@@ -200,7 +200,7 @@ class LocalScalerCH(ScalerCH):
 
 
 scaler_sim = LocalScalerCH(
-    '4idsoftmotors:scaler1', name='scaler_sim', labels=('detectors', 'scaler')
+    '4idsoftmotors:scaler1', name='scaler_sim', labels=('detector', 'scaler')
 )
 scaler_sim.monitor = 'Time'
 scaler_sim.select_read_channels()

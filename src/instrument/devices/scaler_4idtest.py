@@ -201,7 +201,7 @@ class LocalScalerCH(ScalerCH):
 
 
 scaler_4tst = LocalScalerCH(
-    '4tst:scaler1', name='scaler_4tst', labels=('detectors', 'scaler')
+    '4tst:scaler1', name='scaler_4tst', labels=('detector', 'scaler')
 )
 scaler_4tst.monitor = 'chan01'
 scaler_4tst.select_read_channels()

@@ -80,4 +80,6 @@ class EnergySignal(Signal):
                 positioner.energy.stop(success=success)
 
 
-energy = EnergySignal(name='energy', value=10, kind='hinted')
+energy = EnergySignal(
+    name='energy', value=10, kind='hinted', labels=("energy",)
+)

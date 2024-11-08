@@ -5,14 +5,13 @@ Ventus Laser
 __all__ = ["laser"]
 
 from ophyd import EpicsSignal, Component, Device
-from ..utils.run_engine import sd
 from ..utils import logger
 logger.info(__file__)
 
 
 class VentusLaser(Device):
 
-    #TODO: Should power and current be PVPositioners?
+    # TODO: Should power and current be PVPositioners?
     power_setpoint = Component(EpicsSignal, "PowerOut", kind="normal")
     power_readback = Component(EpicsSignal, "PowerIn", kind="normal")
 
@@ -36,5 +35,4 @@ class VentusLaser(Device):
     laser_operation_time = Component(EpicsSignal, "LOTime", kind="config")
 
 
-laser = VentusLaser("4tst:LQE1:", name="laser")
-# sd.baseline.append(laser)
+laser = VentusLaser("4tst:LQE1:", name="laser", labels=("raman",))

@@ -5,7 +5,6 @@ Simulated polar
 __all__ = ['polar', 'polar_psi']
 
 from ophyd import Component, PseudoSingle, Kind, Signal, EpicsMotor
-from ..utils.run_engine import sd
 from ..utils import logger
 import gi
 gi.require_version('Hkl', '5.0')
@@ -53,8 +52,10 @@ class SixCircleDiffractometer(ApsPolar):
                 fields.extend(c_hints.get('fields', []))
         return {'fields': fields}
 
-polar = SixCircleDiffractometer("4idsoftmotors:", name='polar')
 
+polar = SixCircleDiffractometer(
+    "4idsoftmotors:", name='polar', labels=("diffractometer",)
+)
 
 
 class SixcPSI(ApsPolar):
@@ -73,7 +74,8 @@ class SixcPSI(ApsPolar):
     gamma = Component(EpicsMotor, "m13", labels=("motor", "polar_psi"))
     delta = Component(EpicsMotor, "m14", labels=("motor", "polar_psi"))
 
-polar_psi = SixcPSI("4idsoftmotors:", name="polar_psi", engine="psi")
-select_diffractometer(polar)
-# sd.baseline.append(polar)
 
+polar_psi = SixcPSI(
+    "4idsoftmotors:", name="polar_psi", engine="psi", labels=("diffractometer",)
+)
+select_diffractometer(polar)
