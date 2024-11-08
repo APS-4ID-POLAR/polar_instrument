@@ -41,7 +41,10 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 instrument_path = pathlib.Path(__file__).parent.parent
 _STATION = environ["POLAR_INSTRUMENT"]
-DEFAULT_ICONFIG_YML_FILE = instrument_path / "configs" / f"iconfig_{_STATION}.yml"
+DEFAULT_ICONFIG_YML_FILE = (
+    instrument_path / "configs" / f"iconfig_{_STATION}.yml"
+)
+MASTER_ICONFIG_YML_FILE = instrument_path / "configs" / "iconfig_master.yml"
 ICONFIG_MINIMUM_VERSION = "2.0.0"
 
 
@@ -71,7 +74,9 @@ class IConfigFileVersionError(ValueError):
     """Configuration file version too old."""
 
 
-iconfig = load_config_yaml(DEFAULT_ICONFIG_YML_FILE)
+# Loads the master configuration, then update it with the current station.
+iconfig = load_config_yaml(MASTER_ICONFIG_YML_FILE)
+iconfig.update(load_config_yaml(DEFAULT_ICONFIG_YML_FILE))
 
 # Validate the iconfig file has the minimum version.
 _version = iconfig.get("ICONFIG_VERSION")
