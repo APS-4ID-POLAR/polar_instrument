@@ -270,7 +270,7 @@ def count(
         experiment.experiment_path, _master_fullpath, _rel_dets_paths
     )
 
-    extras = _collect_extras(False, False)
+    extras = yield from _collect_extras(False, False)
 
     # TODO: The md handling might go well in a decorator.
     # TODO: May need to add reference to stream.
