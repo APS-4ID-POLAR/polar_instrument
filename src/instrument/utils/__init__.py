@@ -15,6 +15,8 @@ from .dm_utils import (
     dm_upload_info,
 )
 
+from .ophyd_setup import oregistry
+
 # from .dm_utils import (
 #   setup_user, dm_get_experiment_data_path, get_processing_job_status
 # )
