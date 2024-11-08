@@ -3,7 +3,7 @@ from ophydregistry import Registry
 from pandas import DataFrame
 
 # Registry of all ophyd-style Devices and Signals.
-oregistry = Registry(auto_register=True)
+oregistry = Registry(auto_register=False)
 
 
 def get_devices(label):

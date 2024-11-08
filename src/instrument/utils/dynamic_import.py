@@ -3,6 +3,7 @@ from time import time as ttime
 from apstools.devices import AD_plugin_primed, AD_prime_plugin2
 from .config import iconfig
 from .run_engine import sd
+from .oregistry_setup import oregistry
 from ._logging_setup import logger
 
 TIMEOUT = iconfig.get("PV_CONNECTION_TIMEOUT", 15)
@@ -45,5 +46,7 @@ def device_import(module_name, obj_name, baseline):
     defaults = getattr(obj, "default_settings", None)
     if defaults is not None:
         defaults()
+
+    oregistry.registry(obj)
 
     return obj
