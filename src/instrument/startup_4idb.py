@@ -18,6 +18,11 @@ from .utils import logger
 
 logger.info(__file__)
 
+# Setup EPICS layer
+from .utils.ophyd_setup import set_control_layer, set_timeouts
+set_control_layer()
+set_timeouts()
+
 # Bluesky data acquisition setup
 from .utils.best_effort import bec  # noqa
 from .utils.best_effort import peaks  # noqa

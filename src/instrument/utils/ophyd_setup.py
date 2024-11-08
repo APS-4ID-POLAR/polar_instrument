@@ -3,22 +3,18 @@ ophyd-related setup
 ===================
 
 .. autosummary::
-    ~oregistry
     ~set_control_layer
     ~set_timeouts
 """
 
-import logging
-
 import ophyd
 from ophyd.signal import EpicsSignalBase
 from .config import iconfig
-
-logger = logging.getLogger(__name__)
+from ._logging_setup import logger
 logger.info(__file__)
 
 DEFAULT_CONTROL_LAYER = "PyEpics"
-DEFAULT_TIMEOUT = 60  # default used next...
+DEFAULT_TIMEOUT = 15  # default used next...
 ophyd_config = iconfig.get("OPHYD", {})
 
 
@@ -46,14 +42,12 @@ def set_timeouts():
     if not EpicsSignalBase._EpicsSignalBase__any_instantiated:
         # Only BEFORE any EpicsSignalBase (or subclass) are created!
         timeouts = ophyd_config.get("TIMEOUTS", {})
+        logger.info(timeouts)
         EpicsSignalBase.set_defaults(
             auto_monitor=True,
             timeout=timeouts.get("PV_READ", DEFAULT_TIMEOUT),
             write_timeout=timeouts.get("PV_WRITE", DEFAULT_TIMEOUT),
             connection_timeout=iconfig.get("PV_CONNECTION", DEFAULT_TIMEOUT),
         )
-
-
-set_control_layer()
-# MUST happen before ANY EpicsSignalBase (or subclass) is created.
-set_timeouts()
+    else:
+        logger.warning("Not setting up the timeouts.")
