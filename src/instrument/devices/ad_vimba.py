@@ -243,7 +243,7 @@ class VimbaDetector(Trigger, DetectorBase):
             List with the ROIs numbers to be plotted.
         """
 
-        for i in range(4):
+        for i in range(1, 4+1):
             getattr(self, f"stats{i}").total.kind = (
                 "hinted" if i in rois else "normal"
             )
