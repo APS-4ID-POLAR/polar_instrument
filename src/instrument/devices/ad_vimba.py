@@ -231,8 +231,34 @@ class VimbaDetector(Trigger, DetectorBase):
         self.auto_save_on()
         self.plot_roi1()
 
+    def plot_select(self, rois):
+        """
+        Selects which ROIs will be plotted. All are being read.
+
+        This assumes that 4 ROIs are setup in Bluesky.
+
+        PARAMETERS
+        ----------
+        rois : iterable of ints
+            List with the ROIs numbers to be plotted.
+        """
+
+        for i in range(4):
+            getattr(self, f"stats{i}").total.kind = (
+                "hinted" if i in rois else "normal"
+            )
+
     def plot_roi1(self):
-        self.stats1.total.kind = "hinted"
+        self.plot_select([1])
+
+    def plot_roi2(self):
+        self.plot_select([2])
+
+    def plot_roi3(self):
+        self.plot_select([3])
+
+    def plot_roi4(self):
+        self.plot_select([4])
 
     def setup_images(
             self, base_path, name_template, file_number, flyscan=False
