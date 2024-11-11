@@ -73,7 +73,7 @@ class CustomLabJackT7(LabJackT7):
 
     analog_outputs = DynamicDeviceComponent(
         make_analog_outputs(6),
-        kind=KIND_CONFIG_OR_NORMAL
+        kind="normal"
     )
 
     digital_ios = DynamicDeviceComponent(
