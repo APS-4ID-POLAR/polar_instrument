@@ -111,7 +111,7 @@ class StatsPlugin(PluginMixin, StatsPlugin_V34):
             'mean_value',
             'min_value',
             'min_xy.x',
-            'min_xy.y'
+            'min_xy.y',
             'net',
             'total',
             'centroid.x',
