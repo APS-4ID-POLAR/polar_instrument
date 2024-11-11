@@ -56,7 +56,7 @@ def make_digital_ios(channels_list: list):
     """
     defn = {}
     for n in channels_list:
-        defn[f"dio{n}"] = (DigitalIO, "", dict(ch_num=n))
+        defn[f"dio{n}"] = (DigitalIO, "", dict(ch_num=n), dict(kind="config"))
 
     # Add the digital word outputs
     defn["dio"] = (EpicsSignalRO, "DIOIn", dict(kind="config"))
@@ -68,8 +68,8 @@ def make_digital_ios(channels_list: list):
 
 
 class CustomLabJackT7(LabJackT7):
-    # In the "default" BCDA setup, four IO channels (all CIO, #16-19) are converted
-    # into analog outputs (thus now 6 DACs)
+    # In the "default" BCDA setup, four IO channels (all CIO, #16-19) are
+    # converted into analog outputs (thus now 6 DACs)
 
     analog_outputs = DynamicDeviceComponent(
         make_analog_outputs(6),
@@ -84,3 +84,5 @@ class CustomLabJackT7(LabJackT7):
 
 labjack_t7_1 = CustomLabJackT7("4idLabJackT7_1:", name="labjack_t7_1")
 labjack_4ida = CustomLabJackT7("4idaSoft:LJ:", name="labjack_4ida")
+for i in range(4):
+    getattr(labjack_4ida.analog_outputs, "ao0").kind = "normal"
