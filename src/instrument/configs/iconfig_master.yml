@@ -32,8 +32,8 @@ RUN_ENGINE:
 
 ### Best Effort Callback Configurations
 ### Defaults: all true (except no plots in queueserver)
-# BEC:
-#     BASELINE: false
+BEC:
+    BASELINE: false
 #     HEADING: false
 #     PLOTS: false
 #     TABLE: false
