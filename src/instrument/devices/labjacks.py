@@ -56,7 +56,7 @@ def make_digital_ios(channels_list: list):
     """
     defn = {}
     for n in channels_list:
-        defn[f"dio{n}"] = (DigitalIO, "", dict(ch_num=n), dict(kind="config"))
+        defn[f"dio{n}"] = (DigitalIO, "", dict(ch_num=n, kind="config"))
 
     # Add the digital word outputs
     defn["dio"] = (EpicsSignalRO, "DIOIn", dict(kind="config"))
