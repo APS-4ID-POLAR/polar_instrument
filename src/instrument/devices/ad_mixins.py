@@ -1,7 +1,9 @@
 """ AD mixins """
 
 from ophyd import ADComponent, EpicsSignal, Signal, Component
-from ophyd.areadetector import EigerDetectorCam, Xspress3DetectorCam, EpicsSignalWithRBV
+from ophyd.areadetector import (
+    EigerDetectorCam, Xspress3DetectorCam, EpicsSignalWithRBV
+)
 from ophyd.areadetector.plugins import (
     PluginBase_V34,
     ImagePlugin_V34,
@@ -167,7 +169,9 @@ class EigerDetectorCam(CamMixin_V34, EigerDetectorCam):
 
 class VortexDetectorCam(CamMixin_V34, Xspress3DetectorCam):
     trigger_mode = Component(EpicsSignalWithRBV, "TriggerMode", kind="config")
-    erase_on_start = Component(EpicsSignal, "EraseOnStart", string=True, kind="config")
+    erase_on_start = Component(
+        EpicsSignal, "EraseOnStart", string=True, kind="config"
+    )
 
     # Removed
     offset = None
@@ -189,7 +193,8 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
                 ("num_capture", 0),
             ]
         )
-        # This is needed if you want to start bluesky and run a no-image scan first.
+        # This is needed if you want to start bluesky and run a no-image scan
+        # first.
         self._fn = None
         self._fp = None
         self._use_dm = USE_DM_PATH
@@ -210,9 +215,10 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
 
     def make_write_read_paths(self, path=None):
         # This will generate the folder name and the full path.
-        # - Folder is either determined by data management, or just use the one in
-        # EPICS.
-        # - File name uses everything from EPICS (template, base name and file number).
+        # - Folder is either determined by data management, or just use the one
+        # in EPICS.
+        # - File name uses everything from EPICS (template, base name and file
+        # number).
 
         # Setting up the path.
         # If not using DM, it will simply take the values from EPICS!!
@@ -247,8 +253,8 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
 
             if isfile(full_path):
                 raise OSError(
-                    f"{full_path} already exists! Cannot overwrite it, so please "
-                    "change the file name."
+                    f"{full_path} already exists! Cannot overwrite it, so "
+                    "please change the file name."
                 )
 
             if not self.file_path_exists.get():
@@ -354,7 +360,9 @@ class PolarHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
 
     def __init__(self, *args, write_path_template="", **kwargs):
         # self.filestore_spec = "AD_EIGER_APSPolar"
-        super().__init__(*args, write_path_template=write_path_template, **kwargs)
+        super().__init__(
+            *args, write_path_template=write_path_template, **kwargs
+        )
         self.enable.subscribe(self._setup_kind)
 
     def _setup_kind(self, value, **kwargs):
@@ -378,7 +386,8 @@ def AD_plugin_primed_vortex(plugin):
     """
     Modification of the APS AD_plugin_primed for Vortex.
 
-    Uses the timestamp = 0 as a sign of an unprimed plugin. Not sure this is generic.
+    Uses the timestamp = 0 as a sign of an unprimed plugin. Not sure this is
+    generic.
     """
 
     return plugin.time_stamp.get() != 0
