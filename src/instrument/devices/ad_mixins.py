@@ -46,10 +46,84 @@ class PvaPlugin(PluginMixin, PvaPlugin_V34):
 
 class ROIPlugin(PluginMixin, ROIPlugin_V34):
     """Remove property attribute found in AD IOCs now."""
+    _default_configuration_attrs = (
+        ROIPlugin_V34._default_configuration_attrs + (
+            "driver_version",
+            "data_type",
+            "color_mode",
+            "enable",
+            "enable_scale",
+            "scale",
+            "collapse_dims",
+            'dimensions',
+            'data_type_out',
+            'name_',
+            'roi_enable',
+            'bin_',
+            'min_xyz',
+            'size',
+            'reverse',
+        )
+    )
 
 
 class StatsPlugin(PluginMixin, StatsPlugin_V34):
     """Remove property attribute found in AD IOCs now."""
+    _default_configuration_attrs = (
+        StatsPlugin_V34._default_configuration_attrs + (
+            'array_size',
+            'blocking_callbacks',
+            'color_mode',
+            'data_type',
+            'dimensions',
+            'enable',
+            'driver_version',
+            'compute_statistics',
+            'bgd_width',
+            'compute_centroid',
+            'centroid_threshold',
+            'compute_profiles',
+            'profile_average',
+            'profile_centroid',
+            'profile_cursor',
+            'profile_size',
+            'profile_threshold',
+            'cursor',
+            'compute_histogram',
+            'hist_entropy',
+            'hist_max',
+            'hist_min',
+            'hist_size',
+            'histogram',
+            'hist_above',
+            'hist_below',
+            'histogram_x',
+        )
+    )
+
+    _default_read_attrs = (
+        StatsPlugin_V34._default_read_attrs + (
+            'max_value',
+            'max_xy.x',
+            'max_xy.y',
+            'mean_value',
+            'min_value',
+            'min_xy.x',
+            'min_xy.y'
+            'net',
+            'total',
+            'centroid.x',
+            'centroid.y',
+            'sigma_xy',
+            'sigma.x',
+            'sigma.y',
+            'orientation',
+            'kurtosis',
+            'skew',
+            'centroid_total',
+            'eccentricity',
+        )
+    )
 
 
 class CodecPlugin(PluginMixin, CodecPlugin_V34):
@@ -242,6 +316,39 @@ class PolarHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
     """
     Using the filename from EPICS.
     """
+    _default_configuration_attrs = HDF5Plugin._default_configuration_attrs + (
+            'auto_increment',
+            'auto_save',
+            'file_format',
+            'file_name',
+            'file_number',
+            'file_path',
+            'file_path_exists',
+            'file_template',
+            'file_write_mode',
+            'array_size',
+            'color_mode',
+            'data_type',
+            'dimensions',
+            'enable',
+            'plugin_type',
+            'compression',
+            'szip_num_pixels',
+            'store_attr',
+            'store_perform',
+            'zlevel',
+            'xml_file_name',
+            'swmr_active',
+            'swmr_cb_counter',
+            'swmr_mode',
+            'swmr_supported',
+            'driver_version',
+            'blosc_compressor',
+            'blosc_level',
+            'blosc_shuffle',
+            'autosave'
+    )
+    _default_read_attrs = HDF5Plugin._default_read_attrs + ('full_file_name',)
 
     autosave = ADComponent(Signal, value="off", kind="config")
 

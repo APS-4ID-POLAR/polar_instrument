@@ -107,12 +107,36 @@ class Trigger(TriggerBase):
 
 
 class VimbaCam(CamBase):
+
+    _default_configuration_attrs = CamBase._default_configuration_attrs + (
+        "serial_number",
+        "sdk_version",
+        "driver_version",
+        "adcore_version",
+        "temperature",
+        "connected_signal",
+        "exposure_auto",
+        "gain_auto",
+        "wait_for_plugins",
+        "color_mode",
+        "data_type"
+    )
+
     # NOTE: There are A LOT of camera-specific EPICS features that are not added
     # here.
     pool_max_buffers = None
 
+    # More setup PVs that are not in CamBase
+    serial_number = ADComponent(EpicsSignalRO, "SerialNumber_RBV")
+    sdk_version = ADComponent(EpicsSignalRO, "SDKVersion_RBV")
+    driver_version = ADComponent(EpicsSignalRO, "DriverVersion_RBV")
+    adcore_version = ADComponent(EpicsSignalRO, "ADCoreVersion_RBV")
+
     # PV exists, but not used.
     num_exposures = ADComponent(EpicsSignalRO, "NumExposures")
+
+    # Connected signal
+    connected_signal = ADComponent(EpicsSignalRO, "AsynIO.CNCT")
 
     # Trigger
     trigger_source = ADComponent(
