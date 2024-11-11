@@ -40,7 +40,7 @@ def make_analog_outputs(num_aos: int):
     """
     defn = {}
     for n in range(num_aos):
-        defn[f"ao{n}"] = (AnalogOutput, f"Ao{n}", {})
+        defn[f"ao{n}"] = (AnalogOutput, f"Ao{n}", dict(kind="normal"))
     return defn
 
 
@@ -71,10 +71,7 @@ class CustomLabJackT7(LabJackT7):
     # In the "default" BCDA setup, four IO channels (all CIO, #16-19) are
     # converted into analog outputs (thus now 6 DACs)
 
-    analog_outputs = DynamicDeviceComponent(
-        make_analog_outputs(6),
-        kind="normal"
-    )
+    analog_outputs = DynamicDeviceComponent(make_analog_outputs(6))
 
     digital_ios = DynamicDeviceComponent(
         make_digital_ios(list(range(0, 16)) + list(range(20, 23))),
