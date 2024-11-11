@@ -22,8 +22,8 @@ nanopositioner:
 
 ad_eiger1M:
   device: eiger1m
-  baseline: True
+  baseline: False
 
 xspress:
   device: vortex
-  baseline: True
+  baseline: False

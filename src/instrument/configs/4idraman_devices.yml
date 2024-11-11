@@ -15,3 +15,7 @@ ad_lightfield:
 ge_controller:
   device: [ge_apply, ge_release]
   baseline: [True, True]
+
+data_management:
+  device: [dm_experiment, dm_workflow]
+  baseline: [True, True]
