@@ -85,4 +85,4 @@ class CustomLabJackT7(LabJackT7):
 labjack_t7_1 = CustomLabJackT7("4idLabJackT7_1:", name="labjack_t7_1")
 labjack_4ida = CustomLabJackT7("4idaSoft:LJ:", name="labjack_4ida")
 for i in range(4):
-    getattr(labjack_4ida.analog_outputs, "ao0").kind = "normal"
+    getattr(labjack_4ida.analog_outputs, f"ao{i}").kind = "normal"
