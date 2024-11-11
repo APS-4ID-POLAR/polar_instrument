@@ -244,6 +244,7 @@ class VimbaDetector(Trigger, DetectorBase):
 
         self.hdf1.file_template.put(HDF1_NAME_FORMAT)
         self.hdf1.file_path.put(str(DEFAULT_FOLDER))
+        self.hdf1.create_directory.put(-2)
         self.hdf1.num_capture.put(0)
 
         self.hdf1.stage_sigs.pop("enable")
