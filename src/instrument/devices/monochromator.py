@@ -22,36 +22,63 @@ logger.info(__file__)
 class MonoFeedback(Device):
     """ Mono feedback reading """
 
-    readback = Component(EpicsSignalRO, 'mono_pid2.CVAL', kind='config',
-                         labels=('mono',))
-    setpoint = Component(EpicsSignal, 'mono_pid2.VAL', kind='config',
-                         put_complete=True, labels=('mono',))
-    onoff = Component(EpicsSignal, 'mono_pid2.FBON', kind='config',
-                      labels=('mono',), put_complete=True)
+    readback = Component(EpicsSignalRO, 'mono_pid2.CVAL', kind='config')
+    setpoint = Component(
+        EpicsSignal,
+        'mono_pid2.VAL',
+        kind='config',
+        put_complete=True
+    )
+    onoff = Component(
+        EpicsSignal,
+        'mono_pid2.FBON',
+        kind='config',
+        put_complete=True
+    )
 
 
 class KohzuPositioner(PVPositioner):
 
-    readback = FormattedComponent(EpicsSignalRO, "{prefix}{_readback_pv}",
-                                  kind="hinted", auto_monitor=True)
-    setpoint = FormattedComponent(EpicsSignal, "{prefix}{_setpoint_pv}",
-                                  kind="normal", put_complete=True)
+    readback = FormattedComponent(
+        EpicsSignalRO,
+        "{prefix}{_readback_pv}",
+        kind="hinted",
+        auto_monitor=True
+    )
+    setpoint = FormattedComponent(
+        EpicsSignal,
+        "{prefix}{_setpoint_pv}",
+        kind="normal",
+        put_complete=True
+    )
 
-    stop_theta = FormattedComponent(EpicsSignal, "{_theta_pv}.STOP",
-                                    kind="omitted")
-    stop_y = FormattedComponent(EpicsSignal, "{_y_pv}.STOP",
-                                kind="omitted")
+    stop_theta = FormattedComponent(
+        EpicsSignal, "{_theta_pv}.STOP", kind="omitted"
+    )
+    stop_y = FormattedComponent(EpicsSignal, "{_y_pv}.STOP", kind="omitted")
 
-    actuate = Component(EpicsSignal, "KohzuPutBO", put_complete=True,
-                        kind="omitted")
+    actuate = Component(
+        EpicsSignal, "KohzuPutBO", put_complete=True, kind="omitted"
+    )
     actuate_value = 1
 
     done = Component(EpicsSignalRO, "KohzuMoving", kind="omitted")
     done_value = 0
 
-    def __init__(self, prefix, *, limits=None, readback_pv="", setpoint_pv="",
-                 name=None, read_attrs=None, configuration_attrs=None,
-                 parent=None, egu="", **kwargs):
+    def __init__(
+        self,
+        prefix,
+        *,
+        limits=None,
+        readback_pv="",
+        setpoint_pv="",
+        name=None,
+        read_attrs=None,
+        configuration_attrs=None,
+        parent=None,
+        egu="",
+        **kwargs
+    ):
 
         self._setpoint_pv = setpoint_pv
         self._readback_pv = readback_pv
@@ -65,7 +92,8 @@ class KohzuPositioner(PVPositioner):
         self._y_pv = get_motor_pv("Y")
 
         super().__init__(
-            prefix, limits=limits, name=name, read_attrs=read_attrs,
+            prefix,
+            limits=limits, name=name, read_attrs=read_attrs,
             configuration_attrs=configuration_attrs, parent=parent, egu=egu,
             **kwargs
         )
@@ -119,6 +147,8 @@ class Monochromator(KohzuSeqCtl_Monochromator):
         KohzuPositioner, "", readback_pv="BraggThetaRdbkAO",
         setpoint_pv="BraggThetaAO"
     )
+
+    theta_motor = Component(EpicsMotor, 'm1', labels=('motor',))
 
     y1 = None
     crystal_select = Component(EpicsMotor, 'm2', labels=('motor',))
