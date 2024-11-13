@@ -1,6 +1,6 @@
-# from .scaler_4idCTR8 import scaler_ctr8 as scaler
-from .simulated_scaler import scaler_sim as scaler
-from ..utils import logger
+from .simulated_scaler import scaler_sim
+from ..utils.oregistry_setup import oregistry
+from ..utils._logging_setup import logger
 logger.info(__file__)
 
 __all__ = ['counters']
@@ -25,11 +25,12 @@ class CountersClass:
     def __init__(self):
         super().__init__()
         # This will hold the devices instances.
-        self._default_scaler = scaler
+        self._default_scaler = scaler_sim
         self._dets = [self._default_scaler]
-        self._mon = scaler.monitor
+        self._mon = scaler_sim.monitor
         self._extra_devices = []
-        self._default_scaler = scaler
+        self._default_scaler = scaler_sim
+        # self._available_scalers = [scaler_sim, scaler_ctr8]
 
     def __repr__(self):
 
@@ -105,12 +106,18 @@ class CountersClass:
         self.monitor_counts = counts
 
     @property
+    def available_scalers(self):
+        return [device.name for device in oregistry.findall("scaler")]
+
+    @property
     def default_scaler(self):
         return self._default_scaler
 
     @default_scaler.setter
     def default_scaler(self, value):
-        available = {0: scaler}  # TODO: change this for names.
+        available = {
+            i: scaler for i, scaler in enumerate(oregistry.findall("scaler"))
+        }
         if value is not None:
             if value in [item for _, item in available.items()]:
                 self._default_scaler = value
