@@ -28,7 +28,10 @@ def get_devices(label):
     table = {"Ophyd name": [], "PV prefix": [], "Label": []}
     for obj in objs:
         table["Ophyd name"].append(obj.name)
-        table["PV prefix"].append(obj.prefix)
+        if getattr(obj, "prefix", None):
+            table["PV prefix"].append(obj.prefix)
+        else:
+            table["PV prefix"].append("-None-")
         table["Label"].append(obj._ophyd_labels_)
 
     print(Table(table).reST(fmt="grid"))
