@@ -273,6 +273,9 @@ class VimbaDetector(Trigger, DetectorBase):
                 "hinted" if i in rois else "normal"
             )
 
+    def plot_allrois(self):
+        self.plot_select([1, 2, 3, 4])
+
     def plot_roi1(self):
         self.plot_select([1])
 
