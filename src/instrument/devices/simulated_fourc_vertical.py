@@ -5,13 +5,11 @@ Simulated fourc
 __all__ = ['fourc']
 
 from ophyd import Component, PseudoSingle, Kind, Signal, EpicsMotor
-from ..utils.run_engine import sd
 import gi
 gi.require_version('Hkl', '5.0')
 # MUST come before `import hkl`
 from hkl.geometries import E4CV
-from hkl.user import select_diffractometer
-from ..utils import logger
+from ..utils._logging_setup import logger
 logger.info(__file__)
 
 
@@ -53,5 +51,3 @@ class FourCircleDiffractometer(E4CV):
 
 
 fourc = FourCircleDiffractometer("4idsoftmotors:", name='fourc')
-# select_diffractometer(fourc)
-sd.baseline.append(fourc)

@@ -3,24 +3,18 @@ ophyd-related setup
 ===================
 
 .. autosummary::
-    ~oregistry
     ~set_control_layer
     ~set_timeouts
 """
 
-import logging
-
 import ophyd
 from ophyd.signal import EpicsSignalBase
-from ophydregistry import Registry
-
 from .config import iconfig
-
-logger = logging.getLogger(__name__)
+from ._logging_setup import logger
 logger.info(__file__)
 
 DEFAULT_CONTROL_LAYER = "PyEpics"
-DEFAULT_TIMEOUT = 60  # default used next...
+DEFAULT_TIMEOUT = 15  # default used next...
 ophyd_config = iconfig.get("OPHYD", {})
 
 
@@ -54,11 +48,5 @@ def set_timeouts():
             write_timeout=timeouts.get("PV_WRITE", DEFAULT_TIMEOUT),
             connection_timeout=iconfig.get("PV_CONNECTION", DEFAULT_TIMEOUT),
         )
-
-
-set_control_layer()
-set_timeouts()  # MUST happen before ANY EpicsSignalBase (or subclass) is created.
-
-# oregistry = Registry(auto_register=True)
-oregistry = None
-"""Registry of all ophyd-style Devices and Signals."""
+    else:
+        logger.warning("Not setting up the timeouts.")

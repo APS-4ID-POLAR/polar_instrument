@@ -10,7 +10,6 @@ from pandas import DataFrame
 from bluesky.plan_stubs import mv, rd, trigger, checkpoint, sleep
 from numpy import array, where, round, linspace, polyfit, poly1d
 from ..utils import logger
-from ..utils.run_engine import sd
 logger.info(__file__)
 
 
@@ -280,10 +279,10 @@ class LocalPreAmp(SRS570_PreAmplifier):
 
 
 preamp1 = LocalPreAmp(
-    '4tst:A1', name="preamp1", labels=('preamp', 'detectors',)
+    '4tst:A1', name="preamp1", labels=('preamp', 'detector',)
 )
 preamp2 = LocalPreAmp(
-    '4tst:A2', name="preamp2", labels=('preamp', 'detectors',)
+    '4tst:A2', name="preamp2", labels=('preamp', 'detector',)
 )
 
 preamp1.offset_fine._string = False
@@ -294,5 +293,3 @@ for pa in [preamp1, preamp2]:
         "offset_fine set_all offset_value offset_unit offset_fine"
     ).split():
         getattr(pa, item).put_complete = True
-
-    sd.baseline.append(pa)

@@ -1,0 +1,13 @@
+# 4ID-A setup
+
+scaler_4idCTR8:
+  device: scaler_ctr8
+  baseline: True
+
+usb_ctr8:
+  device: ctr8
+  baseline: True
+
+4idb_camera:
+  device: flag_camera_4idb
+  baseline: False

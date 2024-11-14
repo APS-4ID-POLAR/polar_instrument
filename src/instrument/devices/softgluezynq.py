@@ -7,7 +7,6 @@ __all__ = ['sgz']
 from ophyd import Component, Device, EpicsSignal, EpicsSignalRO, DynamicDeviceComponent
 from collections import OrderedDict
 from bluesky.plan_stubs import mv
-from ..utils.run_engine import sd
 from ..utils import logger
 logger.info(__file__)
 
@@ -23,26 +22,34 @@ def _io_fields(num=16):
 def _buffer_fields(num=4):
     defn = OrderedDict()
     for i in range(1, num+1):
-        defn[f"in{i}"] = (SoftGlueSignal, f"SG:BUFFER-{i}_IN", {"kind": "config"})
-        defn[f"out{i}"] = (SoftGlueSignal, f"SG:BUFFER-{i}_OUT", {"kind": "config"})
+        defn[f"in{i}"] = (
+            SoftGlueSignal, f"SG:BUFFER-{i}_IN", {"kind": "config"}
+        )
+        defn[f"out{i}"] = (
+            SoftGlueSignal, f"SG:BUFFER-{i}_OUT", {"kind": "config"}
+        )
     return defn
 
 
 def _dma_fields(num=8, first_letter="I"):
     defn = OrderedDict()
-    defn["enable"] = (EpicsSignal, "1acquireDmaEnable", {"kind":"config"})
-    defn["scan"] = (EpicsSignal, "1acquireDma.SCAN", {"kind":"config"})
-    defn["read_button"] = (EpicsSignal, "1acquireDma.PROC", {"kind":"omitted"})
-    defn["clear_button"] = (EpicsSignal, "1acquireDma.D", {"kind":"omitted"})
-    defn["clear_buffer"] = (EpicsSignal, "1acquireDma.F", {"kind":"omitted"})
-    defn["words_in_buffer"] = (EpicsSignalRO, "1acquireDma.VALJ", {"kind":"config"})
-    defn["events"] = (EpicsSignalRO, "1acquireDma.VALI", {"kind":"config"})
+    defn["enable"] = (EpicsSignal, "1acquireDmaEnable", {"kind": "config"})
+    defn["scan"] = (EpicsSignal, "1acquireDma.SCAN", {"kind": "config"})
+    defn["read_button"] = (EpicsSignal, "1acquireDma.PROC", {"kind": "omitted"})
+    defn["clear_button"] = (EpicsSignal, "1acquireDma.D", {"kind": "omitted"})
+    defn["clear_buffer"] = (EpicsSignal, "1acquireDma.F", {"kind": "omitted"})
+    defn["words_in_buffer"] = (
+        EpicsSignalRO, "1acquireDma.VALJ", {"kind": "config"}
+    )
+    defn["events"] = (EpicsSignalRO, "1acquireDma.VALI", {"kind": "config"})
     for i in range(1, num+1):
         defn[f"channel_{i}_name"] = (
             EpicsSignal, f"1s{i}name", {"kind": "config"}
         )
         defn[f"channel_{i}_scale"] = (
-            EpicsSignal, f"1acquireDma.{chr(ord(first_letter)+i-1)}", {"kind": "config"}
+            EpicsSignal,
+            f"1acquireDma.{chr(ord(first_letter)+i-1)}",
+            {"kind": "config"}
         )
     return defn
 
@@ -219,13 +226,11 @@ class SoftGlueZynqDevice(Device):
         self.up_counter_gate_on.clock.signal.set("gateTrigger*").wait(timeout)
         self.up_counter_gate_on.reset.signal.set("resetCnters").wait(timeout)
 
-
         logger.info("Setting up outputs.")
 
         self.io.fo1.signal.set("gateTrigger").wait(timeout)
         self.io.fo15.signal.set("ckInt").wait(timeout)
         self.io.fo16.signal.set("reset").wait(timeout)
-
 
         logger.info("Setting up DMA transfer.")
 
@@ -243,5 +248,5 @@ class SoftGlueZynqDevice(Device):
         self.gate_trigger.width.set(500000).wait(timeout)
 
 
-sgz = SoftGlueZynqDevice('4idIF:', name='sgz')
-sd.baseline.append(sgz)
+sgz = SoftGlueZynqDevice('4idIF:', name='sgz', labels=("detector",))
+# sd.baseline.append(sgz)

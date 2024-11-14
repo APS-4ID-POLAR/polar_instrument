@@ -6,13 +6,12 @@ __all__ = ["ctr8"]
 
 from apstools.devices import MeasCompCtr
 from ..utils import logger
-from ..utils.run_engine import sd
 logger.info(__file__)
 
 
 class CustomMeasCompCtr(MeasCompCtr):
 
-    #TODO: We don't have everything setup yet
+    # TODO: We don't have everything setup yet
 
     long_in = None
 
@@ -46,5 +45,6 @@ class CustomMeasCompCtr(MeasCompCtr):
     binary_direction_8 = None
 
 
-ctr8 = CustomMeasCompCtr("4idCTR8_1:", name="ctr8")
-sd.baseline.append(ctr8)
+ctr8 = CustomMeasCompCtr(
+    "4idCTR8_1:", name="ctr8", labels=("detector", "scaler")
+)

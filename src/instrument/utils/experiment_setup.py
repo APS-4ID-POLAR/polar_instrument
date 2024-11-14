@@ -20,6 +20,7 @@ from apstools.utils import (
 from dm import ObjectNotFound, DmException
 from os import chdir
 from pathlib import Path
+from ..callbacks.spec_data_file_writer import specwriter
 from ..devices.data_management import dm_experiment
 from .dm_utils import (
     get_esaf_info,
@@ -57,6 +58,8 @@ class ExperimentClass:
 
     sample = None
     file_base_name = None
+
+    spec_file = None
 
     # The experiment folder is the base_experiment_path / sample.
     @property
@@ -98,6 +101,7 @@ class ExperimentClass:
         output += f"Experiment name: {self.experiment_name}\n"
         output += f"Base experiment folder: {self.base_experiment_path}\n"
         output += f"Current experiment folder: {self.experiment_path}\n"
+        output += f"Spec file name: {self.spec_file}\n"
 
         _id = RE.md.get('scan_id', None)
         _id = _id + 1 if isinstance(_id, int) else None
@@ -306,6 +310,12 @@ class ExperimentClass:
                 f"{RE.md['scan_id'] + 1}."
             )
 
+    def start_specwriter(self):
+        suffix = specwriter.make_default_filename()
+        fname = self.experiment_path / f"{self.sample}_{suffix}"
+        specwriter.newfile(fname)
+        self.spec_file = specwriter.spec_filename.name
+
     def load_params_from_bluesky(self):
         # TODO!!!!
         # for key in (
@@ -382,6 +392,8 @@ class ExperimentClass:
         self.base_name_input(base_name)
         self.scan_number_input(reset_scan_id)
 
+        self.start_specwriter()
+
         self.save_params_to_yaml()
 
         print(self.__repr__())
@@ -413,6 +425,7 @@ class ExperimentClass:
         self.setup_path()
         self.scan_number_input(reset_scan_id)
         self.base_name_input(base_name)
+        self.start_specwriter()
 
     def __call__(
             self,

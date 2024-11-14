@@ -28,5 +28,3 @@ full_cat = _cat
 """Databroker catalog object, receives new data from ``RE``."""
 
 logger.info("Databroker catalog: %s", full_cat.name)
-
-

@@ -15,7 +15,8 @@ import h5py
 from apstools.callbacks import NXWriterAPS
 from numpy import array
 from datetime import datetime
-from ..utils import iconfig, logger
+from ..utils.config import iconfig
+from ..utils._logging_setup import logger
 
 # from ..framework.initialize import RE
 logger.info(__file__)
@@ -104,14 +105,15 @@ class MyNXWriter(NXWriterAPS):
                 ds.attrs["long_name"] = "epoch time (s)"
                 ds.attrs["target"] = ds.name
 
-                t_start = t[0]
-                iso = datetime.fromtimestamp(t_start).isoformat()
-                ds = subgroup.create_dataset("time", data=t - t_start)
-                ds.attrs["units"] = "s"
-                ds.attrs["long_name"] = "time since first data (s)"
-                ds.attrs["target"] = ds.name
-                ds.attrs["start_time"] = t_start
-                ds.attrs["start_time_iso"] = iso
+                if len(t) > 0:
+                    t_start = t[0]
+                    iso = datetime.fromtimestamp(t_start).isoformat()
+                    ds = subgroup.create_dataset("time", data=t - t_start)
+                    ds.attrs["units"] = "s"
+                    ds.attrs["long_name"] = "time since first data (s)"
+                    ds.attrs["target"] = ds.name
+                    ds.attrs["start_time"] = t_start
+                    ds.attrs["start_time_iso"] = iso
 
             # link images to parent names
             for k in group:

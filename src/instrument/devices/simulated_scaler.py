@@ -3,11 +3,10 @@
 Scalers
 """
 
-__all__ = ['scaler']
+__all__ = ['scaler_sim']
 
 from ophyd.scaler import ScalerCH
 from ophyd.signal import Signal
-from ..utils.run_engine import sd
 from ophyd import Kind, Component
 import time
 
@@ -200,11 +199,9 @@ class LocalScalerCH(ScalerCH):
         self._monitor = channel
 
 
-scaler = LocalScalerCH(
-    #'4idsoftmotors:scaler1', name='scaler', labels=('detectors',)
-    '4tst:scaler1', name='scaler', labels=('detectors',)
+scaler_sim = LocalScalerCH(
+    '4idsoftmotors:scaler1', name='scaler_sim', labels=('detector', 'scaler')
 )
-scaler.monitor = 'Time'
-scaler.select_read_channels()
-scaler.select_plot_channels()
-sd.baseline.append(scaler)
+scaler_sim.monitor = 'Time'
+scaler_sim.select_read_channels()
+scaler_sim.select_plot_channels()

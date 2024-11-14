@@ -15,13 +15,12 @@ __all__ = """
 """.split()
 
 import datetime
-import logging
 import pathlib
 
 import apstools.callbacks
 import apstools.utils
+from ..utils._logging_setup import logger
 
-logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 from ..utils.config import iconfig  # noqa
