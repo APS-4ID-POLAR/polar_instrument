@@ -146,7 +146,9 @@ class Monochromator(KohzuSeqCtl_Monochromator):
     theta = Component(EpicsMotor, 'm1', labels=('motor',))
 
     theta_kohzu_screen = Component(
-        KohzuPositioner, "", readback_pv="BraggThetaRdbkAO",
+        KohzuPositioner,
+        "",
+        readback_pv="BraggThetaRdbkAO",
         setpoint_pv="BraggThetaAO"
     )
 
