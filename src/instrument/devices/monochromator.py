@@ -143,12 +143,12 @@ class Monochromator(KohzuSeqCtl_Monochromator):
         KohzuPositioner, "", readback_pv="BraggERdbkAO", setpoint_pv="BraggEAO"
     )
 
-    theta = Component(
+    theta = Component(EpicsMotor, 'm1', labels=('motor',))
+
+    theta_kohzu_screen = Component(
         KohzuPositioner, "", readback_pv="BraggThetaRdbkAO",
         setpoint_pv="BraggThetaAO"
     )
-
-    theta_motor = Component(EpicsMotor, 'm1', labels=('motor',))
 
     y1 = None
     crystal_select = Component(EpicsMotor, 'm2', labels=('motor',))
