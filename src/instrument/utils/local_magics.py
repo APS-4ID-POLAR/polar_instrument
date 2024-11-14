@@ -57,6 +57,13 @@ class LocalMagics(BlueskyMagics):
     @line_magic
     def wa(self, line):
         "List positioner info. 'wa' stands for 'where all'."
+        # NOTE: This is needed here because of a bug in the bluesky
+        # implementation. A PseudoPositioner has a `.position` that is
+        # converted into a numpy.array by numpy.round (line 156 here), and the
+        # numpy array cannot by formatted using the string format. This raises
+        # the error "unsupported format string passed to
+        # numpy.ndarray.__format__". Line 160 was added to mitigate this.
+
         # If the deprecated BlueskyMagics.positioners list is non-empty, it has
         # been configured by the user, and we must revert to the old behavior.
         if type(self).positioners:
