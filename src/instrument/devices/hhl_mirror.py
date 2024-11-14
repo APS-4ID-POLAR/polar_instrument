@@ -13,19 +13,19 @@ class ToroidalMirror(Device):
     """ Beamline toroidal mirror components. """
 
     # Motors
-    y = Component(EpicsMotor, 'm1', labels=('motor'))
-    x1 = Component(EpicsMotor, 'm2', labels=('motor'))
-    x2 = Component(EpicsMotor, 'm3', labels=('motor'))
-    us_bend = Component(EpicsMotor, 'm4', labels=('motor'))
-    ds_bend = Component(EpicsMotor, 'm5', labels=('motor'))
+    y = Component(EpicsMotor, 'm1', labels=('motor',))
+    x1 = Component(EpicsMotor, 'm2', labels=('motor',))
+    x2 = Component(EpicsMotor, 'm3', labels=('motor',))
+    us_bend = Component(EpicsMotor, 'm4', labels=('motor',))
+    ds_bend = Component(EpicsMotor, 'm5', labels=('motor',))
 
     # Combined motions
-    lateral = Component(EpicsMotor, 'pm1', labels=('motor'))
-    pitch = Component(EpicsMotor, 'pm2', labels=('motor'))
+    lateral = Component(EpicsMotor, 'pm1', labels=('motor',))
+    pitch = Component(EpicsMotor, 'pm2', labels=('motor',))
     # TODO: this fine pitch is in 4ida?
     # fine_pitch = Component(EpicsMotor, 'pm1', labels=('motor'))
-    curvature = Component(EpicsMotor, 'pm3', labels=('motor'))
-    elipticity = Component(EpicsMotor, 'pm4', labels=('motor'))
+    curvature = Component(EpicsMotor, 'pm3', labels=('motor',))
+    elipticity = Component(EpicsMotor, 'pm4', labels=('motor',))
 
     # Other parameters
     stripe = Component(EpicsSignal, 'stripe', string=True)
