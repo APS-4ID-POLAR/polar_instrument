@@ -20,6 +20,15 @@ class EnergySignal(Signal):
     Here it is setup so that the monochromator is the beamline energy, but note
     that this can be changed.
     """
+
+    @property
+    def position(self):
+        return mono.energy.position
+
+    @property
+    def limits(self):
+        return mono.energy.limits
+
     def get(self, **kwargs):
         """ Uses the mono as the standard beamline energy. """
         self._readback = mono.energy.readback.get(**kwargs)
