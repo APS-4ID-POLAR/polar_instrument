@@ -105,7 +105,7 @@ def plotselect(detector=None):
     """
     scaler=scaler_ctr8
     scalers = scaler.channels_name_map.items()
-    eiger = eiger.hints
+    #eiger = eiger.hints
     if detector is None:
         plotted_scalers = scaler.hints["fields"]
         print("{:>4}{:>12}{:>4}".format("#", "Detector", " "))
