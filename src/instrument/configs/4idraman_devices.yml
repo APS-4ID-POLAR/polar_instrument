@@ -1,0 +1,21 @@
+# 4ID-A setup
+
+laser_sample_stage:
+  device: [sx, sy, sz]
+  baseline: True
+
+ventus_laser:
+  device: laser
+  baseline: True
+
+ad_lightfield:
+  device: spectrometer
+  baseline: True
+
+ge_controller:
+  device: [ge_apply, ge_release]
+  baseline: [True, True]
+
+data_management:
+  device: [dm_experiment, dm_workflow]
+  baseline: [True, True]

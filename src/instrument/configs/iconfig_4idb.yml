@@ -1,0 +1,31 @@
+# Configuration for the Bluesky instrument package.
+
+# identify the version of this iconfig.yml file
+ICONFIG_VERSION: 2.0.0
+
+# Add additional configuration for use with your instrument.
+STATION: &station 4idb
+
+### The short name for the databroker catalog.
+DATABROKER_CATALOG: &databroker_catalog 4id_polar
+
+### RunEngine configuration
+RUN_ENGINE:
+    DEFAULT_METADATA:
+        beamline_id: 4id-polar
+        instrument_name: *station
+        proposal_id: internal
+        databroker_catalog: *databroker_catalog
+
+    ### EPICS PV to use for the `scan_id`.
+    ### Default: `RE.md["scan_id"]` (not using an EPICS PV)
+    # SCAN_ID_PV: f"{IOC}bluesky_scan_id"
+
+    ### Directory to "autosave" the RE.md dictionary (uses PersistentDict).
+    ### Default: HOME/.config/Bluesky_RunEngine_md'
+    MD_PATH: /home/beams/POLAR/.config/Bluesky_RunEngine_md_4idb
+
+    ### The progress bar is nice to see,
+    ### except when it clutters the output in Jupyter notebooks.
+    ### Default: True
+    USE_PROGRESS_BAR: true

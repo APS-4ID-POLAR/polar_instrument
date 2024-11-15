@@ -21,7 +21,7 @@ from ..utils._logging_setup import logger
 from ..utils.config import iconfig
 logger.info(__file__)
 
-__all__ = ["load_eiger1m"]
+__all__ = ["load_eiger1m", "eiger1m"]
 
 DEFAULT_FOLDER = Path(iconfig["AREA_DETECTOR"]["EIGER_1M"]["DEFAULT_FOLDER"])
 
@@ -29,7 +29,7 @@ HDF1_NAME_TEMPLATE = iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"]
 HDF1_FILE_EXTENSION = iconfig["AREA_DETECTOR"]["HDF5_FILE_EXTENSION"]
 HDF1_NAME_FORMAT = HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION
 
-MAX_NUM_IMAGES = 2**30
+MAX_NUM_IMAGES = 600000
 
 
 class TriggerTime(TriggerBase):
@@ -81,16 +81,21 @@ class TriggerTime(TriggerBase):
             self.cam.stage_sigs["num_images"] = 1
             self.cam.stage_sigs["num_exposures"] = 1
             # TODO: We may not need this.
-            self.cam.stage_sigs["num_triggers"] = int(1e6)
+            self.cam.stage_sigs["num_triggers"] = MAX_NUM_IMAGES
 
         elif trigger_type == "gate":
+
             # Stage signals
+            self.cam.stage_sigs["num_triggers"] = 1
+            # The num_triggers need to be the first in the Ordered dict! This is because
+            # in EPICS, if trigger_mode = External Gate, then cannot change the
+            # num_triggers.
+            self.cam.stage_sigs.move_to_end("num_triggers", last=False)
+
             self.cam.stage_sigs["trigger_mode"] = "External Gate"
             self.cam.stage_sigs["manual_trigger"] = "Disable"
             self.cam.stage_sigs["num_images"] = MAX_NUM_IMAGES
             self.cam.stage_sigs["num_exposures"] = 1
-            # TODO: We may not need this.
-            self.cam.stage_sigs.pop("num_triggers")
 
     def stage(self):
         if self._flysetup:
@@ -152,10 +157,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
     stats1 = ADComponent(StatsPlugin, "Stats1:", kind="normal")
     pva = ADComponent(PvaPlugin, "Pva1:")
 
-    hdf1 = ADComponent(
-        PolarHDF5Plugin,
-        "HDF1:"
-    )
+    hdf1 = ADComponent(PolarHDF5Plugin, "HDF1:")
 
     # Make this compatible with other detectors
     @property
@@ -188,6 +190,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.hdf1.autosave.put("off")
 
     def default_settings(self):
+
         self.cam.num_triggers.put(1)
         self.cam.manual_trigger.put("Disable")
         self.cam.trigger_mode.put("Internal Enable")
@@ -209,7 +212,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.stats1.total.kind = "hinted"
 
     def setup_images(
-            self, name_template, file_number, flyscan=False
+            self, base_path, name_template, file_number, flyscan=False
     ):
 
         self.hdf1.file_number.set(file_number).wait(timeout=10)
@@ -219,9 +222,18 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         # Changes the stage_sigs to the external trigger mode
         self._flysetup = flyscan
 
-        _, full_path, relative_path = self.hdf1.make_write_read_paths()
+        base_path = str(base_path) + f"/{self.name}/"
+        self.hdf1.file_path.set(base_path).wait(timeout=10)
+
+        _, full_path, relative_path = self.hdf1.make_write_read_paths(base_path)
 
         return Path(full_path), Path(relative_path)
+
+    @property
+    def save_image_flag(self):
+        _hdf1_auto = True if self.hdf1.autosave.get() == "on" else False
+        _hdf1_on = True if self.hdf1.enable.get() == "Enable" else False
+        return _hdf1_on or _hdf1_auto
 
 
 def load_eiger1m(prefix="4idEiger:"):
@@ -262,3 +274,6 @@ def load_eiger1m(prefix="4idEiger:"):
             _ = getattr(eiger1m.hdf1, component).get(use_monitor=False)
 
     return eiger1m
+
+
+eiger1m = Eiger1MDetector("4idEiger:", name="eiger1m", labels=("detector",))

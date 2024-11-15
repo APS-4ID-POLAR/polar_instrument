@@ -2,21 +2,23 @@
 Labjacks
 """
 
-__all__ = ["labjack"]
+__all__ = [
+    "labjack_t7_1",
+    "labjack_4ida"
+]
 
 from apstools.devices import LabJackT7
 from apstools.devices.labjack import (
-    make_analog_outputs, KIND_CONFIG_OR_NORMAL, DigitalIO, Output
+    KIND_CONFIG_OR_NORMAL, DigitalIO, Output
 )
 from ophyd import DynamicDeviceComponent, EpicsSignalRO, Component, EpicsSignal
-from ..session_logs import logger
-from ..framework import sd
+from ..utils._logging_setup import logger
 logger.info(__file__)
 
 
 class AnalogOutput(Output):
     description = Component(EpicsSignal, ".DESC", kind="config")
-    value = Component(EpicsSignal, "", kind="normal")
+    value = Component(EpicsSignal, "", kind="hinted")
 
     low_limit = Component(EpicsSignal, ".DRVL", kind="config")
     high_limit = Component(EpicsSignal, ".DRVH", kind="config")
@@ -38,7 +40,9 @@ def make_analog_outputs(num_aos: int):
     """
     defn = {}
     for n in range(num_aos):
-        defn[f"ao{n}"] = (AnalogOutput, f"Ao{n}", {})
+        defn[f"ao{n}"] = (
+            AnalogOutput, f"Ao{n}", dict(kind=KIND_CONFIG_OR_NORMAL)
+        )
     return defn
 
 
@@ -54,26 +58,39 @@ def make_digital_ios(channels_list: list):
     """
     defn = {}
     for n in channels_list:
-        defn[f"dio{n}"] = (DigitalIO, "", dict(ch_num=n))
+        defn[f"dio{n}"] = (
+            DigitalIO, "", dict(ch_num=n, kind=KIND_CONFIG_OR_NORMAL)
+        )
 
     # Add the digital word outputs
-    defn["dio"] = (EpicsSignalRO, "DIOIn", dict(kind="config"))
-    defn["fio"] = (EpicsSignalRO, "FIOIn", dict(kind="config"))
-    defn["eio"] = (EpicsSignalRO, "EIOIn", dict(kind="config"))
-    defn["cio"] = (EpicsSignalRO, "CIOIn", dict(kind="config"))
-    defn["mio"] = (EpicsSignalRO, "MIOIn", dict(kind="config"))
+    defn["dio"] = (EpicsSignalRO, "DIOIn", dict(kind=KIND_CONFIG_OR_NORMAL))
+    defn["fio"] = (EpicsSignalRO, "FIOIn", dict(kind=KIND_CONFIG_OR_NORMAL))
+    defn["eio"] = (EpicsSignalRO, "EIOIn", dict(kind=KIND_CONFIG_OR_NORMAL))
+    defn["cio"] = (EpicsSignalRO, "CIOIn", dict(kind=KIND_CONFIG_OR_NORMAL))
+    defn["mio"] = (EpicsSignalRO, "MIOIn", dict(kind=KIND_CONFIG_OR_NORMAL))
     return defn
 
 
 class CustomLabJackT7(LabJackT7):
-    # In the "default" BCDA setup, four IO channels (all CIO, #16-19) are converted
-    # into analog outputs (thus now 6 DACs)
+    # In the "default" BCDA setup, four IO channels (all CIO, #16-19) are
+    # converted into analog outputs (thus now 6 DACs)
 
     analog_outputs = DynamicDeviceComponent(
-        make_analog_outputs(6),
+        make_analog_outputs(6), kind=KIND_CONFIG_OR_NORMAL
+    )
+
+    digital_ios = DynamicDeviceComponent(
+        make_digital_ios(list(range(0, 16)) + list(range(20, 23))),
         kind=KIND_CONFIG_OR_NORMAL
     )
 
-    digital_ios = make_digital_ios(list(range(0, 16)) + list(range(20, 23)))
 
-labjack = CustomLabJackT7("4idLabJackT7_1:", name="labjack")
+labjack_t7_1 = CustomLabJackT7("4idLabJackT7_1:", name="labjack_t7_1")
+
+labjack_4ida = CustomLabJackT7("4idaSoft:LJ:", name="labjack_4ida")
+labjack_4ida.analog_outputs.kind = "normal"
+labjack_4ida.waveform_digitizer.kind = "omitted"
+labjack_4ida.digital_ios.kind = "omitted"
+labjack_4ida.analog_inputs.kind = "omitted"
+for i in range(4):
+    getattr(labjack_4ida.analog_outputs, f"ao{i}").kind = "normal"

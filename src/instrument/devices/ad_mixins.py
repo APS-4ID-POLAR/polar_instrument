@@ -1,7 +1,9 @@
 """ AD mixins """
 
 from ophyd import ADComponent, EpicsSignal, Signal, Component
-from ophyd.areadetector import EigerDetectorCam, Xspress3DetectorCam, EpicsSignalWithRBV
+from ophyd.areadetector import (
+    EigerDetectorCam, Xspress3DetectorCam, EpicsSignalWithRBV
+)
 from ophyd.areadetector.plugins import (
     PluginBase_V34,
     ImagePlugin_V34,
@@ -21,11 +23,8 @@ from itertools import count
 from time import sleep
 from collections import OrderedDict
 from pathlib import Path
-from .data_management import dm_experiment
-from ..utils.run_engine import RE
 from ..utils.config import iconfig
-from ..utils.dm_utils import dm_get_experiment_data_path
-from ..utils import logger
+from ..utils._logging_setup import logger
 logger.info(__file__)
 
 
@@ -49,10 +48,84 @@ class PvaPlugin(PluginMixin, PvaPlugin_V34):
 
 class ROIPlugin(PluginMixin, ROIPlugin_V34):
     """Remove property attribute found in AD IOCs now."""
+    _default_configuration_attrs = (
+        ROIPlugin_V34._default_configuration_attrs + (
+            "driver_version",
+            "data_type",
+            "color_mode",
+            "enable",
+            "enable_scale",
+            "scale",
+            "collapse_dims",
+            'dimensions',
+            'data_type_out',
+            'name_',
+            'roi_enable',
+            'bin_',
+            'min_xyz',
+            'size',
+            'reverse',
+        )
+    )
 
 
 class StatsPlugin(PluginMixin, StatsPlugin_V34):
     """Remove property attribute found in AD IOCs now."""
+    _default_configuration_attrs = (
+        StatsPlugin_V34._default_configuration_attrs + (
+            'array_size',
+            'blocking_callbacks',
+            'color_mode',
+            'data_type',
+            'dimensions',
+            'enable',
+            'driver_version',
+            'compute_statistics',
+            'bgd_width',
+            'compute_centroid',
+            'centroid_threshold',
+            'compute_profiles',
+            'profile_average',
+            'profile_centroid',
+            'profile_cursor',
+            'profile_size',
+            'profile_threshold',
+            'cursor',
+            'compute_histogram',
+            'hist_entropy',
+            'hist_max',
+            'hist_min',
+            'hist_size',
+            'histogram',
+            'hist_above',
+            'hist_below',
+            'histogram_x',
+        )
+    )
+
+    _default_read_attrs = (
+        StatsPlugin_V34._default_read_attrs + (
+            'max_value',
+            'max_xy.x',
+            'max_xy.y',
+            'mean_value',
+            'min_value',
+            'min_xy.x',
+            'min_xy.y',
+            'net',
+            'total',
+            'centroid.x',
+            'centroid.y',
+            'sigma_xy',
+            'sigma.x',
+            'sigma.y',
+            'orientation',
+            'kurtosis',
+            'skew',
+            'centroid_total',
+            'eccentricity',
+        )
+    )
 
 
 class CodecPlugin(PluginMixin, CodecPlugin_V34):
@@ -96,7 +169,9 @@ class EigerDetectorCam(CamMixin_V34, EigerDetectorCam):
 
 class VortexDetectorCam(CamMixin_V34, Xspress3DetectorCam):
     trigger_mode = Component(EpicsSignalWithRBV, "TriggerMode", kind="config")
-    erase_on_start = Component(EpicsSignal, "EraseOnStart", string=True, kind="config")
+    erase_on_start = Component(
+        EpicsSignal, "EraseOnStart", string=True, kind="config"
+    )
 
     # Removed
     offset = None
@@ -118,7 +193,8 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
                 ("num_capture", 0),
             ]
         )
-        # This is needed if you want to start bluesky and run a no-image scan first.
+        # This is needed if you want to start bluesky and run a no-image scan
+        # first.
         self._fn = None
         self._fp = None
         self._use_dm = USE_DM_PATH
@@ -137,28 +213,17 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
                 f"use_dm must be set to True or False, but {value} was entered."
             )
 
-    def make_write_read_paths(self):
+    def make_write_read_paths(self, path=None):
         # This will generate the folder name and the full path.
-        # - Folder is either determined by data management, or just use the one in
-        # EPICS.
-        # - File name uses everything from EPICS (template, base name and file number).
+        # - Folder is either determined by data management, or just use the one
+        # in EPICS.
+        # - File name uses everything from EPICS (template, base name and file
+        # number).
 
         # Setting up the path.
         # If not using DM, it will simply take the values from EPICS!!
-        if self.use_dm:
-            # Get the path name from data management.
-            path = Path(dm_get_experiment_data_path(dm_experiment.get()))
-            # But the IOC may not be able to direcly write to the DM folder.
-            if self._ioc_path_root:
-                rel_path = path.relative_to(DM_ROOT_PATH)
-                path = Path(self._ioc_path_root) / rel_path
-            # self.file_path.set(str(path)).wait(timeout=10)
-
-            # Add the sample name from metadata to the folder.
-            path /= RE.md["sample"]
-            path /= self.parent.name
-        else:
-            path = self.file_path.get()
+        if path is None:
+            path = Path(self.file_path.get())
 
         # Create full path based on EPICS file template - assumes some sort of
         # %s%s_5.5%d.h5 format
@@ -188,8 +253,8 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
 
             if isfile(full_path):
                 raise OSError(
-                    f"{full_path} already exists! Cannot overwrite it, so please "
-                    "change the file name."
+                    f"{full_path} already exists! Cannot overwrite it, so "
+                    "please change the file name."
                 )
 
             if not self.file_path_exists.get():
@@ -257,12 +322,47 @@ class PolarHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
     """
     Using the filename from EPICS.
     """
+    _default_configuration_attrs = HDF5Plugin._default_configuration_attrs + (
+            'auto_increment',
+            'auto_save',
+            'file_format',
+            'file_name',
+            'file_number',
+            'file_path',
+            'file_path_exists',
+            'file_template',
+            'file_write_mode',
+            'array_size',
+            'color_mode',
+            'data_type',
+            'dimensions',
+            'enable',
+            'plugin_type',
+            'compression',
+            'szip_num_pixels',
+            'store_attr',
+            'store_perform',
+            'zlevel',
+            'xml_file_name',
+            'swmr_active',
+            'swmr_cb_counter',
+            'swmr_mode',
+            'swmr_supported',
+            'driver_version',
+            'blosc_compressor',
+            'blosc_level',
+            'blosc_shuffle',
+            'autosave'
+    )
+    _default_read_attrs = HDF5Plugin._default_read_attrs + ('full_file_name',)
 
     autosave = ADComponent(Signal, value="off", kind="config")
 
     def __init__(self, *args, write_path_template="", **kwargs):
         # self.filestore_spec = "AD_EIGER_APSPolar"
-        super().__init__(*args, write_path_template=write_path_template, **kwargs)
+        super().__init__(
+            *args, write_path_template=write_path_template, **kwargs
+        )
         self.enable.subscribe(self._setup_kind)
 
     def _setup_kind(self, value, **kwargs):
@@ -286,7 +386,8 @@ def AD_plugin_primed_vortex(plugin):
     """
     Modification of the APS AD_plugin_primed for Vortex.
 
-    Uses the timestamp = 0 as a sign of an unprimed plugin. Not sure this is generic.
+    Uses the timestamp = 0 as a sign of an unprimed plugin. Not sure this is
+    generic.
     """
 
     return plugin.time_stamp.get() != 0

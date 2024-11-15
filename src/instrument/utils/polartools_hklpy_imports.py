@@ -46,7 +46,9 @@ from polartools.load_data import (
     show_meta,
     collect_meta,
     lookup_position,
-    load_catalog
+    load_catalog,
+    load_table,
+    load_hdf5_master
 )
 
 from polartools.pressure_calibration import (

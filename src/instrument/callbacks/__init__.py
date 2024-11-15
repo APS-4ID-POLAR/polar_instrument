@@ -8,4 +8,7 @@ if iconfig.get("NEXUS_DATA_FILES") is not None:
 if iconfig.get("SPEC_DATA_FILES") is not None:
     from .spec_data_file_writer import *  # noqa
 
-del iconfig
+# from dichro_plot import AutoDichroPlot
+# from dichro_stream import dichro, plot_dichro_settings, dichro_bec
+
+# del iconfig

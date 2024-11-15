@@ -79,4 +79,4 @@ class SixcPSI(E6C):
 sixcpsi = SixcPSI("", name="sixcpsi", engine="psi")
 
 select_diffractometer(psic)
-sd.baseline.append(psic)
+# sd.baseline.append(psic)
