@@ -23,7 +23,7 @@ from hkl.user import (
 
 from .run_engine import RE
 #from ..devices import counters
-from ..devices import polar, fourc, scaler, counters
+from ..devices import polar, fourc, scaler_ctr8, counters
 from ..utils import hkl_utils
 from inspect import getmembers, isfunction
 from polartools import (
@@ -83,12 +83,10 @@ def wm(*argv):
 
 def change_diffractometer(*args):
     _geom_ = current_diffractometer()
-    list = ["diffract", "fourc", "polar", "sixcpsi"]
+    list = ["fourc", "polar", "sixcpsi"]
     print("Available diffractometers {}".format(list))
     diff = input("Diffractometer ({}): ".format(_geom_.name)) or _geom_.name
-    if diff == "diffract":
-        select_diffractometer(diffract)
-    elif diff == "fourc":
+    if diff == "fourc":
         select_diffractometer(fourc)
     elif diff == "polar":
         select_diffractometer(polar)
@@ -105,6 +103,7 @@ def plotselect(detector=None):
     """
     Selects scalers plotted during scan
     """
+    scaler=scaler_ctr8
     scalers = scaler.channels_name_map.items()
     eiger = eiger.hints
     if detector is None:
@@ -146,6 +145,7 @@ def set_counting_time(time=None, monitor=False):
 
     Needs to be adapted to other detectors than scalers
     """
+    scaler = scaler_ctr8
     threshold = 500
     if time:
         if monitor:
