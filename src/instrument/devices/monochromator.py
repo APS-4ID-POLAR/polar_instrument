@@ -166,7 +166,7 @@ class Monochromator(KohzuSeqCtl_Monochromator):
     crystal_select = Component(EpicsMotor, 'm2', labels=('motor',))
 
     x2 = None
-    y2 = Component(EpicsSignal, 'm3', labels=('motor',))
+    y2 = Component(EpicsMotor, 'm3', labels=('motor',))
     z2 = Component(EpicsSignalRO, 'Zdummy', labels=('motor',))
 
     thf2 = Component(EpicsMotor, 'm4', labels=('motor',))
