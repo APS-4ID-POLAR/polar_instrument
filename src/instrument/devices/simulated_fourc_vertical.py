@@ -36,7 +36,7 @@ class FourCircleDiffractometer(E4CV):
 
     # Energy
     energy = Component(Signal, value=8)
-    energy_update_calc_flag = Component(Signal, value=1)
+    energy_update_calc_flag = Component(Signal, value=1) 
     energy_offset = Component(Signal, value=0)
 
     # TODO: This is needed to prevent busy plotting.
