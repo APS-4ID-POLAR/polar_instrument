@@ -20,7 +20,7 @@ class ToroidalMirror(Device):
     ds_bend = Component(EpicsMotor, 'm5', labels=('motor',))
 
     # Combined motions
-    lateral = Component(EpicsMotor, 'pm1', labels=('motor',))
+    x = Component(EpicsMotor, 'pm1', labels=('motor',))
     pitch = Component(EpicsMotor, 'pm2', labels=('motor',))
     # TODO: this fine pitch is in 4ida?
     # fine_pitch = Component(EpicsMotor, 'pm1', labels=('motor'))

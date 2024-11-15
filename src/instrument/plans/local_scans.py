@@ -214,9 +214,9 @@ def setup_nxwritter(_base_path, _master_fullpath, _rel_dets_paths):
 
 
 def count(
-        detectors=None,
         num=1,
         time=None,
+        detectors=None,
         delay=None,
         md=None,
         per_shot=None,
@@ -229,15 +229,15 @@ def count(
     cannot be set here, as it is used for dichro scans.
     Parameters
     ----------
-    detectors : list, optional
-        List of 'readable' objects. If None, will use the detectors defined in
-        `counters.detectors`.
     num : integer, optional
         number of readings to take; default is 1
         If None, capture data until canceled
     time : float, optional
         If a number is passed, it will modify the counts over time. All
         detectors need to have a .preset_monitor signal.
+    detectors : list, optional
+        List of 'readable' objects. If None, will use the detectors defined in
+        `counters.detectors`.
     delay : iterable or scalar, optional
         Time delay in seconds between successive readings; default is 0.
     md : dict, optional

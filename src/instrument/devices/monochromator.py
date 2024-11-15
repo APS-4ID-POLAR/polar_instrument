@@ -18,6 +18,8 @@ from ophyd.status import Status
 from ..utils._logging_setup import logger
 logger.info(__file__)
 
+KOHZU_SETTLE_TIME = 0.1
+
 
 class MonoFeedback(Device):
     """ Mono feedback reading """
@@ -135,26 +137,36 @@ class Monochromator(KohzuSeqCtl_Monochromator):
     """ Tweaks from apstools mono """
 
     wavelength = Component(
-        KohzuPositioner, "", readback_pv="BraggLambdaRdbkAO",
-        setpoint_pv="BraggLambdaAO"
+        KohzuPositioner,
+        "",
+        readback_pv="BraggLambdaRdbkAO",
+        setpoint_pv="BraggLambdaAO",
+        settle_time=KOHZU_SETTLE_TIME
     )
 
     energy = Component(
-        KohzuPositioner, "", readback_pv="BraggERdbkAO", setpoint_pv="BraggEAO"
+        KohzuPositioner,
+        "",
+        readback_pv="BraggERdbkAO",
+        setpoint_pv="BraggEAO",
+        settle_time=KOHZU_SETTLE_TIME
     )
 
-    theta = Component(
-        KohzuPositioner, "", readback_pv="BraggThetaRdbkAO",
-        setpoint_pv="BraggThetaAO"
-    )
+    theta = Component(EpicsMotor, 'm1', labels=('motor',))
 
-    theta_motor = Component(EpicsMotor, 'm1', labels=('motor',))
+    theta_kohzu_screen = Component(
+        KohzuPositioner,
+        "",
+        readback_pv="BraggThetaRdbkAO",
+        setpoint_pv="BraggThetaAO",
+        settle_time=KOHZU_SETTLE_TIME
+    )
 
     y1 = None
     crystal_select = Component(EpicsMotor, 'm2', labels=('motor',))
 
     x2 = None
-    y2 = Component(EpicsSignal, 'm3', labels=('motor',))
+    y2 = Component(EpicsMotor, 'm3', labels=('motor',))
     z2 = Component(EpicsSignalRO, 'Zdummy', labels=('motor',))
 
     thf2 = Component(EpicsMotor, 'm4', labels=('motor',))
