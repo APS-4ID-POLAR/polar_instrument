@@ -106,6 +106,7 @@ def plotselect(detector=None):
     Selects scalers plotted during scan
     """
     scalers = scaler.channels_name_map.items()
+    eiger = eiger.hints
     if detector is None:
         plotted_scalers = scaler.hints["fields"]
         print("{:>4}{:>12}{:>4}".format("#", "Detector", " "))
@@ -116,6 +117,8 @@ def plotselect(detector=None):
                 det_list.append(num)
             else:
                 print("{:>4}{:>15}".format(num, item[0]))
+        for item in eiger:
+            
         dets = input("Scalers to be plotted {}: ".format(det_list)) or det_list
         if isinstance(dets, str):
             dets = [int(x) for x in dets.split(",")]    
