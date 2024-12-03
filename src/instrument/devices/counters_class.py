@@ -234,5 +234,27 @@ class CountersClass:
                 raise TypeError("counts need to be a number, but "
                                 f"{type(value)} was entered.")
 
+    @property
+    def _available_detectors(self):
+        return oregistry.find_all("detector")
+    
+    @property
+    def detectors_channels(self):
+        channels = {}
+        for det in self._available_detectors:
+            # det.get_plotting_options will return a list of available plotting
+            # options.
+            for option in getattr(det, "get_plotting_options", []):
+                channels[option] = det
+        
+        return channels
+
+    def select_plotting(self, selection):
+        for item in selection:
+            det = self.detectors_channels[item]
+            if det not in self.detectors:
+                self.detectors += [det]
+            # det.select_plotting(item) selects that channel to plot.
+            getattr(det, "select_plotting")(item)
 
 counters = CountersClass()
