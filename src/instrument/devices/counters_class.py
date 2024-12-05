@@ -237,7 +237,7 @@ class CountersClass:
     @property
     def _available_detectors(self):
         return oregistry.find_all("detector")
-    
+
     @property
     def detectors_channels(self):
         channels = {}
@@ -246,7 +246,7 @@ class CountersClass:
             # options.
             for option in getattr(det, "get_plotting_options", []):
                 channels[option] = det
-        
+
         return channels
 
     def select_plotting(self, selection):
@@ -256,5 +256,6 @@ class CountersClass:
                 self.detectors += [det]
             # det.select_plotting(item) selects that channel to plot.
             getattr(det, "select_plotting")(item)
+
 
 counters = CountersClass()
