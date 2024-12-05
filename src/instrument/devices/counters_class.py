@@ -1,3 +1,4 @@
+from pandas import DataFrame
 from .simulated_scaler import scaler_sim
 from ..utils.oregistry_setup import oregistry
 from ..utils._logging_setup import logger
@@ -239,23 +240,31 @@ class CountersClass:
         return oregistry.find_all("detector")
 
     @property
-    def detectors_channels(self):
-        channels = {}
+    def detectors_plot_options(self):
+        table = dict(detectors=[], channels=[])
         for det in self._available_detectors:
-            # det.get_plotting_options will return a list of available plotting
-            # options.
-            for option in getattr(det, "get_plotting_options", []):
-                channels[option] = det
+            # det.get_plot_options will return a list of available
+            # plotting options.
+            _options = getattr(det, "get_plot_options", [])
+            table["channels"] += _options
+            table["detectors"] += [det.name for _ in range(len(_options))]
 
-        return channels
+        # This will be a table with all the options, it will have the advantage
+        # that it can be indexed.
+        return DataFrame(table)
 
-    def select_plotting(self, selection):
-        for item in selection:
-            det = self.detectors_channels[item]
+    def select_plot_channels(self, selection):
+        # selection will be the numbers.
+        for ind in selection:
+            det = self.detectors_plot_options.loc[ind]["detectors"]
             if det not in self.detectors:
                 self.detectors += [det]
             # det.select_plotting(item) selects that channel to plot.
-            getattr(det, "select_plotting")(item)
+
+            channel = self.detectors_plot_options.loc[ind]["channels"]
+            # TODO: this may be unnecessary. Maybe we can use oregistry to get
+            # the specific item from the name?
+            getattr(det, "select_plot")(channel)
 
 
 counters = CountersClass()
