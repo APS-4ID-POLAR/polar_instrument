@@ -18,5 +18,5 @@ class GaussmeterDevice(Device):
 
 
 gaussmeter = GaussmeterDevice(
-    "4idhSoft:Lakeshore745:", name="gaussmeter", labels=("detector",)
+    "4idhSoft:Lakeshore475:", name="gaussmeter", labels=("detector",)
 )
