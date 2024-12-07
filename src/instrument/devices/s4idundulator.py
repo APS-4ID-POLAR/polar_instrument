@@ -22,7 +22,7 @@ class PolarUndulatorPositioner(UndulatorPositioner):
     ) -> StatusBase:
         # If position is within the deadband --> do nothing.
         if (
-            abs(new_position - self.readback.get()) <=
+            abs(new_position - self.readback.get()) <
             self.parent.energy_deadband.get()
         ):
             _status = Status()
