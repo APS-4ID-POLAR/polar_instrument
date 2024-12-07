@@ -5,7 +5,8 @@ Flags
 
 __all__ = [
     'flag_4ida_up',
-    'flag_4ida_down'
+    'flag_4ida_down',
+    'flag_4idb'
 ]
 
 from ophyd import EpicsMotor
@@ -18,4 +19,8 @@ flag_4ida_up = EpicsMotor(
 
 flag_4ida_down = EpicsMotor(
     "4idVDCM:m7", name="flag_4ida_down", labels=("motor", "flag")
+)
+
+flag_4idb = EpicsMotor(
+    "4idbSoft:m3", name="flag_4idb", labels=("motor", "flag")
 )
