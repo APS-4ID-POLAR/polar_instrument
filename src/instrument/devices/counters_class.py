@@ -237,7 +237,7 @@ class CountersClass:
 
     @property
     def _available_detectors(self):
-        return oregistry.find_all("detector")
+        return oregistry.findall("detector")
 
     @property
     def detectors_plot_options(self):
@@ -259,7 +259,7 @@ class CountersClass:
             det = self.detectors_plot_options.loc[ind]["detectors"]
             if det not in self.detectors:
                 self.detectors += [det]
-            # det.select_plotting(item) selects that channel to plot.
+            # det.select_plot(item) selects that channel to plot.
 
             channel = self.detectors_plot_options.loc[ind]["channels"]
             # TODO: this may be unnecessary. Maybe we can use oregistry to get
