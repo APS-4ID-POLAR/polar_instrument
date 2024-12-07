@@ -12,8 +12,8 @@ logger.info(__file__)
 
 
 class WindowStages(Device):
-    x = Component(EpicsMotor, "m1", label=("motor",))
-    y = Component(EpicsMotor, "m2", label=("motor",))
+    x = Component(EpicsMotor, "m1", labels=("motor",))
+    y = Component(EpicsMotor, "m2", labels=("motor",))
 
 
 diamond_window = WindowStages("4idbSoft:", name="diamond_window")
