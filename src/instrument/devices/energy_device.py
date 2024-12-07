@@ -60,8 +60,8 @@ class EnergySignal(Signal):
         # Undulator
         for und in [undulators.us, undulators.ds]:
             if und.tracking.get():
-                und_pos = position + und.energy.offset.get()
-                und_status = und.energy.move(
+                und_pos = position + und.offset.get()
+                und_status = und.energy.set(
                     und_pos, wait=wait, timeout=timeout, moved_cb=moved_cb
                 )
                 status = AndStatus(status, und_status)
