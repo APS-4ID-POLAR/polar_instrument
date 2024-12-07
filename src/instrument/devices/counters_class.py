@@ -243,9 +243,9 @@ class CountersClass:
     def detectors_plot_options(self):
         table = dict(detectors=[], channels=[])
         for det in self._available_detectors:
-            # det.get_plot_options will return a list of available
+            # det.plot_options will return a list of available
             # plotting options.
-            _options = getattr(det, "get_plot_options", [])
+            _options = getattr(det, "plot_options", [])
             table["channels"] += _options
             table["detectors"] += [det.name for _ in range(len(_options))]
 
@@ -261,10 +261,10 @@ class CountersClass:
                 self.detectors += [det]
             # det.select_plot(item) selects that channel to plot.
 
-            channel = self.detectors_plot_options.loc[ind]["channels"]
+            channels = self.detectors_plot_options.loc[ind]["channels"]
             # TODO: this may be unnecessary. Maybe we can use oregistry to get
             # the specific item from the name?
-            getattr(det, "select_plot")(channel)
+            getattr(det, "select_plot")(channels)
 
 
 counters = CountersClass()

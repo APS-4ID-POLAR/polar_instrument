@@ -199,7 +199,8 @@ class LocalScalerCH(ScalerCH):
 
         self._monitor = channel
 
-    def get_plot_options(self):
+    @property
+    def plot_options(self):
         # Return all named scaler channels
         return list(self.channels_name_map.keys())
 
