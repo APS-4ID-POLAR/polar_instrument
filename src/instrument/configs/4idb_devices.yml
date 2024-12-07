@@ -11,3 +11,11 @@ usb_ctr8:
 4idb_camera:
   device: flag_camera_4idb
   baseline: False
+
+flags:
+  device: flag_4idb
+  baseline: True
+
+diamond_window_table:
+  device: diamond_window
+  baseline: True
