@@ -317,7 +317,7 @@ class CountersClass:
                     print("Please enter the index number only.")
                     continue
 
-                if mon > self.detectors_plot_options.size:
+                if mon >= self.detectors_plot_options.size:
                     print(f"Monitor index {mon} is invalid.")
                     continue
 
