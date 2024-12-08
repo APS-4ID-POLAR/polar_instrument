@@ -296,6 +296,7 @@ class CountersClass:
     def plotselect(self):
         print("Options:")
         print(self.detectors_plot_options)
+        print("")
 
         while True:
             dets = input("Enter the indexes of plotting channels: ") or None
