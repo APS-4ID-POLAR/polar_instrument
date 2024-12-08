@@ -289,6 +289,7 @@ class CountersClass:
 
         if self.default_scaler not in dets:
             dets.append(self.default_scaler)
+            self.default_scaler.select_plot_channels([''])
 
         self._dets = dets
 
