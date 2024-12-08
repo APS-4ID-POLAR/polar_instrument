@@ -254,17 +254,59 @@ class CountersClass:
         return DataFrame(table)
 
     def select_plot_channels(self, selection):
-        # selection will be the numbers.
-        for ind in selection:
-            det = self.detectors_plot_options.loc[ind]["detectors"]
+        # selection will be a list with the indexes.
+        groups = self.detectors_plot_options.iloc[
+            list(selection)
+        ].groupby("detectors")
+
+        for name, group in groups:
+            det = oregistry.find(name)
             if det not in self.detectors:
                 self.detectors += [det]
             # det.select_plot(item) selects that channel to plot.
+            getattr(det, "select_plot")(group["channels"].values)
 
-            channels = self.detectors_plot_options.loc[ind]["channels"]
-            # TODO: this may be unnecessary. Maybe we can use oregistry to get
-            # the specific item from the name?
-            getattr(det, "select_plot")(channels)
+    def plotselect(self):
+        print("Detectors options:")
+        print(self.detectors_plot_options)
+
+        while True:
+            dets = input("Enter the indexes of plotting channels: ")
+
+            # Check these are all numbers
+            try:
+                dets = [int(i) for i in dets.split()]
+            except ValueError:
+                print("Please enter the index numbers only.")
+                continue
+
+            # Check that the numbers are valid.
+            if not all(
+                [i in self.detectors_plot_options.index.values for i in dets]
+            ):
+                print("The index values must be in the table.")
+                continue
+
+            self.select_plot_channels(dets)
+            break
+
+        selection = self.detectors_plot_options.iloc[dets]
+        # if any detector is not a scaler, then count agains time!
+        if any(["scaler" not in i for i in selection]):
+            print(
+                "One of the detectors is not a scaler, so 'Time' will be"
+                "selected as monitor."
+            )
+            mon = 0
+        else:
+            mon = self.detectors_plot_options[
+                self.detectors_plot_options == self.monitor
+            ].index[0]
+            mon = input(
+                "Enter index number of monitor detector [{mon}]: "
+            ) or mon
+
+        self.monitor = mon
 
 
 counters = CountersClass()

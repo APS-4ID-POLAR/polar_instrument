@@ -204,6 +204,9 @@ class LocalScalerCH(ScalerCH):
         # Return all named scaler channels
         return list(self.channels_name_map.keys())
 
+    def select_plot(self, channels):
+        self.select_plot_channels(chan_names=channels)
+
 
 scaler_ctr8 = LocalScalerCH(
     '4idCTR8_1:scaler1', name='scaler_ctr8', labels=('detector', 'scaler')
