@@ -285,6 +285,7 @@ class CountersClass:
             det = oregistry.find(name)
             # det.select_plot(item) selects that channel to plot.
             getattr(det, "select_plot")(group["channels"].values)
+            print(det.name, group["channels"].values)
             dets.append(det)
 
         self.__call__(dets)
