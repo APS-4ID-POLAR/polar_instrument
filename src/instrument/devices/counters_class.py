@@ -1,4 +1,5 @@
 from pandas import DataFrame
+from ophydregistry import ComponentNotFound
 from .simulated_scaler import scaler_sim
 from ..utils.oregistry_setup import oregistry
 from ..utils._logging_setup import logger
@@ -237,7 +238,21 @@ class CountersClass:
 
     @property
     def _available_detectors(self):
-        return oregistry.findall("detector")
+        try:
+            dets = oregistry.findall("detector")
+        except ComponentNotFound:
+            logger.warning("WARNING: no detectors were found by oregistry.")
+            dets = []
+
+        try:
+            dets.remove(self.default_scaler)
+        except ValueError:
+            logger.warning(
+                f"WARNING: the {counters.default_scaler.name} was not found by"
+                "oregistry."
+            )
+
+        return [self.default_scaler] + dets
 
     @property
     def detectors_plot_options(self):
