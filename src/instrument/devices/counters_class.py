@@ -287,6 +287,9 @@ class CountersClass:
             getattr(det, "select_plot")(group["channels"].values)
             dets.append(det)
 
+        if self.default_scaler not in dets:
+            dets.append(self.default_scaler)
+
         self._dets = dets
 
     def plotselect(self):
