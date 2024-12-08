@@ -303,18 +303,22 @@ class CountersClass:
             )
             mon = 0
         else:
-            mon = self.detectors_plot_options[
+            _mon = self.detectors_plot_options[
                 self.detectors_plot_options == self.monitor
             ].index[0]
             while True:
                 mon = input(
-                    f"Enter index number of monitor detector [{mon}]: "
-                ) or mon
+                    f"Enter index number of monitor detector [{_mon}]: "
+                ) or _mon
 
                 try:
                     mon = int(mon)
                 except ValueError:
                     print("Please enter the index number only.")
+                    continue
+
+                if mon > self.detectors_plot_options.size:
+                    print(f"Monitor index {mon} is invalid.")
                     continue
 
                 if (
