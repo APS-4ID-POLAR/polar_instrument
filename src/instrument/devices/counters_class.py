@@ -306,11 +306,30 @@ class CountersClass:
             mon = self.detectors_plot_options[
                 self.detectors_plot_options == self.monitor
             ].index[0]
-            mon = input(
-                f"Enter index number of monitor detector [{mon}]: "
-            ) or mon
+            while True:
+                mon = input(
+                    f"Enter index number of monitor detector [{mon}]: "
+                ) or mon
 
-        self.monitor = self.detectors_plot_options.iloc[mon].channels
+                try:
+                    mon = int(mon)
+                except ValueError:
+                    print("Please enter the index number only.")
+                    continue
+
+                if (
+                    "scaler" not in
+                    self.detectors_plot_options.iloc[mon].detectors
+                ):
+                    print("Monitor must be a scaler channel.")
+                    continue
+
+                break
+
+        self.monitor = mon
+
+        print()
+        print(self)
 
 
 counters = CountersClass()
