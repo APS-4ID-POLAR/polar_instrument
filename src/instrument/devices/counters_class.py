@@ -160,6 +160,12 @@ class CountersClass:
             except TypeError:
                 value = [value]
 
+            # This prevents double of the default scaler.
+            try:
+                value.remove(self._default_scaler)
+            except ValueError:
+                pass
+
             # self._dets will hold the device instance.
             # default scaler is always a detector even if it's not plotted.
             self._dets = [self._default_scaler]
@@ -269,17 +275,19 @@ class CountersClass:
         return DataFrame(table)
 
     def select_plot_channels(self, selection):
-        # selection will be a list with the indexes.
+
         groups = self.detectors_plot_options.iloc[
             list(selection)
         ].groupby("detectors")
 
+        dets = []
         for name, group in groups:
             det = oregistry.find(name)
-            if det not in self.detectors:
-                self.detectors += [det]
             # det.select_plot(item) selects that channel to plot.
             getattr(det, "select_plot")(group["channels"].values)
+            dets.append(det)
+
+        self.__call__(dets)
 
     def plotselect(self):
         print("Options:")
