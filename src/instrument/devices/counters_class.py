@@ -1,3 +1,5 @@
+from pandas import DataFrame
+from ophydregistry import ComponentNotFound
 from .simulated_scaler import scaler_sim
 from ..utils.oregistry_setup import oregistry
 from ..utils._logging_setup import logger
@@ -158,6 +160,12 @@ class CountersClass:
             except TypeError:
                 value = [value]
 
+            # This prevents double of the default scaler.
+            try:
+                value.remove(self._default_scaler)
+            except ValueError:
+                pass
+
             # self._dets will hold the device instance.
             # default scaler is always a detector even if it's not plotted.
             self._dets = [self._default_scaler]
@@ -233,6 +241,127 @@ class CountersClass:
             except TypeError:
                 raise TypeError("counts need to be a number, but "
                                 f"{type(value)} was entered.")
+
+    @property
+    def _available_detectors(self):
+        try:
+            dets = oregistry.findall("detector")
+        except ComponentNotFound:
+            logger.warning("WARNING: no detectors were found by oregistry.")
+            dets = []
+
+        try:
+            dets.remove(self.default_scaler)
+        except ValueError:
+            logger.warning(
+                f"WARNING: the {counters.default_scaler.name} was not found by"
+                "oregistry."
+            )
+
+        return [self.default_scaler] + dets
+
+    @property
+    def detectors_plot_options(self):
+        table = dict(detectors=[], channels=[])
+        for det in self._available_detectors:
+            # det.plot_options will return a list of available
+            # plotting options.
+            _options = getattr(det, "plot_options", [])
+            table["channels"] += _options
+            table["detectors"] += [det.name for _ in range(len(_options))]
+
+        # This will be a table with all the options, it will have the advantage
+        # that it can be indexed.
+        return DataFrame(table)
+
+    def select_plot_channels(self, selection):
+
+        groups = self.detectors_plot_options.iloc[
+            list(selection)
+        ].groupby("detectors")
+
+        dets = []
+        for name, group in groups:
+            det = oregistry.find(name)
+            # det.select_plot(item) selects that channel to plot.
+            getattr(det, "select_plot")(list(group["channels"].values))
+            dets.append(det)
+
+        if self.default_scaler not in dets:
+            dets.append(self.default_scaler)
+            self.default_scaler.select_plot_channels([''])
+
+        self._dets = dets
+
+    def plotselect(self):
+        print("Options:")
+        print(self.detectors_plot_options)
+        print("")
+
+        while True:
+            dets = input("Enter the indexes of plotting channels: ") or None
+
+            if dets is None:
+                print("A value must be entered.")
+                continue
+
+            # Check these are all numbers
+            try:
+                dets = [int(i) for i in dets.split()]
+            except ValueError:
+                print("Please enter the index numbers only.")
+                continue
+
+            # Check that the numbers are valid.
+            if not all(
+                [i in self.detectors_plot_options.index.values for i in dets]
+            ):
+                print("The index values must be in the table.")
+                continue
+
+            self.select_plot_channels(dets)
+            break
+
+        selection = self.detectors_plot_options.iloc[dets].detectors.values
+        # if any detector is not a scaler, then count agains time!
+        if any(["scaler" not in i for i in selection]):
+            print(
+                "One of the detectors is not a scaler, so 'Time' will be "
+                "selected as monitor."
+            )
+            mon = 0
+        else:
+            _mon = self.detectors_plot_options[
+                self.detectors_plot_options["channels"] == self.monitor
+            ].index[0]
+            while True:
+                mon = input(
+                    f"Enter index number of monitor detector [{_mon}]: "
+                ) or _mon
+
+                try:
+                    mon = int(mon)
+                except ValueError:
+                    print("Please enter the index number only.")
+                    continue
+
+                if mon >= self.detectors_plot_options.size:
+                    print(f"Monitor index {mon} is invalid.")
+                    continue
+
+                if (
+                    "scaler" not in
+                    self.detectors_plot_options.iloc[mon].detectors
+                ):
+                    print("Monitor must be a scaler channel.")
+                    continue
+
+                break
+
+        self.monitor = mon
+
+        print()
+        print(self)
 
 
 counters = CountersClass()

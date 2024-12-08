@@ -311,3 +311,16 @@ class VimbaDetector(Trigger, DetectorBase):
         _hdf1_auto = True if self.hdf1.autosave.get() == "on" else False
         _hdf1_on = True if self.hdf1.enable.get() == "Enable" else False
         return _hdf1_on or _hdf1_auto
+
+    @property
+    def label_option_map(self):
+        return {f"ROI{i} Total": i for i in range(1, 5)}
+
+    @property
+    def plot_options(self):
+        # Return all named scaler channels
+        return list(self.label_option_map.keys())
+
+    def select_plot(self, channels):
+        chans = [self.label_option_map[i] for i in channels]
+        self.plot_select(chans)
