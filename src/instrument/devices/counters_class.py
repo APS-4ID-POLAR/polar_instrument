@@ -267,7 +267,7 @@ class CountersClass:
             getattr(det, "select_plot")(group["channels"].values)
 
     def plotselect(self):
-        print("Detectors options:")
+        print("Options:")
         print(self.detectors_plot_options)
 
         while True:
