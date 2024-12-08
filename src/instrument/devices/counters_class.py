@@ -307,10 +307,10 @@ class CountersClass:
                 self.detectors_plot_options == self.monitor
             ].index[0]
             mon = input(
-                "Enter index number of monitor detector [{mon}]: "
+                f"Enter index number of monitor detector [{mon}]: "
             ) or mon
 
-        self.monitor = mon
+        self.monitor = self.detectors_plot_options.iloc[mon].channels
 
 
 counters = CountersClass()
