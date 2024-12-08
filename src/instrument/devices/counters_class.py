@@ -271,7 +271,11 @@ class CountersClass:
         print(self.detectors_plot_options)
 
         while True:
-            dets = input("Enter the indexes of plotting channels: ")
+            dets = input("Enter the indexes of plotting channels: ") or None
+
+            if dets is None:
+                print("A value must be entered.")
+                continue
 
             # Check these are all numbers
             try:
@@ -290,11 +294,11 @@ class CountersClass:
             self.select_plot_channels(dets)
             break
 
-        selection = self.detectors_plot_options.iloc[dets]
+        selection = self.detectors_plot_options.iloc[dets].detectors.values
         # if any detector is not a scaler, then count agains time!
         if any(["scaler" not in i for i in selection]):
             print(
-                "One of the detectors is not a scaler, so 'Time' will be"
+                "One of the detectors is not a scaler, so 'Time' will be "
                 "selected as monitor."
             )
             mon = 0
