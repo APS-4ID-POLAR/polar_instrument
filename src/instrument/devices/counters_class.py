@@ -280,18 +280,20 @@ class CountersClass:
             list(selection)
         ].groupby("detectors")
 
-        print("5")
         dets = []
         for name, group in groups:
             det = oregistry.find(name)
+            print(name, group)
             # det.select_plot(item) selects that channel to plot.
             getattr(det, "select_plot")(group["channels"].values)
             dets.append(det)
 
+        print("1")
         if self.default_scaler not in dets:
             dets.append(self.default_scaler)
             self.default_scaler.select_plot_channels([''])
 
+        print("2")
         self._dets = dets
 
     def plotselect(self):
@@ -301,12 +303,10 @@ class CountersClass:
         while True:
             dets = input("Enter the indexes of plotting channels: ") or None
 
-            print("1")
             if dets is None:
                 print("A value must be entered.")
                 continue
 
-            print("2")
             # Check these are all numbers
             try:
                 dets = [int(i) for i in dets.split()]
@@ -314,14 +314,13 @@ class CountersClass:
                 print("Please enter the index numbers only.")
                 continue
 
-            print("3")
             # Check that the numbers are valid.
             if not all(
                 [i in self.detectors_plot_options.index.values for i in dets]
             ):
                 print("The index values must be in the table.")
                 continue
-            print("4")
+
             self.select_plot_channels(dets)
             break
 
