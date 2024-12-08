@@ -283,12 +283,13 @@ class CountersClass:
         dets = []
         for name, group in groups:
             det = oregistry.find(name)
-            print(name, group)
+            print("\n", name, "\n", group)
             # det.select_plot(item) selects that channel to plot.
             getattr(det, "select_plot")(group["channels"].values)
+            print("1")
             dets.append(det)
 
-        print("1")
+        print("2")
         if self.default_scaler not in dets:
             dets.append(self.default_scaler)
             self.default_scaler.select_plot_channels([''])
