@@ -304,7 +304,7 @@ class CountersClass:
             mon = 0
         else:
             _mon = self.detectors_plot_options[
-                self.detectors_plot_options == self.monitor
+                self.detectors_plot_options["channels"] == self.monitor
             ].index[0]
             while True:
                 mon = input(
