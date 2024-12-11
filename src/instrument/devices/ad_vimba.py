@@ -206,6 +206,7 @@ class VimbaDetector(Trigger, DetectorBase):
     stats2 = ADComponent(StatsPlugin, "Stats2:")
     stats3 = ADComponent(StatsPlugin, "Stats3:")
     stats4 = ADComponent(StatsPlugin, "Stats4:")
+    stats5 = ADComponent(StatsPlugin, "Stats5:")  # This is the full detector
 
     # Make this compatible with other detectors
     @property
@@ -268,13 +269,13 @@ class VimbaDetector(Trigger, DetectorBase):
             List with the ROIs numbers to be plotted.
         """
 
-        for i in range(1, 4+1):
+        for i in range(1, 5+1):
             getattr(self, f"stats{i}").total.kind = (
                 "hinted" if i in rois else "normal"
             )
 
     def plot_allrois(self):
-        self.plot_select([1, 2, 3, 4])
+        self.plot_select([1, 2, 3, 4, 5])
 
     def plot_roi1(self):
         self.plot_select([1])
@@ -287,6 +288,9 @@ class VimbaDetector(Trigger, DetectorBase):
 
     def plot_roi4(self):
         self.plot_select([4])
+
+    def plot_roi5(self):
+        self.plot_select([5])
 
     def setup_images(
             self, base_path, name_template, file_number, flyscan=False
@@ -314,7 +318,7 @@ class VimbaDetector(Trigger, DetectorBase):
 
     @property
     def label_option_map(self):
-        return {f"ROI{i} Total": i for i in range(1, 5)}
+        return {f"ROI{i} Total": i for i in range(1, 5+1)}
 
     @property
     def plot_options(self):
