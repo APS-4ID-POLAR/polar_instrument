@@ -254,7 +254,7 @@ class VimbaDetector(Trigger, DetectorBase):
 
         self.setup_manual_trigger()
         self.save_images_off()
-        self.auto_save_on()
+        self.auto_save_off()
         self.plot_roi1()
 
     def plot_select(self, rois):
