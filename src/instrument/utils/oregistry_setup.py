@@ -35,3 +35,4 @@ def get_devices(label):
         table["Label"].append(obj._ophyd_labels_)
 
     print(Table(table).reST(fmt="grid"))
+
