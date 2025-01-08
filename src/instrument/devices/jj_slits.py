@@ -67,7 +67,7 @@ class SlitDevice(Device):
 monoslt = SlitDevice(
     '4idVDCM:',
     'monoslt',
-    {'top': 'm1', 'bot': 'm2', 'out': 'm3', 'inb': 'm4'},
+    {'top': 'm14', 'bot': 'm13', 'out': 'm16', 'inb': 'm15'},
     2,
     labels=('slit',)
 )
