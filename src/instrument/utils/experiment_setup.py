@@ -27,7 +27,7 @@ from .dm_utils import (
     get_proposal_info,
     get_experiment,
     dm_experiment_setup,
-    get_current_run
+    get_current_run_name
 )
 from .run_engine import RE
 from ._logging_setup import logger
@@ -349,15 +349,21 @@ class ExperimentClass:
             sample_label: str = None,
             server: str = None,
             experiment_name: str = None,
-            reset_scan_id: int = None
+            reset_scan_id: int = None,
+            skip_DM: bool = False
     ):
-        # ESAF and proposal ID info first. Will get data from APS databases.
-        self.esaf_input(esaf_id)
-        self.proposal_input(proposal_id)
+        if skip_DM:
+            # ESAF and proposal ID info first. Will get data from APS databases.
+            self.esaf_input(esaf_id)
+            self.proposal_input(proposal_id)
 
-        # Selects where to save the data. Long term, this probably this will be
-        # mostly the DM.
-        self.server_input(server)
+            # Selects where to save the data. Long term, this probably this will
+            # be mostly the DM.
+            self.server_input(server)
+
+        else:
+            self.server = "dserv"
+
         # This is needed because if using the DM, the experiment name may need
         # to be changed.
         while True:
@@ -377,7 +383,7 @@ class ExperimentClass:
         else:
             self.base_experiment_path = (
                 SERVERS[self.server] /
-                get_current_run()["name"] /
+                get_current_run_name() /
                 self.experiment_name
             )
             # self.windows_base_experiment_path = (

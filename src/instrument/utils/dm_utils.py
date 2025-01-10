@@ -8,7 +8,12 @@ from apstools.utils.aps_data_management import (
 )
 
 from dm import (
-    EsafApsDbApi, BssApsDbApi, ExperimentDsApi, UserDsApi, ObjectAlreadyExists
+    EsafApsDbApi,
+    BssApsDbApi,
+    ExperimentDsApi,
+    UserDsApi,
+    ObjectAlreadyExists,
+    DmException
 )
 from datetime import datetime
 from numpy import unique
@@ -111,6 +116,32 @@ def get_esaf_users_badge(id):
 
 def get_current_run():
     return bss_api.getCurrentRun()
+
+
+def get_current_run_name():
+    try:
+        run = get_current_run()["name"]
+    # This is needed in case the DM server is down.
+    except DmException:
+        print(
+            "WARNING: could not reach the DM server, the run information may "
+            "be wrong!"
+        )
+        from datetime import datetime
+        now = datetime.now()
+        for i, date in zip(
+            (1, 2, 3),
+            (
+                datetime(now.year, 5, 1),
+                datetime(now.year, 9, 15),
+                datetime(now.year+1, 1, 1)
+            )
+        ):
+            if now < date:
+                run = f"{now.year}-{i}"
+                break
+
+    return run
 
 
 def dm_experiment_setup(
