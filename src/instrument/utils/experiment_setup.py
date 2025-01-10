@@ -349,15 +349,21 @@ class ExperimentClass:
             sample_label: str = None,
             server: str = None,
             experiment_name: str = None,
-            reset_scan_id: int = None
+            reset_scan_id: int = None,
+            skip_DM: bool = False
     ):
-        # ESAF and proposal ID info first. Will get data from APS databases.
-        self.esaf_input(esaf_id)
-        self.proposal_input(proposal_id)
+        if skip_DM:
+            # ESAF and proposal ID info first. Will get data from APS databases.
+            self.esaf_input(esaf_id)
+            self.proposal_input(proposal_id)
 
-        # Selects where to save the data. Long term, this probably this will be
-        # mostly the DM.
-        self.server_input(server)
+            # Selects where to save the data. Long term, this probably this will
+            # be mostly the DM.
+            self.server_input(server)
+
+        else:
+            self.server = "dserv"
+
         # This is needed because if using the DM, the experiment name may need
         # to be changed.
         while True:
