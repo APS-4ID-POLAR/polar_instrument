@@ -115,8 +115,12 @@ def get_esaf_users_badge(id):
 
 
 def get_current_run():
+    return bss_api.getCurrentRun()
+
+
+def get_current_run_name():
     try:
-        run = bss_api.getCurrentRun()
+        run = get_current_run()["name"]
     # This is needed in case the DM server is down.
     except DmException:
         print(

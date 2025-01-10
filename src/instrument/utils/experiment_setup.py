@@ -27,7 +27,7 @@ from .dm_utils import (
     get_proposal_info,
     get_experiment,
     dm_experiment_setup,
-    get_current_run
+    get_current_run_name
 )
 from .run_engine import RE
 from ._logging_setup import logger
@@ -383,7 +383,7 @@ class ExperimentClass:
         else:
             self.base_experiment_path = (
                 SERVERS[self.server] /
-                get_current_run()["name"] /
+                get_current_run_name() /
                 self.experiment_name
             )
             # self.windows_base_experiment_path = (
