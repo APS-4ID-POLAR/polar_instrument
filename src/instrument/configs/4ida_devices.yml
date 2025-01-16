@@ -20,10 +20,10 @@ labjacks:
   device: labjack_4ida
   baseline: True
 
-4ida_camera_up:
-  device: flag_camera_4ida_up
-  baseline: False
-  timeout: 2
+# 4ida_camera_up:
+#   device: flag_camera_4ida_up
+#   baseline: False
+#   timeout: 2
 
 4ida_camera_down:
   device: flag_camera_4ida_down
