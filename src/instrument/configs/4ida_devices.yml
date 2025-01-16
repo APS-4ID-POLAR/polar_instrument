@@ -3,6 +3,7 @@
 s4idundulator:
   device: undulators
   baseline: True
+  timeout: 5
 
 hhl_mirror:
   device: hhl_mirror
