@@ -38,8 +38,8 @@ class Trigger(TriggerBase):
         if image_name is None:
             image_name = '_'.join([self.name, 'image'])
         self._image_name = image_name
-        self._acquisition_signal = self.cam.acquire
-        self._acquire_busy_signal = self.cam.acquire_busy
+        # self._acquisition_signal = self.cam.acquire
+        # self._acquire_busy_signal = self.cam.acquire_busy
         # self._flysetup = False
         self._status = None
 
