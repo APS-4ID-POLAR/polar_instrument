@@ -16,7 +16,6 @@ def device_import(module_name, obj_name, baseline, timeout=TIMEOUT):
         module_path = f"instrument.devices.{module_name}"
         module = import_module(module_path)
         obj = getattr(module, obj_name)
-        print(f"{module_name}: ", timeout)
         obj.wait_for_connection(timeout=timeout)
     except (
         KeyError, NameError, TimeoutError, ConnectionTimeoutError

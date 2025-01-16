@@ -208,8 +208,6 @@ class VimbaDetector(Trigger, DetectorBase):
     stats4 = ADComponent(StatsPlugin, "Stats4:")
     stats5 = ADComponent(StatsPlugin, "Stats5:")  # This is the full detector
 
-    lazy_wait_for_connection = False
-
     # Make this compatible with other detectors
     @property
     def preset_monitor(self):

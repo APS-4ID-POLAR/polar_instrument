@@ -57,7 +57,7 @@ for module, items in devs.items():
     )
     timeouts = items.get("timeout", TIMEOUT)
     timeouts = [timeouts] if isinstance(timeouts, (int, float)) else timeouts
-    print(f"{devices}, {timeouts}")
+
     for device, baseline, timeout in zip(devices, baselines, timeouts):
         locals()[device] = device_import(module, device, baseline, timeout)
 
