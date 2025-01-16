@@ -42,6 +42,7 @@ def set_timeouts():
     if not EpicsSignalBase._EpicsSignalBase__any_instantiated:
         # Only BEFORE any EpicsSignalBase (or subclass) are created!
         timeouts = ophyd_config.get("TIMEOUTS", {})
+        print(timeouts)
         EpicsSignalBase.set_defaults(
             auto_monitor=True,
             timeout=timeouts.get("PV_READ", DEFAULT_TIMEOUT),
