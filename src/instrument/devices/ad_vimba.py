@@ -187,28 +187,26 @@ class VimbaCam(CamBase):
 
 class VimbaDetector(Trigger, DetectorBase):
 
-    _default_configuration_attrs = ()
+    _default_configuration_attrs = (
+        'cam', 'roi1', 'roi2', 'roi3', 'roi4'
+    )
+    _default_read_attrs = (
+        'hdf1', 'stats1', 'stats2', 'stats3', 'stats4',
+    )
 
-    # _default_configuration_attrs = (
-    #     'cam', 'roi1', 'roi2', 'roi3', 'roi4'
-    # )
-    # _default_read_attrs = (
-    #     'hdf1', 'stats1', 'stats2', 'stats3', 'stats4',
-    # )
+    cam = ADComponent(VimbaCam, "cam1:")
+    hdf1 = ADComponent(PolarHDF5Plugin, "HDF1:")
 
-    # cam = ADComponent(VimbaCam, "cam1:")
-    # hdf1 = ADComponent(PolarHDF5Plugin, "HDF1:")
+    roi1 = ADComponent(ROIPlugin, "ROI1:")
+    roi2 = ADComponent(ROIPlugin, "ROI2:")
+    roi3 = ADComponent(ROIPlugin, "ROI3:")
+    roi4 = ADComponent(ROIPlugin, "ROI4:")
 
-    # roi1 = ADComponent(ROIPlugin, "ROI1:")
-    # roi2 = ADComponent(ROIPlugin, "ROI2:")
-    # roi3 = ADComponent(ROIPlugin, "ROI3:")
-    # roi4 = ADComponent(ROIPlugin, "ROI4:")
-
-    # stats1 = ADComponent(StatsPlugin, "Stats1:")
-    # stats2 = ADComponent(StatsPlugin, "Stats2:")
-    # stats3 = ADComponent(StatsPlugin, "Stats3:")
-    # stats4 = ADComponent(StatsPlugin, "Stats4:")
-    # stats5 = ADComponent(StatsPlugin, "Stats5:")  # This is the full detector
+    stats1 = ADComponent(StatsPlugin, "Stats1:")
+    stats2 = ADComponent(StatsPlugin, "Stats2:")
+    stats3 = ADComponent(StatsPlugin, "Stats3:")
+    stats4 = ADComponent(StatsPlugin, "Stats4:")
+    stats5 = ADComponent(StatsPlugin, "Stats5:")  # This is the full detector
 
     # Make this compatible with other detectors
     @property
