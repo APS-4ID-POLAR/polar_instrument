@@ -14,7 +14,7 @@ from ._logging_setup import logger
 logger.info(__file__)
 
 DEFAULT_CONTROL_LAYER = "PyEpics"
-DEFAULT_TIMEOUT = 15  # default used next...
+DEFAULT_TIMEOUT = 2  # default used next...
 ophyd_config = iconfig.get("OPHYD", {})
 
 
