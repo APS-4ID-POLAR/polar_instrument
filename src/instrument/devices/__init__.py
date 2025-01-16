@@ -42,7 +42,7 @@ elif iconfig.get("STATION") == "4idg":
 elif iconfig.get("STATION") == "raman":
     devs = devs_raman
 
-TIMEOUT = iconfig.get("PV_CONNECTION_TIMEOUT", 15)
+TIMEOUT = iconfig.get("OPHYD", {}).get("TIMEOUTS", {}).get("PV_CONNECTION", 5)
 # is there a better way?
 for module, items in devs.items():
     devices = (

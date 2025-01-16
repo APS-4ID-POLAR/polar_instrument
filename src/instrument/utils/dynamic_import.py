@@ -7,7 +7,7 @@ from .run_engine import sd
 from .oregistry_setup import oregistry
 from ._logging_setup import logger
 
-TIMEOUT = iconfig.get("PV_CONNECTION_TIMEOUT", 15)
+TIMEOUT = iconfig.get("OPHYD", {}).get("TIMEOUTS", {}).get("PV_CONNECTION", 5)
 
 
 def device_import(module_name, obj_name, baseline, timeout=TIMEOUT):
