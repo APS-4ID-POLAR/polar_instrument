@@ -187,6 +187,8 @@ class VimbaCam(CamBase):
 
 class VimbaDetector(Trigger, DetectorBase):
 
+    _default_configuration_attrs = ()
+
     # _default_configuration_attrs = (
     #     'cam', 'roi1', 'roi2', 'roi3', 'roi4'
     # )
