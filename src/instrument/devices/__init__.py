@@ -42,6 +42,7 @@ elif iconfig.get("STATION") == "4idg":
 elif iconfig.get("STATION") == "raman":
     devs = devs_raman
 
+TIMEOUT = iconfig.get("PV_CONNECTION_TIMEOUT", 15)
 # is there a better way?
 for module, items in devs.items():
     devices = (
@@ -54,8 +55,10 @@ for module, items in devs.items():
         if isinstance(items["baseline"], bool) else
         items["baseline"]
     )
-    for device, baseline in zip(devices, baselines):
-        locals()[device] = device_import(module, device, baseline)
+    timeouts = items.get("timeout", TIMEOUT)
+    timeouts = [timeouts] if isinstance(timeouts, (int, float)) else timeouts
+    for device, baseline, timeout in zip(devices, baselines, timeouts):
+        locals()[device] = device_import(module, device, baseline, timeout)
 
 if scaler_name is not None and locals()[scaler_name] is not None:
     counters.default_scaler = locals()[scaler_name]
