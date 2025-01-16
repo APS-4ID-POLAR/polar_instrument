@@ -42,12 +42,11 @@ def set_timeouts():
     if not EpicsSignalBase._EpicsSignalBase__any_instantiated:
         # Only BEFORE any EpicsSignalBase (or subclass) are created!
         timeouts = ophyd_config.get("TIMEOUTS", {})
-        print(timeouts, DEFAULT_TIMEOUT)
         EpicsSignalBase.set_defaults(
             auto_monitor=True,
             timeout=timeouts.get("PV_READ", DEFAULT_TIMEOUT),
             write_timeout=timeouts.get("PV_WRITE", DEFAULT_TIMEOUT),
-            connection_timeout=iconfig.get("PV_CONNECTION", DEFAULT_TIMEOUT),
+            connection_timeout=timeouts.get("PV_CONNECTION", DEFAULT_TIMEOUT),
         )
     else:
         logger.warning("Not setting up the timeouts.")
