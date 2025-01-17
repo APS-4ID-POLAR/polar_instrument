@@ -6,10 +6,10 @@ from ophyd import EpicsSignal, EpicsSignalRO, Staged
 from ophyd.areadetector import (
     CamBase, DetectorBase, ADComponent, EpicsSignalWithRBV
 )
-from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
+from ophyd.areadetector.trigger_mixins import ADTriggerStatus
 from pathlib import Path
 from time import time as ttime
-from .ad_mixins import PolarHDF5Plugin, StatsPlugin, ROIPlugin
+from .ad_mixins import PolarHDF5Plugin, StatsPlugin, ROIPlugin, TriggerBase
 from ..utils.config import iconfig
 from ..utils._logging_setup import logger
 logger.info(__file__)
@@ -38,8 +38,6 @@ class Trigger(TriggerBase):
         if image_name is None:
             image_name = '_'.join([self.name, 'image'])
         self._image_name = image_name
-        # self._acquisition_signal = self.cam.acquire
-        # self._acquire_busy_signal = self.cam.acquire_busy
         # self._flysetup = False
         self._status = None
 

@@ -1,6 +1,6 @@
 """ AD mixins """
 
-from ophyd import ADComponent, EpicsSignal, Signal, Component
+from ophyd import ADComponent, EpicsSignal, Signal, Component, BlueskyInterface
 from ophyd.areadetector import (
     EigerDetectorCam, Xspress3DetectorCam, EpicsSignalWithRBV
 )
@@ -429,3 +429,37 @@ def AD_prime_plugin2_vortex(plugin):
     for sig, val in reversed(list(original_vals.items())):
         sleep(0.1)
         sig.set(val).wait()
+
+
+class TriggerBase(BlueskyInterface):
+    """Base class for trigger mixin classes
+
+    Subclasses must define a method with this signature:
+
+    ``acquire_changed(self, value=None, old_value=None, **kwargs)``
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # settings
+        # careful here: quadEM devices have areadetector components but,
+        # they have no 'cam' plugin. See QuadEM initializer.
+        if hasattr(self, "cam"):
+            self.stage_sigs.update(
+                [
+                    ("cam.acquire", 0),  # If acquiring, stop
+                    ("cam.image_mode", 1),  # 'Multiple' mode
+                ]
+            )
+            self._acquisition_signal_pv = "cam.acquire"
+            self._acquire_busy_signal_pv = "cam.acquire_busy"
+
+        self._status = None
+
+    @property
+    def _acquisition_signal(self):
+        getattr(self, self._acquisition_signal_pv)
+
+    @property
+    def _acquire_busy_signal(self):
+        getattr(self, self._acquire_busy_signal_pv)
