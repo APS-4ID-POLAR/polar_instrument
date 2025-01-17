@@ -43,17 +43,17 @@ def device_import(module_name, obj_name, baseline, timeout=TIMEOUT):
                 item.stage_sigs["blocking_callbacks"] = "No"
     print("here")
 
-    hdf1 = getattr(obj, "hdf1", None)
-    if hdf1 is not None:
-        if obj.connected:
-            if not AD_plugin_primed(hdf1):
-                AD_prime_plugin2(hdf1)
+    # hdf1 = getattr(obj, "hdf1", None)
+    # if hdf1 is not None:
+    #     if obj.connected:
+    #         if not AD_plugin_primed(hdf1):
+    #             AD_prime_plugin2(hdf1)
 
-    print("here")
-    defaults = getattr(obj, "default_settings", None)
-    if defaults is not None:
-        defaults()
+    # print("here")
+    # defaults = getattr(obj, "default_settings", None)
+    # if defaults is not None:
+    #     defaults()
 
-    oregistry.register(obj)
+    # oregistry.register(obj)
 
     return obj
