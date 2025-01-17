@@ -187,7 +187,7 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
         #     self.stage_sigs.update({"create_directory": -3})
         self.stage_sigs.update(
             [
-                ("create_directory", -3)
+                ("create_directory", -3),
                 ("auto_increment", "Yes"),
                 ("array_counter", 0),
                 ("auto_save", "Yes"),
