@@ -12,7 +12,6 @@ TIMEOUT = iconfig.get("OPHYD", {}).get("TIMEOUTS", {}).get("PV_CONNECTION", 5)
 
 def device_import(module_name, obj_name, baseline, timeout=TIMEOUT):
     t0 = ttime()
-    print(module_name, obj_name)
     try:
         module_path = f"instrument.devices.{module_name}"
         module = import_module(module_path)

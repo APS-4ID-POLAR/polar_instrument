@@ -188,11 +188,8 @@ class VimbaDetector(Trigger, DetectorBase):
     _default_configuration_attrs = (
         'cam', 'roi1', 'roi2', 'roi3', 'roi4'
     )
-    # _default_read_attrs = (
-    #     'hdf1', 'stats1', 'stats2', 'stats3', 'stats4',
-    # )
     _default_read_attrs = (
-        'stats1', 'stats2', 'stats3', 'stats4',
+        'hdf1', 'stats1', 'stats2', 'stats3', 'stats4',
     )
 
     cam = ADComponent(VimbaCam, "cam1:")
