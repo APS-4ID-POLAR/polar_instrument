@@ -331,4 +331,4 @@ class VimbaDetector(Trigger, DetectorBase):
 
     @required_for_connection
     def _connection_test(self):
-        _ = self.cam.acquire
+        self.cam.acquire.wait_for_connection()
