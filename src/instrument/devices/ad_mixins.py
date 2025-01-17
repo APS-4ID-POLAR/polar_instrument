@@ -187,6 +187,7 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
         #     self.stage_sigs.update({"create_directory": -3})
         self.stage_sigs.update(
             [
+                ("create_directory", -3)
                 ("auto_increment", "Yes"),
                 ("array_counter", 0),
                 ("auto_save", "Yes"),
@@ -363,7 +364,7 @@ class PolarHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
         super().__init__(
             *args, write_path_template=write_path_template, **kwargs
         )
-        self.enable.subscribe(self._setup_kind, run=False)
+        # self.enable.subscribe(self._setup_kind, run=False)
 
     def _setup_kind(self, value, **kwargs):
         if value in (True, 1, "on", "Enable"):

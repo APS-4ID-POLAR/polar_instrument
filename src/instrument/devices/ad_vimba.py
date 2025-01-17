@@ -254,6 +254,7 @@ class VimbaDetector(Trigger, DetectorBase):
         self.save_images_off()
         self.auto_save_off()
         self.plot_roi1()
+        self.hdf1.enable.subscribe(self.hdf1._setup_kind, run=False)
 
     def plot_select(self, rois):
         """
