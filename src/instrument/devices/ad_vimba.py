@@ -208,8 +208,6 @@ class VimbaDetector(Trigger, DetectorBase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # obj = getattr(self, "cam.acquire")
-        # self._required_for_connection[obj] = f"{obj.name}"
 
     def wait_for_connection(self, all_signals=False, timeout=2):
         self.cam.wait_for_connection(all_signals=True, timeout=timeout)
