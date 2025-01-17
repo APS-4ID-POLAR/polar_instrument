@@ -238,26 +238,26 @@ class VimbaDetector(Trigger, DetectorBase):
     def auto_save_off(self):
         self.hdf1.autosave.put("off")
 
-    def default_settings(self):
+    # def default_settings(self):
 
-        self.cam.num_images.put(1)
-        self.cam.image_mode.put("Single")
-        self.cam.acquire.put(0)
+    #     self.cam.num_images.put(1)
+    #     self.cam.image_mode.put("Single")
+    #     self.cam.acquire.put(0)
 
-        self.hdf1.file_template.put(HDF1_NAME_FORMAT)
-        self.hdf1.file_path.put(str(DEFAULT_FOLDER))
-        self.hdf1.create_directory.put(-2)
-        self.hdf1.num_capture.put(0)
+    #     self.hdf1.file_template.put(HDF1_NAME_FORMAT)
+    #     self.hdf1.file_path.put(str(DEFAULT_FOLDER))
+    #     self.hdf1.create_directory.put(-2)
+    #     self.hdf1.num_capture.put(0)
 
-        self.hdf1.stage_sigs.pop("enable")
-        self.hdf1.stage_sigs["num_capture"] = 0
-        self.hdf1.stage_sigs["capture"] = 1
+    #     self.hdf1.stage_sigs.pop("enable")
+    #     self.hdf1.stage_sigs["num_capture"] = 0
+    #     self.hdf1.stage_sigs["capture"] = 1
 
-        self.setup_manual_trigger()
-        self.save_images_off()
-        self.auto_save_off()
-        self.plot_roi1()
-        self.hdf1.enable.subscribe(self.hdf1._setup_kind, run=False)
+    #     self.setup_manual_trigger()
+    #     self.save_images_off()
+    #     self.auto_save_off()
+    #     self.plot_roi1()
+    #     self.hdf1.enable.subscribe(self.hdf1._setup_kind, run=False)
 
     def plot_select(self, rois):
         """
