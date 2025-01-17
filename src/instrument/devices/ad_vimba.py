@@ -188,12 +188,15 @@ class VimbaDetector(Trigger, DetectorBase):
     _default_configuration_attrs = (
         'cam', 'roi1', 'roi2', 'roi3', 'roi4'
     )
+    # _default_read_attrs = (
+    #     'hdf1', 'stats1', 'stats2', 'stats3', 'stats4',
+    # )
     _default_read_attrs = (
-        'hdf1', 'stats1', 'stats2', 'stats3', 'stats4',
+        'stats1', 'stats2', 'stats3', 'stats4',
     )
 
     cam = ADComponent(VimbaCam, "cam1:")
-    hdf1 = ADComponent(PolarHDF5Plugin, "HDF1:")
+    # hdf1 = ADComponent(PolarHDF5Plugin, "HDF1:")
 
     roi1 = ADComponent(ROIPlugin, "ROI1:")
     roi2 = ADComponent(ROIPlugin, "ROI2:")
