@@ -127,6 +127,10 @@ class StatsPlugin(PluginMixin, StatsPlugin_V34):
         )
     )
 
+    # These generates confusion as it's the exact same as sigma.x and .y 
+    sigma_x = None
+    sigma_y = None
+
 
 class CodecPlugin(PluginMixin, CodecPlugin_V34):
     """Remove property attribute found in AD IOCs now."""
