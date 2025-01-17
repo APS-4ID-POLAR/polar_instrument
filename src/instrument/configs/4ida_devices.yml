@@ -1,29 +1,29 @@
 # 4ID-A setup
 
-s4idundulator:
-  device: undulators
-  baseline: True
+# s4idundulator:
+#   device: undulators
+#   baseline: True
 
-hhl_mirror:
-  device: hhl_mirror
-  baseline: True
+# hhl_mirror:
+#   device: hhl_mirror
+#   baseline: True
 
-wb_slit: 
-  device: wbslt
-  baseline: True
+# wb_slit: 
+#   device: wbslt
+#   baseline: True
 
-monochromator:
-  device: mono
-  baseline: True
+# monochromator:
+#   device: mono
+#   baseline: True
 
-labjacks:
-  device: labjack_4ida
-  baseline: True
+# labjacks:
+#   device: labjack_4ida
+#   baseline: True
 
-camera_4ida_up:
-  device: flag_camera_4ida_up
-  baseline: False
-  timeout: 2
+# camera_4ida_up:
+#   device: flag_camera_4ida_up
+#   baseline: False
+#   timeout: 2
 
 camera_4ida_down:
   device: flag_camera_4ida_down
