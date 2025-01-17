@@ -363,7 +363,7 @@ class PolarHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
         super().__init__(
             *args, write_path_template=write_path_template, **kwargs
         )
-        self.enable.subscribe(self._setup_kind)
+        # self.enable.subscribe(self._setup_kind)
 
     def _setup_kind(self, value, **kwargs):
         if value in (True, 1, "on", "Enable"):
