@@ -31,16 +31,17 @@ def device_import(module_name, obj_name, baseline, timeout=TIMEOUT):
         logger.warning(f"Setting {obj_name} to 'None'.")
         obj = None
 
-    if obj is not None and baseline:
-        sd.baseline.append(obj)
+    # if obj is not None and baseline:
+    #     sd.baseline.append(obj)
 
-    cam = getattr(obj, "cam", None)
-    if cam is not None:
-        cam.stage_sigs["wait_for_plugins"] = "Yes"
-        for nm in obj.component_names:
-            item = getattr(obj, nm)
-            if "blocking_callbacks" in dir(item):  # is it a plugin?
-                item.stage_sigs["blocking_callbacks"] = "No"
+    # cam = getattr(obj, "cam", None)
+    # if cam is not None:
+    #     cam.stage_sigs["wait_for_plugins"] = "Yes"
+    #     for nm in obj.component_names:
+    #         item = getattr(obj, nm)
+    #         if "blocking_callbacks" in dir(item):  # is it a plugin?
+    #             item.stage_sigs["blocking_callbacks"] = "No"
+
     print("here")
 
     # hdf1 = getattr(obj, "hdf1", None)
