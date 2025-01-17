@@ -24,12 +24,10 @@ labjacks:
 camera_4ida_up:
   device: flag_camera_4ida_up
   baseline: False
-  # timeout: 2
 
 camera_4ida_down:
   device: flag_camera_4ida_down
   baseline: False
-  timeout: 2
 
 flags:
   device: [flag_4ida_up, flag_4ida_down]
