@@ -208,7 +208,8 @@ class VimbaDetector(Trigger, DetectorBase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._required_for_connection[getattr(self, "cam.acquire")] = "test"
+        obj = getattr(self, "cam.acquire")
+        self._required_for_connection[obj] = f"{obj.name}"
 
     # Make this compatible with other detectors
     @property
