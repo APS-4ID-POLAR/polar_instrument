@@ -3,7 +3,6 @@ Vimba cameras
 """
 
 from ophyd import EpicsSignal, EpicsSignalRO, Staged
-from ophyd.device import required_for_connection
 from ophyd.areadetector import (
     CamBase, DetectorBase, ADComponent, EpicsSignalWithRBV
 )
@@ -207,14 +206,14 @@ class VimbaDetector(Trigger, DetectorBase):
     stats4 = ADComponent(StatsPlugin, "Stats4:")
     stats5 = ADComponent(StatsPlugin, "Stats5:")  # This is the full detector
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._required_for_connection[getattr(self, "cam.acquire")] = "test"
+
     # Make this compatible with other detectors
     @property
     def preset_monitor(self):
         return self.cam.acquire_time
-
-    @property
-    def _required_for_connection(self):
-        return {self.cam.acquire: "test"}
 
     def align_on(self, time=0.1):
         """Start detector in alignment mode"""
@@ -332,8 +331,3 @@ class VimbaDetector(Trigger, DetectorBase):
     def select_plot(self, channels):
         chans = [self.label_option_map[i] for i in channels]
         self.plot_select(chans)
-
-    # @required_for_connection
-    # def _connection_test(self):
-    #     self.cam.acquire.wait_for_connection()
-    #     print("here")
