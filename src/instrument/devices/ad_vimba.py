@@ -333,7 +333,7 @@ class VimbaDetector(Trigger, DetectorBase):
         chans = [self.label_option_map[i] for i in channels]
         self.plot_select(chans)
 
-    @required_for_connection
-    def _connection_test(self):
-        self.cam.acquire.wait_for_connection()
-        print("here")
+    # @required_for_connection
+    # def _connection_test(self):
+    #     self.cam.acquire.wait_for_connection()
+    #     print("here")
