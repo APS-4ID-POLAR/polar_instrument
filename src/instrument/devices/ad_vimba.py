@@ -212,6 +212,10 @@ class VimbaDetector(Trigger, DetectorBase):
     def preset_monitor(self):
         return self.cam.acquire_time
 
+    @property
+    def _required_for_connection(self):
+        return {self.cam.acquire: "test"}
+
     def align_on(self, time=0.1):
         """Start detector in alignment mode"""
         self.save_images_off()
@@ -332,3 +336,4 @@ class VimbaDetector(Trigger, DetectorBase):
     @required_for_connection
     def _connection_test(self):
         self.cam.acquire.wait_for_connection()
+        print("here")
