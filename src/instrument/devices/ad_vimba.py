@@ -3,6 +3,7 @@ Vimba cameras
 """
 
 from ophyd import EpicsSignal, EpicsSignalRO, Staged
+from ophyd.device import required_for_connection
 from ophyd.areadetector import (
     CamBase, DetectorBase, ADComponent, EpicsSignalWithRBV
 )
@@ -327,3 +328,7 @@ class VimbaDetector(Trigger, DetectorBase):
     def select_plot(self, channels):
         chans = [self.label_option_map[i] for i in channels]
         self.plot_select(chans)
+
+    @required_for_connection
+    def _connection_test(self):
+        _ = self.cam.acquire
