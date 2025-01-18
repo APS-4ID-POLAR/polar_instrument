@@ -14,7 +14,7 @@ from ._logging_setup import logger
 logger.info(__file__)
 
 DEFAULT_CONTROL_LAYER = "PyEpics"
-DEFAULT_TIMEOUT = 15  # default used next...
+DEFAULT_TIMEOUT = 10  # default used next...
 ophyd_config = iconfig.get("OPHYD", {})
 
 
@@ -46,7 +46,7 @@ def set_timeouts():
             auto_monitor=True,
             timeout=timeouts.get("PV_READ", DEFAULT_TIMEOUT),
             write_timeout=timeouts.get("PV_WRITE", DEFAULT_TIMEOUT),
-            connection_timeout=iconfig.get("PV_CONNECTION", DEFAULT_TIMEOUT),
+            connection_timeout=timeouts.get("PV_CONNECTION", DEFAULT_TIMEOUT),
         )
     else:
         logger.warning("Not setting up the timeouts.")

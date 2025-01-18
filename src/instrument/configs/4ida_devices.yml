@@ -3,6 +3,7 @@
 s4idundulator:
   device: undulators
   baseline: True
+  timeout: 2
 
 hhl_mirror:
   device: hhl_mirror
@@ -20,11 +21,11 @@ labjacks:
   device: labjack_4ida
   baseline: True
 
-4ida_camera_up:
+camera_4ida_up:
   device: flag_camera_4ida_up
   baseline: False
 
-4ida_camera_down:
+camera_4ida_down:
   device: flag_camera_4ida_down
   baseline: False
 

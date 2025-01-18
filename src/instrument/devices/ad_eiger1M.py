@@ -43,7 +43,7 @@ class TriggerTime(TriggerBase):
         if image_name is None:
             image_name = '_'.join([self.name, 'image'])
         self._image_name = image_name
-        self._acquisition_signal = self.cam.special_trigger_button
+        self._acquisition_signal_pv = "cam.special_trigger_button"
         self._min_period = min_period
         self._flysetup = False
 

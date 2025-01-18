@@ -91,7 +91,7 @@ OPHYD:
     TIMEOUTS:
         PV_READ: &TIMEOUT 15
         PV_WRITE: *TIMEOUT
-        PV_CONNECTION: *TIMEOUT
+        PV_CONNECTION: 5
 
 LOGGING:
     ### Uncomment any of these to override the defaults

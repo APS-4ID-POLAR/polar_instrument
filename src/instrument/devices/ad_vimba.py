@@ -6,10 +6,10 @@ from ophyd import EpicsSignal, EpicsSignalRO, Staged
 from ophyd.areadetector import (
     CamBase, DetectorBase, ADComponent, EpicsSignalWithRBV
 )
-from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
+from ophyd.areadetector.trigger_mixins import ADTriggerStatus
 from pathlib import Path
 from time import time as ttime
-from .ad_mixins import PolarHDF5Plugin, StatsPlugin, ROIPlugin
+from .ad_mixins import PolarHDF5Plugin, StatsPlugin, ROIPlugin, TriggerBase
 from ..utils.config import iconfig
 from ..utils._logging_setup import logger
 logger.info(__file__)
@@ -38,8 +38,6 @@ class Trigger(TriggerBase):
         if image_name is None:
             image_name = '_'.join([self.name, 'image'])
         self._image_name = image_name
-        self._acquisition_signal = self.cam.acquire
-        self._acquire_busy_signal = self.cam.acquire_busy
         # self._flysetup = False
         self._status = None
 
@@ -208,6 +206,13 @@ class VimbaDetector(Trigger, DetectorBase):
     stats4 = ADComponent(StatsPlugin, "Stats4:")
     stats5 = ADComponent(StatsPlugin, "Stats5:")  # This is the full detector
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def wait_for_connection(self, all_signals=False, timeout=2):
+        self.cam.wait_for_connection(all_signals=True, timeout=timeout)
+        super().wait_for_connection(all_signals, timeout)
+
     # Make this compatible with other detectors
     @property
     def preset_monitor(self):
@@ -256,6 +261,7 @@ class VimbaDetector(Trigger, DetectorBase):
         self.save_images_off()
         self.auto_save_off()
         self.plot_roi1()
+        self.hdf1.enable.subscribe(self.hdf1._setup_kind, run=False)
 
     def plot_select(self, rois):
         """

@@ -8,9 +8,10 @@ usb_ctr8:
   device: ctr8
   baseline: True
 
-4idb_camera:
+camera_4idb:
   device: flag_camera_4idb
   baseline: False
+  timeout: 5
 
 flags:
   device: flag_4idb

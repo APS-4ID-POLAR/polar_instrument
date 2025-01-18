@@ -441,7 +441,8 @@ class ExperimentClass:
             sample_label: str = None,
             server: str = None,
             experiment_name: str = None,
-            reset_scan_id: int = None
+            reset_scan_id: int = None,
+            skip_DM: bool = False
     ):
 
         self.setup_experiment(
@@ -451,7 +452,8 @@ class ExperimentClass:
             sample_label,
             server,
             experiment_name,
-            reset_scan_id
+            reset_scan_id,
+            skip_DM
         )
 
 
@@ -465,7 +467,8 @@ def setup_experiment(
         sample_label: str = None,
         server: str = None,
         experiment_name: str = None,
-        reset_scan_id: int = None
+        reset_scan_id: int = None,
+        skip_DM: bool = False
 ):
     experiment.setup_experiment(
         esaf_id,
@@ -474,7 +477,8 @@ def setup_experiment(
         sample_label,
         server,
         experiment_name,
-        reset_scan_id
+        reset_scan_id,
+        skip_DM
     )
 
 

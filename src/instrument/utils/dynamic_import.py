@@ -7,16 +7,16 @@ from .run_engine import sd
 from .oregistry_setup import oregistry
 from ._logging_setup import logger
 
-TIMEOUT = iconfig.get("PV_CONNECTION_TIMEOUT", 15)
+TIMEOUT = iconfig.get("OPHYD", {}).get("TIMEOUTS", {}).get("PV_CONNECTION", 5)
 
 
-def device_import(module_name, obj_name, baseline):
+def device_import(module_name, obj_name, baseline, timeout=TIMEOUT):
     t0 = ttime()
     try:
         module_path = f"instrument.devices.{module_name}"
         module = import_module(module_path)
         obj = getattr(module, obj_name)
-        obj.wait_for_connection(timeout=TIMEOUT)
+        obj.wait_for_connection(timeout=timeout)
     except (
         KeyError, NameError, TimeoutError, ConnectionTimeoutError
     ) as exinfo:
