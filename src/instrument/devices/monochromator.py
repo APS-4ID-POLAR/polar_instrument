@@ -23,11 +23,9 @@ logger.info(__file__)
 class MonoDevice(PseudoPositioner):
 
     energy = Component(PseudoSingle, limits=(2.7, 30))
-    th = FormattedComponent(EpicsMotor, 'm1', labels=('motor',))
+    th = Component(EpicsMotor, 'm1', labels=('motor',))
 
-    y = FormattedComponent(
-        EpicsMotor, 'm3', labels=('motor',)
-    )
+    y = Component(EpicsMotor, 'm3', labels=('motor',))
 
     # Explicitly selects the real motors
     _real = ['th', 'y']
@@ -44,11 +42,11 @@ class MonoDevice(PseudoPositioner):
     def convert_energy_to_y(self, energy):
         # lambda in angstroms, theta in degrees, energy in keV
         theta = self.convert_energy_to_theta(energy)
-        return self.y_offset/(2*cos(theta*pi/180))
+        return self.y_offset.get()/(2*cos(theta*pi/180))
 
     def convert_theta_to_energy(self, theta):
         # lambda in angstroms, theta in degrees, energy in keV
-        lamb = 2*self.d_spacing.get()*sin(theta*pi/180)
+        lamb = self.crystal_2d.get()*sin(theta*pi/180)
         energy = speed_of_light*Planck*6.241509e15*1e10/lamb
         return energy
 
