@@ -22,7 +22,7 @@ logger.info(__file__)
 
 class MonoDevice(PseudoPositioner):
 
-    energy = Component(PseudoSingle, limits=(2.7, 30))
+    energy = Component(PseudoSingle, limits=(2.6, 32))
     th = Component(EpicsMotor, 'm1', labels=('motor',))
 
     y = Component(EpicsMotor, 'm3', labels=('motor',))
@@ -30,8 +30,14 @@ class MonoDevice(PseudoPositioner):
     # Explicitly selects the real motors
     _real = ['th', 'y']
 
-    crystal_2d = Component(EpicsSignal, "Bragg2dSpacingAO", kind="config")
     y_offset = Component(EpicsSignal, "Kohzu_yOffsetAO.VAL", kind="config")
+
+    crystal_h = Component(EpicsSignal, "BraggHAO.VAL", kind="config")
+    crystal_k = Component(EpicsSignal, "BraggKAO.VAL", kind="config")
+    crystal_l = Component(EpicsSignal, "BraggLAO.VAL", kind="config")
+    crystal_a = Component(EpicsSignal, "BraggAAO.VAL", kind="config")
+    crystal_2d = Component(EpicsSignal, "Bragg2dSpacingAO", kind="config")
+    crystal_type = Component(EpicsSignal, "BraggTypeMO", string=True, kind="config")
 
     def convert_energy_to_theta(self, energy):
         # lambda in angstroms, theta in degrees, energy in keV
