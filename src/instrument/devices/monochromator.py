@@ -1,199 +1,81 @@
 """
-Monochromator motors
+Monochromator with energy controller by bluesky
 """
 
-__all__ = ['mono']
+__all__ = ["mono"]
 
-from apstools.devices import KohzuSeqCtl_Monochromator
 from ophyd import (
     Component,
-    Device,
     FormattedComponent,
     EpicsMotor,
     EpicsSignal,
-    EpicsSignalRO,
-    PVPositioner
+    PseudoPositioner,
+    PseudoSingle
 )
-from ophyd.status import Status
+from ophyd.pseudopos import pseudo_position_argument, real_position_argument
+from scipy.constants import speed_of_light, Planck
+from numpy import arcsin, pi, sin, cos
 from ..utils._logging_setup import logger
+
 logger.info(__file__)
 
-KOHZU_SETTLE_TIME = 0.1
 
+class MonoDevice(PseudoPositioner):
 
-class MonoFeedback(Device):
-    """ Mono feedback reading """
+    energy = Component(PseudoSingle, limits=(2.6, 32))
+    th = Component(EpicsMotor, 'm1', labels=('motor',))
 
-    readback = Component(EpicsSignalRO, 'mono_pid2.CVAL', kind='config')
-    setpoint = Component(
-        EpicsSignal,
-        'mono_pid2.VAL',
-        kind='config',
-        put_complete=True
-    )
-    onoff = Component(
-        EpicsSignal,
-        'mono_pid2.FBON',
-        kind='config',
-        put_complete=True
-    )
+    y = Component(EpicsMotor, 'm3', labels=('motor',))
 
+    # Explicitly selects the real motors
+    _real = ['th', 'y']
 
-class KohzuPositioner(PVPositioner):
+    y_offset = Component(EpicsSignal, "Kohzu_yOffsetAO.VAL", kind="config")
 
-    readback = FormattedComponent(
-        EpicsSignalRO,
-        "{prefix}{_readback_pv}",
-        kind="hinted",
-        auto_monitor=True
-    )
-    setpoint = FormattedComponent(
-        EpicsSignal,
-        "{prefix}{_setpoint_pv}",
-        kind="normal",
-        put_complete=True
-    )
+    crystal_h = Component(EpicsSignal, "BraggHAO.VAL", kind="config")
+    crystal_k = Component(EpicsSignal, "BraggKAO.VAL", kind="config")
+    crystal_l = Component(EpicsSignal, "BraggLAO.VAL", kind="config")
+    crystal_a = Component(EpicsSignal, "BraggAAO.VAL", kind="config")
+    crystal_2d = Component(EpicsSignal, "Bragg2dSpacingAO", kind="config")
+    crystal_type = Component(EpicsSignal, "BraggTypeMO", string=True, kind="config")
 
-    stop_theta = FormattedComponent(
-        EpicsSignal, "{_theta_pv}.STOP", kind="omitted"
-    )
-    stop_y = FormattedComponent(EpicsSignal, "{_y_pv}.STOP", kind="omitted")
+    def convert_energy_to_theta(self, energy):
+        # lambda in angstroms, theta in degrees, energy in keV
+        lamb = speed_of_light*Planck*6.241509e15*1e10/energy
+        theta = arcsin(lamb/self.crystal_2d.get())*180./pi
+        return theta
 
-    actuate = Component(
-        EpicsSignal, "KohzuPutBO", put_complete=True, kind="omitted"
-    )
-    actuate_value = 1
+    def convert_energy_to_y(self, energy):
+        # lambda in angstroms, theta in degrees, energy in keV
+        theta = self.convert_energy_to_theta(energy)
+        return self.y_offset.get()/(2*cos(theta*pi/180))
 
-    done = Component(EpicsSignalRO, "KohzuMoving", kind="omitted")
-    done_value = 0
+    def convert_theta_to_energy(self, theta):
+        # lambda in angstroms, theta in degrees, energy in keV
+        lamb = self.crystal_2d.get()*sin(theta*pi/180)
+        energy = speed_of_light*Planck*6.241509e15*1e10/lamb
+        return energy
 
-    def __init__(
-        self,
-        prefix,
-        *,
-        limits=None,
-        readback_pv="",
-        setpoint_pv="",
-        name=None,
-        read_attrs=None,
-        configuration_attrs=None,
-        parent=None,
-        egu="",
-        **kwargs
-    ):
-
-        self._setpoint_pv = setpoint_pv
-        self._readback_pv = readback_pv
-
-        def get_motor_pv(label):
-            _pv_signal = EpicsSignalRO(f"{prefix}Kohzu{label}PvSI", name="tmp")
-            _pv_signal.wait_for_connection()
-            return _pv_signal.get(as_string=True)
-
-        self._theta_pv = get_motor_pv("Theta")
-        self._y_pv = get_motor_pv("Y")
-
-        super().__init__(
-            prefix,
-            limits=limits, name=name, read_attrs=read_attrs,
-            configuration_attrs=configuration_attrs, parent=parent, egu=egu,
-            **kwargs
+    @pseudo_position_argument
+    def forward(self, pseudo_pos):
+        '''Run a forward (pseudo -> real) calculation'''
+        return self.RealPosition(
+            th=self.convert_energy_to_theta(pseudo_pos.energy),
+            y=self.convert_energy_to_y(pseudo_pos.energy)
         )
 
-        # Make the default alias for the readback the name of the
-        # positioner itself as in EpicsMotor.
-        self.readback.name = self.name
+    @real_position_argument
+    def inverse(self, real_pos):
+        '''Run an inverse (real -> pseudo) calculation'''
+        # Changing y does not change the energy.
+        return self.PseudoPosition(
+            energy=self.convert_theta_to_energy(real_pos.th)
+        )
 
-    def _setup_move(self, position):
-        '''Move and do not wait until motion is complete (asynchronous)'''
-        self.log.debug('%s.setpoint = %s', self.name, position)
-
-        # If wait is needed...
-        # self.setpoint.set(position).wait(timeout=10)
-
-        # If not...
-        self.setpoint.put(position, wait=False)
-
-        if self.actuate is not None:
-            self.log.debug('%s.actuate = %s', self.name, self.actuate_value)
-            self.actuate.put(self.actuate_value, wait=False)
-
-    def stop(self, *, success=False):
-        for motor in ["theta", "y"]:
-            getattr(self, f"stop_{motor}").put(1, wait=False)
-        super().stop(success=success)
-
-    def move(self, position, wait=True, timeout=None, moved_cb=None):
-        if abs(position - self.setpoint.get()) <= self.setpoint.tolerance:
-            status = Status()
-            status.set_finished()
-        else:
-            status = super().move(position, wait=wait, timeout=timeout,
-                                  moved_cb=moved_cb)
-        return status
+    def set_energy(self, energy):
+        # energy in keV, theta in degrees.
+        theta = self.convert_energy_to_theta(energy)
+        self.th.set_current_position(theta)
 
 
-class Monochromator(KohzuSeqCtl_Monochromator):
-    """ Tweaks from apstools mono """
-
-    wavelength = Component(
-        KohzuPositioner,
-        "",
-        readback_pv="BraggLambdaRdbkAO",
-        setpoint_pv="BraggLambdaAO",
-        settle_time=KOHZU_SETTLE_TIME
-    )
-
-    energy = Component(
-        KohzuPositioner,
-        "",
-        readback_pv="BraggERdbkAO",
-        setpoint_pv="BraggEAO",
-        settle_time=KOHZU_SETTLE_TIME
-    )
-
-    theta = Component(EpicsMotor, 'm1', labels=('motor',))
-
-    theta_kohzu_screen = Component(
-        KohzuPositioner,
-        "",
-        readback_pv="BraggThetaRdbkAO",
-        setpoint_pv="BraggThetaAO",
-        settle_time=KOHZU_SETTLE_TIME
-    )
-
-    y1 = None
-    crystal_select = Component(EpicsMotor, 'm2', labels=('motor',))
-
-    x2 = None
-    y2 = Component(EpicsMotor, 'm3', labels=('motor',))
-    z2 = Component(EpicsSignalRO, 'Zdummy', labels=('motor',))
-
-    thf2 = Component(EpicsMotor, 'm4', labels=('motor',))
-    chi2 = Component(EpicsMotor, 'm5', labels=('motor',))
-
-    # TODO: these are offline for some reason
-    # temp1 = FormattedComponent(
-    #     LakeShore336Device, "4idaSoft:LS336:TC1:", labels=("lakeshore",)
-    # )
-    # temp2 = FormattedComponent(
-    #     LakeShore336Device, "4idaSoft:LS336:TC2:", labels=("lakeshore",)
-    # )
-
-    # feedback = FormattedComponent(MonoFeedback, '4id:')
-
-    def calibrate_energy(self, value):
-        """Calibrate the mono energy.
-        Parameters
-        ----------
-        value: float
-            New energy for the current monochromator position.
-        """
-        self.use_set.put('Set', use_complete=True)
-        self.energy.setpoint.put(value)
-        self.use_set.put('Use', use_complete=True)
-
-
-mono = Monochromator(
-    '4idVDCM:', name='mono', labels=("monochromator", "energy")
-)
+mono = MonoDevice("4idVDCM:", name="mono", labels=("monochromator",))
