@@ -6,7 +6,6 @@ __all__ = ["mono"]
 
 from ophyd import (
     Component,
-    FormattedComponent,
     EpicsMotor,
     EpicsSignal,
     PseudoPositioner,
@@ -15,6 +14,7 @@ from ophyd import (
 from ophyd.pseudopos import pseudo_position_argument, real_position_argument
 from scipy.constants import speed_of_light, Planck
 from numpy import arcsin, pi, sin, cos
+from .labjacks import labjack_4ida
 from ..utils._logging_setup import logger
 
 logger.info(__file__)
@@ -25,19 +25,30 @@ class MonoDevice(PseudoPositioner):
     energy = Component(PseudoSingle, limits=(2.6, 32))
     th = Component(EpicsMotor, 'm1', labels=('motor',))
 
-    y = Component(EpicsMotor, 'm3', labels=('motor',))
+    y2 = Component(EpicsMotor, 'm3', labels=('motor',))
 
     # Explicitly selects the real motors
-    _real = ['th', 'y']
+    _real = ['th', 'y2']
 
+    # Other motors
+    crystal_select = Component(EpicsMotor, 'm2', labels=('motor',))
+    thf2 = Component(EpicsMotor, 'm4', labels=('motor',))
+    chi2 = Component(EpicsMotor, 'm5', labels=('motor',))
+
+    # PZTs from labjack
+    pzt_thf2 = labjack_4ida.analog_outputs.ao5
+    pzt_chi2 = labjack_4ida.analog_outputs.ao3
+
+    # Parameters
     y_offset = Component(EpicsSignal, "Kohzu_yOffsetAO.VAL", kind="config")
-
     crystal_h = Component(EpicsSignal, "BraggHAO.VAL", kind="config")
     crystal_k = Component(EpicsSignal, "BraggKAO.VAL", kind="config")
     crystal_l = Component(EpicsSignal, "BraggLAO.VAL", kind="config")
     crystal_a = Component(EpicsSignal, "BraggAAO.VAL", kind="config")
     crystal_2d = Component(EpicsSignal, "Bragg2dSpacingAO", kind="config")
-    crystal_type = Component(EpicsSignal, "BraggTypeMO", string=True, kind="config")
+    crystal_type = Component(
+        EpicsSignal, "BraggTypeMO", string=True, kind="config"
+    )
 
     def convert_energy_to_theta(self, energy):
         # lambda in angstroms, theta in degrees, energy in keV
