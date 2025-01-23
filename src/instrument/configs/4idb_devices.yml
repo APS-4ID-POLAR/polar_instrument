@@ -32,3 +32,7 @@ tetramms:
 jj_slits:
   device: bslt
   baseline: True
+
+polarimeter:
+  device: pol
+  baseline: False

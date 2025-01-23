@@ -2,7 +2,7 @@
 Polarization analyzer
 """
 
-__all__ = ["polanalyzer"]
+__all__ = ["pol"]
 
 from ophyd import Device, Component, EpicsMotor
 from .preamps import LocalPreAmp
@@ -22,9 +22,9 @@ class PolAnalyzer(Device):
     )
 
 
-polanalyzer = PolAnalyzer("4idbSoft:", name="polanalyzer")
+pol = PolAnalyzer("4idbSoft:", name="pol")
 
-for pa in [polanalyzer.vertical_preamp, polanalyzer.horizontal_preamp]:
+for pa in [pol.vertical_preamp, pol.horizontal_preamp]:
     pa.offset_fine._string = False
     for item in (
         "offset_fine set_all offset_value offset_unit offset_fine"
