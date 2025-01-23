@@ -20,3 +20,7 @@ flags:
 diamond_window_table:
   device: diamond_window
   baseline: True
+
+table_4idb:
+  device: midtable_4idb
+  baseline: True
