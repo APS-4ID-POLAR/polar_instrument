@@ -10,7 +10,7 @@ from ophyd.signal import Signal
 from ophyd import Kind, Component
 import time
 
-from ..utils import logger
+from ..utils._logging_setup import logger
 logger.info(__file__)
 
 

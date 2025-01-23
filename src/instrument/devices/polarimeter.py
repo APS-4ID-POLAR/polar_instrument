@@ -14,11 +14,11 @@ class PolAnalyzer(Device):
     y = Component(EpicsMotor, "m17", labels=("motor",))
     # th = Component(EpicsMotor, "XXX", labels=("motor",))
 
-    vertical_preamp = LocalPreAmp(
-        'A1', labels=('preamp', 'detector',), kind="config"
+    vertical_preamp = Component(
+        LocalPreAmp, 'A1', labels=('preamp', 'detector',), kind="config"
     )
-    horizontal_preamp = LocalPreAmp(
-        'A2', labels=('preamp', 'detector',), kind="config"
+    horizontal_preamp = Component(
+        LocalPreAmp, 'A2', labels=('preamp', 'detector',), kind="config"
     )
 
 
