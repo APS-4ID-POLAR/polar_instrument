@@ -6,15 +6,16 @@ __all__ = ["mono"]
 
 from ophyd import (
     Component,
+    FormattedComponent,
     EpicsMotor,
     EpicsSignal,
     PseudoPositioner,
-    PseudoSingle
+    PseudoSingle,
 )
 from ophyd.pseudopos import pseudo_position_argument, real_position_argument
 from scipy.constants import speed_of_light, Planck
 from numpy import arcsin, pi, sin, cos
-from .labjacks import labjack_4ida
+from .labjacks import AnalogOutput
 from ..utils._logging_setup import logger
 
 logger.info(__file__)
@@ -31,13 +32,13 @@ class MonoDevice(PseudoPositioner):
     _real = ['th', 'y2']
 
     # Other motors
-    crystal_select = Component(EpicsMotor, 'm2', labels=('motor',))
+    crystal_select = Component(EpicsMotor, 'm2', labels=('motor',), kind="config")
     thf2 = Component(EpicsMotor, 'm4', labels=('motor',))
     chi2 = Component(EpicsMotor, 'm5', labels=('motor',))
 
     # PZTs from labjack
-    pzt_thf2 = labjack_4ida.analog_outputs.ao5
-    pzt_chi2 = labjack_4ida.analog_outputs.ao3
+    pzt_thf2 = FormattedComponent(AnalogOutput, "4idaSoft:LJ:Ao5")
+    pzt_chi2 = FormattedComponent(AnalogOutput, "4idaSoft:LJ:Ao3")
 
     # Parameters
     y_offset = Component(EpicsSignal, "Kohzu_yOffsetAO.VAL", kind="config")
