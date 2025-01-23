@@ -19,7 +19,7 @@ monochromator:
 
 labjacks:
   device: labjack_4ida
-  baseline: True
+  baseline: False
 
 camera_4ida_up:
   device: flag_camera_4ida_up
