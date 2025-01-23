@@ -24,3 +24,7 @@ diamond_window_table:
 table_4idb:
   device: midtable_4idb
   baseline: True
+
+tetramms:
+  device: tetramm_4idb
+  baseline: True
