@@ -89,4 +89,6 @@ class MonoDevice(PseudoPositioner):
         self.th.set_current_position(theta)
 
 
-mono = MonoDevice("4idVDCM:", name="mono", labels=("monochromator",))
+mono = MonoDevice(
+    "4idVDCM:", name="mono", labels=("monochromator", "energy", "4ida")
+)
