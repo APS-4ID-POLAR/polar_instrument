@@ -36,3 +36,7 @@ jj_slits:
 polarimeter:
   device: pol
   baseline: False
+
+magnet_kepco:
+  device: kepco
+  baseline: True
