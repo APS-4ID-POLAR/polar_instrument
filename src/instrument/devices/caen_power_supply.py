@@ -18,20 +18,39 @@ except RuntimeError as excerror:
 from ophyd import Component, Signal, SignalRO
 from ophyd.status import Status
 from apstools.devices import PVPositionerSoftDoneWithStop
+import threading
+from time import sleep
 
 DEVICE = hv.Device.open(
     hv.SystemType["SMARTHV"], hv.LinkType["TCPIP"], "10.54.115.56"
 )
 
 
+class StoppableThread(threading.Thread):
+    def __init__(self, device, sleep_time=0.2):
+        super().__init__()
+        self._stop_event = threading.Event()
+        self.device = device
+        self.sleep_time = sleep_time
+
+    def run(self):
+        while not self._stop_event.is_set():
+            self.device.cb_readback()
+            sleep(self.sleep_time)
+
+    def stop(self):
+        self._stop_event.set()
+
+
 class CaenSignal(Signal):
-    def __init__(self, *args, channel=0, param_name="VMon", **kwargs):
+    def __init__(self, *args, channel=0, param_name="VSet", **kwargs):
         super().__init__(*args, **kwargs)
         self._channel = channel
         self._param = param_name
 
     def get(self, **kwargs):
-        return DEVICE.get_ch(0, [self._channel], self._param)[0]
+        self._readback = DEVICE.get_ch_param(0, [self._channel], self._param)[0]
+        return self._readback
 
     def put(self, value, **kwargs):
         if not isinstance(value, (int, float)):
@@ -39,6 +58,7 @@ class CaenSignal(Signal):
                 f"file_path needs to be a number, but {type(value)} was "
                 "entered."
             )
+        super().put(value, **kwargs)
         DEVICE.set_ch_param(0, [self._channel], self._param, value)
 
     def set(self, value, **kwargs):
@@ -50,13 +70,14 @@ class CaenSignal(Signal):
 
 
 class CaenSignalRO(SignalRO):
-    def __init__(self, *args, channel=0, param_name="VSet", **kwargs):
+    def __init__(self, *args, channel=0, param_name="VMon", **kwargs):
         super().__init__(*args, **kwargs)
         self._channel = channel
         self._param = param_name
 
     def get(self, **kwargs):
-        return DEVICE.get_ch(0, [self._channel], self._param)[0]
+        self._readback = DEVICE.get_ch_param(0, [self._channel], self._param)[0]
+        return self._readback
 
 
 class CaenDevice(PVPositionerSoftDoneWithStop):
@@ -64,11 +85,26 @@ class CaenDevice(PVPositionerSoftDoneWithStop):
     setpoint = Component(CaenSignal)
 
     def __init__(self, *args, channel=0, **kwargs):
-        super().__init__(**args, tolerance=0.5, **kwargs)
+        super().__init__(*args, readback_pv="1", tolerance=0.5, use_target=True, **kwargs)
         self.readback._channel = channel
         self.setpoint._channel = channel
         self.timeout = 120
         self.settle_time = 5
+        self.setpoint.subscribe(self.cb_update_target)
+        self.thread = None
+
+    def set(self, new_position, *, timeout=None, moved_cb=None, wait=False):
+        if self.thread is not None and self.thread.is_alive():
+            self.thread.stop()
+        self.thread = StoppableThread(self)
+        self.thread.start()
+        return super().set(new_position, timeout=timeout, moved_cb=moved_cb, wait=wait)
+    
+    def _done_moving(self, **kwargs):
+        super()._done_moving(**kwargs)
+        if self.thread is not None and self.thread.is_alive():
+            self.thread.stop()
+            self.thread = None
 
 
 pscaen = CaenDevice("", name="caenps")
