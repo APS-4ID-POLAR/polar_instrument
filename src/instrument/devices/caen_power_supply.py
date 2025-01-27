@@ -4,7 +4,7 @@ Caen power supply
 
 # WARNING: THIS IS A TEMPORARY SETUP WHILE WE DON'T HAVE THE EPICS SUPPORT #
 
-__all__ = ["pscaen"]
+__all__ = ["caenps"]
 
 try:
     from caen_libs import caenhvwrapper as hv
@@ -15,7 +15,7 @@ except RuntimeError as excerror:
     )
     raise RuntimeError(excerror)
 
-from ophyd import Component, Signal, SignalRO
+from ophyd import Device, Component, Signal, SignalRO
 from ophyd.status import Status
 from apstools.devices import PVPositionerSoftDoneWithStop
 import threading
@@ -80,7 +80,7 @@ class CaenSignalRO(SignalRO):
         return self._readback
 
 
-class CaenDevice(PVPositionerSoftDoneWithStop):
+class CaenPositioner(PVPositionerSoftDoneWithStop):
     readback = Component(CaenSignalRO)
     setpoint = Component(CaenSignal)
 
@@ -111,4 +111,17 @@ class CaenDevice(PVPositionerSoftDoneWithStop):
             self.thread = None
 
 
-pscaen = CaenDevice("", name="caenps")
+class CaenDevice(Device):
+    ch1 = Component(CaenPositioner, "", channel=0)
+    ch2 = Component(CaenPositioner, "", channel=1)
+    ch3 = Component(CaenPositioner, "", channel=2)
+    ch4 = Component(CaenPositioner, "", channel=3)
+    ch5 = Component(CaenPositioner, "", channel=4)
+    ch6 = Component(CaenPositioner, "", channel=5)
+    ch7 = Component(CaenPositioner, "", channel=6)
+    ch8 = Component(CaenPositioner, "", channel=7)
+
+    device = DEVICE
+
+
+caenps = CaenDevice("", name="caenps", labels=("detector",))
