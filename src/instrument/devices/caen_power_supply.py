@@ -85,7 +85,9 @@ class CaenDevice(PVPositionerSoftDoneWithStop):
     setpoint = Component(CaenSignal)
 
     def __init__(self, *args, channel=0, **kwargs):
-        super().__init__(*args, readback_pv="1", tolerance=0.5, use_target=True, **kwargs)
+        super().__init__(
+            *args, readback_pv="1", tolerance=0.5, use_target=True, **kwargs
+        )
         self.readback._channel = channel
         self.setpoint._channel = channel
         self.timeout = 120
@@ -98,8 +100,10 @@ class CaenDevice(PVPositionerSoftDoneWithStop):
             self.thread.stop()
         self.thread = StoppableThread(self)
         self.thread.start()
-        return super().set(new_position, timeout=timeout, moved_cb=moved_cb, wait=wait)
-    
+        return super().set(
+            new_position, timeout=timeout, moved_cb=moved_cb, wait=wait
+        )
+
     def _done_moving(self, **kwargs):
         super()._done_moving(**kwargs)
         if self.thread is not None and self.thread.is_alive():
