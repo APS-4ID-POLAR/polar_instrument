@@ -73,7 +73,7 @@ class MonoDevice(PseudoPositioner):
         '''Run a forward (pseudo -> real) calculation'''
         return self.RealPosition(
             th=self.convert_energy_to_theta(pseudo_pos.energy),
-            y=self.convert_energy_to_y(pseudo_pos.energy)
+            y2=self.convert_energy_to_y(pseudo_pos.energy)
         )
 
     @real_position_argument
