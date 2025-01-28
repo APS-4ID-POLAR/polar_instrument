@@ -2,7 +2,7 @@
 JJ Slits
 """
 __all__ = [
-    'monoslt'
+    'monoslt', "bslt"
 ]
 
 from ophyd import Device, FormattedComponent, EpicsMotor
@@ -71,5 +71,14 @@ monoslt = SlitDevice(
     2,
     labels=('slit',)
 )
-monoslt.vcen.tolerance.put(0.01)
-monoslt.vsize.tolerance.put(0.01)
+monoslt.vcen.tolerance.put(0.001)
+monoslt.vsize.tolerance.put(0.001)
+
+# 4idb JJ slit
+bslt = SlitDevice(
+    '4idbSoft:',
+    'bslt',
+    {'top': 'm11', 'bot': 'm10', 'out': 'm13', 'inb': 'm12'},
+    1,
+    labels=('slit',)
+)

@@ -8,6 +8,8 @@ from ophyd import Component, Device, Signal
 from ophyd.status import Status, StatusBase
 from typing import Any, Callable
 from numpy import abs
+from ..utils._logging_setup import logger
+logger.info(__file__)
 
 
 class PolarUndulatorPositioner(UndulatorPositioner):

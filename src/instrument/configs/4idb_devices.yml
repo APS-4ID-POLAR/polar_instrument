@@ -1,4 +1,4 @@
-# 4ID-A setup
+# 4ID-B setup
 
 scaler_4idCTR8:
   device: scaler_ctr8
@@ -19,4 +19,24 @@ flags:
 
 diamond_window_table:
   device: diamond_window
+  baseline: True
+
+table_4idb:
+  device: midtable_4idb
+  baseline: True
+
+tetramms:
+  device: tetramm_4idb
+  baseline: True
+
+jj_slits:
+  device: bslt
+  baseline: True
+
+polarimeter:
+  device: pol
+  baseline: False
+
+magnet_kepco:
+  device: kepco
   baseline: True
