@@ -55,7 +55,10 @@ for module, items in devs.items():
         if isinstance(items["baseline"], bool) else
         items["baseline"]
     )
-    timeouts = items.get("timeout", TIMEOUT)
+
+    timeouts = items.get("timeout", None)
+    if timeouts is None:
+        timeouts = [TIMEOUT for _ in range(len(baselines))]
     timeouts = [timeouts] if isinstance(timeouts, (int, float)) else timeouts
 
     for device, baseline, timeout in zip(devices, baselines, timeouts):
