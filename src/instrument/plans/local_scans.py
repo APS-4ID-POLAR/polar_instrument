@@ -292,7 +292,7 @@ def count(
 
     _md.update(md or {})
 
-    # @subs_decorator(nxwriter.receiver)
+    @subs_decorator(nxwriter.receiver)
     @stage_dichro_decorator(dichro, lockin, None)
     @configure_counts_decorator(detectors, time)
     @extra_devices_decorator(extras)
@@ -305,7 +305,7 @@ def count(
             md=_md
         )
         # Wait for the master file to finish writing.
-        # yield from nxwriter.wait_writer_plan_stub()
+        yield from nxwriter.wait_writer_plan_stub()
 
     return (yield from _inner_count())
 
