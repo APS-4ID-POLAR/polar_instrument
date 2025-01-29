@@ -83,8 +83,8 @@ specwriter = _specwriter
 _path = pathlib.Path().cwd()
 specwriter.newfile(_path / specwriter.spec_filename)
 
-#if "SPEC_DATA_FILES" in iconfig:
-#    RE.subscribe(specwriter.receiver)  # write data to SPEC files
+if "SPEC_DATA_FILES" in iconfig:
+    RE.subscribe(specwriter.receiver)  # write data to SPEC files
 
 try:
     # feature new in apstools 1.6.14
