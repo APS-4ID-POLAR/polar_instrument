@@ -292,7 +292,7 @@ def count(
 
     _md.update(md or {})
 
-    @subs_decorator(nxwriter.receiver)
+    # @subs_decorator(nxwriter.receiver)
     @stage_dichro_decorator(dichro, lockin, None)
     @configure_counts_decorator(detectors, time)
     @extra_devices_decorator(extras)
@@ -305,7 +305,7 @@ def count(
             md=_md
         )
         # Wait for the master file to finish writing.
-        yield from nxwriter.wait_writer_plan_stub()
+        # yield from nxwriter.wait_writer_plan_stub()
 
     return (yield from _inner_count())
 
@@ -413,7 +413,7 @@ def ascan(
 
     _md.update(md or {})
 
-    @subs_decorator(nxwriter.receiver)
+    # @subs_decorator(nxwriter.receiver)
     @configure_counts_decorator(detectors, time)
     @stage_dichro_decorator(dichro, lockin, args)
     @extra_devices_decorator(extras)
@@ -425,7 +425,7 @@ def ascan(
             md=_md
         )
 
-        yield from nxwriter.wait_writer_plan_stub()
+        # yield from nxwriter.wait_writer_plan_stub()
 
     return (yield from _inner_ascan())
 
@@ -591,13 +591,15 @@ def grid_scan(
     if detectors is None:
         detectors = counters.detectors
 
-    _base_path, _master_fullpath, _dets_file_paths, _rel_dets_paths = (
+    _master_fullpath, _dets_file_paths, _rel_dets_paths = (
         _setup_paths(detectors)
     )
 
-    setup_nxwritter(_base_path, _master_fullpath, _rel_dets_paths)
+    setup_nxwritter(
+        experiment.experiment_path, _master_fullpath, _rel_dets_paths
+    )
 
-    extras = _collect_extras()
+    extras = yield from _collect_extras(energy in args, "fourc" in str(args))
 
     _md = dict(
         hints={'monitor': counters.monitor, 'detectors': []},
@@ -618,7 +620,7 @@ def grid_scan(
 
     _md.update(md or {})
 
-    @subs_decorator(nxwriter.receiver)
+    # @subs_decorator(nxwriter.receiver)
     @configure_counts_decorator(detectors, time)
     @stage_dichro_decorator(dichro, lockin, args)
     @extra_devices_decorator(extras)
@@ -631,7 +633,7 @@ def grid_scan(
             md=_md
         )
 
-        yield from nxwriter.wait_writer_plan_stub()
+        # yield from nxwriter.wait_writer_plan_stub()
 
     return (yield from _inner_grid_scan())
 

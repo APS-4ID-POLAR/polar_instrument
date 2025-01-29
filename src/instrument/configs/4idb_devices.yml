@@ -27,7 +27,7 @@ table_4idb:
 
 tetramms:
   device: tetramm_4idb
-  baseline: True
+  baseline: False
 
 jj_slits:
   device: bslt
