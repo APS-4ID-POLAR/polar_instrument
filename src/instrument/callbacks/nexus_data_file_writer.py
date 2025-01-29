@@ -12,8 +12,7 @@ https://bcda-aps.github.io/apstools/dev/api/_filewriters.html#apstools.callbacks
 __all__ = ["nxwriter"]
 
 import h5py
-# from apstools.callbacks import NXWriterAPS
-from .apstools_nexus import NXWriterAPS
+from apstools.callbacks import NXWriterAPS
 from numpy import array
 from datetime import datetime
 from ..utils.config import iconfig

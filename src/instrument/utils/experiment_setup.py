@@ -352,7 +352,7 @@ class ExperimentClass:
             reset_scan_id: int = None,
             skip_DM: bool = False
     ):
-        if skip_DM:
+        if not skip_DM:
             # ESAF and proposal ID info first. Will get data from APS databases.
             self.esaf_input(esaf_id)
             self.proposal_input(proposal_id)
