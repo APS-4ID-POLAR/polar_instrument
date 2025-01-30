@@ -1,5 +1,9 @@
 # 4ID-A setup
 
+aps_xbpm:
+  device: aps_xbpm
+  baseline: True
+
 s4idundulator:
   device: undulators
   baseline: True
