@@ -26,8 +26,8 @@ table_4idb:
   baseline: True
 
 tetramms:
-  device: tetramm_4idb
-  baseline: False
+  device: [tetramm_4idb, tetramm_4idb_ro]
+  baseline: [False, True]
 
 jj_slits:
   device: bslt
