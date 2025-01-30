@@ -413,7 +413,7 @@ def ascan(
 
     _md.update(md or {})
 
-    # @subs_decorator(nxwriter.receiver)
+    @subs_decorator(nxwriter.receiver)
     @configure_counts_decorator(detectors, time)
     @stage_dichro_decorator(dichro, lockin, args)
     @extra_devices_decorator(extras)
@@ -425,7 +425,7 @@ def ascan(
             md=_md
         )
 
-        # yield from nxwriter.wait_writer_plan_stub()
+        yield from nxwriter.wait_writer_plan_stub()
 
     return (yield from _inner_ascan())
 
@@ -620,7 +620,7 @@ def grid_scan(
 
     _md.update(md or {})
 
-    # @subs_decorator(nxwriter.receiver)
+    @subs_decorator(nxwriter.receiver)
     @configure_counts_decorator(detectors, time)
     @stage_dichro_decorator(dichro, lockin, args)
     @extra_devices_decorator(extras)
@@ -633,7 +633,7 @@ def grid_scan(
             md=_md
         )
 
-        # yield from nxwriter.wait_writer_plan_stub()
+        yield from nxwriter.wait_writer_plan_stub()
 
     return (yield from _inner_grid_scan())
 
@@ -820,6 +820,7 @@ def qxscan(
             _ct[det] = yield from rd(det.preset_monitor)
             args += (det.preset_monitor, _ct[det]*array(factor_list))
 
+    @subs_decorator(nxwriter.receiver)
     @configure_counts_decorator(detectors, time)
     @stage_dichro_decorator(dichro, lockin, args)
     @extra_devices_decorator(extras)
@@ -831,6 +832,8 @@ def qxscan(
         # put original times back.
         for det, preset in _ct.items():
             yield from mv(det.preset_monitor, preset)
+
+        yield from nxwriter.wait_writer_plan_stub()
 
     return (yield from _inner_qxscan())
 
