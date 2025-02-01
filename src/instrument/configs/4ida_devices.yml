@@ -42,7 +42,7 @@ jj_slits:
   baseline: True
 
 phaseplates:
-  device: [pr1, pr2, pr3, pr_setup]
+  device: [pr1, pr2, pr3]
   baseline: [True, True, True]
 
 energy_device:
