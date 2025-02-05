@@ -463,8 +463,8 @@ class TriggerBase(BlueskyInterface):
 
     @property
     def _acquisition_signal(self):
-        getattr(self, self._acquisition_signal_pv)
+        return getattr(self, self._acquisition_signal_pv)
 
     @property
     def _acquire_busy_signal(self):
-        getattr(self, self._acquire_busy_signal_pv)
+        return getattr(self, self._acquire_busy_signal_pv)
