@@ -4,7 +4,7 @@ Undulator support
 
 from apstools.devices import STI_Undulator, TrackingSignal
 from apstools.devices.aps_undulator import UndulatorPositioner
-from ophyd import Component, Device, Signal
+from ophyd import Component, Device, Signal, EpicsSignal, EpicsSignalRO
 from ophyd.status import Status, StatusBase
 from typing import Any, Callable
 from numpy import abs
@@ -44,9 +44,29 @@ class PolarUndulator(STI_Undulator):
     version_hpmu = None
 
 
+class PhaseShifterDevice(Device):
+    gap = Component(UndulatorPositioner, "Gap")
+
+    start_button = Component(EpicsSignal, "StartC.VAL")
+    stop_button = Component(EpicsSignal, "StopC.VAL")
+    done = Component(EpicsSignalRO, "BusyM.VAL", kind="omitted")
+
+    gap_deadband = Component(EpicsSignal, "DeadbandGapC")
+    device_limit = Component(EpicsSignal, "DeviceLimitM.VAL")
+    device = Component(EpicsSignalRO, "DeviceM", kind="config")
+    location = Component(EpicsSignalRO, "LocationM", kind="config")
+    message1 = Component(EpicsSignalRO, "Message1M.VAL", kind="config", string=True)
+    message2 = Component(EpicsSignalRO, "Message2M.VAL", kind="config", string=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.gap.done_value = 0
+
+
 class PolarUndulatorPair(Device):
     us = Component(PolarUndulator, "USID:")
     ds = Component(PolarUndulator, "DSID:")
+    phase_shifter = Component(PhaseShifterDevice, "ILPS:")
 
 
 undulators = PolarUndulatorPair("S04ID:", name="undulators", labels=("energy",))
