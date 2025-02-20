@@ -139,6 +139,7 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
             plot_dichro_settings.settings.positioner = (
                 "None" if positioner is None else positioner[0].name
             )
+
             dichro_bec.enable_plots()
             bec.disable_plots()
 
@@ -147,8 +148,9 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
             )
             # move PZT to center.
             if 'pzt' in pr_setup.positioner.name:
-                yield from mv(pr_setup.positioner,
-                              pr_setup.positioner.parent.center.get())
+                yield from mv(
+                    pr_setup.positioner, pr_setup.positioner.parent.center.get()
+                )
 
     def _unstage():
 
