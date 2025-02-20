@@ -39,7 +39,7 @@ class PolarUndulatorPositioner(UndulatorPositioner):
 class PolarUndulator(STI_Undulator):
     tracking = Component(TrackingSignal, value=False, kind='config')
     offset = Component(Signal, value=0, kind='config')
-    energy_deadband = Component(Signal, value=0.001, kind='config')
+    energy_deadband = Component(Signal, value=0.003, kind='config')
     energy = Component(PolarUndulatorPositioner, "Energy")
     version_hpmu = None
 
