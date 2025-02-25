@@ -83,7 +83,7 @@ class PRPzt(Device):
     )
 
     ACstatus = FormattedComponent(
-        EpicsSignalRO, '4idaSoft:232DRIO:1:status', kind='config'
+        EpicsSignal, '4idaSoft:232DRIO:1:status', kind='config'
     )
 
     conversion_factor = Component(Signal, value=0.1, kind='config')
