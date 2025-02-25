@@ -121,7 +121,7 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
                 if scaler_channel.kind.value >= 5:
                     _current_scaler_plot.append(scaler_channel.s.name)
 
-            counters.default_scaler.select_plot_channels(['Lock DC', 'Lock AC'])
+            counters.default_scaler.select_plot_channels(['LockDC', 'LockAC'])
 
             if pr_setup.positioner is None:
                 raise ValueError('Phase retarder was not selected.')
@@ -132,6 +132,7 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
                                 pzt.')
 
             yield from mv(pr_setup.positioner.parent.selectAC, 1)
+            yield from mv(pr_setup.positioner.parent.ACstatus, 2)
 
         if dichro:
 
@@ -156,6 +157,7 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
 
         if lockin:
             counters.default_scaler.select_plot_channels(_current_scaler_plot)
+            yield from mv(pr_setup.positioner.parent.ACstatus, 0)
             yield from mv(pr_setup.positioner.parent.selectDC, 1)
 
         if dichro:
