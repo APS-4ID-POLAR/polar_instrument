@@ -63,6 +63,8 @@ flag = LocalFlag()
 
 def _collect_extras(escan_flag, fourc_flag):
     """Collect all detectors that need to be read during a scan."""
+
+    # Initialize the list of extra devices with the standard set from counters
     extras = counters.extra_devices.copy()
 
     if escan_flag:
@@ -70,7 +72,10 @@ def _collect_extras(escan_flag, fourc_flag):
             und_track = yield from rd(und.tracking)
             if und_track:
                 extras.append(und.energy)
+
+        # Do the same for phase plates
         for pr in [pr1, pr2, pr3]:
+            # Fetch tracking status asynchronously
             pr_track = yield from rd(pr.tracking)
             if pr_track:
                 extras.append(pr.th)
