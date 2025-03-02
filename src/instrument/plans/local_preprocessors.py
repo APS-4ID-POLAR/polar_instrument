@@ -157,8 +157,8 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
 
         if lockin:
             counters.default_scaler.select_plot_channels(_current_scaler_plot)
-            yield from mv(pr_setup.positioner.parent.ACstatus, 0)
             yield from mv(pr_setup.positioner.parent.selectDC, 1)
+            yield from mv(pr_setup.positioner.parent.ACstatus, 0)
 
         if dichro:
             # move PZT to off center.
