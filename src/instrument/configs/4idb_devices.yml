@@ -37,6 +37,6 @@ polarimeter:
   device: pol
   baseline: False
 
-magnet_kepco:
-  device: kepco
+electromagnet:
+  device: emag
   baseline: True

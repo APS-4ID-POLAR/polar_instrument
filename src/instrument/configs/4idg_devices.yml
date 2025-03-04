@@ -1,29 +1,33 @@
 # 4ID-A setup
 
-polar_diffractometer:
-  device: [polar, polar_psi]
-  baseline: [True, True]
-
-simulated_fourc_vertical:
-  device: fourc
+xbpm_4idg:
+  device: gxbpm
   baseline: True
 
-pva_control:
-  device: positioner_stream
-  baseline: True
+# polar_diffractometer:
+#   device: [polar, polar_psi]
+#   baseline: [True, True]
 
-softgluezynq:
-  device: sgz
-  baseline: True
+# simulated_fourc_vertical:
+#   device: fourc
+#   baseline: True
 
-nanopositioner:
-  device: diff_nano
-  baseline: True
+# pva_control:
+#   device: positioner_stream
+#   baseline: True
 
-ad_eiger1M:
-  device: eiger1m
-  baseline: False
+# softgluezynq:
+#   device: sgz
+#   baseline: True
 
-xspress:
-  device: vortex
-  baseline: False
+# nanopositioner:
+#   device: diff_nano
+#   baseline: True
+
+# ad_eiger1M:
+#   device: eiger1m
+#   baseline: False
+
+# xspress:
+#   device: vortex
+#   baseline: False
