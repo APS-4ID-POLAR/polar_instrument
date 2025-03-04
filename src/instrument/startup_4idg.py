@@ -23,9 +23,8 @@ from .utils.best_effort import bec  # noqa
 from .utils.best_effort import peaks  # noqa
 from .utils.catalog import full_cat  # noqa
 from .utils.functions import running_in_queueserver  # noqa
-from .utils.ophyd_setup import oregistry  # noqa
-from .utils.run_engine import RE  # noqa
-from .utils.run_engine import sd  # noqa
+from .utils.oregistry_setup import oregistry, get_devices  # noqa
+from .utils.run_engine import RE, sd  # noqa
 
 # Configure the session with callbacks, devices, and plans.
 # These imports must come after the above setup.
