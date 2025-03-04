@@ -38,7 +38,7 @@ from ..callbacks.nexus_data_file_writer import nxwriter
 from ..devices import counters
 from ..devices.qxscan_setup import qxscan_params
 from ..devices.energy_device import energy
-from ..devices.s4idundulator import undulators
+from ..devices.aps_undulator import undulators
 from ..devices.phaseplates import pr1, pr2, pr3, pr_setup
 from ..utils._logging_setup import logger
 from ..utils.experiment_setup import experiment

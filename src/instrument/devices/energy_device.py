@@ -7,7 +7,7 @@ from ophyd import Signal
 from ophyd.status import Status, AndStatus, wait as status_wait
 from time import time as ttime
 from .monochromator import mono
-from .s4idundulator import undulators
+from .aps_undulator import undulators
 from .phaseplates import pr1, pr2, pr3
 from ..utils._logging_setup import logger
 logger.info(__file__)

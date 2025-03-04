@@ -69,4 +69,4 @@ class PolarUndulatorPair(Device):
     phase_shifter = Component(PhaseShifterDevice, "ILPS:")
 
 
-undulators = PolarUndulatorPair("S04ID:", name="undulators", labels=("energy",))
+undulators = PolarUndulatorPair("S04ID:", name="undulators", labels=("energy", "source"))
