@@ -31,4 +31,4 @@ class MyXBPM(Device):
     cm3 = Component(CMsDevice, "S04IDFE-XBPM:CM3ds:")
 
 
-aps_xbpm = MyXBPM("", name="aps_xbpm")
+aps_xbpm = MyXBPM("", name="aps_xbpm", labels=("source",))
