@@ -61,5 +61,5 @@ wbslt = SlitDevice(
     'wbslt',
     {'hor': 'm9', 'diag': 'm10', 'pitch': 'm11', 'yaw': 'm12'},
     1,
-    labels=('slit',)
+    labels=("4ida", 'slit',)
 )

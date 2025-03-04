@@ -69,7 +69,7 @@ monoslt = SlitDevice(
     'monoslt',
     {'top': 'm14', 'bot': 'm13', 'out': 'm16', 'inb': 'm15'},
     2,
-    labels=('slit',)
+    labels=("4ida", 'slit',)
 )
 monoslt.vcen.tolerance.put(0.001)
 monoslt.vsize.tolerance.put(0.001)
@@ -80,5 +80,5 @@ bslt = SlitDevice(
     'bslt',
     {'top': 'm11', 'bot': 'm10', 'out': 'm13', 'inb': 'm12'},
     1,
-    labels=('slit',)
+    labels=("4ida", 'slit',)
 )

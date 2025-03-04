@@ -36,5 +36,5 @@ class ToroidalMirror(Device):
 
 
 hhl_mirror = ToroidalMirror(
-    '4idHHLM:', name='hhl_mirror', labels=("mirror",)
+    '4idHHLM:', name='hhl_mirror', labels=("4ida", "mirror",)
 )

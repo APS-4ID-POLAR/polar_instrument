@@ -22,7 +22,7 @@ class PolAnalyzer(Device):
     )
 
 
-pol = PolAnalyzer("4idbSoft:", name="pol")
+pol = PolAnalyzer("4idbSoft:", name="pol", labels=("4idb",))
 
 for pa in [pol.vertical_preamp, pol.horizontal_preamp]:
     pa.offset_fine._string = False
