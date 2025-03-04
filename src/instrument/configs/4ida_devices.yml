@@ -4,10 +4,14 @@ aps_xbpm:
   device: aps_xbpm
   baseline: True
 
-s4idundulator:
+aps_undulator:
   device: undulators
   baseline: True
   timeout: 2
+
+aps_phase_shifter:
+  device: pshift
+  baseline: True
 
 hhl_mirror:
   device: hhl_mirror
