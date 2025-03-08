@@ -4,6 +4,10 @@ xbpm_4idg:
   device: gxbpm
   baseline: True
 
+transfocator_device:
+  device: transfocator
+  baseline: True
+
 # polar_diffractometer:
 #   device: [polar, polar_psi]
 #   baseline: [True, True]
