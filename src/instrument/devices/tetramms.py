@@ -19,7 +19,7 @@ class TetrAMMRO(Device):
     posy = Component(EpicsSignalRO, "PosY:MeanValue_RBV")
     sumx = Component(EpicsSignalRO, "SumX:MeanValue_RBV")
     sumy = Component(EpicsSignalRO, "SumY:MeanValue_RBV")
-    sum =  Component(EpicsSignalRO, "SumAll:MeanValue_RBV")
+    sum = Component(EpicsSignalRO, "SumAll:MeanValue_RBV")
 
 
 tetramm_4idb_ro = TetrAMMRO(
