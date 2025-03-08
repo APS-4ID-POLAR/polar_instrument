@@ -12,8 +12,23 @@ from ..utils._logging_setup import logger
 logger.info(__file__)
 
 
+class PSPositioner(UndulatorPositioner):
+
+    def move(self, position, wait=True, timeout=None, moved_cb=None):
+        if (
+            abs(position - self.readback.get(use_monitor=False)) < 
+            self.parent.gap_deadband.get(use_monitor=False)/1000  # deadband in microns, gap in mm
+        ):
+            status = DeviceStatus(self)
+            status.set_finished()
+        else:
+            status = super().move(position, wait=wait, timeout=timeout, moved_cb=moved_cb)
+            
+        return status
+
+
 class PhaseShifterDevice(Device):
-    gap = Component(UndulatorPositioner, "Gap")
+    gap = Component(PSPositioner, "Gap")
 
     start_button = Component(EpicsSignal, "StartC.VAL")
     stop_button = Component(EpicsSignal, "StopC.VAL")
@@ -29,18 +44,6 @@ class PhaseShifterDevice(Device):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.gap.done_value = 0
-
-    def move(self, position, wait=True, timeout=None, moved_cb=None):
-        if (
-            abs(position - self.gap.readback.get(use_monitor=False)) < 
-            self.gap_deadband.get(use_monitor=False)/1000  # deadband in microns, gap in mm
-        ):
-            status = DeviceStatus(self)
-            status.set_finished()
-        else:
-            status = super().move(position, wait=wait, timeout=timeout, moved_cb=moved_cb)
-            
-        return status
 
 
 pshift = PhaseShifterDevice("S04ID:ILPS:", name="pshift", labels=("energy", "source"))
