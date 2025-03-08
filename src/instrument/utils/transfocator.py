@@ -12,7 +12,7 @@ from numpy import loadtxt, interp
 
 def read_delta(
     energy=None,
-    path="/home/beams/POLAR/polar_instrument/instrument/utils/Be_refr_index.dat",
+    path="/home/beams/POLAR/polar_instrument/src/instrument/utils/Be_refr_index.dat",
 ):
     if energy < 2700 or energy > 27000:
         raise ValueError("Energy {} out of range [2700, 27000].".format(energy))
