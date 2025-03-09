@@ -22,7 +22,7 @@ def read_delta(
     if energy < 2700 or energy > 27000:
         raise ValueError("Energy {} out of range [2700, 27000].".format(energy))
 
-    energies, deltas = loadtxt(path, skiprows=2, usecols=(0, 1))
+    energies, deltas = loadtxt(path, skiprows=2, usecols=(0, 1), unpack=True)
     return interp1d(energies, deltas, kind="linear")(energy)
 
     # stop = 0
@@ -102,12 +102,13 @@ def transfocator_calc(
     iR = 0
     lenses_used = []
     for num, value in enumerate(iradius_eff):
+        lenses_used.append(0)
         if value < iR_N and iR < iR_N:
-            lenses_used.append(1)
+            lenses_used[-1] = 1
             iR += value
             if iR > iR_N + 0.001:
                 iR -= value
-                lenses_used.append(0)
+                lenses_used[-1] = 0
 
     if verbose:
         print("-" * 65)
