@@ -110,14 +110,15 @@ def transfocator_calc(
                 iR -= value
                 lenses_used[-1] = 0
 
+    focus_new = 1 / (2 * delta * iR)
+    distance_new = (
+        focus_new * source_crl_distance / (source_crl_distance - focus_new)
+    )
+
     if verbose:
         print("-" * 65)
         print("Inserted lens packages = {}".format(lenses_used))
         print("Effective radius = {:3.1f} \u03bcm".format(1 / iR))
-        focus_new = 1 / (2 * delta * iR)
-        distance_new = (
-            focus_new * source_crl_distance / (source_crl_distance - focus_new)
-        )
         print(
             "Position correction = {:6.1f} mm".format(
                 (distance - distance_new) / 1e3
