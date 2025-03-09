@@ -9,7 +9,7 @@ from ophyd import Device, Component, EpicsMotor
 from toolz import partition
 from .energy_device import energy as edevice
 from ..utils._logging_setup import logger
-from ..utils.transfocator_calculation import transfocator_calc
+from ..utils.transfocator_calculation_new import transfocator_calculation
 
 logger.info(__file__)
 
@@ -43,29 +43,53 @@ class TranfocatorClass(Device):
         else:  # limits = [0, 0]
             return "unknown"
 
+    @property
+    def lenses_in(self):
+        selected = []
+        for i in range(1, 9):
+            _status = self.lens_status(i)
+            if _status == "in":
+                selected.append(i)
+            elif _status == "unknown":
+                logger.info(f"WARNING: the status of lens #{i} is unknown.")
+        return selected
+
     def __init__(self, *args, lens_step=30, **kwargs):
         super().__init__(*args, **kwargs)
         self._lens_step = lens_step
 
-    def _move_lenses(self, lenses: list, type="noplan"):
-        if len(lenses) != 8:
-            raise ValueError("Lenses must be an iterable with length=8.")
+    def _move_lenses(self, lenses_in: list = [], type="noplan"):
+        """
+        Adjust lenses
+
+        PARAMETERS
+        ----------
+        lenses_in : list or iterable
+            Index of the lenses that will be inserted. The ones not in this list
+            will be removed.
+        type : "plan" or "noplan"
+            Determines how the lenses will be used, using a bluesky plan
+            ("plan" option), or "noplan".
+        """
+
+        if len(lenses_in) > 8:
+            raise ValueError("Lenses must be an iterable with length <= 8.")
 
         # Positive/negative step moves lens in/out respectively.
         # We want to move it to the hard limit.
 
         args = []
-        for i, lens in enumerate(lenses):
+        for lens in range(1, 9):
             # If the lens is already in the correct place --> do nothing
             if (
-                ((self.lens_status(i) == "in") and (lens == 1)) or
-                ((self.lens_status(i) == "out") and (lens == 0))
+                ((self.lens_status(lens) == "in") and (lens in lenses_in)) or
+                ((self.lens_status(lens) == "out") and (lens not in lenses_in))
             ):
                 continue
 
-            step_sign = 1 if lens == 1 else -1
+            step_sign = 1 if lens in lenses_in else -1
             args += [
-                getattr(self, f"lens{i}"), step_sign*self._lens_step
+                getattr(self, f"lens{lens}"), step_sign*self._lens_step
             ]
 
         if type == "plan":
@@ -78,8 +102,8 @@ class TranfocatorClass(Device):
                 dev.user_setpoint.put(dev.position + pos)
             return None
 
-    def set_lenses(self, lenses: list):
-        self._move_lenses(lenses, type="noplan")
+    def set_lenses(self, selected_lenses: list):
+        self._move_lenses(selected_lenses, type="noplan")
 
     # TODO: Need to create plans for these motions, but we are having problems
     # with moving the lenses in EPICS now.
@@ -89,35 +113,58 @@ class TranfocatorClass(Device):
         energy=None,
         distance=2581,
         experiment="diffractometer",
-        beamline="polar"
     ):
         lenses, distance = self.calc(
             distance=distance,
             energy=energy,
             experiment=experiment,
-            beamline=beamline,
             verbose=False
         )
 
         self.set_lenses(lenses)
         self.z.move(distance).wait()
 
+    def optimize_distance(
+        self,
+        energy=None,
+        distance=2581,
+        experiment="diffractometer",
+        selected_lenses=None
+    ):
+        _, distance = self.calc(
+            distance=distance,
+            energy=energy,
+            experiment=experiment,
+            distance_only=True,
+            selected_lenses=selected_lenses,
+            verbose=False
+        )
+
+        self.z.move(distance).wait()
+
     def calc(
         self,
-        distance=None,
+        distance=2581,
         energy=None,
         experiment="diffractometer",
         beamline="polar",
+        distance_only=False,
+        selected_lenses=None,
         verbose=True
     ):
         if energy is None:
             energy = edevice.get() * 1e3
 
-        return transfocator_calc(
+        if not selected_lenses:
+            selected_lenses = self.lenses_in()
+
+        return transfocator_calculation(
             distance=distance,
             energy=energy,
             experiment=experiment,
             beamline=beamline,
+            distance_only=distance_only,
+            selected_lenses=selected_lenses,
             verbose=verbose
         )
 
