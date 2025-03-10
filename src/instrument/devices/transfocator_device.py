@@ -14,7 +14,7 @@ from ..utils.transfocator_calculation_new import transfocator_calculation
 logger.info(__file__)
 
 
-class TranfocatorClass(Device):
+class TransfocatorClass(Device):
     x = Component(EpicsMotor, "m58", labels=("motor",))
     y = Component(EpicsMotor, "m57", labels=("motor",))
     z = Component(EpicsMotor, "m61", labels=("motor",))
@@ -30,7 +30,11 @@ class TranfocatorClass(Device):
     lens7 = Component(EpicsMotor, "m68", labels=("motor",))
     lens8 = Component(EpicsMotor, "m69", labels=("motor",))
 
-    @property
+    def __init__(self, *args, lens_step=30, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._lens_step = lens_step
+        self._default_distance = 2581  # mm
+
     def lens_status(self, i):
         device = getattr(self, f"lens{i}")
         limits = [device.low_limit_switch.get(), device.high_limit_switch.get()]
@@ -54,10 +58,6 @@ class TranfocatorClass(Device):
                 logger.info(f"WARNING: the status of lens #{i} is unknown.")
         return selected
 
-    def __init__(self, *args, lens_step=30, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._lens_step = lens_step
-
     def _move_lenses(self, lenses_in: list = [], type="noplan"):
         """
         Adjust lenses
@@ -72,8 +72,9 @@ class TranfocatorClass(Device):
             ("plan" option), or "noplan".
         """
 
-        if len(lenses_in) > 8:
-            raise ValueError("Lenses must be an iterable with length <= 8.")
+        for i in lenses_in:
+            if (i > 8) or (i < 1):
+                raise ValueError("Lens index must be from 1 to 8.")
 
         # Positive/negative step moves lens in/out respectively.
         # We want to move it to the hard limit.
@@ -108,10 +109,20 @@ class TranfocatorClass(Device):
     # TODO: Need to create plans for these motions, but we are having problems
     # with moving the lenses in EPICS now.
 
+    def _check_z_lims(self, position):
+        if (
+            (position > self.z.low_limit_travel.get()) & 
+            (position < self.z.high_limit_travel.get())
+        ):
+            return True
+        else:
+            return False
+
+
     def optimize_lenses(
         self,
         energy=None,
-        distance=2581,
+        distance=None,
         experiment="diffractometer",
     ):
         lenses, distance = self.calc(
@@ -121,13 +132,19 @@ class TranfocatorClass(Device):
             verbose=False
         )
 
+        if not self._check_z_lims(distance):
+            raise ValueError(
+                f"The distance {distance} is outsize the Z travel range. No motion"
+                " will occur."
+            )
+
         self.set_lenses(lenses)
         self.z.move(distance).wait()
 
     def optimize_distance(
         self,
         energy=None,
-        distance=2581,
+        distance=None,
         experiment="diffractometer",
         selected_lenses=None
     ):
@@ -140,11 +157,17 @@ class TranfocatorClass(Device):
             verbose=False
         )
 
+        if not self._check_z_lims(distance):
+            raise ValueError(
+                f"The distance {distance} is outsize the Z travel range. No motion"
+                " will occur."
+            )
+
         self.z.move(distance).wait()
 
     def calc(
         self,
-        distance=2581,
+        distance=None,
         energy=None,
         experiment="diffractometer",
         beamline="polar",
@@ -156,7 +179,10 @@ class TranfocatorClass(Device):
             energy = edevice.get() * 1e3
 
         if not selected_lenses:
-            selected_lenses = self.lenses_in()
+            selected_lenses = self.lenses_in
+
+        if not distance:
+            distance = self._default_distance
 
         return transfocator_calculation(
             distance=distance,
@@ -169,6 +195,6 @@ class TranfocatorClass(Device):
         )
 
 
-transfocator = TranfocatorClass(
+transfocator = TransfocatorClass(
     "4idgSoft:", name="transfocator", labels=("4idg", "optics")
 )
