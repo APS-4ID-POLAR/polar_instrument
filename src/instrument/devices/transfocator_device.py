@@ -5,7 +5,7 @@ Transfocator
 __all__ = ['transfocator']
 
 from ophyd import Device, Component, EpicsMotor
-# from bluesky.plan_stubs import mvr
+from bluesky.plan_stubs import mv
 from toolz import partition
 from .energy_device import energy as edevice
 from ..utils._logging_setup import logger
@@ -30,10 +30,10 @@ class TransfocatorClass(Device):
     lens7 = Component(EpicsMotor, "m68", labels=("motor",))
     lens8 = Component(EpicsMotor, "m69", labels=("motor",))
 
-    def __init__(self, *args, lens_step=30, **kwargs):
+    def __init__(self, *args, lens_pos=30, default_distance=2581, **kwargs):
         super().__init__(*args, **kwargs)
-        self._lens_step = lens_step
-        self._default_distance = 2581  # mm
+        self._lens_pos = lens_pos
+        self._default_distance = default_distance  # mm
 
     def lens_status(self, i):
         device = getattr(self, f"lens{i}")
@@ -58,7 +58,7 @@ class TransfocatorClass(Device):
                 logger.info(f"WARNING: the status of lens #{i} is unknown.")
         return selected
 
-    def _move_lenses(self, lenses_in: list = [], type="noplan"):
+    def _setup_lenses_move(self, lenses_in: list = []):
         """
         Adjust lenses
 
@@ -88,23 +88,21 @@ class TransfocatorClass(Device):
             ):
                 continue
 
-            step_sign = 1 if lens in lenses_in else -1
+            step_sign = -1 if lens in lenses_in else 1
             args += [
-                getattr(self, f"lens{lens}"), step_sign*self._lens_step
+                getattr(self, f"lens{lens}"), step_sign*self._lens_pos
             ]
-
-        if type == "plan":
-            raise NotImplementedError(
-                "plan option not implemented due to problem with limit switches"
-            )
-            # return (yield from mvr(*args))
-        else:
-            for dev, pos in partition(2, args):
-                dev.user_setpoint.put(dev.position + pos)
-            return None
+        
+        return args
 
     def set_lenses(self, selected_lenses: list):
-        self._move_lenses(selected_lenses, type="noplan")
+        args = self._setup_lenses_move(selected_lenses)
+        for dev, pos in partition(2, args):
+            dev.user_setpoint.put(pos)
+
+    def set_lenses_plan(self, selected_lenses: list):
+        args = self._setup_lenses_move(selected_lenses)
+        return (yield from mv(*args))
 
     # TODO: Need to create plans for these motions, but we are having problems
     # with moving the lenses in EPICS now.
@@ -118,15 +116,14 @@ class TransfocatorClass(Device):
         else:
             return False
 
-
-    def optimize_lenses(
+    def _setup_optimize_lenses(
         self,
         energy=None,
-        distance=None,
+        reference_distance=None,
         experiment="diffractometer",
     ):
         lenses, distance = self.calc(
-            distance=distance,
+            reference_distance=reference_distance,
             energy=energy,
             experiment=experiment,
             verbose=False
@@ -137,19 +134,46 @@ class TransfocatorClass(Device):
                 f"The distance {distance} is outsize the Z travel range. No motion"
                 " will occur."
             )
+        
+        return lenses, distance
+
+    def optimize_lenses(
+        self,
+        energy=None,
+        reference_distance=None,
+        experiment="diffractometer",
+    ):
+        lenses, distance = self._setup_optimize_lenses(
+            energy=energy,
+            reference_distance=reference_distance,
+            experiment=experiment,
+        )
 
         self.set_lenses(lenses)
         self.z.move(distance).wait()
 
-    def optimize_distance(
+    def optimize_lenses_plan(
         self,
         energy=None,
-        distance=None,
+        reference_distance=None,
         experiment="diffractometer",
-        selected_lenses=None
+    ):
+        lenses, distance = self._setup_optimize_lenses(
+            energy=energy,
+            reference_distance=reference_distance,
+            experiment=experiment,
+        )
+        args = self._setup_lenses_move(lenses)
+        return (yield from mv(self.z, distance, *args))
+
+    def _setup_optimize_distance(
+        self,
+        energy=None,
+        experiment="diffractometer",
+        selected_lenses=None,
     ):
         _, distance = self.calc(
-            distance=distance,
+            reference_distance=None,
             energy=energy,
             experiment=experiment,
             distance_only=True,
@@ -163,11 +187,39 @@ class TransfocatorClass(Device):
                 " will occur."
             )
 
+        return distance
+
+    def optimize_distance(
+        self,
+        energy=None,
+        selected_lenses=None,
+        experiment="diffractometer",
+    ):
+        distance = self._setup_optimize_distance(
+            energy=energy,
+            experiment=experiment,
+            selected_lenses=selected_lenses
+        )
+
         self.z.move(distance).wait()
+
+    def optimize_distance_plan(
+        self,
+        energy=None,
+        experiment="diffractometer",
+        selected_lenses=None,
+    ):
+        distance = self._setup_optimize_distance(
+            energy=energy,
+            experiment=experiment,
+            selected_lenses=selected_lenses,
+        )
+
+        return (yield from mv(self.z, distance))
 
     def calc(
         self,
-        distance=None,
+        reference_distance=None,
         energy=None,
         experiment="diffractometer",
         beamline="polar",
@@ -181,11 +233,11 @@ class TransfocatorClass(Device):
         if not selected_lenses:
             selected_lenses = self.lenses_in
 
-        if not distance:
-            distance = self._default_distance
+        if not reference_distance:
+            reference_distance = self._default_distance
 
         return transfocator_calculation(
-            distance=distance,
+            distance=reference_distance,
             energy=energy,
             experiment=experiment,
             beamline=beamline,
