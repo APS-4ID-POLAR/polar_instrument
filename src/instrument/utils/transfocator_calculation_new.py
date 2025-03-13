@@ -84,10 +84,9 @@ def _find_optimal_combination(lenses, f_eff):
         for lens_combination in combinations(lenses_list, r):
             lens_combination = DataFrame(lens_combination)
 
-            # Need to invert the order for the correct matrix order
             focal_length = _compute_effective_focal_length(
-                lens_combination["focus"].values[::-1],
-                lens_combination["distance"].values[::-1],
+                lens_combination["focus"].values,
+                lens_combination["distance"].values,
             )
 
             # Calculate the error between the desired and actual focal length
@@ -103,44 +102,57 @@ def _find_optimal_combination(lenses, f_eff):
 
 def _find_optimal_focus(lenses):
     return _compute_effective_focal_length(
-        lenses["focus"].values[::-1],
-        lenses["distance"].values[::-1],
+        lenses["focus"].values,
+        lenses["distance"].values,
     )
 
 
 def transfocator_calculation(
-    distance=None,
-    energy=None,
-    experiment="diffractometer",
-    beamline="polar",
-    distance_only=False,
-    selected_lenses=None,
-    verbose=True
+    energy,
+    optimize_position: float = None,
+    experiment: str = "diffractometer",
+    reference_distance: float = 2591,
+    distance_only: bool = False,
+    selected_lenses: list = None,
+    verbose: bool = True
 ):
+    """
+    Calculate the transfocator position and lenses set.
+
+    PARAMETERS
+    ----------
+        energy : float
+            Beamline energy in keV.
+        optimize_position : float
+            CRL motor Z position that will be used to optimize the lenses for the calculation, in mm.
+        experiment : "diffractometer" or "magnet"
+            Name of the experimental configuration to focus.
+        reference_distance : float
+            Distance between CRL and sample when the CRL Z motor is at zero. This will normally not
+            change. In mm.
+        distance_only : bool
+            If True it will only calculate the optimal distance, and won't try to switch lenses.
+        selected_lenses : iterable
+            If distance_only == True, then this is the lenses you want to use for the calculation.
+        verbose : bool
+            Toggle to print information.
+    """
+
     # _geom_ = current_diffractometer()
-    if not distance:
-        distance = 1800
-        distance = float(
-            input("Distance to sample in mm [{}]: ".format(distance))
-            or distance
-        )
-        distance = distance * 1e3
-    elif distance > 200 and distance < 10000:
-        distance = distance * 1e3
-    else:
-        raise ValueError(
-            "Distance {} out of range [200, 10000].".format(energy)
+    if optimize_position is None:
+        optimize_position = float(
+            input("Target CRL Z position in mm [0]: ") or 0
         )
 
-    if not energy:
-        # energy = _geom_.energy.get() * 1e3
-        raise ValueError()
-    elif energy < 2600 or energy > 27000:
+    if (optimize_position < -150) or (optimize_position > 150):
         raise ValueError(
-            "Photon energy {} out of range [2600, 27000].".format(energy)
+            "CRL Z {} out of range [-150, 150].".format(energy)
         )
-    else:
-        pass
+
+    if energy < 2.6 or energy > 27:
+        raise ValueError(
+            "Photon energy {} out of range [2.6, 27].".format(energy)
+        )
 
     if distance_only and not selected_lenses:
         _inp = input(
@@ -150,26 +162,24 @@ def transfocator_calculation(
         selected_lenses = [int(i) for i in _inp.split()]
 
     # Collect setup
-    if beamline == "polar":
-        if experiment == "diffractometer":
-            source_sample_distance = 67.2e6
-        elif experiment == "magnet":
-            source_sample_distance = 73.3e6
-        else:
-            raise ValueError(
-                "Calculation limited to focus positions at 67.2 m "
-                "(diffractometer) or 73.3 m (magnet)."
-            )
-    elif beamline == "6-ID-B":
+    if experiment == "diffractometer":
+        source_sample_distance = 67.2e6
+    elif experiment == "magnet":
         source_sample_distance = 73.3e6
     else:
-        raise ValueError("Beamline {} not supported.".format(beamline))
+        raise ValueError(
+            "Calculation limited to focus positions at 67.2 m "
+            "(diffractometer) or 73.3 m (magnet)."
+        )
 
-    delta = read_delta(energy)
+    delta = read_delta(energy*1e3)  # delta table uses eV.
 
-    # Effective focal point for the current distances
-    source_crl_distance = source_sample_distance - distance
-    f_eff = source_crl_distance * distance / (source_crl_distance + distance)
+    # Effective focal point for the desired distance
+
+    optimize_distance = (optimize_position + reference_distance)*1e3  # in microns
+
+    source_crl_distance = source_sample_distance - optimize_distance
+    f_eff = source_crl_distance * optimize_distance / (source_crl_distance + optimize_distance)
 
     lenses = read_csv(LENS_SETTINGS, skiprows=1).set_index("index")
 
@@ -190,13 +200,17 @@ def transfocator_calculation(
 
     # The calculation is based on the center of the selected stack which may
     # not be the same as the center of the transfocator.
-    mean_position = lenses.loc[best_combination]["distance"].mean()
-    crl_center = source_crl_distance + mean_position
+    _selected = lenses.loc[best_combination]
+    power = _selected["number_of_lenses"]*2/_selected["single_lens_radius"]
+    effective_center = (power*_selected["distance"]).sum()/power.sum()
+    
+    crl_center = source_crl_distance + effective_center
     best_sample_distance = (
         best_focal_length*crl_center/(crl_center-best_focal_length)
     )
 
-    crlz_position = (distance - best_sample_distance - mean_position)/1e3
+    effective_reference_distance = reference_distance - effective_center/1e3 # correct for lens selection
+    crlz_position = effective_reference_distance - best_sample_distance/1e3  # get relative position
 
     if verbose:
         print("-" * 65)

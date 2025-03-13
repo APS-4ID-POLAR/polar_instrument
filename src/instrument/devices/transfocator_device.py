@@ -30,7 +30,7 @@ class TransfocatorClass(Device):
     lens7 = Component(EpicsMotor, "m68", labels=("motor",))
     lens8 = Component(EpicsMotor, "m69", labels=("motor",))
 
-    def __init__(self, *args, lens_pos=30, default_distance=2581, **kwargs):
+    def __init__(self, *args, lens_pos=30, default_distance=2591, **kwargs):
         super().__init__(*args, **kwargs)
         self._lens_pos = lens_pos
         self._default_distance = default_distance  # mm
@@ -119,12 +119,15 @@ class TransfocatorClass(Device):
     def _setup_optimize_lenses(
         self,
         energy=None,
+        optimize_position=None,
         reference_distance=None,
         experiment="diffractometer",
     ):
+
         lenses, distance = self.calc(
-            reference_distance=reference_distance,
             energy=energy,
+            optimize_position=optimize_position,
+            reference_distance=reference_distance,
             experiment=experiment,
             verbose=False
         )
@@ -140,11 +143,13 @@ class TransfocatorClass(Device):
     def optimize_lenses(
         self,
         energy=None,
+        optimize_position=0,
         reference_distance=None,
         experiment="diffractometer",
     ):
         lenses, distance = self._setup_optimize_lenses(
             energy=energy,
+            optimize_position=optimize_position,
             reference_distance=reference_distance,
             experiment=experiment,
         )
@@ -155,11 +160,13 @@ class TransfocatorClass(Device):
     def optimize_lenses_plan(
         self,
         energy=None,
+        optimize_position=0,
         reference_distance=None,
         experiment="diffractometer",
     ):
         lenses, distance = self._setup_optimize_lenses(
             energy=energy,
+            optimize_position=optimize_position,
             reference_distance=reference_distance,
             experiment=experiment,
         )
@@ -173,7 +180,6 @@ class TransfocatorClass(Device):
         selected_lenses=None,
     ):
         _, distance = self.calc(
-            reference_distance=None,
             energy=energy,
             experiment=experiment,
             distance_only=True,
@@ -219,28 +225,31 @@ class TransfocatorClass(Device):
 
     def calc(
         self,
+        optimize_position=None,
         reference_distance=None,
         energy=None,
         experiment="diffractometer",
-        beamline="polar",
         distance_only=False,
         selected_lenses=None,
         verbose=True
     ):
         if energy is None:
-            energy = edevice.get() * 1e3
+            energy = edevice.get()
 
-        if not selected_lenses:
+        if selected_lenses is None:
             selected_lenses = self.lenses_in
 
-        if not reference_distance:
+        if reference_distance is None:
             reference_distance = self._default_distance
 
+        if optimize_position is None:
+            optimize_position = 0
+
         return transfocator_calculation(
-            distance=reference_distance,
-            energy=energy,
+            energy,
+            optimize_position=optimize_position,
+            reference_distance=reference_distance,
             experiment=experiment,
-            beamline=beamline,
             distance_only=distance_only,
             selected_lenses=selected_lenses,
             verbose=verbose

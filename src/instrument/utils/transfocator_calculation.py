@@ -25,15 +25,6 @@ def read_delta(
     energies, deltas = loadtxt(path, skiprows=2, usecols=(0, 1), unpack=True)
     return interp1d(energies, deltas, kind="linear")(energy)
 
-    # stop = 0
-    # ref_index = loadtxt(path, skiprows=2)
-    # for item in ref_index:
-    #     if item[0] > energy and stop == 0:
-    #         stop = 1
-    #         refr_index = interp(energy, [last[0], item[0]], [last[1], item[1]])
-    #     last = item
-    # return refr_index
-
 
 def transfocator_calc(
     distance=None,
