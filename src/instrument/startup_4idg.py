@@ -54,7 +54,3 @@ from .utils.local_magics import LocalMagics
 get_ipython().register_magics(LocalMagics)
 
 cat = db_query(full_cat, dict(instrument_name = f'polar-{environ["POLAR_INSTRUMENT"]}'))
-
-# TODO: this is useful while we are doing pre-commissioning tests
-# Remove everything from baseline.
-sd.baseline = []
