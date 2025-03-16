@@ -1,0 +1,81 @@
+"""
+APS filter support
+"""
+
+__all__ = ["bfilter"]
+
+
+from ophyd import (
+    Component, DynamicDeviceComponent, Device, EpicsSignal, EpicsSignalRO
+)
+from ..utils._logging_setup import logger
+logger.info(__file__)
+
+NUM_FILTERS = 12
+
+
+class FilterSlot(Device):
+    status = Component(EpicsSignal, "Set", string=True)
+    lock = Component(EpicsSignal, "Lock", string=True)
+    material = Component(EpicsSignal, "Material", string=True)
+    thickness = Component(EpicsSignal, "Thickness")
+    enable = Component(EpicsSignal, "Enable", string=True)
+    transmission = Component(EpicsSignalRO, "Transmission")
+
+
+def make_filter_slots(num: int):
+    """Create a dictionary with analog output device definitions.
+
+    For use with an ophyd DynamicDeviceComponent.
+
+    Parameters
+    ==========
+    num_aos
+      How many analog outputs to create.
+
+    """
+    defn = {}
+    for n in range(1, num+1):
+        defn[f"{n}"] = (
+            FilterSlot, f"Fi{n}:", dict(kind="config")
+        )
+    return defn
+
+
+class APSFilter(Device):
+
+    # Status and information
+
+    energy_select = Component(
+        EpicsSignal, "EnergySelect", string=True, kind="config"
+    )
+    mono_energy = Component(EpicsSignalRO, "EnergyBeamline", kind="config")
+    local_energy = Component(EpicsSignal, "EnergyLocal", kind="config")
+
+    status = Component(EpicsSignalRO, "status", string=True, kind="config")
+
+    transmission_readback = Component(EpicsSignalRO, "Transmission")
+    transmission_setpoint = Component(
+        EpicsSignal, "TransmissionSetpoint", kind="config"
+    )
+    transmission_factor = Component(
+        EpicsSignal, "TransmissionFactor", kind="config"
+    )
+
+    mask_readback = Component(EpicsSignalRO, "FilterMask", kind="config")
+    mask_setpoint = Component(
+        EpicsSignalRO, "FilterMaskSetpoint", kind="config"
+    )
+
+    message = Component(EpicsSignalRO, "Message", kind="config")
+
+    slots = DynamicDeviceComponent(make_filter_slots(NUM_FILTERS))
+
+    # Configuration
+    wait_time = Component(EpicsSignal, "WaitTime", kind="config")
+    debug_level = Component(EpicsSignal, "Debug", kind="config")
+
+
+bfilter = APSFilter(
+    "4idgSoft:filter:", name="bfilter", labels=("4idb", "filter")
+)

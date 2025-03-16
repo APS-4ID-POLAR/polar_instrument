@@ -8,9 +8,17 @@ transfocator_device:
   device: transfocator
   baseline: True
 
-# polar_diffractometer:
-#   device: [polar, polar_psi]
-#   baseline: [True, True]
+# Filters
+
+jj_slits:
+  device: [gincslt, gdetslt]
+  baseline: [True, True]
+
+# KB mirror
+
+polar_diffractometer:
+  device: [huber, huber_psi]
+  baseline: [True, True]
 
 # simulated_fourc_vertical:
 #   device: fourc

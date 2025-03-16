@@ -2,12 +2,14 @@
 Simulated polar
 """
 
-__all__ = ['polar', 'polar_psi']
+__all__ = ['huber', 'huber_psi']
 
 from ophyd import (
     Component, PseudoSingle, Kind, Signal, EpicsMotor, EpicsSignalRO
 )
 from ophyd.sim import SynAxis
+from .jj_slits import SlitDevice
+from .huber_filter import HuberFilter
 from ..utils import logger
 import gi
 gi.require_version('Hkl', '5.0')
@@ -37,8 +39,35 @@ class SixCircleDiffractometer(ApsPolar):
     delta = Component(EpicsMotor, "m20", labels=("motor", ))
 
     # Explicitly selects the real motors
-    # _real = ['theta', 'chi', 'phi', 'tth']
     _real = " tau mu chi phi gamma delta".split()
+
+    # Table vertical/horizontal
+    tablex = Component(EpicsMotor, "m3", labels=("motor", ))
+    tabley = Component(EpicsMotor, "m1", labels=("motor", ))
+
+    # Area detector motors
+    pad_rail = Component(EpicsMotor, "m21", labels=("motor", ))
+    point_rail = Component(EpicsMotor, "m22", labels=("motor", ))
+
+    # # Guard slit
+    # guardslt  = ...
+
+    # Filters
+    filter = Component(HuberFilter, "atten:", labels=("filter"))
+
+    # Detector JJ slit
+    detslt = Component(
+        SlitDevice,
+        {'top': 'm31', 'bot': 'm32', 'out': 'm34', 'inb': 'm33'},
+        2,
+        labels=('slit',)
+    )
+
+    # Analyzer motors
+    ana_th = Component(EpicsMotor, "m24", labels=("motor", ))
+    ana_tth = Component(EpicsMotor, "m25", labels=("motor", ))
+    ana_eta = Component(EpicsMotor, "m23", labels=("motor", ))
+    ana_chi = Component(EpicsMotor, "m26", labels=("motor", ))
 
     # Energy
     energy = Component(EpicsSignalRO, "4idVDCM:BraggERdbkAO", kind="config")
@@ -56,8 +85,8 @@ class SixCircleDiffractometer(ApsPolar):
         return {'fields': fields}
 
 
-polar = SixCircleDiffractometer(
-    "4idgSoft:", name='polar', labels=("diffractometer",)
+huber = SixCircleDiffractometer(
+    "4idgSoft:", name='huber', labels=("4idg", "diffractometer",)
 )
 
 
@@ -78,7 +107,10 @@ class SixcPSI(ApsPolar):
     delta = Component(EpicsMotor, "m20", labels=("motor", ))
 
 
-polar_psi = SixcPSI(
-    "4idgSoft:", name="polar_psi", engine="psi", labels=("diffractometer",)
+huber_psi = SixcPSI(
+    "4idgSoft:",
+    name="huber_psi",
+    engine="psi",
+    labels=("4idg", "diffractometer",)
 )
-select_diffractometer(polar)
+select_diffractometer(huber)

@@ -29,13 +29,25 @@ tetramms:
   device: [tetramm_4idb, tetramm_4idb_ro]
   baseline: [False, True]
 
+polarimeter:
+  device: pol
+  baseline: False
+
 jj_slits:
   device: bslt
   baseline: True
 
-polarimeter:
-  device: pol
-  baseline: False
+filters_device:
+  device: bfilter
+  baseline: True
+
+chopper_device:
+  device: chopper
+  baseline: True
+
+kb_mirror:
+  device: kbb
+  baseline: True
 
 electromagnet:
   device: emag
