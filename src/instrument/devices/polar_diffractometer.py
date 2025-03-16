@@ -5,9 +5,8 @@ Simulated polar
 __all__ = ['huber', 'huber_psi']
 
 from ophyd import (
-    Component, PseudoSingle, Kind, Signal, EpicsMotor, EpicsSignalRO
+    Component, FormattedComponent, PseudoSingle, Kind, Signal, EpicsMotor, EpicsSignalRO
 )
-from ophyd.sim import SynAxis
 from .jj_slits import SlitDevice
 from .huber_filter import HuberFilter
 from ..utils import logger
@@ -31,7 +30,9 @@ class SixCircleDiffractometer(ApsPolar):
     k = Component(PseudoSingle, '', labels=("hkl", ))
     l = Component(PseudoSingle, '', labels=("hkl", ))
 
-    tau = Component(SynAxis)
+    # 03/16/2025 - Tau is the whole diffractometer "theta" angle, but
+    # it is not currently setup. m73 is a simulated motor.
+    tau = Component(EpicsMotor, "m73", labels=("motor", ))    
     mu = Component(EpicsMotor, "m4", labels=("motor", ))
     chi = Component(EpicsMotor, "m37", labels=("motor", ))
     phi = Component(EpicsMotor, "m38", labels=("motor", ))
@@ -39,7 +40,7 @@ class SixCircleDiffractometer(ApsPolar):
     delta = Component(EpicsMotor, "m20", labels=("motor", ))
 
     # Explicitly selects the real motors
-    _real = " tau mu chi phi gamma delta".split()
+    _real = "tau mu chi phi gamma delta".split()
 
     # Table vertical/horizontal
     tablex = Component(EpicsMotor, "m3", labels=("motor", ))
@@ -57,10 +58,11 @@ class SixCircleDiffractometer(ApsPolar):
 
     # Detector JJ slit
     detslt = Component(
-        SlitDevice,
-        {'top': 'm31', 'bot': 'm32', 'out': 'm34', 'inb': 'm33'},
-        2,
-        labels=('slit',)
+       SlitDevice,
+       "",
+       motorsDict={'top': 'm31', 'bot': 'm32', 'out': 'm34', 'inb': 'm33'},
+       slitnum=2,
+       labels=('slit',)
     )
 
     # Analyzer motors
@@ -70,7 +72,7 @@ class SixCircleDiffractometer(ApsPolar):
     ana_chi = Component(EpicsMotor, "m26", labels=("motor", ))
 
     # Energy
-    energy = Component(EpicsSignalRO, "4idVDCM:BraggERdbkAO", kind="config")
+    energy = FormattedComponent(EpicsSignalRO, "4idVDCM:BraggERdbkAO", kind="config")
     energy_update_calc_flag = Component(Signal, value=1, kind="config")
     energy_offset = Component(Signal, value=0, kind="config")
 
@@ -90,7 +92,7 @@ huber = SixCircleDiffractometer(
 )
 
 
-class SixcPSI(ApsPolar):
+class PolarPSI(ApsPolar):
     """
     ApsPolar: Huber diffractometer in 6-circle horizontal geometry with energy.
 
@@ -98,8 +100,10 @@ class SixcPSI(ApsPolar):
     """
     # the reciprocal axes are called "pseudo" in hklpy
     psi = Component(PseudoSingle, '')
-    # the motor axes are called "real" in hklpy
-    tau = Component(SynAxis)
+
+    # 03/16/2025 - Tau is the whole diffractometer "theta" angle, but
+    # it is not currently setup. m73 is a simulated motor.
+    tau = Component(EpicsMotor, "m73", labels=("motor", ))
     mu = Component(EpicsMotor, "m4", labels=("motor", ))
     chi = Component(EpicsMotor, "m37", labels=("motor", ))
     phi = Component(EpicsMotor, "m38", labels=("motor", ))
@@ -107,7 +111,7 @@ class SixcPSI(ApsPolar):
     delta = Component(EpicsMotor, "m20", labels=("motor", ))
 
 
-huber_psi = SixcPSI(
+huber_psi = PolarPSI(
     "4idgSoft:",
     name="huber_psi",
     engine="psi",

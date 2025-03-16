@@ -36,7 +36,7 @@ def make_filter_slots(num: int):
     """
     defn = {}
     for n in range(1, num+1):
-        defn[f"{n}"] = (
+        defn[f"f{n}"] = (
             FilterSlot, f"Fi{n}:", dict(kind="config")
         )
     return defn
@@ -52,7 +52,7 @@ class APSFilter(Device):
     mono_energy = Component(EpicsSignalRO, "EnergyBeamline", kind="config")
     local_energy = Component(EpicsSignal, "EnergyLocal", kind="config")
 
-    status = Component(EpicsSignalRO, "status", string=True, kind="config")
+    status = Component(EpicsSignalRO, "Status", string=True, kind="config")
 
     transmission_readback = Component(EpicsSignalRO, "Transmission")
     transmission_setpoint = Component(
@@ -77,5 +77,5 @@ class APSFilter(Device):
 
 
 bfilter = APSFilter(
-    "4idgSoft:filter:", name="bfilter", labels=("4idb", "filter")
+    "4idbSoft:filter:", name="bfilter", labels=("4idb", "filter")
 )

@@ -45,7 +45,7 @@ chopper_device:
   device: chopper
   baseline: True
 
-kb_mirror:
+kb_mirrors:
   device: kbb
   baseline: True
 

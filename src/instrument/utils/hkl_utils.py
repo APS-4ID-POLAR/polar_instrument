@@ -42,7 +42,7 @@ from bluesky import RunEngineInterrupted
 from bluesky.utils import ProgressBarManager
 from bluesky.plan_stubs import mv
 from .run_engine import RE
-from ..devices.polar_diffractometer import polar, polar_psi
+from ..devices.polar_diffractometer import huber, huber_psi
 from ..devices.simulated_fourc_vertical import fourc
 from ._logging_setup import logger
 from ophyd import SoftPositioner
@@ -100,7 +100,7 @@ def set_diffractometer(instrument=None):
         select_diffractometer(fourc)
         print("Diffractometer {} selected".format(diff))
     elif diff == 'polar':
-        select_diffractometer(polar)
+        select_diffractometer(huber)
         print("Diffractometer {} selected".format(diff))
     else:
         raise ValueError(
@@ -1738,7 +1738,7 @@ def pa_new():
     current_mode = _geom_.calc.engine.mode
 
     print("{},  {} geometry, {} diffractometer".format(_geom_.__class__.__name__, geometry, _geom_.name))
-    print("{} mode".format(polar.calc.engine.mode))
+    print("{} mode".format(huber.calc.engine.mode))
 
     print("Sample = {}".format(sample.name))
     for i, ref in enumerate(sample._sample.reflections_get()):
@@ -2211,8 +2211,8 @@ def set_constraints(*args):
         )
 
 
-select_diffractometer(polar)
-select_engine_for_psi(polar_psi)
+select_diffractometer(huber)
+select_engine_for_psi(huber_psi)
 
 
 class whClass:

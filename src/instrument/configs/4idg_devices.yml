@@ -11,8 +11,8 @@ transfocator_device:
 # Filters
 
 jj_slits:
-  device: [gincslt, gdetslt]
-  baseline: [True, True]
+  device: gslt
+  baseline: True
 
 # KB mirror
 
