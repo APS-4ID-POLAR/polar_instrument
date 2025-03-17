@@ -118,3 +118,6 @@ huber_psi = PolarPSI(
     labels=("4idg", "diffractometer",)
 )
 select_diffractometer(huber)
+
+huber._update_calc_energy()
+huber_psi._update_calc_energy()

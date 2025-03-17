@@ -69,6 +69,7 @@ polar_config = pathlib.Path("polar-config.json")
 fourc_config = pathlib.Path("fourc-config.json")
 pbar_manager = ProgressBarManager()
 _geom_for_psi_ = None
+POLAR_DIFFRACTOMETER = "huber"
 
 
 def select_engine_for_psi(instrument=None):
@@ -215,7 +216,7 @@ def sampleNew(*args):
             1, sample._sample.reflections_get()[-1]
         )
         compute_UB()
-        if _geom_.name == "polar":
+        if _geom_.name == POLAR_DIFFRACTOMETER:
             set_constraints('mu',-100,100)
             set_constraints('gamma',-10,180)
             set_constraints('delta',-20,60)
@@ -643,14 +644,14 @@ def setor0(*args):
     sample = _geom_.calc._sample
     orienting_refl = sample._orientation_reflections
 
-    if _geom_.name == "polar" and len(args) == 9:
+    if _geom_.name == POLAR_DIFFRACTOMETER and len(args) == 9:
         gamma, mu, chi, phi, delta, tau, h, k, l = args
     elif _geom_.name == "fourc" and len(args) == 7:
         delta, mu, chi, phi, h, k, l = args
     else:
         if len(orienting_refl) > 1:
             for ref in sample._sample.reflections_get():
-                if ref == orienting_refl[0] and _geom_.name == "polar":
+                if ref == orienting_refl[0] and _geom_.name == POLAR_DIFFRACTOMETER:
                     pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
                     old_delta = pos[5]
                     old_mu = pos[1]
@@ -689,7 +690,7 @@ def setor0(*args):
         k = input("K = [{}]: ".format(old_k)) or old_k
         l = input("L = [{}]: ".format(old_l)) or old_l
 
-    if _geom_.name == "polar":
+    if _geom_.name == POLAR_DIFFRACTOMETER:
         sample.add_reflection(
             float(h),
             float(k),
@@ -745,14 +746,14 @@ def setor1(*args):
     sample = _geom_.calc._sample
     orienting_refl = sample._orientation_reflections
 
-    if _geom_.name == "polar" and len(args) == 9:
+    if _geom_.name == POLAR_DIFFRACTOMETER and len(args) == 9:
         delta, mu, chi, phi, gamma, tau, h, k, l = args
     elif _geom_.name == "fourc" and len(args) == 7:
         delta, mu, chi, phi, h, k, l = args
     else:
         if len(orienting_refl) > 1:
             for ref in sample._sample.reflections_get():
-                if ref == orienting_refl[1] and _geom_.name == "polar":
+                if ref == orienting_refl[1] and _geom_.name == POLAR_DIFFRACTOMETER:
                     pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
                     old_gamma = pos[4]
                     old_mu = pos[1]
@@ -792,7 +793,7 @@ def setor1(*args):
         k = input("K = [{}]: ".format(old_k)) or old_k
         l = input("L = [{}]: ".format(old_l)) or old_l
 
-    if _geom_.name == "polar":
+    if _geom_.name == POLAR_DIFFRACTOMETER:
         sample.add_reflection(
             float(h),
             float(k),
@@ -837,7 +838,7 @@ def set_orienting():
     _geom_ = current_diffractometer()
     sample = _geom_.calc._sample
     orienting_refl = sample._orientation_reflections
-    if _geom_.name == "polar":
+    if _geom_.name == POLAR_DIFFRACTOMETER:
         print(
             "\n{:>2}{:>4}{:>3}{:>3}{:>9}{:>9}{:>9}{:>9}{:>9}{:>9}   {:<12}".format(
                 "#",
@@ -875,7 +876,7 @@ def set_orienting():
             or0_old = i
             h, k, l = ref.hkl_get()
             pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
-            if _geom_.name == "polar":
+            if _geom_.name == POLAR_DIFFRACTOMETER:
                 print(
                     "{:>2}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}   {:<12} ".format(
                         i,
@@ -913,7 +914,7 @@ def set_orienting():
             or1_old = i
             h, k, l = ref.hkl_get()
             pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
-            if _geom_.name == "polar":
+            if _geom_.name == POLAR_DIFFRACTOMETER:
                 print(
                     "{:>2}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}   {:<12} ".format(
                         i,
@@ -950,7 +951,7 @@ def set_orienting():
         else:
             h, k, l = ref.hkl_get()
             pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
-            if _geom_.name == "polar":
+            if _geom_.name == POLAR_DIFFRACTOMETER:
                 print(
                     "{:>2}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f} ".format(
                         i,
@@ -1006,7 +1007,7 @@ def del_reflection():
     _geom_ = current_diffractometer()
     sample = _geom_.calc._sample
     orienting_refl = sample._orientation_reflections
-    if _geom_.name == "polar":
+    if _geom_.name == POLAR_DIFFRACTOMETER:
         print(
             "\n{:>2}{:>4}{:>3}{:>3}{:>9}{:>9}{:>9}{:>9}{:>9}{:>9}   {:<12}".format(
                 "#",
@@ -1044,7 +1045,7 @@ def del_reflection():
             or0_old = i
             h, k, l = ref.hkl_get()
             pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
-            if _geom_.name == "polar":
+            if _geom_.name == POLAR_DIFFRACTOMETER:
                 print(
                     "{:>2}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}   {:<12} ".format(
                         i,
@@ -1082,7 +1083,7 @@ def del_reflection():
             or1_old = i
             h, k, l = ref.hkl_get()
             pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
-            if _geom_.name == "polar":
+            if _geom_.name == POLAR_DIFFRACTOMETER:
                 print(
                     "{:>2}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}   {:<12} ".format(
                         i,
@@ -1119,7 +1120,7 @@ def del_reflection():
         else:
             h, k, l = ref.hkl_get()
             pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
-            if _geom_.name == "polar":
+            if _geom_.name == POLAR_DIFFRACTOMETER:
                 print(
                     "{:>2}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f} ".format(
                         i,
@@ -1187,7 +1188,7 @@ def list_orienting(all_samples=False):
         samples = [_geom_.calc._sample]
     for sample in samples:
         orienting_refl = sample._orientation_reflections
-        if _geom_.name == "polar":
+        if _geom_.name == POLAR_DIFFRACTOMETER:
             print(
                 "\n{:>2}{:>4}{:>3}{:>3}{:>9}{:>9}{:>9}{:>9}{:>9}{:>9}   {:<12}".format(
                     "#",
@@ -1224,7 +1225,7 @@ def list_orienting(all_samples=False):
         if orienting_refl[0] == ref:
             h, k, l = ref.hkl_get()
             pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
-            if _geom_.name == "polar":
+            if _geom_.name == POLAR_DIFFRACTOMETER:
                 print(
                     "{:>2}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}   {:<12} ".format(
                         i,
@@ -1261,7 +1262,7 @@ def list_orienting(all_samples=False):
         elif orienting_refl[1] == ref:
             h, k, l = ref.hkl_get()
             pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
-            if _geom_.name == "polar":
+            if _geom_.name == POLAR_DIFFRACTOMETER:
                 print(
                     "{:>2}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}   {:<12} ".format(
                         i,
@@ -1325,7 +1326,7 @@ def or0(h=None, k=None, l=None):
         h = (input("H ({})? ".format(hr)) if not h else h) or hr
         k = (input("K ({})? ".format(kr)) if not k else k) or kr
         l = (input("L ({})? ".format(lr)) if not l else l) or lr
-    if _geom_.name == "polar":
+    if _geom_.name == POLAR_DIFFRACTOMETER:
         sample.add_reflection(
             float(h),
             float(k),
@@ -1389,7 +1390,7 @@ def or1(h=None, k=None, l=None):
         h = (input("H ({})? ".format(hr)) if not h else h) or hr
         k = (input("K ({})? ".format(kr)) if not k else k) or kr
         l = (input("L ({})? ".format(lr)) if not l else l) or lr
-    if _geom_.name == "polar":
+    if _geom_.name == POLAR_DIFFRACTOMETER:
         sample.add_reflection(
             float(h),
             float(k),
@@ -1450,7 +1451,7 @@ def compute_UB():
             sample._orientation_reflections[1],
         )
         _geom_.forward(1, 0, 0)
-        if _geom_.name == "polar":
+        if _geom_.name == POLAR_DIFFRACTOMETER:
             Sync_UB_Matrix(_geom_, _geom_for_psi_)
 
 
@@ -1525,7 +1526,7 @@ def ca(h, k, l):
         f"\n   Lambda (Energy) = {_geom_.calc.wavelength:6.4f} \u212b"
         f" ({_geom_.calc.energy:6.4f}) keV"
     )
-    if _geom_.name == "polar":
+    if _geom_.name == POLAR_DIFFRACTOMETER:
         print(
             "\n{:>9}{:>9}{:>9}{:>9}{:>9}{:>9}".format(
                 "Gamma", "Mu", "Chi", "Phi", "Delta", "Tau"
@@ -1788,7 +1789,7 @@ def pa_new():
             print("\nSecondary reflection at (lambda = {:.3f})".format(orienting_refl[1].geometry_get().wavelength_get(0)))
             h, k, l = ref.hkl_get()
             pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
-            if _geom_.name == "polar":
+            if _geom_.name == POLAR_DIFFRACTOMETER:
                 print(
                     "     gamma, mu, chi, phi, delta, tau = {:>3.3f}, {:>3.3f}, {:>3.3f}, {:>3.3f}, {:>3.3f}, {:>3.3f}".format(
                         pos[4],
@@ -2063,7 +2064,7 @@ def write_config(method="File", overwrite=False):
     _geom_ = current_diffractometer()
     config = DiffractometerConfiguration(_geom_)
     settings = config.export("json")
-    if _geom_.name == "polar" and polar_config.exists():
+    if _geom_.name == POLAR_DIFFRACTOMETER and polar_config.exists():
         if not overwrite:
             value = input("Overwrite existing configuration file (y/[n])? ")
             if value == "y":
@@ -2087,7 +2088,7 @@ def write_config(method="File", overwrite=False):
         if method == "File":
             print("Writing configuration file.")
             print(_geom_.name)
-            if _geom_.name == "polar":
+            if _geom_.name == POLAR_DIFFRACTOMETER:
                 with open(polar_config.name, "w") as f:
                     f.write(settings)
             if _geom_.name == "fourc":
@@ -2108,7 +2109,7 @@ def read_config(method="File"):
     """
     _geom_ = current_diffractometer()
     config = DiffractometerConfiguration(_geom_)
-    if _geom_.name == "polar" and polar_config.exists():
+    if _geom_.name == POLAR_DIFFRACTOMETER and polar_config.exists():
         if method == "File":
             print("Read configuration file '{}'.".format(polar_config.name))
             method = input("Method ([o]verwrite/[a]ppend)? ")

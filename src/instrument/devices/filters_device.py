@@ -24,16 +24,6 @@ class FilterSlot(Device):
 
 
 def make_filter_slots(num: int):
-    """Create a dictionary with analog output device definitions.
-
-    For use with an ophyd DynamicDeviceComponent.
-
-    Parameters
-    ==========
-    num_aos
-      How many analog outputs to create.
-
-    """
     defn = {}
     for n in range(1, num+1):
         defn[f"f{n}"] = (
