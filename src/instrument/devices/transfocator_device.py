@@ -2,9 +2,19 @@
 Transfocator
 """
 
-__all__ = ['transfocator']
+# __all__ = ['transfocator']
 
-from ophyd import Device, Component, EpicsMotor
+from ophyd import (
+    Device,
+    Component,
+    DynamicDeviceComponent,
+    FormattedComponent,
+    PVPositioner,
+    EpicsMotor,
+    EpicsSignal,
+    EpicsSignalRO,
+    DeviceStatus
+)
 from bluesky.plan_stubs import mv
 from toolz import partition
 from .energy_device import energy as edevice
@@ -13,49 +23,162 @@ from ..utils.transfocator_calculation_new import transfocator_calculation
 
 logger.info(__file__)
 
+MOTORS_IOC = "4idgSoft:"
 
-class TransfocatorClass(Device):
-    x = Component(EpicsMotor, "m58", labels=("motor",))
-    y = Component(EpicsMotor, "m57", labels=("motor",))
-    z = Component(EpicsMotor, "m61", labels=("motor",))
-    pitch = Component(EpicsMotor, "m60", labels=("motor",))
-    yaw = Component(EpicsMotor, "m59", labels=("motor",))
 
-    lens1 = Component(EpicsMotor, "m62", labels=("motor",))
-    lens2 = Component(EpicsMotor, "m63", labels=("motor",))
-    lens3 = Component(EpicsMotor, "m64", labels=("motor",))
-    lens4 = Component(EpicsMotor, "m65", labels=("motor",))
-    lens5 = Component(EpicsMotor, "m66", labels=("motor",))
-    lens6 = Component(EpicsMotor, "m67", labels=("motor",))
-    lens7 = Component(EpicsMotor, "m68", labels=("motor",))
-    lens8 = Component(EpicsMotor, "m69", labels=("motor",))
+def _make_lenses_motors(motors: list):
+    defn = {}
+    for n, mot in enumerate(motors):
+        defn[f"l{n}"] = (
+            EpicsMotor, f"{mot}", dict(kind="config", labels=("motor",))
+        )
+    return defn
 
-    def __init__(self, *args, lens_pos=30, default_distance=2591, **kwargs):
-        super().__init__(*args, **kwargs)
+
+class PyCRLSingleLens(PVPositioner):
+    readback = Component(EpicsSignalRO, "_RBV")
+    setpoint = Component(EpicsSignal, "", put_complete=True)
+    
+    done = Component(EpicsSignal, "_matchCalc.C")
+    done_value=1
+
+    # Settings
+    num_lenses = Component(EpicsSignal, "_NumLens", kind="config")
+    radius = Component(EpicsSignal, "_LensRadius", kind="config")
+    location = Component(EpicsSignal, "_Location", kind="config")
+    material = Component(EpicsSignal, "_Material", kind="config")
+    thickness_error = Component(EpicsSignal, "_ThickErr", kind="config")
+    in_limit = Component(EpicsSignal, "_RBV_calc.CC", kind="config")
+
+    def set(
+        self,
+        new_position,
+        *,
+        timeout: float = None,
+        moved_cb = None,
+        wait: bool = False,
+    ):
+        if self.readback.get() == new_position:
+            _status = DeviceStatus(self)
+            _status.set_finished()
+            return _status
+        else:
+            return super().set(new_position, timeout=timeout, moved_cb=moved_cb, wait=wait)
+
+
+class PyCRLSignal(EpicsSignal):
+    value = Component(EpicsSignal, "")
+    egu = Component(EpicsSignalRO, ".EGU")
+
+
+class PyCRL(Device):
+
+    # Energy
+    energy_mono = Component(PyCRLSignal, "EnergyBeamline", kind="config")
+    energy_local = Component(PyCRLSignal, "EnergyLocal", kind="config")
+    energy_select = Component(PyCRLSignal, "EnergySelect", kind="config")
+
+    # Slits
+    slit_hor_size = Component(PyCRLSignal, "1:slitSize_H_RBV", kind="config")
+    slit_hor_pv = Component(EpicsSignal, "1:slitSize_H.DOL", string=True, kind="config")
+    slit_vert_size = Component(PyCRLSignal, "1:slitSize_V_RBV", kind="config")
+    slit_vert_pv = Component(EpicsSignal, "1:slitSize_V.DOL", string=True, kind="config")
+
+    # Focus info/control
+    focal_size_setpoint = Component(EpicsSignal, "focalSize")
+    focal_size_readback = Component(EpicsSignalRO, "fSize_actual")
+    focal_power_index_setpoint = Component(EpicsSignal, "1:sortedIndex")
+    focal_power_index_readback = Component(EpicsSignal, "1:sortedIndex_RBV")
+
+    # Parameters readbacks
+    dq = Component(PyCRLSignal, "dq", kind="config")
+    q = Component(PyCRLSignal, "q", kind="config")
+    z_offset = Component(PyCRLSignal, "1:oePositionOffset_RBV", kind="config")
+    z_offset_pv = Component(EpicsSignal, "1:oePositionOffset.DOL", kind="config")
+    z_from_source = Component(PyCRLSignal, "1:oePosition_RBV", kind="config")
+    sample_offset = Component(PyCRLSignal, "samplePositionOffset_RBV", kind="config")
+    sample_offset_pv = Component(EpicsSignal, "samplePositionOffset.DOL", kind="config")
+    sample = Component(PyCRLSignal, "samplePosition_RBV", kind="config")
+
+    # Lenses indices
+    binary = Component(EpicsSignalRO, "1:lenses", kind="config")
+    ind_control = Component(EpicsSignalRO, "1:lensConfig_BW", kind="config")
+    readbacks = Component(EpicsSignalRO, "1:lensConfig_RBV", kind="config")
+
+    # Other options
+    preview_index = Component(EpicsSignal, "previewIndex", kind="config")
+    focal_size_preview = Component(EpicsSignalRO, "fSize_preview", kind="config")
+    inter_lens_delay = Component(EpicsSignal, "1:interLensDelay", kind="config")
+    verbose_console = Component(EpicsSignal, "verbosity", kind="config")
+    thickness_error_flag = Component(EpicsSignal, "thickerr_flag", kind="config")
+
+    # Lenses
+    lens1 = Component(PyCRLSingleLens, "1:stack01")
+    lens2 = Component(PyCRLSingleLens, "1:stack02")
+    lens3 = Component(PyCRLSingleLens, "1:stack03")
+    lens4 = Component(PyCRLSingleLens, "1:stack04")
+    lens5 = Component(PyCRLSingleLens, "1:stack05")
+    lens6 = Component(PyCRLSingleLens, "1:stack06")
+    lens7 = Component(PyCRLSingleLens, "1:stack07")
+    lens8 = Component(PyCRLSingleLens, "1:stack08")
+
+    
+class TransfocatorClass(PyCRL):
+
+    # Motors -- setup in 4idgSoft
+    x = FormattedComponent(EpicsMotor, "{_motors_IOC}m58", labels=("motor",))
+    y = FormattedComponent(EpicsMotor, "{_motors_IOC}m57", labels=("motor",))
+    z = FormattedComponent(EpicsMotor, "{_motors_IOC}m61", labels=("motor",))
+    pitch = FormattedComponent(EpicsMotor, "{_motors_IOC}m60", labels=("motor",))
+    yaw = FormattedComponent(EpicsMotor, "{_motors_IOC}m59", labels=("motor",))
+
+    lens_motors = DynamicDeviceComponent(
+        _make_lenses_motors(
+            [
+                f"{MOTORS_IOC}m62",
+                f"{MOTORS_IOC}m63",
+                f"{MOTORS_IOC}m64",
+                f"{MOTORS_IOC}m65",
+                f"{MOTORS_IOC}m66",
+                f"{MOTORS_IOC}m67",
+                f"{MOTORS_IOC}m68",
+                f"{MOTORS_IOC}m69"
+            ]
+        ),
+        component_class=FormattedComponent
+    )
+
+    def __init__(
+            self, *args, motors_ioc=MOTORS_IOC, lens_pos=30, default_distance=2591, **kwargs
+        ):
+        self._motors_IOC=motors_ioc
+        PyCRL.__init__(self, *args, **kwargs)
         self._lens_pos = lens_pos
         self._default_distance = default_distance  # mm
 
+    def pycrl_setup(self):
+        nls = [16, 8, 8, 4, 2, 1, 1, 1]
+        rs = [0.0001, 0.0001, 0.0002, 0.0002, 0.0002, 0.0002, 0.0005, 0.001] 
+        ls = [-1.745, -1.025, -0.465, 0.045, 0.505, 0.965, 1.425, 1.885]
+        for i, (nl, r, l) in enumerate(zip(nls, rs, ls)):
+            stack = getattr(self, f"lens{i+1}")
+            getattr(stack, "num_lenses").put(nl)
+            getattr(stack, "radius").put(r)
+            getattr(stack, "location").put(l)
+
     def lens_status(self, i):
-        device = getattr(self, f"lens{i}")
-        limits = [device.low_limit_switch.get(), device.high_limit_switch.get()]
-        if limits == [1, 1]:
-            raise ValueError(f"Both limit swiches of lens{i} are on!")
-        elif limits == [1, 0]:
-            return "in"
-        elif limits == [0, 1]:
-            return "out"
-        else:  # limits = [0, 0]
-            return "unknown"
+        return getattr(self, f"lens{i}").readback.get(as_string=True)
 
     @property
     def lenses_in(self):
         selected = []
         for i in range(1, 9):
             _status = self.lens_status(i)
-            if _status == "in":
+            if _status == "In":
                 selected.append(i)
-            elif _status == "unknown":
-                logger.info(f"WARNING: the status of lens #{i} is unknown.")
+            elif _status == "Both out":
+                pass
+                # logger.info(f"WARNING: the status of lens #{i} is unknown.")
         return selected
 
     def _setup_lenses_move(self, lenses_in: list = []):
@@ -81,16 +204,9 @@ class TransfocatorClass(Device):
 
         args = []
         for lens in range(1, 9):
-            # If the lens is already in the correct place --> do nothing
-            if (
-                ((self.lens_status(lens) == "in") and (lens in lenses_in)) or
-                ((self.lens_status(lens) == "out") and (lens not in lenses_in))
-            ):
-                continue
-
-            step_sign = -1 if lens in lenses_in else 1
+            step = 1 if lens in lenses_in else 0
             args += [
-                getattr(self, f"lens{lens}"), step_sign*self._lens_pos
+                getattr(self, f"lens{lens}"), step
             ]
         
         return args
@@ -98,14 +214,11 @@ class TransfocatorClass(Device):
     def set_lenses(self, selected_lenses: list):
         args = self._setup_lenses_move(selected_lenses)
         for dev, pos in partition(2, args):
-            dev.user_setpoint.put(pos)
+            dev.setpoint.put(pos)
 
     def set_lenses_plan(self, selected_lenses: list):
         args = self._setup_lenses_move(selected_lenses)
         return (yield from mv(*args))
-
-    # TODO: Need to create plans for these motions, but we are having problems
-    # with moving the lenses in EPICS now.
 
     def _check_z_lims(self, position):
         if (
@@ -257,5 +370,5 @@ class TransfocatorClass(Device):
 
 
 transfocator = TransfocatorClass(
-    "4idgSoft:", name="transfocator", labels=("4idg", "optics")
+    "4idPyCRL:CRL4ID:", name="transfocator", labels=("4idg", "optics")
 )
