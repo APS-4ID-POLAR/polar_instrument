@@ -38,9 +38,9 @@ def _make_lenses_motors(motors: list):
 class PyCRLSingleLens(PVPositioner):
     readback = Component(EpicsSignalRO, "_RBV")
     setpoint = Component(EpicsSignal, "", put_complete=True)
-    
+
     done = Component(EpicsSignal, "_matchCalc.C")
-    done_value=1
+    done_value = 1
 
     # Settings
     num_lenses = Component(EpicsSignal, "_NumLens", kind="config")
@@ -55,7 +55,7 @@ class PyCRLSingleLens(PVPositioner):
         new_position,
         *,
         timeout: float = None,
-        moved_cb = None,
+        moved_cb=None,
         wait: bool = False,
     ):
         if self.readback.get() == new_position:
@@ -63,7 +63,9 @@ class PyCRLSingleLens(PVPositioner):
             _status.set_finished()
             return _status
         else:
-            return super().set(new_position, timeout=timeout, moved_cb=moved_cb, wait=wait)
+            return super().set(
+                new_position, timeout=timeout, moved_cb=moved_cb, wait=wait
+            )
 
 
 class PyCRLSignal(EpicsSignal):
@@ -80,9 +82,13 @@ class PyCRL(Device):
 
     # Slits
     slit_hor_size = Component(PyCRLSignal, "1:slitSize_H_RBV", kind="config")
-    slit_hor_pv = Component(EpicsSignal, "1:slitSize_H.DOL", string=True, kind="config")
+    slit_hor_pv = Component(
+        EpicsSignal, "1:slitSize_H.DOL", string=True, kind="config"
+    )
     slit_vert_size = Component(PyCRLSignal, "1:slitSize_V_RBV", kind="config")
-    slit_vert_pv = Component(EpicsSignal, "1:slitSize_V.DOL", string=True, kind="config")
+    slit_vert_pv = Component(
+        EpicsSignal, "1:slitSize_V.DOL", string=True, kind="config"
+    )
 
     # Focus info/control
     focal_size_setpoint = Component(EpicsSignal, "focalSize")
@@ -94,10 +100,16 @@ class PyCRL(Device):
     dq = Component(PyCRLSignal, "dq", kind="config")
     q = Component(PyCRLSignal, "q", kind="config")
     z_offset = Component(PyCRLSignal, "1:oePositionOffset_RBV", kind="config")
-    z_offset_pv = Component(EpicsSignal, "1:oePositionOffset.DOL", kind="config")
+    z_offset_pv = Component(
+        EpicsSignal, "1:oePositionOffset.DOL", kind="config"
+    )
     z_from_source = Component(PyCRLSignal, "1:oePosition_RBV", kind="config")
-    sample_offset = Component(PyCRLSignal, "samplePositionOffset_RBV", kind="config")
-    sample_offset_pv = Component(EpicsSignal, "samplePositionOffset.DOL", kind="config")
+    sample_offset = Component(
+        PyCRLSignal, "samplePositionOffset_RBV", kind="config"
+    )
+    sample_offset_pv = Component(
+        EpicsSignal, "samplePositionOffset.DOL", kind="config"
+    )
     sample = Component(PyCRLSignal, "samplePosition_RBV", kind="config")
 
     # Lenses indices
@@ -107,10 +119,14 @@ class PyCRL(Device):
 
     # Other options
     preview_index = Component(EpicsSignal, "previewIndex", kind="config")
-    focal_size_preview = Component(EpicsSignalRO, "fSize_preview", kind="config")
+    focal_size_preview = Component(
+        EpicsSignalRO, "fSize_preview", kind="config"
+    )
     inter_lens_delay = Component(EpicsSignal, "1:interLensDelay", kind="config")
     verbose_console = Component(EpicsSignal, "verbosity", kind="config")
-    thickness_error_flag = Component(EpicsSignal, "thickerr_flag", kind="config")
+    thickness_error_flag = Component(
+        EpicsSignal, "thickerr_flag", kind="config"
+    )
 
     # Lenses
     lens1 = Component(PyCRLSingleLens, "1:stack01")
@@ -122,49 +138,40 @@ class PyCRL(Device):
     lens7 = Component(PyCRLSingleLens, "1:stack07")
     lens8 = Component(PyCRLSingleLens, "1:stack08")
 
-    
+
 class TransfocatorClass(PyCRL):
 
     # Motors -- setup in 4idgSoft
     x = FormattedComponent(EpicsMotor, "{_motors_IOC}m58", labels=("motor",))
     y = FormattedComponent(EpicsMotor, "{_motors_IOC}m57", labels=("motor",))
     z = FormattedComponent(EpicsMotor, "{_motors_IOC}m61", labels=("motor",))
-    pitch = FormattedComponent(EpicsMotor, "{_motors_IOC}m60", labels=("motor",))
+    pitch = FormattedComponent(
+        EpicsMotor, "{_motors_IOC}m60", labels=("motor",)
+    )
     yaw = FormattedComponent(EpicsMotor, "{_motors_IOC}m59", labels=("motor",))
 
     lens_motors = DynamicDeviceComponent(
         _make_lenses_motors(
             [
-                f"{MOTORS_IOC}m62",
-                f"{MOTORS_IOC}m63",
-                f"{MOTORS_IOC}m64",
-                f"{MOTORS_IOC}m65",
-                f"{MOTORS_IOC}m66",
-                f"{MOTORS_IOC}m67",
+                f"{MOTORS_IOC}m69",
                 f"{MOTORS_IOC}m68",
-                f"{MOTORS_IOC}m69"
+                f"{MOTORS_IOC}m67",
+                f"{MOTORS_IOC}m66",
+                f"{MOTORS_IOC}m65",
+                f"{MOTORS_IOC}m64",
+                f"{MOTORS_IOC}m63",
+                f"{MOTORS_IOC}m62"
             ]
         ),
         component_class=FormattedComponent
     )
 
     def __init__(
-            self, *args, motors_ioc=MOTORS_IOC, lens_pos=30, default_distance=2591, **kwargs
-        ):
-        self._motors_IOC=motors_ioc
+            self, *args, lens_pos=30, default_distance=2591, **kwargs
+    ):
         PyCRL.__init__(self, *args, **kwargs)
         self._lens_pos = lens_pos
         self._default_distance = default_distance  # mm
-
-    def pycrl_setup(self):
-        nls = [16, 8, 8, 4, 2, 1, 1, 1]
-        rs = [0.0001, 0.0001, 0.0002, 0.0002, 0.0002, 0.0002, 0.0005, 0.001] 
-        ls = [-1.745, -1.025, -0.465, 0.045, 0.505, 0.965, 1.425, 1.885]
-        for i, (nl, r, l) in enumerate(zip(nls, rs, ls)):
-            stack = getattr(self, f"lens{i+1}")
-            getattr(stack, "num_lenses").put(nl)
-            getattr(stack, "radius").put(r)
-            getattr(stack, "location").put(l)
 
     def lens_status(self, i):
         return getattr(self, f"lens{i}").readback.get(as_string=True)
@@ -208,7 +215,7 @@ class TransfocatorClass(PyCRL):
             args += [
                 getattr(self, f"lens{lens}"), step
             ]
-        
+
         return args
 
     def set_lenses(self, selected_lenses: list):
@@ -222,7 +229,7 @@ class TransfocatorClass(PyCRL):
 
     def _check_z_lims(self, position):
         if (
-            (position > self.z.low_limit_travel.get()) & 
+            (position > self.z.low_limit_travel.get()) &
             (position < self.z.high_limit_travel.get())
         ):
             return True
@@ -247,10 +254,10 @@ class TransfocatorClass(PyCRL):
 
         if not self._check_z_lims(distance):
             raise ValueError(
-                f"The distance {distance} is outsize the Z travel range. No motion"
-                " will occur."
+                f"The distance {distance} is outsize the Z travel range. No"
+                "motion will occur."
             )
-        
+
         return lenses, distance
 
     def optimize_lenses(
@@ -302,8 +309,8 @@ class TransfocatorClass(PyCRL):
 
         if not self._check_z_lims(distance):
             raise ValueError(
-                f"The distance {distance} is outsize the Z travel range. No motion"
-                " will occur."
+                f"The distance {distance} is outsize the Z travel range. No"
+                "motion will occur."
             )
 
         return distance
