@@ -747,7 +747,7 @@ def setor1(*args):
     orienting_refl = sample._orientation_reflections
 
     if _geom_.name == POLAR_DIFFRACTOMETER and len(args) == 9:
-        delta, mu, chi, phi, gamma, tau, h, k, l = args
+        gamma, mu, chi, phi, delta, tau, h, k, l = args
     elif _geom_.name == "fourc" and len(args) == 7:
         delta, mu, chi, phi, h, k, l = args
     else:

@@ -169,6 +169,7 @@ class TransfocatorClass(PyCRL):
     def __init__(
             self, *args, lens_pos=30, default_distance=2591, **kwargs
     ):
+        self._motors_IOC = MOTORS_IOC
         PyCRL.__init__(self, *args, **kwargs)
         self._lens_pos = lens_pos
         self._default_distance = default_distance  # mm

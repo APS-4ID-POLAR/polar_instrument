@@ -36,9 +36,9 @@ polar_diffractometer:
 #   device: diff_nano
 #   baseline: True
 
-# ad_eiger1M:
-#   device: eiger1m
-#   baseline: False
+ad_eiger1M:
+  device: eiger
+  baseline: False
 
 # xspress:
 #   device: vortex

@@ -14,14 +14,14 @@ from .ad_mixins import (
     ImagePlugin,
     ROIPlugin,
     StatsPlugin,
-    PvaPlugin,
-    PolarHDF5Plugin
+    PolarHDF5Plugin,
+    ProcessPlugin
 )
 from ..utils._logging_setup import logger
 from ..utils.config import iconfig
 logger.info(__file__)
 
-__all__ = ["load_eiger1m", "eiger1m"]
+__all__ = ["load_eiger1m", "eiger"]
 
 DEFAULT_FOLDER = Path(iconfig["AREA_DETECTOR"]["EIGER_1M"]["DEFAULT_FOLDER"])
 
@@ -46,6 +46,10 @@ class TriggerTime(TriggerBase):
         self._acquisition_signal_pv = "cam.special_trigger_button"
         self._min_period = min_period
         self._flysetup = False
+
+    @property
+    def acquisition_signal(self):
+        return getattr(self, self._acquisition_signal_pv)
 
     @property
     def min_period(self):
@@ -138,7 +142,7 @@ class TriggerTime(TriggerBase):
             status_obj.set_finished()
 
         self._status = self._status_type(self)
-        self._acquisition_signal.put(1, wait=False)
+        self.acquisition_signal.put(1, wait=False)
         if self.hdf1.enable.get() in (True, 1, "on", "Enable"):
             self.generate_datum(self._image_name, ttime(), {})
         add_delay(self._status, self._min_period)
@@ -147,17 +151,24 @@ class TriggerTime(TriggerBase):
 
 class Eiger1MDetector(TriggerTime, DetectorBase):
 
-    _default_configuration_attrs = ('roi1', 'codec1', 'image', 'pva')
+    _default_configuration_attrs = ('roi1', 'codec', 'image', )
     _default_read_attrs = ('cam', 'hdf1', 'stats1')
 
     cam = ADComponent(EigerDetectorCam, "cam1:")
-    codec1 = ADComponent(CodecPlugin, "Codec1:")
+    codec = ADComponent(CodecPlugin, "Codec1:")
+    proc = ADComponent(ProcessPlugin, "Proc1:")
     image = ADComponent(ImagePlugin, "image1:")
-    roi1 = ADComponent(ROIPlugin, "ROI1:")
-    stats1 = ADComponent(StatsPlugin, "Stats1:", kind="normal")
-    pva = ADComponent(PvaPlugin, "Pva1:")
-
     hdf1 = ADComponent(PolarHDF5Plugin, "HDF1:")
+
+    roi1 = ADComponent(ROIPlugin, "ROI1:")
+    roi2 = ADComponent(ROIPlugin, "ROI2:")
+    roi3 = ADComponent(ROIPlugin, "ROI3:")
+    roi4 = ADComponent(ROIPlugin, "ROI4:")
+    stats1 = ADComponent(StatsPlugin, "Stats1:", kind="normal")
+    stats2 = ADComponent(StatsPlugin, "Stats2:", kind="normal")
+    stats3 = ADComponent(StatsPlugin, "Stats3:", kind="normal")
+    stats4 = ADComponent(StatsPlugin, "Stats4:", kind="normal")
+    stats5 = ADComponent(StatsPlugin, "Stats5:", kind="normal")
 
     # Make this compatible with other detectors
     @property
@@ -169,7 +180,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.save_images_off()
         self.cam.manual_trigger.set("Disable").wait(timeout=10)
         self.cam.num_triggers.set(int(1e6)).wait(timeout=10)
-        self.cam.trigger_mode.set("Internal Enable").wait(timeout=10)
+        self.cam.trigger_mode.set("Continuous").wait(timeout=10)
         self.preset_monitor.set(time).wait(timeout=10)
         self.cam.acquire.set(1).wait(timeout=10)
 
@@ -206,10 +217,25 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
 
         self.setup_manual_trigger()
         self.save_images_off()
-        self.plot_roi1()
+        self.plot_stats1()
 
-    def plot_roi1(self):
-        self.stats1.total.kind = "hinted"
+    def plot_all(self):
+        self.plot_select([1, 2, 3, 4, 5])
+
+    def plot_stats1(self):
+        self.plot_select([1])
+
+    def plot_stats2(self):
+        self.plot_select([2])
+
+    def plot_stats3(self):
+        self.plot_select([3])
+
+    def plot_stats4(self):
+        self.plot_select([4])
+
+    def plot_stats5(self):
+        self.plot_select([5])
 
     def setup_images(
             self, base_path, name_template, file_number, flyscan=False
@@ -229,11 +255,41 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
 
         return Path(full_path), Path(relative_path)
 
+    def plot_select(self, stats):
+        """
+        Selects which stats will be plotted. All are being read.
+
+        This assumes that 5 stats are setup in Bluesky.
+
+        PARAMETERS
+        ----------
+        stats : iterable of ints
+            List with the stats numbers to be plotted.
+        """
+
+        for i in range(1, 5+1):
+            getattr(self, f"stats{i}").total.kind = (
+                "hinted" if i in stats else "normal"
+            )
+
     @property
     def save_image_flag(self):
         _hdf1_auto = True if self.hdf1.autosave.get() == "on" else False
         _hdf1_on = True if self.hdf1.enable.get() == "Enable" else False
         return _hdf1_on or _hdf1_auto
+
+    @property
+    def label_option_map(self):
+        return {f"Stats{i} Total": i for i in range(1, 5+1)}
+
+    @property
+    def plot_options(self):
+        # Return all named scaler channels
+        return list(self.label_option_map.keys())
+
+    def select_plot(self, channels):
+        chans = [self.label_option_map[i] for i in channels]
+        self.plot_select(chans)
 
 
 def load_eiger1m(prefix="4idEiger:"):
@@ -276,4 +332,4 @@ def load_eiger1m(prefix="4idEiger:"):
     return eiger1m
 
 
-eiger1m = Eiger1MDetector("4idEiger:", name="eiger1m", labels=("4idg", "detector",))
+eiger = Eiger1MDetector("4idEiger:", name="eiger1m", labels=("4idg", "detector",))
