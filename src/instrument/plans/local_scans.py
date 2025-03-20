@@ -40,6 +40,7 @@ from ..devices.qxscan_setup import qxscan_params
 from ..devices.energy_device import energy
 from ..devices.aps_undulator import undulators
 from ..devices.phaseplates import pr1, pr2, pr3, pr_setup
+from ..devices.polar_diffractometer import huber
 from ..utils._logging_setup import logger
 from ..utils.experiment_setup import experiment
 from ..utils.run_engine import RE
@@ -53,16 +54,19 @@ HDF1_NAME_FORMAT = Path(iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"])
 class LocalFlag:
     """Stores flags that are used to select and run local scans."""
     dichro = False
-    # fixq = False
-    # hkl_pos = {}
+    fixq = False
+    hkl_pos = {}
     dichro_steps = None
 
 
 flag = LocalFlag()
 
 
-def _collect_extras(escan_flag, fourc_flag):
+def _collect_extras(escan_flag, huber_flag):
     """Collect all detectors that need to be read during a scan."""
+
+    # TODO: most or all of this can be removed if we add these to the energy
+    # device directly.
 
     # Initialize the list of extra devices with the standard set from counters
     extras = counters.extra_devices.copy()
@@ -80,10 +84,9 @@ def _collect_extras(escan_flag, fourc_flag):
             if pr_track:
                 extras.append(pr.th)
 
-    if fourc_flag:
-        # TODO: Add diffractometer
-        # extras.append(fourc)
-        raise NotImplementedError("fixq is not implemented.")
+    if huber_flag:
+        # extras.append(huber)
+        pass
 
     return extras
 
@@ -128,13 +131,11 @@ def one_local_step(detectors, step, pos_cache, take_reading=trigger_and_read):
     yield from move_per_step(step, pos_cache)
 
     if flag.fixq:
-        # TODO: Add diffractometer
-        # devices_to_read += [fourc]
-        # args = (fourc.h, flag.hkl_pos[fourc.h],
-        #         fourc.k, flag.hkl_pos[fourc.k],
-        #         fourc.l, flag.hkl_pos[fourc.l])
-        # yield from bps_mv(*args)
-        raise NotImplementedError("fixq is not implemented.")
+        devices_to_read += [huber]
+        args = (huber.h, flag.hkl_pos[huber.h],
+                huber.k, flag.hkl_pos[huber.k],
+                huber.l, flag.hkl_pos[huber.l])
+        yield from bps_mv(*args)
 
     if flag.dichro:
         yield from dichro_steps(devices_to_read, take_reading)
@@ -373,13 +374,11 @@ def ascan(
     if per_step is None:
         per_step = one_local_step if fixq or dichro else None
     if fixq:
-        # TODO: Add diffractometer
-        # flag.hkl_pos = {
-        #     fourc.h: fourc.h.get().setpoint,
-        #     fourc.k: fourc.k.get().setpoint,
-        #     fourc.l: fourc.l.get().setpoint,
-        # }
-        raise NotImplementedError("fixq is not implemented.")
+        flag.hkl_pos = {
+            huber.h: huber.h.get().setpoint,
+            huber.k: huber.k.get().setpoint,
+            huber.l: huber.l.get().setpoint,
+        }
 
     # This allows passing "time" without using the keyword.
     if len(args) % 3 == 2 and time is None:
@@ -397,7 +396,7 @@ def ascan(
         experiment.experiment_path, _master_fullpath, _rel_dets_paths
     )
 
-    extras = yield from _collect_extras(energy in args, "fourc" in str(args))
+    extras = yield from _collect_extras(energy in args, "huber" in str(args))
 
     _md = dict(
         hints={'monitor': counters.monitor, 'detectors': []},
@@ -580,13 +579,11 @@ def grid_scan(
         per_step = one_local_step if fixq or dichro else None
 
     if fixq:
-        # TODO: Add diffraction
-        # flag.hkl_pos = {
-        #     fourc.h: fourc.h.get().setpoint,
-        #     fourc.k: fourc.k.get().setpoint,
-        #     fourc.l: fourc.l.get().setpoint,
-        # }
-        raise NotImplementedError("fixq is not implemented.")
+        flag.hkl_pos = {
+            huber.h: huber.h.get().setpoint,
+            huber.k: huber.k.get().setpoint,
+            huber.l: huber.l.get().setpoint,
+        }
 
     # This allows passing "time" without using the keyword.
     if len(args) % 4 == 1 and time is None:
@@ -604,7 +601,7 @@ def grid_scan(
         experiment.experiment_path, _master_fullpath, _rel_dets_paths
     )
 
-    extras = yield from _collect_extras(energy in args, "fourc" in str(args))
+    extras = yield from _collect_extras(energy in args, "huber" in str(args))
 
     _md = dict(
         hints={'monitor': counters.monitor, 'detectors': []},
@@ -781,19 +778,17 @@ def qxscan(
     flag.fixq = fixq
     per_step = one_local_step if fixq or dichro else None
     if fixq:
-        # TODO: Add diffractometer
-        # flag.hkl_pos = {
-        #     fourc.h: fourc.h.get().setpoint,
-        #     fourc.k: fourc.k.get().setpoint,
-        #     fourc.l: fourc.l.get().setpoint,
-        # }
-        raise NotImplementedError("fixq is not implemented.")
+        flag.hkl_pos = {
+            huber.h: huber.h.get().setpoint,
+            huber.k: huber.k.get().setpoint,
+            huber.l: huber.l.get().setpoint,
+        }
 
     # Get energy argument and extras
     energy_list = yield from rd(qxscan_params.energy_list)
     args = (energy, array(energy_list) + edge_energy)
 
-    extras = yield from _collect_extras(energy in args, "fourc" in str(args))
+    extras = yield from _collect_extras(energy in args, "huber" in str(args))
 
     # Setup count time
     factor_list = yield from rd(qxscan_params.factor_list)
