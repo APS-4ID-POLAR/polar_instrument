@@ -1,62 +1,80 @@
 # 4ID-A setup
 
 aps_xbpm:
-  device: aps_xbpm
+  module: aps_xbpm
+  class: MyXBPM
+  prefix: 4idCTR8_1:scaler1
+  parameters:
+    labels: ['source',]
   baseline: True
+  description: XBPM in the front end
 
-aps_undulator:
-  device: undulators
+undulators:
+  module: aps_undulator
+  class: PolarUndulatorPair
+  prefix: 'S04ID:'
+  parameters:
+    labels: ['source', 'energy']
   baseline: True
-  timeout: 2
+  description: Undulators and phase shifter
 
-aps_phase_shifter:
-  device: pshift
-  baseline: True
+# aps_xbpm:
+#   device: aps_xbpm
+#   baseline: True
 
-hhl_mirror:
-  device: hhl_mirror
-  baseline: True
+# aps_undulator:
+#   device: undulators
+#   baseline: True
+#   timeout: 2
 
-wb_slit: 
-  device: wbslt
-  baseline: True
+# aps_phase_shifter:
+#   device: pshift
+#   baseline: True
 
-monochromator:
-  device: mono
-  baseline: True
+# hhl_mirror:
+#   device: hhl_mirror
+#   baseline: True
 
-labjacks:
-  device: labjack_4ida
-  baseline: False
+# wb_slit: 
+#   device: wbslt
+#   baseline: True
 
-camera_4ida_up:
-  device: flag_camera_4ida_up
-  baseline: False
+# monochromator:
+#   device: mono
+#   baseline: True
 
-camera_4ida_down:
-  device: flag_camera_4ida_down
-  baseline: False
+# labjacks:
+#   device: labjack_4ida
+#   baseline: False
 
-flags:
-  device: [flag_4ida_up, flag_4ida_down]
-  baseline: [True, True]
+# camera_4ida_up:
+#   device: flag_camera_4ida_up
+#   baseline: False
 
-jj_slits:
-  device: monoslt
-  baseline: True
+# camera_4ida_down:
+#   device: flag_camera_4ida_down
+#   baseline: False
 
-phaseplates:
-  device: [pr1, pr2, pr3]
-  baseline: [True, True, True]
+# flags:
+#   device: [flag_4ida_up, flag_4ida_down]
+#   baseline: [True, True]
 
-energy_device:
-  device: energy
-  baseline: True
+# jj_slits:
+#   device: monoslt
+#   baseline: True
 
-qxscan_setup:
-  device: qxscan_params
-  baseline: True
+# phaseplates:
+#   device: [pr1, pr2, pr3]
+#   baseline: [True, True, True]
 
-data_management:
-  device: [dm_experiment, dm_workflow]
-  baseline: [True, True]
+# energy_device:
+#   device: energy
+#   baseline: True
+
+# qxscan_setup:
+#   device: qxscan_params
+#   baseline: True
+
+# data_management:
+#   device: [dm_experiment, dm_workflow]
+#   baseline: [True, True]

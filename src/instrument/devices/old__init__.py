@@ -7,6 +7,7 @@ from os.path import dirname, abspath, join
 from ..utils.config import iconfig
 from ..utils.dynamic_import import device_import
 from .counters_class import counters
+from .phaseplates import pr_setup
 
 current_folder = dirname(abspath(__file__))
 

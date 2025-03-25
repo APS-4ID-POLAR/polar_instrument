@@ -2,8 +2,6 @@
 Ring XBPM support
 """
 
-__all__ = ["aps_xbpm"]
-
 from ophyd import Component, Device, EpicsSignalRO
 from ..utils._logging_setup import logger
 logger.info(__file__)
@@ -29,6 +27,3 @@ class MyXBPM(Device):
     cm1 = Component(CMsDevice, "S04IDFE-XBPM:CM1ds:")
     cm2 = Component(CMsDevice, "S04IDFE-XBPM:CM2ds:")
     cm3 = Component(CMsDevice, "S04IDFE-XBPM:CM3ds:")
-
-
-aps_xbpm = MyXBPM("", name="aps_xbpm", labels=("source",))

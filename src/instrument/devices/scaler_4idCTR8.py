@@ -3,8 +3,6 @@
 Scalers
 """
 
-__all__ = ['scaler_ctr8']
-
 from ophyd.scaler import ScalerCH
 from ophyd.signal import Signal
 from ophyd import Kind, Component
@@ -210,10 +208,7 @@ class LocalScalerCH(ScalerCH):
     def select_plot(self, channels):
         self.select_plot_channels(chan_names=channels)
 
-
-scaler_ctr8 = LocalScalerCH(
-    '4idCTR8_1:scaler1', name='scaler_ctr8', labels=('detector', 'scaler')
-)
-scaler_ctr8.monitor = 'chan01'
-scaler_ctr8.select_read_channels()
-scaler_ctr8.select_plot_channels()
+    def default_params(self):
+        self.monitor = 'chan01'
+        self.select_read_channels()
+        self.select_plot_channels()

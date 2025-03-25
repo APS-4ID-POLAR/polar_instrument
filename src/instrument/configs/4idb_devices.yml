@@ -1,54 +1,63 @@
 # 4ID-B setup
 
-scaler_4idCTR8:
-  device: scaler_ctr8
+scaler_ctr8:
+  module: scaler_4idCTR8
+  class: LocalScalerCH
+  prefix: 4idCTR8_1:scaler1
+  parameters:
+    labels: ['detector', 'scaler']
+  run_default: True
   baseline: True
 
-usb_ctr8:
-  device: ctr8
+ctr8:
+  module: usb_ctr8
+  class: CustomMeasCompCtr
+  prefix: "4idCTR8_1:"
+  parameters:
+    labels: ["detector", "scaler"]
   baseline: True
 
-camera_4idb:
-  device: flag_camera_4idb
-  baseline: False
-  timeout: 5
+# camera_4idb:
+#   device: flag_camera_4idb
+#   baseline: False
+#   timeout: 5
 
-flags:
-  device: flag_4idb
-  baseline: True
+# flags:
+#   device: flag_4idb
+#   baseline: True
 
-diamond_window_table:
-  device: diamond_window
-  baseline: True
+# diamond_window_table:
+#   device: diamond_window
+#   baseline: True
 
-table_4idb:
-  device: midtable_4idb
-  baseline: True
+# table_4idb:
+#   device: midtable_4idb
+#   baseline: True
 
-tetramms:
-  device: [tetramm_4idb, tetramm_4idb_ro]
-  baseline: [False, True]
+# tetramms:
+#   device: [tetramm_4idb, tetramm_4idb_ro]
+#   baseline: [False, True]
 
-polarimeter:
-  device: pol
-  baseline: False
+# polarimeter:
+#   device: pol
+#   baseline: False
 
-jj_slits:
-  device: bslt
-  baseline: True
+# jj_slits:
+#   device: bslt
+#   baseline: True
 
-filters_device:
-  device: bfilter
-  baseline: True
+# filters_device:
+#   device: bfilter
+#   baseline: True
 
-chopper_device:
-  device: chopper
-  baseline: True
+# chopper_device:
+#   device: chopper
+#   baseline: True
 
-kb_mirrors:
-  device: kbb
-  baseline: True
+# kb_mirrors:
+#   device: kbb
+#   baseline: True
 
-electromagnet:
-  device: emag
-  baseline: True
+# electromagnet:
+#   device: emag
+#   baseline: True
