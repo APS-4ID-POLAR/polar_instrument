@@ -17,8 +17,8 @@ jj_slits:
 # KB mirror
 
 polar_diffractometer:
-  device: [huber, huber_psi]
-  baseline: [True, True]
+  device: [huber_cradle, huber_cradle_psi, huber_hp, huber_hp_psi]
+  baseline: [False, False, False, False]
 
 # simulated_fourc_vertical:
 #   device: fourc

@@ -2,7 +2,7 @@
 Simulated polar
 """
 
-__all__ = ['huber', 'huber_psi']
+__all__ = ['huber_cradle', 'huber_hp', 'huber_cradle_psi', 'huber_hp_psi']
 
 from ophyd import (
     Component, FormattedComponent, PseudoSingle, Kind, Signal, EpicsMotor, EpicsSignalRO
@@ -34,8 +34,6 @@ class SixCircleDiffractometer(ApsPolar):
     # it is not currently setup. m73 is a simulated motor.
     tau = Component(EpicsMotor, "m73", labels=("motor", ))    
     mu = Component(EpicsMotor, "m4", labels=("motor", ))
-    chi = Component(EpicsMotor, "m37", labels=("motor", ))
-    phi = Component(EpicsMotor, "m38", labels=("motor", ))
     gamma = Component(EpicsMotor, "m19", labels=("motor", ))
     delta = Component(EpicsMotor, "m20", labels=("motor", ))
 
@@ -85,11 +83,30 @@ class SixCircleDiffractometer(ApsPolar):
                 c_hints = component.hints
                 fields.extend(c_hints.get('fields', []))
         return {'fields': fields}
+    
+
+class CradleDiffractometer(SixCircleDiffractometer):
+    chi = Component(EpicsMotor, "m37", labels=("motor",))
+    phi = Component(EpicsMotor, "m38", labels=("motor",))
+
+    x = Component(EpicsMotor, "m40", labels=("motor",))
+    y = Component(EpicsMotor, "m41", labels=("motor",))
+    z = Component(EpicsMotor, "m42", labels=("motor",))
 
 
-huber = SixCircleDiffractometer(
-    "4idgSoft:", name='huber', labels=("4idg", "diffractometer",)
-)
+class HPDiffractometer(SixCircleDiffractometer):
+    chi = Component(EpicsMotor, "m5", labels=("motor",))
+    phi = Component(EpicsMotor, "m6", labels=("motor",))
+
+    basex = Component(EpicsMotor, "m7", labels=("motor",))
+    basey = Component(EpicsMotor, "m8", labels=("motor",))
+    basez = Component(EpicsMotor, "m9", labels=("motor",))
+
+    sample_tilt = Component(EpicsMotor, "m11", labels=("motor",))
+
+    x = Component(EpicsMotor, "m12", labels=("motor",))
+    y = Component(EpicsMotor, "m13", labels=("motor",))
+    z = Component(EpicsMotor, "m14", labels=("motor",))
 
 
 class PolarPSI(ApsPolar):
@@ -105,19 +122,43 @@ class PolarPSI(ApsPolar):
     # it is not currently setup. m73 is a simulated motor.
     tau = Component(EpicsMotor, "m73", labels=("motor", ))
     mu = Component(EpicsMotor, "m4", labels=("motor", ))
-    chi = Component(EpicsMotor, "m37", labels=("motor", ))
-    phi = Component(EpicsMotor, "m38", labels=("motor", ))
     gamma = Component(EpicsMotor, "m19", labels=("motor", ))
     delta = Component(EpicsMotor, "m20", labels=("motor", ))
 
 
-huber_psi = PolarPSI(
+class CradlePSI(PolarPSI):
+    chi = Component(EpicsMotor, "m37", labels=("motor",))
+    phi = Component(EpicsMotor, "m38", labels=("motor",))
+
+
+class HPPSI(PolarPSI):
+    chi = Component(EpicsMotor, "m5", labels=("motor",))
+    phi = Component(EpicsMotor, "m6", labels=("motor",))
+
+
+huber_cradle = CradleDiffractometer(
+    "4idgSoft:", name='huber_cradle', labels=("4idg", "diffractometer",)
+)
+
+
+huber_hp = HPDiffractometer(
+    "4idgSoft:", name='huber_hp', labels=("4idg", "diffractometer",)
+)
+
+huber_cradle_psi = CradlePSI(
     "4idgSoft:",
-    name="huber_psi",
+    name="huber_cradle_psi",
     engine="psi",
     labels=("4idg", "diffractometer",)
 )
-select_diffractometer(huber)
 
-huber._update_calc_energy()
-huber_psi._update_calc_energy()
+huber_hp_psi = CradlePSI(
+    "4idgSoft:",
+    name="huber_hp_psi",
+    engine="psi",
+    labels=("4idg", "diffractometer",)
+)
+
+select_diffractometer(huber_cradle)
+huber_cradle._update_calc_energy()
+huber_cradle_psi._update_calc_energy()
