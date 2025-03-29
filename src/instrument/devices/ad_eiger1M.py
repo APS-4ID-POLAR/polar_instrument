@@ -64,7 +64,7 @@ class TriggerTime(TriggerBase):
 
     def setup_manual_trigger(self):
         # Stage signals
-        self.cam.stage_sigs["trigger_mode"] = "Internal Enable"
+        self.cam.stage_sigs["trigger_mode"] = "Continuous"
         self.cam.stage_sigs["manual_trigger"] = "Enable"
         self.cam.stage_sigs["num_images"] = 1
         self.cam.stage_sigs["num_exposures"] = 1
@@ -151,8 +151,8 @@ class TriggerTime(TriggerBase):
 
 class Eiger1MDetector(TriggerTime, DetectorBase):
 
-    _default_configuration_attrs = ('roi1', 'codec', 'image', )
-    _default_read_attrs = ('cam', 'hdf1', 'stats1')
+    _default_configuration_attrs = ('roi1', 'roi2', 'roi3', 'roi4', 'codec', 'image', )
+    _default_read_attrs = ('cam', 'hdf1', 'stats1', 'stats2', 'stats3', 'stats4', 'stats5')
 
     cam = ADComponent(EigerDetectorCam, "cam1:")
     codec = ADComponent(CodecPlugin, "Codec1:")

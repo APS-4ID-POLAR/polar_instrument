@@ -42,7 +42,7 @@ from bluesky import RunEngineInterrupted
 from bluesky.utils import ProgressBarManager
 from bluesky.plan_stubs import mv
 from .run_engine import RE
-from ..devices.polar_diffractometer import huber_cradle, huber_cradle_psi
+from ..devices.polar_diffractometer import huber_euler, huber_euler_psi
 from ..devices.simulated_fourc_vertical import fourc
 from ._logging_setup import logger
 from ophyd import SoftPositioner
@@ -1739,7 +1739,7 @@ def pa_new():
     current_mode = _geom_.calc.engine.mode
 
     print("{},  {} geometry, {} diffractometer".format(_geom_.__class__.__name__, geometry, _geom_.name))
-    print("{} mode".format(huber_cradle.calc.engine.mode))
+    print("{} mode".format(huber_euler.calc.engine.mode))
 
     print("Sample = {}".format(sample.name))
     for i, ref in enumerate(sample._sample.reflections_get()):
@@ -2212,8 +2212,8 @@ def set_constraints(*args):
         )
 
 
-select_diffractometer(huber_cradle)
-select_engine_for_psi(huber_cradle_psi)
+select_diffractometer(huber_euler)
+select_engine_for_psi(huber_euler_psi)
 
 
 class whClass:

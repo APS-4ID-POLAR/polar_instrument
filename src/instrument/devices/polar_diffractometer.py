@@ -2,7 +2,7 @@
 Simulated polar
 """
 
-__all__ = ['huber_cradle', 'huber_hp', 'huber_cradle_psi', 'huber_hp_psi']
+__all__ = ['huber_euler', 'huber_hp', 'huber_euler_psi', 'huber_hp_psi']
 
 from ophyd import (
     Component, FormattedComponent, PseudoSingle, Kind, Signal, EpicsMotor, EpicsSignalRO
@@ -99,15 +99,18 @@ class HPDiffractometer(SixCircleDiffractometer):
     phi = Component(EpicsMotor, "m6", labels=("motor",))
 
     basex = Component(EpicsMotor, "m7", labels=("motor",))
-    basey = Component(EpicsMotor, "m8", labels=("motor",))
-    basez = Component(EpicsMotor, "m9", labels=("motor",))
+    basey = Component(EpicsMotor, "m9", labels=("motor",))
+    basez = Component(EpicsMotor, "m8", labels=("motor",))
 
     sample_tilt = Component(EpicsMotor, "m11", labels=("motor",))
 
     x = Component(EpicsMotor, "m12", labels=("motor",))
-    y = Component(EpicsMotor, "m13", labels=("motor",))
-    z = Component(EpicsMotor, "m14", labels=("motor",))
+    y = Component(EpicsMotor, "m14", labels=("motor",))
+    z = Component(EpicsMotor, "m13", labels=("motor",))
 
+    nanox = FormattedComponent(EpicsMotor, "4idgSoftX:jena:m1", labels=("motors",))
+    nanoy = FormattedComponent(EpicsMotor, "4idgSoftX:jena:m2", labels=("motors",))
+    nanoz = FormattedComponent(EpicsMotor, "4idgSoftX:jena:m3", labels=("motors",))
 
 class PolarPSI(ApsPolar):
     """
@@ -136,8 +139,8 @@ class HPPSI(PolarPSI):
     phi = Component(EpicsMotor, "m6", labels=("motor",))
 
 
-huber_cradle = CradleDiffractometer(
-    "4idgSoft:", name='huber_cradle', labels=("4idg", "diffractometer",)
+huber_euler = CradleDiffractometer(
+    "4idgSoft:", name='huber_euler', labels=("4idg", "diffractometer",)
 )
 
 
@@ -145,9 +148,9 @@ huber_hp = HPDiffractometer(
     "4idgSoft:", name='huber_hp', labels=("4idg", "diffractometer",)
 )
 
-huber_cradle_psi = CradlePSI(
+huber_euler_psi = CradlePSI(
     "4idgSoft:",
-    name="huber_cradle_psi",
+    name="huber_euler_psi",
     engine="psi",
     labels=("4idg", "diffractometer",)
 )
@@ -159,6 +162,6 @@ huber_hp_psi = CradlePSI(
     labels=("4idg", "diffractometer",)
 )
 
-select_diffractometer(huber_cradle)
-huber_cradle._update_calc_energy()
-huber_cradle_psi._update_calc_energy()
+select_diffractometer(huber_euler)
+huber_euler._update_calc_energy()
+huber_euler_psi._update_calc_energy()

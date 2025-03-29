@@ -2,7 +2,7 @@
 Transfocator
 """
 
-# __all__ = ['transfocator']
+__all__ = ['transfocator']
 
 from ophyd import (
     Device,
@@ -11,12 +11,16 @@ from ophyd import (
     FormattedComponent,
     PVPositioner,
     EpicsMotor,
+    Signal,
     EpicsSignal,
     EpicsSignalRO,
     DeviceStatus
 )
+from ophyd.status import AndStatus
 from bluesky.plan_stubs import mv
+from apstools.devices import TrackingSignal
 from toolz import partition
+from numpy import poly1d
 from .energy_device import energy as edevice
 from ..utils._logging_setup import logger
 from ..utils.transfocator_calculation_new import transfocator_calculation
@@ -139,12 +143,68 @@ class PyCRL(Device):
     lens8 = Component(PyCRLSingleLens, "1:stack08")
 
 
+class EnergySignal(Signal):
+    def put(self, *args, **kwargs):
+        raise NotImplementedError("put operation not setup in this signal.")
+
+    def set(self, value, **kwargs):
+
+        self._readback = value
+
+        try:
+            position = self.parent._setup_optimize_distance(energy=value)
+            status = self.parent.z.set(position)
+        except ValueError:
+            lenses, position= self.parent._setup_optimize_lenses(energy=value)
+            status = self.parent.z.set(position)
+            for lens in range(1, 9):
+                step = 1 if lens in lenses else 0
+                status = AndStatus(
+                    status,
+                    getattr(self.parent, f"lens{lens}").set(step)
+                )
+
+        return status
+
+
+class ZMotor(EpicsMotor):
+    def set(self, new_position, **kwargs):
+
+        zstatus = super().set(new_position, **kwargs)
+
+        if self.parent.trackxy.get():
+            xpos = (
+                self.parent.reference_x.get() +
+                poly1d(self.parent.polynomial_x.get())(new_position)
+            )
+            ypos = (
+                self.parent.reference_y.get() +
+                poly1d(self.parent.polynomial_y.get())(new_position)
+            )
+
+            xystatus = AndStatus(
+                self.parent.x.set(xpos), 
+                self.parent.y.set(ypos)
+            )
+
+            return AndStatus(zstatus, xystatus)
+        else:
+            return zstatus
+
+    def stop(self, *, success=False):
+        super().stop(success=success)
+        if self.parent.trackxy.get():
+            self.parent.x.stop(success=success)
+            self.parent.y.stop(success=success)
+
 class TransfocatorClass(PyCRL):
+
+    energy = Component(EnergySignal)
 
     # Motors -- setup in 4idgSoft
     x = FormattedComponent(EpicsMotor, "{_motors_IOC}m58", labels=("motor",))
     y = FormattedComponent(EpicsMotor, "{_motors_IOC}m57", labels=("motor",))
-    z = FormattedComponent(EpicsMotor, "{_motors_IOC}m61", labels=("motor",))
+    z = FormattedComponent(ZMotor, "{_motors_IOC}m61", labels=("motor",))
     pitch = FormattedComponent(
         EpicsMotor, "{_motors_IOC}m60", labels=("motor",)
     )
@@ -166,13 +226,31 @@ class TransfocatorClass(PyCRL):
         component_class=FormattedComponent
     )
 
+    reference_x = Component(Signal, kind="config")
+    reference_y = Component(Signal, kind="config")
+    polynomial_x = Component(Signal, kind="config")
+    polynomial_y = Component(Signal, kind="config")
+    trackxy = Component(TrackingSignal, value=False, kind="config")
+
     def __init__(
-            self, *args, lens_pos=30, default_distance=2591, **kwargs
+            self,
+            *args,
+            lens_pos=30,
+            default_distance=2591,
+            reference_x=0,
+            reference_y=0,
+            x_polynomial=[0],
+            y_polynomial=[0],
+            **kwargs
     ):
         self._motors_IOC = MOTORS_IOC
         PyCRL.__init__(self, *args, **kwargs)
         self._lens_pos = lens_pos
         self._default_distance = default_distance  # mm
+        self.reference_x.put(reference_x)
+        self.reference_y.put(reference_y)
+        self.polynomial_x.put(x_polynomial)
+        self.polynomial_y.put(y_polynomial)
 
     def lens_status(self, i):
         return getattr(self, f"lens{i}").readback.get(as_string=True)
@@ -375,8 +453,28 @@ class TransfocatorClass(PyCRL):
             selected_lenses=selected_lenses,
             verbose=verbose
         )
+    
+    def move_z_correct_xy_plan(self, zpos):
+        xpos = (
+            self.reference_x.get() +
+            poly1d(self.polynomial_x.get())(zpos)
+        )
+        ypos = (
+            self.reference_y.get() +
+            poly1d(self.polynomial_y.get())(zpos)
+        )
+
+        yield from mv(
+            self.x, xpos,
+            self.y, ypos,
+            self.z, zpos
+        )
 
 
 transfocator = TransfocatorClass(
-    "4idPyCRL:CRL4ID:", name="transfocator", labels=("4idg", "optics")
+    "4idPyCRL:CRL4ID:",
+    x_polynomial=[-5.78754544e-09, 1.51026831e-06, -7.44668091e-04, 0],
+    y_polynomial=[1.63341632e-11, -2.62999686e-09, -4.60512101e-08, -1.52140979e-05, 0],
+    name="transfocator",
+    labels=("4idg", "optics")
 )

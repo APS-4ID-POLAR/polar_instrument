@@ -40,7 +40,7 @@ from ..devices.qxscan_setup import qxscan_params
 from ..devices.energy_device import energy
 from ..devices.aps_undulator import undulators
 from ..devices.phaseplates import pr1, pr2, pr3, pr_setup
-from ..devices.polar_diffractometer import huber_cradle
+from ..devices.polar_diffractometer import huber_euler
 from ..utils._logging_setup import logger
 from ..utils.experiment_setup import experiment
 from ..utils.run_engine import RE
@@ -131,10 +131,10 @@ def one_local_step(detectors, step, pos_cache, take_reading=trigger_and_read):
     yield from move_per_step(step, pos_cache)
 
     if flag.fixq:
-        devices_to_read += [huber_cradle]
-        args = (huber_cradle.h, flag.hkl_pos[huber_cradle.h],
-                huber_cradle.k, flag.hkl_pos[huber_cradle.k],
-                huber_cradle.l, flag.hkl_pos[huber_cradle.l])
+        devices_to_read += [huber_euler]
+        args = (huber_euler.h, flag.hkl_pos[huber_euler.h],
+                huber_euler.k, flag.hkl_pos[huber_euler.k],
+                huber_euler.l, flag.hkl_pos[huber_euler.l])
         yield from bps_mv(*args)
 
     if flag.dichro:
@@ -375,9 +375,9 @@ def ascan(
         per_step = one_local_step if fixq or dichro else None
     if fixq:
         flag.hkl_pos = {
-            huber_cradle.h: huber_cradle.h.get().setpoint,
-            huber_cradle.k: huber_cradle.k.get().setpoint,
-            huber_cradle.l: huber_cradle.l.get().setpoint,
+            huber_euler.h: huber_euler.h.get().setpoint,
+            huber_euler.k: huber_euler.k.get().setpoint,
+            huber_euler.l: huber_euler.l.get().setpoint,
         }
 
     # This allows passing "time" without using the keyword.
@@ -580,9 +580,9 @@ def grid_scan(
 
     if fixq:
         flag.hkl_pos = {
-            huber_cradle.h: huber_cradle.h.get().setpoint,
-            huber_cradle.k: huber_cradle.k.get().setpoint,
-            huber_cradle.l: huber_cradle.l.get().setpoint,
+            huber_euler.h: huber_euler.h.get().setpoint,
+            huber_euler.k: huber_euler.k.get().setpoint,
+            huber_euler.l: huber_euler.l.get().setpoint,
         }
 
     # This allows passing "time" without using the keyword.
@@ -779,9 +779,9 @@ def qxscan(
     per_step = one_local_step if fixq or dichro else None
     if fixq:
         flag.hkl_pos = {
-            huber_cradle.h: huber_cradle.h.get().setpoint,
-            huber_cradle.k: huber_cradle.k.get().setpoint,
-            huber_cradle.l: huber_cradle.l.get().setpoint,
+            huber_euler.h: huber_euler.h.get().setpoint,
+            huber_euler.k: huber_euler.k.get().setpoint,
+            huber_euler.l: huber_euler.l.get().setpoint,
         }
 
     # Get energy argument and extras
