@@ -20,7 +20,8 @@ from ophyd.status import AndStatus
 from bluesky.plan_stubs import mv
 from apstools.devices import TrackingSignal
 from toolz import partition
-from numpy import poly1d
+from numpy import poly1d, loadtxt
+from scipy.interpolate import interp1d
 from .energy_device import energy as edevice
 from ..utils._logging_setup import logger
 from ..utils.transfocator_calculation_new import transfocator_calculation
@@ -173,14 +174,27 @@ class ZMotor(EpicsMotor):
         zstatus = super().set(new_position, **kwargs)
 
         if self.parent.trackxy.get():
-            xpos = (
-                self.parent.reference_x.get() +
-                poly1d(self.parent.polynomial_x.get())(new_position)
-            )
-            ypos = (
-                self.parent.reference_y.get() +
-                poly1d(self.parent.polynomial_y.get())(new_position)
-            )
+            # xpos = (
+            #     self.parent.reference_x.get() +
+            #     poly1d(self.parent.polynomial_x.get())(new_position)
+            # )
+            # ypos = (
+            #     self.parent.reference_y.get() +
+            #     poly1d(self.parent.polynomial_y.get())(new_position)
+            # )
+
+            if self.parent._x_interpolation is None:
+                raise ValueError(
+                    "The reference data for X tracking has not been entered. Cannot track the X motion."
+                )
+
+            if self.parent._y_interpolation is None:
+                raise ValueError(
+                    "The reference data for Y tracking has not been entered. Cannot track the Y motion."
+                )
+
+            xpos = self.parent._x_interpolation(new_position)
+            ypos = self.parent._y_interpolation(new_position)
 
             xystatus = AndStatus(
                 self.parent.x.set(xpos), 
@@ -226,10 +240,12 @@ class TransfocatorClass(PyCRL):
         component_class=FormattedComponent
     )
 
-    reference_x = Component(Signal, kind="config")
-    reference_y = Component(Signal, kind="config")
-    polynomial_x = Component(Signal, kind="config")
-    polynomial_y = Component(Signal, kind="config")
+    # reference_x = Component(Signal, kind="config")
+    # reference_y = Component(Signal, kind="config")
+    # polynomial_x = Component(Signal, kind="config")
+    # polynomial_y = Component(Signal, kind="config")
+    reference_data_x = Component(Signal, kind="config")
+    reference_data_y = Component(Signal, kind="config")
     trackxy = Component(TrackingSignal, value=False, kind="config")
 
     def __init__(
@@ -237,20 +253,40 @@ class TransfocatorClass(PyCRL):
             *args,
             lens_pos=30,
             default_distance=2591,
-            reference_x=0,
-            reference_y=0,
-            x_polynomial=[0],
-            y_polynomial=[0],
+            # reference_x=0,
+            # reference_y=0,
+            # x_polynomial=[0],
+            # y_polynomial=[0],
             **kwargs
     ):
         self._motors_IOC = MOTORS_IOC
         PyCRL.__init__(self, *args, **kwargs)
         self._lens_pos = lens_pos
         self._default_distance = default_distance  # mm
-        self.reference_x.put(reference_x)
-        self.reference_y.put(reference_y)
-        self.polynomial_x.put(x_polynomial)
-        self.polynomial_y.put(y_polynomial)
+        # self.reference_x.put(reference_x)
+        # self.reference_y.put(reference_y)
+        # self.polynomial_x.put(x_polynomial)
+        # self.polynomial_y.put(y_polynomial)
+        self._x_interpolation = None
+        self._y_interpolation = None
+        self.reference_data_x.subscribe(self._update_interpolation_x, run=False)
+        self.reference_data_y.subscribe(self._update_interpolation_y, run=False)
+
+    def load_reference_data(self, fname, axis):
+        if axis not in "x y".split():
+            raise ValueError(f"axis must be x or y. {axis} is not valid.")
+        # x, y = loadtxt(fname, unpack=True)
+        getattr(self, f"reference_data_{axis}").put(loadtxt(fname))
+
+    def _update_interpolation_x(self, value, **kwargs):
+        z = value[:, 0]
+        x = value[:, 1]
+        self._x_interpolation = interp1d(z, x)
+
+    def _update_interpolation_y(self, value, **kwargs):
+        z = value[:, 0]
+        y = value[:, 1]
+        self._y_interpolation = interp1d(z, y)
 
     def lens_status(self, i):
         return getattr(self, f"lens{i}").readback.get(as_string=True)
@@ -473,8 +509,8 @@ class TransfocatorClass(PyCRL):
 
 transfocator = TransfocatorClass(
     "4idPyCRL:CRL4ID:",
-    x_polynomial=[-5.78754544e-09, 1.51026831e-06, -7.44668091e-04, 0],
-    y_polynomial=[1.63341632e-11, -2.62999686e-09, -4.60512101e-08, -1.52140979e-05, 0],
+    # x_polynomial=[-5.78754544e-09, 1.51026831e-06, -7.44668091e-04, 0],
+    # y_polynomial=[1.63341632e-11, -2.62999686e-09, -4.60512101e-08, -1.52140979e-05, 0],
     name="transfocator",
     labels=("4idg", "optics")
 )

@@ -13,6 +13,10 @@ aps_phase_shifter:
   device: pshift
   baseline: True
 
+aps_status:
+  device: status_aps
+  baseline: True
+
 hhl_mirror:
   device: hhl_mirror
   baseline: True
@@ -59,4 +63,12 @@ qxscan_setup:
 
 data_management:
   device: [dm_experiment, dm_workflow]
+  baseline: [True, True]
+
+polar_status:
+  device: [status_polar]
+  baseline: [True]
+
+shutters:
+  device: [ashutter, bshutter]
   baseline: [True, True]

@@ -84,6 +84,10 @@ class SixCircleDiffractometer(ApsPolar):
                 fields.extend(c_hints.get('fields', []))
         return {'fields': fields}
     
+    def polan(self, param1, param2):
+        energy = self.energy.get()
+        wv = self.calc.wavelength
+    
 
 class CradleDiffractometer(SixCircleDiffractometer):
     chi = Component(EpicsMotor, "m37", labels=("motor",))
@@ -111,7 +115,7 @@ class HPDiffractometer(SixCircleDiffractometer):
     nanox = FormattedComponent(EpicsMotor, "4idgSoftX:jena:m1", labels=("motors",))
     nanoy = FormattedComponent(EpicsMotor, "4idgSoftX:jena:m2", labels=("motors",))
     nanoz = FormattedComponent(EpicsMotor, "4idgSoftX:jena:m3", labels=("motors",))
-
+SixCircleDiffractometer
 class PolarPSI(ApsPolar):
     """
     ApsPolar: Huber diffractometer in 6-circle horizontal geometry with energy.
