@@ -64,10 +64,12 @@ class SixCircleDiffractometer(ApsPolar):
     )
 
     # Analyzer motors
-    ana_th = Component(EpicsMotor, "m24", labels=("motor", ))
-    ana_tth = Component(EpicsMotor, "m25", labels=("motor", ))
-    ana_eta = Component(EpicsMotor, "m23", labels=("motor", ))
-    ana_chi = Component(EpicsMotor, "m26", labels=("motor", ))
+    ath_motor = Component(EpicsMotor, "m24", labels=("motor", ))
+    ath = Component(EpicsMotor, "pmth", labels=("motor", ))
+    atth_trans = Component(EpicsMotor, "m25", labels=("motor", ))
+    atth = Component(EpicsMotor, "pm2th", labels=("motor", ))
+    aeta = Component(EpicsMotor, "m23", labels=("motor", ))
+    achi = Component(EpicsMotor, "m26", labels=("motor", ))
 
     # Energy
     energy = FormattedComponent(EpicsSignalRO, "4idVDCM:BraggERdbkAO", kind="config")
