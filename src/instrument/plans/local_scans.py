@@ -605,7 +605,7 @@ def grid_scan(
 
     _md = dict(
         hints={'monitor': counters.monitor, 'detectors': []},
-        data_management=experiment.data_management,
+        data_management=experiment.data_management or "None",
         esaf=experiment.esaf,
         proposal=experiment.proposal,
         base_experiment_path=str(experiment.base_experiment_path),

@@ -24,7 +24,6 @@ class ToroidalMirror(Device):
     # Combined motions
     x = Component(EpicsMotor, 'pm1', labels=('motor',))
     pitch = Component(EpicsMotor, 'pm2', labels=('motor',))
-    # TODO: this fine pitch is in 4ida?
     fine_pitch = FormattedComponent(EpicsMotor, '4idaSoft:m1', labels=('motor'))
     curvature = Component(EpicsMotor, 'pm3', labels=('motor',))
     elipticity = Component(EpicsMotor, 'pm4', labels=('motor',))

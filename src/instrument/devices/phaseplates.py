@@ -184,6 +184,9 @@ class PRSetup():
     offset = None
     dichro_steps = [1, -1, -1, 1]
 
+    def __init__(self):
+        self._current_setup = {}
+
     def __repr__(self):
 
         tracked = ""
@@ -206,6 +209,21 @@ class PRSetup():
                 f"  PZT center = {pzt_center}\n"
                 f"  Steps for dichro scan = {self.dichro_steps}\n")
 
+    @property
+    def current_setup(self):
+        return self._current_setup
+    
+    def _update_current_setup(self):
+        self._current_setup["transmission"] = (
+            "yes" if plot_dichro_settings.settings.transmission else "no"
+        )
+
+        for pr, label in zip([pr1, pr2, pr3], ["PR1", "PR2", "PR3"]):
+            _setup = {}
+            _setup['track'] = "yes" if pr.tracking.get() else "no"
+
+            self._current_setup[label] = _setup 
+
     def __str__(self):
         return self.__repr__()
 
@@ -217,7 +235,10 @@ class PRSetup():
         _positioner = None
 
         while True:
-            trans = input("Are you measuring in transmission? (yes or no): ")
+            trans = (
+                input(f"Are you measuring in transmission? ({self._current_setup['transmission']}): ")
+                or self._current_setup["transmission"]
+            )
             if trans.lower() == "yes":
                 plot_dichro_settings.settings.transmission = True
                 break
