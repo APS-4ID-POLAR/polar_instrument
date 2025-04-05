@@ -137,7 +137,7 @@ class VortexROIStatPlugin(ROIStatPlugin):
     _default_read_attrs = tuple(
         f"roi{i}" for i in range(1, 9)
     )
-    
+
     # ROIs
     roi1 = Component(ROIStatN, "1:")
     roi2 = Component(ROIStatN, "2:")
@@ -314,7 +314,7 @@ class VortexDetector(Trigger, DetectorBase):
     @property
     def read_rois(self):
         return self._read_rois
-    
+
     @read_rois.setter
     def read_rois(self, rois):
         for pixel in range(1, 5):
@@ -349,19 +349,18 @@ class VortexDetector(Trigger, DetectorBase):
     def plot_roi4(self):
         self.select_roi([4])
 
-    # TODO: This is the counters API from eiger.
-    # @property
-    # def label_option_map(self):
-    #     return {f"Stats{i} Total": i for i in range(1, 5+1)}
+    @property
+    def label_option_map(self):
+        return {f"ROI{i} Total": i for i in range(1, 8+1)}
 
-    # @property
-    # def plot_options(self):
-    #     # Return all named scaler channels
-    #     return list(self.label_option_map.keys())
+    @property
+    def plot_options(self):
+        # Return all named scaler channels
+        return list(self.label_option_map.keys())
 
-    # def select_plot(self, channels):
-    #     chans = [self.label_option_map[i] for i in channels]
-    #     self.plot_select(chans)
+    def select_plot(self, channels):
+        chans = [self.label_option_map[i] for i in channels]
+        self.select_roi(chans)
 
     def setup_images(
             self, base_folder, file_name_base, file_number, flyscan=False

@@ -218,6 +218,7 @@ def setup_nxwritter(_base_path, _master_fullpath, _rel_dets_paths):
     nxwriter.file_name = str(_master_fullpath)
     nxwriter.file_path = str(_base_path)
 
+
 def count(
         num=1,
         time=None,
