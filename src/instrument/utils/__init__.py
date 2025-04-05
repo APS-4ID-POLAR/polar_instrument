@@ -16,6 +16,13 @@ from .mpl_setup import *  # noqa
 
 from .config import iconfig
 
+from .suspenders import (
+    run_engine_suspenders,
+    suspender_restart,
+    suspender_stop,
+    suspender_change_sleep
+)
+
 if iconfig.get("STATION") == "4idg":
     from .hkl_utils import *
     # from .transfocator_calculation import *
