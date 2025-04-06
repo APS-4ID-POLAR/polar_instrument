@@ -9,6 +9,7 @@ from time import time as ttime
 from .monochromator import mono
 from .aps_undulator import undulators
 from .phaseplates import pr1, pr2, pr3
+from .transfocator_device import transfocator
 from ..utils._logging_setup import logger
 logger.info(__file__)
 
@@ -65,6 +66,15 @@ class EnergySignal(Signal):
                     und_pos, wait=wait, timeout=timeout, moved_cb=moved_cb
                 )
                 status = AndStatus(status, und_status)
+
+        # Transfocator
+        if transfocator.tracking.get():
+            status = AndStatus(
+                status,
+                transfocator.energy.set(
+                    position, wait=wait, timeout=timeout, moved_cb=moved_cb
+                )
+            )
 
         if wait:
             status_wait(status)

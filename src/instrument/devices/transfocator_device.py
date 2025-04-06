@@ -145,6 +145,7 @@ class PyCRL(Device):
 
 
 class EnergySignal(Signal):
+
     def put(self, *args, **kwargs):
         raise NotImplementedError("put operation not setup in this signal.")
 
@@ -152,20 +153,13 @@ class EnergySignal(Signal):
 
         self._readback = value
 
-        try:
-            position = self.parent._setup_optimize_distance(energy=value)
-            status = self.parent.z.set(position)
-        except ValueError:
-            lenses, position= self.parent._setup_optimize_lenses(energy=value)
-            status = self.parent.z.set(position)
-            for lens in range(1, 9):
-                step = 1 if lens in lenses else 0
-                status = AndStatus(
-                    status,
-                    getattr(self.parent, f"lens{lens}").set(step)
-                )
+        if self.parent.energy_select.get() != 1:
+            self.parent.energy_select.set(1).wait(1)
 
-        return status
+        self.parent.energy_local.set(value).wait(1)
+        zpos = self.parent.z.get() - self.parent.dq.get()*1000.  # dq in meters
+
+        return self.parent.z.set(zpos, **kwargs)
 
 
 class ZMotor(EpicsMotor):
@@ -185,19 +179,21 @@ class ZMotor(EpicsMotor):
 
             if self.parent._x_interpolation is None:
                 raise ValueError(
-                    "The reference data for X tracking has not been entered. Cannot track the X motion."
+                    "The reference data for X tracking has not been entered. "
+                    "Cannot track the X motion."
                 )
 
             if self.parent._y_interpolation is None:
                 raise ValueError(
-                    "The reference data for Y tracking has not been entered. Cannot track the Y motion."
+                    "The reference data for Y tracking has not been entered. "
+                    "Cannot track the Y motion."
                 )
 
             xpos = self.parent._x_interpolation(new_position)
             ypos = self.parent._y_interpolation(new_position)
 
             xystatus = AndStatus(
-                self.parent.x.set(xpos), 
+                self.parent.x.set(xpos),
                 self.parent.y.set(ypos)
             )
 
@@ -211,9 +207,11 @@ class ZMotor(EpicsMotor):
             self.parent.x.stop(success=success)
             self.parent.y.stop(success=success)
 
+
 class TransfocatorClass(PyCRL):
 
     energy = Component(EnergySignal)
+    tracking = Component(TrackingSignal, value=False, kind="config")
 
     # Motors -- setup in 4idgSoft
     x = FormattedComponent(EpicsMotor, "{_motors_IOC}m58", labels=("motor",))
@@ -509,8 +507,8 @@ class TransfocatorClass(PyCRL):
 
 transfocator = TransfocatorClass(
     "4idPyCRL:CRL4ID:",
-    # x_polynomial=[-5.78754544e-09, 1.51026831e-06, -7.44668091e-04, 0],
-    # y_polynomial=[1.63341632e-11, -2.62999686e-09, -4.60512101e-08, -1.52140979e-05, 0],
     name="transfocator",
     labels=("4idg", "optics")
 )
+
+transfocator.stage_sigs["energy_select"] = 1
