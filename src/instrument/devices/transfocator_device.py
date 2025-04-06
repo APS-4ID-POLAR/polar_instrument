@@ -22,7 +22,7 @@ from apstools.devices import TrackingSignal
 from toolz import partition
 from numpy import poly1d, loadtxt
 from scipy.interpolate import interp1d
-from .energy_device import energy as edevice
+from .monochromator import mono
 from ..utils._logging_setup import logger
 from ..utils.transfocator_calculation_new import transfocator_calculation
 
@@ -467,7 +467,7 @@ class TransfocatorClass(PyCRL):
         verbose=True
     ):
         if energy is None:
-            energy = edevice.get()
+            energy = mono.energy.get()
 
         if selected_lenses is None:
             selected_lenses = self.lenses_in
@@ -487,7 +487,7 @@ class TransfocatorClass(PyCRL):
             selected_lenses=selected_lenses,
             verbose=verbose
         )
-    
+
     def move_z_correct_xy_plan(self, zpos):
         xpos = (
             self.reference_x.get() +
