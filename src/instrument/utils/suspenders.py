@@ -4,7 +4,10 @@ from .run_engine import RE
 from ._logging_setup import logger
 
 
-SUSPENDER_SLEEP = 10*60  # 10 min
+# TODO: I'll leave it zero for now because somebody may want to just
+# go inside A... Maybe I can add a "post_plan" that includes
+# an option to force resume?
+SUSPENDER_SLEEP = 0 # 10*60  # 10 min
 
 run_engine_suspenders = {
     "a_shutter": SuspendBoolHigh(
@@ -14,7 +17,7 @@ run_engine_suspenders = {
     ),
     "b_shutter": SuspendBoolHigh(
         EpicsSignalRO("4ID:BLEPS:SBS_CLOSED", name="b_susp"),
-        sleep=SUSPENDER_SLEEP,
+        sleep=0,
         tripped_message="4-ID-B shutter is closed."
     ),
 }
@@ -54,7 +57,7 @@ def suspender_stop(suspender_label=None):
         suspender_label = _query_label()
 
     if "all" in suspender_label:
-        suspender_label = list(run_engine_suspenders.values())
+        suspender_label = list(run_engine_suspenders.keys())
 
     for label in suspender_label:
         logger.info(f"Stopping suspender {label}")
@@ -66,7 +69,7 @@ def suspender_restart(suspender_label=None):
         suspender_label = _query_label()
 
     if "all" in suspender_label:
-        suspender_label = list(run_engine_suspenders.values())
+        suspender_label = list(run_engine_suspenders.keys())
 
     for label in suspender_label:
         logger.info(f"Restarting suspender {label}")
@@ -81,7 +84,7 @@ def suspender_change_sleep(suspender_label=None, sleep_time=None):
         sleep_time = _query_sleep_time()
 
     if "all" in suspender_label:
-        suspender_label = list(run_engine_suspenders.values())
+        suspender_label = list(run_engine_suspenders.keys())
 
     for label in suspender_label:
         logger.info(f"Changing sleep time of suspender {label} to {sleep_time}")

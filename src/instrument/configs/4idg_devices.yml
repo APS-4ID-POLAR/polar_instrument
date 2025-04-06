@@ -16,9 +16,9 @@ jj_slits:
 
 # KB mirror
 
-xspress:
-  device: vortex
-  baseline: False
+# xspress:
+#   device: vortex
+#   baseline: False
 
 polar_diffractometer:
   device: [huber_euler, huber_euler_psi, huber_hp, huber_hp_psi]
