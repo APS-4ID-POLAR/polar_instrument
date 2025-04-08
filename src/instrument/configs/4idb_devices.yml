@@ -26,8 +26,8 @@ table_4idb:
   baseline: True
 
 tetramms:
-  device: [tetramm_4idb, tetramm_4idb_ro]
-  baseline: [False, True]
+  device: btetramm
+  baseline: True
 
 polarimeter:
   device: pol

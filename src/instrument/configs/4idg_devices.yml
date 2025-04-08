@@ -4,6 +4,10 @@ xbpm_4idg:
   device: gxbpm
   baseline: True
 
+sydor_device:
+  device: gsydor
+  baseline: True
+
 transfocator_device:
   device: transfocator
   baseline: True
