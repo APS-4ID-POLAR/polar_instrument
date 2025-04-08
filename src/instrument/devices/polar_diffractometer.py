@@ -12,11 +12,12 @@ from ophyd import (
     Kind,
     Signal,
     EpicsMotor,
+    EpicsSignal,
     EpicsSignalRO,
 )
 from ophyd.pseudopos import pseudo_position_argument, real_position_argument
 from scipy.constants import speed_of_light, Planck
-from numpy import arcsin, pi, sin, cos
+from numpy import arcsin, pi, sin, tan
 from .jj_slits import SlitDevice
 from .huber_filter import HuberFilter
 from ..utils.analyzer_utils import check_structure_factor, calcdhkl
@@ -46,17 +47,18 @@ class AnalyzerDevice(PseudoPositioner):
 
     energy = Component(PseudoSingle, limits=(2.6, 34))
     th = Component(EpicsMotor, "pmth", labels=("motor",))
-    tth = Component(EpicsMotor, "pm2th", labels=("motor",))
+    tth_trans = Component(EpicsMotor, "m25", labels=("motor",))
 
-    _real = ["th", "tth"]
+    _real = ["th", "tth_trans"]
 
     # Analyzer motors
     th_motor = Component(EpicsMotor, "m24", labels=("motor",))
-    tth_motor = Component(EpicsMotor, "m25", labels=("motor",))
+    tth = Component(EpicsMotor, "pm2th", labels=("motor",))
     eta = Component(EpicsMotor, "m23", labels=("motor",))
     chi = Component(EpicsMotor, "m26", labels=("motor",))
 
     d_spacing = Component(Signal, value=1e4, kind="config")
+    tth_detector_distance = Component(EpicsSignal, "TWTH:Drive.C", kind="config")
 
     def move_single(self, pseudo, position, **kwargs):
         if self.d_spacing.get() == 1e4:
@@ -81,6 +83,13 @@ class AnalyzerDevice(PseudoPositioner):
         theta = arcsin(lamb/2/self.d_spacing.get())*180./pi
         return theta
 
+    def convert_energy_to_tth_trans(self, energy):
+        # lambda in angstroms, theta in degrees, energy in keV
+        th = self.convert_energy_to_theta(energy)
+        tth = 2*th
+        tth_trans = self.tth_detector_distance.get()*tan((tth - 45 - th)*pi/180.)
+        return tth_trans
+
     def convert_theta_to_energy(self, theta):
         # lambda in angstroms, theta in degrees, energy in keV
         lamb = 2*self.d_spacing.get()*sin(theta*pi/180)
@@ -92,7 +101,7 @@ class AnalyzerDevice(PseudoPositioner):
         '''Run a forward (pseudo -> real) calculation'''
         return self.RealPosition(
             th=self.convert_energy_to_theta(pseudo_pos.energy),
-            tth=2*self.convert_energy_to_theta(pseudo_pos.energy)
+            tth_trans=self.convert_energy_to_tth_trans(pseudo_pos.energy)
         )
 
     @real_position_argument
@@ -286,9 +295,6 @@ class HPDiffractometer(SixCircleDiffractometer):
     nanox = FormattedComponent(EpicsMotor, "4idgSoftX:jena:m1", labels=("motors",))
     nanoy = FormattedComponent(EpicsMotor, "4idgSoftX:jena:m2", labels=("motors",))
     nanoz = FormattedComponent(EpicsMotor, "4idgSoftX:jena:m3", labels=("motors",))
-
-
-SixCircleDiffractometer
 
 
 class PolarPSI(ApsPolar):
