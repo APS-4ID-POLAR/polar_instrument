@@ -136,6 +136,80 @@ class StatsPlugin(PluginMixin, StatsPlugin_V34):
     sigma_x = None
     sigma_y = None
 
+    # This is to auto-set the kind depending on what is being computed.
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.compute_statistics.subscribe(self._control_stats)
+        self.compute_centroid.subscribe(self._control_centroid)
+        self.compute_profiles.subscribe(self._control_profile)
+        self.compute_histogram.subscribe(self._control_histogram)
+
+    def start_auto_kind(self):
+        self.compute_statistics.subscribe(self._control_stats)
+        self.compute_centroid.subscribe(self._control_centroid)
+        self.compute_profiles.subscribe(self._control_profile)
+        self.compute_histogram.subscribe(self._control_histogram)
+
+    def stop_auto_kind(self):
+        for item in (
+            "compute_statistics",
+            "compute_centroid",
+            "compute_profiles",
+            "compute_histogram"
+        ):
+            getattr(self, item).unsubscribe_all()
+
+    def _control_stats(self, value, **kwargs):
+        items = (
+            "bgd_width",
+            "max_value",
+            "min_value",
+            "max_xy",
+            "max_xy.x",
+            "max_xy.y",
+            "min_xy",
+            "min_xy.x",
+            "min_xy.y",
+            "total",
+            "net",
+            "mean_value",
+            "sigma_value"
+        )
+        k = "normal" if value == "Yes" else "omitted"
+        for item in items:
+            getattr(self, item).kind = k
+
+    def _control_centroid(self, value, **kwargs):
+        items = (
+            "centroid",
+            "centroid.x",
+            "centroid.y",
+            "sigma_xy",
+            "sigma",
+            'sigma.x',
+            'sigma.y',
+            'centroid_total',
+            'eccentricity',
+            'orientation',
+            'kurtosis',
+            'skew'
+        )
+        k = "normal" if value == "Yes" else "omitted"
+        for item in items:
+            getattr(self, item).kind = k
+    
+    def _control_profile(self, value, **kwargs):
+        items = [item for item in self.component_names if "profile" in item]
+        k = "normal" if value == "Yes" else "omitted"
+        for item in items:
+            getattr(self, item).kind = k
+
+    def _control_histogram(self, value, **kwargs):
+        items = [item for item in self.component_names if "hist" in item]
+        k = "normal" if value == "Yes" else "omitted"
+        for item in items:
+            getattr(self, item).kind = k
+
 
 class CodecPlugin(PluginMixin, CodecPlugin_V34):
     """Remove property attribute found in AD IOCs now."""
