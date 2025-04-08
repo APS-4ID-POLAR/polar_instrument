@@ -1,11 +1,14 @@
 """ Eiger 1M setup """
 
-from ophyd import ADComponent, Staged, Component, EpicsSignalRO, Device, EpicsSignal
+from ophyd import (
+    ADComponent, Staged, Component, EpicsSignalRO, Device, EpicsSignal, SignalRO, DynamicDeviceComponent
+)
 from ophyd.areadetector import DetectorBase, EpicsSignalWithRBV
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
 from bluesky.plan_stubs import wait_for
 import asyncio
 from pathlib import Path
+from collections import OrderedDict
 from time import time as ttime, sleep
 from .ad_mixins import (
     ROIPlugin,
@@ -32,6 +35,7 @@ HDF1_FILE_EXTENSION = iconfig["AREA_DETECTOR"]["HDF5_FILE_EXTENSION"]
 HDF1_NAME_FORMAT = HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION
 
 MAX_IMAGES = 12216
+MAX_ROIS = 8
 
 
 class Trigger(TriggerBase):
@@ -135,7 +139,7 @@ class ROIStatN(Device):
 
 class VortexROIStatPlugin(ROIStatPlugin):
     _default_read_attrs = tuple(
-        f"roi{i}" for i in range(1, 9)
+        f"roi{i}" for i in range(1, MAX_ROIS+1)
     )
 
     # ROIs
@@ -171,6 +175,36 @@ class VortexHDF1Plugin(PolarHDF5Plugin):
     )
 
 
+class TotalCorrectedSignal(SignalRO):
+    """ Signal that returns the deadtime corrected total counts """
+
+    def __init__(self, prefix, roi_index, **kwargs):
+        if not roi_index:
+            raise ValueError('chnum must be the channel number, but '
+                             'f{roi_index} was passed.')
+        self.roi_index = roi_index
+        super().__init__(**kwargs)
+
+    def get(self, **kwargs):
+        value = 0
+        for ch_num in range(1, self.root._num_channels+1):
+            channel = getattr(self.root, f'Ch{ch_num}')
+            roi = getattr(channel.rois, 'roi{:02d}'.format(self.roi_index))
+            value += channel.dt_factor.get(**kwargs) * \
+                roi.total_rbv.get(**kwargs)
+
+        return value
+
+
+def _totals(attr_fix, id_range):
+    defn = OrderedDict()
+    for k in id_range:
+        defn['{}{:02d}'.format(attr_fix, k)] = (TotalCorrectedSignal, '',
+                                                {'roi_index': k,
+                                                 'kind': "normal"})
+    return defn
+
+
 class VortexDetector(Trigger, DetectorBase):
 
     _default_configuration_attrs = ('cam', 'chan1', 'chan2', 'chan3', 'chan4')
@@ -204,6 +238,8 @@ class VortexDetector(Trigger, DetectorBase):
     sca2 = ADComponent(VortexSCA, "C2SCA:")
     sca3 = ADComponent(VortexSCA, "C3SCA:")
     sca4 = ADComponent(VortexSCA, "C4SCA:")
+
+    total = DynamicDeviceComponent(_totals('roi', range(1, MAX_ROIS+1)))
 
     hdf1 = ADComponent(
         VortexHDF1Plugin,
@@ -319,7 +355,7 @@ class VortexDetector(Trigger, DetectorBase):
     def read_rois(self, rois):
         for pixel in range(1, 5):
             pix = getattr(self, f"stats{pixel}")
-            for i in range(1, 9):
+            for i in range(1, MAX_ROIS+1):
                 k = "normal" if i in rois else "omitted"
                 getattr(pix, f"roi{i}").kind = k
         self._read_rois = list(rois)
@@ -327,7 +363,7 @@ class VortexDetector(Trigger, DetectorBase):
     def select_roi(self, rois):
         for pixel in range(1, 5):
             pix = getattr(self, f"stats{pixel}")
-            for i in range(1, 9):
+            for i in range(1, MAX_ROIS+1):
                 kh = "hinted" if i in rois else "normal"
                 getattr(pix, f"roi{i}").total_value.kind = kh
 
