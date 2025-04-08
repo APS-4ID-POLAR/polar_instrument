@@ -22,6 +22,7 @@ from apstools.devices import TrackingSignal
 from toolz import partition
 from numpy import poly1d, loadtxt
 from scipy.interpolate import interp1d
+from time import sleep
 from .monochromator import mono
 from ..utils._logging_setup import logger
 from ..utils.transfocator_calculation_new import transfocator_calculation
@@ -29,6 +30,7 @@ from ..utils.transfocator_calculation_new import transfocator_calculation
 logger.info(__file__)
 
 MOTORS_IOC = "4idgSoft:"
+EPICS_ENERGY_SLEEP = 0.12
 
 
 def _make_lenses_motors(motors: list):
@@ -146,6 +148,8 @@ class PyCRL(Device):
 
 class EnergySignal(Signal):
 
+    _epics_sleep = EPICS_ENERGY_SLEEP
+
     def put(self, *args, **kwargs):
         raise NotImplementedError("put operation not setup in this signal.")
 
@@ -157,7 +161,9 @@ class EnergySignal(Signal):
             self.parent.energy_select.set(1).wait(1)
 
         self.parent.energy_local.set(value).wait(1)
-        zpos = self.parent.z.get() - self.parent.dq.get()*1000.  # dq in meters
+        sleep(self._epics_sleep) # this is needed because the scan of the transfocator is 0.1 s
+
+        zpos = self.parent.z.user_readback.get() - self.parent.dq.get()*1000.  # dq in meters
 
         return self.parent.z.set(zpos, **kwargs)
 
