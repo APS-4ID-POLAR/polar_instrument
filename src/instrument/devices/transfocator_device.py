@@ -102,6 +102,7 @@ class PyCRL(Device):
     focal_size_readback = Component(EpicsSignalRO, "fSize_actual")
     focal_power_index_setpoint = Component(EpicsSignal, "1:sortedIndex")
     focal_power_index_readback = Component(EpicsSignal, "1:sortedIndex_RBV")
+    focal_sizes = Component(EpicsSignal, "fSizes", kind="omitted")
 
     # Parameters readbacks
     dq = Component(PyCRLSignal, "dq", kind="config")
@@ -349,75 +350,13 @@ class TransfocatorClass(PyCRL):
         else:
             return False
 
-    def _setup_optimize_lenses(
-        self,
-        energy=None,
-        optimize_position=None,
-        reference_distance=None,
-        experiment="diffractometer",
-    ):
+    def _setup_optimize_distance(self):
 
-        lenses, distance = self.calc(
-            energy=energy,
-            optimize_position=optimize_position,
-            reference_distance=reference_distance,
-            experiment=experiment,
-            verbose=False
-        )
+        if self.energy_select.get() in (1, "Local"):
+            logger.info("WARNING: transfocator in 'Local' energy mode")
 
-        if not self._check_z_lims(distance):
-            raise ValueError(
-                f"The distance {distance} is outsize the Z travel range. No"
-                "motion will occur."
-            )
-
-        return lenses, distance
-
-    def optimize_lenses(
-        self,
-        energy=None,
-        optimize_position=0,
-        reference_distance=None,
-        experiment="diffractometer",
-    ):
-        lenses, distance = self._setup_optimize_lenses(
-            energy=energy,
-            optimize_position=optimize_position,
-            reference_distance=reference_distance,
-            experiment=experiment,
-        )
-
-        self.set_lenses(lenses)
-        self.z.move(distance).wait()
-
-    def optimize_lenses_plan(
-        self,
-        energy=None,
-        optimize_position=0,
-        reference_distance=None,
-        experiment="diffractometer",
-    ):
-        lenses, distance = self._setup_optimize_lenses(
-            energy=energy,
-            optimize_position=optimize_position,
-            reference_distance=reference_distance,
-            experiment=experiment,
-        )
-        args = self._setup_lenses_move(lenses)
-        return (yield from mv(self.z, distance, *args))
-
-    def _setup_optimize_distance(
-        self,
-        energy=None,
-        experiment="diffractometer",
-        selected_lenses=None,
-    ):
-        _, distance = self.calc(
-            energy=energy,
-            experiment=experiment,
-            distance_only=True,
-            selected_lenses=selected_lenses,
-            verbose=False
+        distance = (
+            self.z.user_readback.get() - self.dq.get()*1000
         )
 
         if not self._check_z_lims(distance):
@@ -428,33 +367,42 @@ class TransfocatorClass(PyCRL):
 
         return distance
 
-    def optimize_distance(
-        self,
-        energy=None,
-        selected_lenses=None,
-        experiment="diffractometer",
-    ):
-        distance = self._setup_optimize_distance(
-            energy=energy,
-            experiment=experiment,
-            selected_lenses=selected_lenses
+    def optimize_lenses(self,):
+
+        self.focal_power_index_setpoint.set(
+            self.focal_sizes.get().argmin()
+        ).wait()
+
+        self.z.move(
+            self._setup_optimize_distance()
+        ).wait()
+
+    def optimize_lenses_plan(self):
+
+        def _moves():
+            yield from mv(
+                self.focal_power_index_setpoint,
+                self.focal_sizes.get().argmin()
+            )
+            yield from mv(
+                self.z,
+                self._setup_optimize_distance()
+            )
+
+        return (yield from _moves())
+
+    def optimize_distance(self):
+        self.z.move(
+            self._setup_optimize_distance()
+        ).wait()
+
+    def optimize_distance_plan(self):
+        return (
+            yield from mv(
+                self.z,
+                self._setup_optimize_distance()
+            )
         )
-
-        self.z.move(distance).wait()
-
-    def optimize_distance_plan(
-        self,
-        energy=None,
-        experiment="diffractometer",
-        selected_lenses=None,
-    ):
-        distance = self._setup_optimize_distance(
-            energy=energy,
-            experiment=experiment,
-            selected_lenses=selected_lenses,
-        )
-
-        return (yield from mv(self.z, distance))
 
     def calc(
         self,
