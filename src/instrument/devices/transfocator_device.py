@@ -174,15 +174,6 @@ class ZMotor(EpicsMotor):
         zstatus = super().set(new_position, **kwargs)
 
         if self.parent.trackxy.get():
-            # xpos = (
-            #     self.parent.reference_x.get() +
-            #     poly1d(self.parent.polynomial_x.get())(new_position)
-            # )
-            # ypos = (
-            #     self.parent.reference_y.get() +
-            #     poly1d(self.parent.polynomial_y.get())(new_position)
-            # )
-
             if self.parent._x_interpolation is None:
                 raise ValueError(
                     "The reference data for X tracking has not been entered. "
@@ -195,8 +186,12 @@ class ZMotor(EpicsMotor):
                     "Cannot track the Y motion."
                 )
 
-            xpos = self.parent._x_interpolation(new_position)
-            ypos = self.parent._y_interpolation(new_position)
+            xpos = (
+                self.parent._x_interpolation(new_position) + self.parent.deltax.get()
+            )
+            ypos = (
+                self.parent._y_interpolation(new_position) + self.parent.deltay.get()
+            )
 
             xystatus = AndStatus(
                 self.parent.x.set(xpos),
@@ -244,12 +239,11 @@ class TransfocatorClass(PyCRL):
         component_class=FormattedComponent
     )
 
-    # reference_x = Component(Signal, kind="config")
-    # reference_y = Component(Signal, kind="config")
-    # polynomial_x = Component(Signal, kind="config")
-    # polynomial_y = Component(Signal, kind="config")
+
     reference_data_x = Component(Signal, kind="config")
     reference_data_y = Component(Signal, kind="config")
+    deltax = Component(Signal, value=0, kind="config")
+    deltay = Component(Signal, value=0, kind="config")
     trackxy = Component(TrackingSignal, value=False, kind="config")
 
     def __init__(
