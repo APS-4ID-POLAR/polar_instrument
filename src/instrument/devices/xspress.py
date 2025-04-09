@@ -154,6 +154,21 @@ class VortexROIStatPlugin(ROIStatPlugin):
 
 
 class VortexSCA(AttributePlugin):
+
+    _default_read_attrs = (
+        'clock_ticks',
+        'reset_ticks',
+        'reset_counts',
+        'all_events',
+        'all_good',
+        'window1',
+        'window2',
+        'pileup',
+        'event_width',
+        'dt_factor',
+        'dt_percent'
+    )
+
     clock_ticks = Component(EpicsSignalRO, '0:Value_RBV', kind="normal")
     reset_ticks = Component(EpicsSignalRO, '1:Value_RBV', kind="normal")
     reset_counts = Component(EpicsSignalRO, '2:Value_RBV', kind="normal")
@@ -187,21 +202,21 @@ class TotalCorrectedSignal(SignalRO):
 
     def get(self, **kwargs):
         value = 0
-        for ch_num in range(1, self.root._num_channels+1):
-            channel = getattr(self.root, f'Ch{ch_num}')
-            roi = getattr(channel.rois, 'roi{:02d}'.format(self.roi_index))
-            value += channel.dt_factor.get(**kwargs) * \
-                roi.total_rbv.get(**kwargs)
-
+        for ch_num in range(1, self.root.cam.num_channels.get()+1):
+            channel = getattr(self.root, f'sca{ch_num}')
+            roi = getattr(self.root, 'stats{:d}.roi{:d}'.format(ch_num, self.roi_index))
+            value += (
+                channel.dt_factor.get(**kwargs) * roi.total_value.get(**kwargs)
+            )
         return value
 
 
 def _totals(attr_fix, id_range):
     defn = OrderedDict()
     for k in id_range:
-        defn['{}{:02d}'.format(attr_fix, k)] = (TotalCorrectedSignal, '',
-                                                {'roi_index': k,
-                                                 'kind': "normal"})
+        defn['{}{:d}'.format(attr_fix, k)] = (
+            TotalCorrectedSignal, '', {'roi_index': k, 'kind': "normal"}
+        )
     return defn
 
 
@@ -217,7 +232,8 @@ class VortexDetector(Trigger, DetectorBase):
         'sca1',
         'sca2',
         'sca3',
-        'sca4'
+        'sca4',
+        'total'
     )
 
     _read_rois = [1]
@@ -361,17 +377,28 @@ class VortexDetector(Trigger, DetectorBase):
         self._read_rois = list(rois)
 
     def select_roi(self, rois):
-        for pixel in range(1, 5):
-            pix = getattr(self, f"stats{pixel}")
-            for i in range(1, MAX_ROIS+1):
-                kh = "hinted" if i in rois else "normal"
-                getattr(pix, f"roi{i}").total_value.kind = kh
 
-                if kh == "hinted" and i not in self.read_rois:
-                    self.read_rois.append(i)
+        for i in range(1, MAX_ROIS+1):
+            kh = "hinted" if i in rois else "normal"
+            getattr(self.total, f"roi{i}").total_value.kind = kh
 
-                kr = "normal" if i in self.read_rois else "omitted"
-                getattr(pix, f"roi{i}").kind = kr
+            if kh == "hinted" and i not in self.read_rois:
+                self.read_rois.append(i)
+
+            kr = "normal" if i in self.read_rois else "omitted"
+            getattr(self.total, f"roi{i}").kind = kr
+
+        # for pixel in range(1, 5):
+        #     pix = getattr(self, f"stats{pixel}")
+        #     for i in range(1, MAX_ROIS+1):
+        #         kh = "hinted" if i in rois else "normal"
+        #         getattr(pix, f"roi{i}").total_value.kind = kh
+
+        #         if kh == "hinted" and i not in self.read_rois:
+        #             self.read_rois.append(i)
+
+        #         kr = "normal" if i in self.read_rois else "omitted"
+        #         getattr(pix, f"roi{i}").kind = kr
 
     def plot_roi1(self):
         self.select_roi([1])
