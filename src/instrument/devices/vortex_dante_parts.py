@@ -1,0 +1,108 @@
+"""
+Dante CAM
+"""
+
+from ophyd import EpicsSignalRO, EpicsSignal
+from ophyd.areadetector import ADBase, ADComponent, EpicsSignalWithRBV
+from .ad_mixins import PolarHDF5Plugin
+
+
+class DanteCAM(ADBase):
+
+    # Setup
+    asyn_port = ADComponent(EpicsSignalRO, "PortName_RBV")
+    manufacturer = ADComponent(EpicsSignalRO, "Manufacturer_RBV")
+    model = ADComponent(EpicsSignalRO, "Model_RBV")
+    firmware = ADComponent(EpicsSignalRO, "FirmwareVersion_RBV")
+    sdk_version = ADComponent(EpicsSignalRO, "SDKVersion_RBV")
+    driver_version = ADComponent(EpicsSignalRO, "DriverVersion_RBV")
+    adcore_version = ADComponent(EpicsSignalRO, "ADCoreVersion_RBV")
+    connected = ADComponent(EpicsSignal, "AsynIO.CNCT")
+
+    # Acquire
+    acquire_start = ADComponent(EpicsSignal, "EraseStart")
+    acquire_stop = ADComponent(EpicsSignal, "StopAll")
+    acquire_status = ADComponent(EpicsSignalRO, "MCAcquiring")
+    acquire_busy = ADComponent(EpicsSignalRO, "AcquireBusy")
+
+    real_time_preset = ADComponent(EpicsSignal, "PresetReal")
+    real_time_elapsed = ADComponent(EpicsSignalRO, "ElapsedReal")
+    real_time_live = ADComponent(EpicsSignalRO, "ElapsedLive")
+
+    instant_deadtime = ADComponent(EpicsSignalRO, "IDeadTime")
+    average_deadtime = ADComponent(EpicsSignalRO, "DeadTime")
+
+    current_pixel = ADComponent(EpicsSignalRO, "CurrentPixel")
+    poll_time = ADComponent(EpicsSignalWithRBV, "PollTime")
+
+    read_rate = ADComponent(EpicsSignal, "ReadAll.SCAN")
+    read_rate_button = ADComponent(EpicsSignal, "ReadAllOnce.PROC")
+
+    queued_arrays = ADComponent(EpicsSignalRO, "NumQueuedArrays")
+
+    wait_for_plugins = ADComponent(EpicsSignal, "WaitForPlugins")
+
+    image_counter = ADComponent(EpicsSignalWithRBV, "ArrayCounter")
+    image_rate = ADComponent(EpicsSignalRO, "ArrayRate_RBV")
+
+    array_callback = ADComponent(EpicsSignal, "ArrayCallbacks")
+
+    # MCA setup
+    mca_mode = ADComponent(EpicsSignalWithRBV, "CollectMode")
+    mca_channels = ADComponent(EpicsSignalWithRBV, "NumMCAChannels")
+    mca_mapping_points = ADComponent(EpicsSignalWithRBV, "MappingPoints")
+    mca_gatting = ADComponent(EpicsSignalWithRBV, "GatingMode")
+    mca_list_buffer_size = ADComponent(EpicsSignalWithRBV, "ListBufferSize")
+
+    # Multi Channel
+    snl_connected = ADComponent(EpicsSignalRO, "SNL_Connected")
+
+
+class DanteSCA(ADBase):
+
+    # Statistics
+    real_time = ADComponent(EpicsSignalRO, "ElapsedRealTime")
+    live_time = ADComponent(EpicsSignalRO, "ElapsedLiveTime")
+    icr = ADComponent(EpicsSignalRO, "InputCountRate")
+    ocr = ADComponent(EpicsSignalRO, "OutputCountRate")
+    triggers = ADComponent(EpicsSignalRO, "Triggers")
+    events = ADComponent(EpicsSignalRO, "Events")
+    fast_deadtime = ADComponent(EpicsSignalRO, "FastDeadTime")
+    f1_deadtime = ADComponent(EpicsSignalRO, "F1DeadTime", kind="normal")
+    zero_counts = ADComponent(EpicsSignalRO, "ZeroCounts")
+    baseline_counts = ADComponent(EpicsSignalRO, "BaselineCounts")
+    pileup = ADComponent(EpicsSignalRO, "PileUp")
+    f1_pileup = ADComponent(EpicsSignalRO, "F1PileUp")
+    not_f1_pileup = ADComponent(EpicsSignalRO, "NotF1Pileup")
+    reset_counts = ADComponent(EpicsSignalRO, "ResetCounts")
+
+    # Parameters
+    enable = ADComponent(EpicsSignal, "EnableBoard")
+    fast_peaking_time = ADComponent(EpicsSignalWithRBV, "FastPeakingTime")
+    fast_threshold = ADComponent(EpicsSignalWithRBV, "FastThreshold")
+    fast_flat_top_time = ADComponent(EpicsSignalWithRBV, "FastFlatTopTime")
+    peaking_time = ADComponent(EpicsSignalWithRBV, "PeakingTime")
+    max_peaking_time = ADComponent(EpicsSignalWithRBV, "MaxPeakingTime")
+    energy_threshold = ADComponent(EpicsSignalWithRBV, "EnergyThreshold")
+    fast_peaking_time = ADComponent(EpicsSignalWithRBV, "FastPeakingTime")
+    baseline_threshold = ADComponent(EpicsSignalWithRBV, "BaselineThreshold")
+    max_rise_time = ADComponent(EpicsSignalWithRBV, "MaxRiseTime")
+    reset_recovery_time = ADComponent(EpicsSignalWithRBV, "ResetRecoveryTime")
+    zero_peak_frequency = ADComponent(EpicsSignalWithRBV, "ZeroPeakFreq")
+    baseline_samples = ADComponent(EpicsSignalWithRBV, "BaselineSamples")
+    gain = ADComponent(EpicsSignalWithRBV, "Gain")
+    input_mode = ADComponent(EpicsSignalWithRBV, "InputMode")
+    input_polarity = ADComponent(EpicsSignalWithRBV, "InputPolarity")
+    analog_offset = ADComponent(EpicsSignalWithRBV, "AnalogOffset")
+    base_offset = ADComponent(EpicsSignalWithRBV, "BaseOffset")
+    reset_threshold = ADComponent(EpicsSignalWithRBV, "ResetThreshold")
+    time_constant = ADComponent(EpicsSignalWithRBV, "TimeConstant")
+    max_energy = ADComponent(EpicsSignalWithRBV, "MaxEnergy")
+
+
+class DanteHDF1Plugin(PolarHDF5Plugin):
+    # The array counter readback pv is different...
+    array_counter = ADComponent(EpicsSignal, "ArrayCounter", kind="config")
+    array_counter_readback = ADComponent(
+        EpicsSignalRO, "ArrayCounter_RBV", kind="config"
+    )
