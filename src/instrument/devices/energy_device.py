@@ -9,6 +9,7 @@ from time import time as ttime
 from .monochromator import mono
 from .aps_undulator import undulators
 from .phaseplates import pr1, pr2, pr3
+from .transfocator_device import transfocator
 from ..utils._logging_setup import logger
 logger.info(__file__)
 
@@ -20,6 +21,9 @@ class EnergySignal(Signal):
     Here it is setup so that the monochromator is the beamline energy, but note
     that this can be changed.
     """
+    
+    # Useful for debugging.
+    _status = {}
 
     @property
     def position(self):
@@ -48,6 +52,7 @@ class EnergySignal(Signal):
             position, wait=wait, timeout=timeout, moved_cb=moved_cb
         )
         status = AndStatus(status, mono_status)
+        self._status = {mono.name: mono_status}
 
         # Phase retarders
         for pr in [pr1, pr2, pr3]:
@@ -56,6 +61,7 @@ class EnergySignal(Signal):
                     position, wait=wait, timeout=timeout, moved_cb=moved_cb
                 )
                 status = AndStatus(status, pr_status)
+                self._status[pr.name] = pr_status
 
         # Undulator
         for und in [undulators.us, undulators.ds]:
@@ -65,6 +71,15 @@ class EnergySignal(Signal):
                     und_pos, wait=wait, timeout=timeout, moved_cb=moved_cb
                 )
                 status = AndStatus(status, und_status)
+                self._status[und.name] = und_status
+
+        # Transfocator
+        if transfocator.tracking.get():
+            tstatus = transfocator.energy.set(
+                position, wait=wait, timeout=timeout, moved_cb=moved_cb
+            )
+            status = AndStatus(status, tstatus)
+            self._status[transfocator.name] = tstatus
 
         if wait:
             status_wait(status)

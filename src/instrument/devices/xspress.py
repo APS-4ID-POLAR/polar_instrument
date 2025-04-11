@@ -1,11 +1,14 @@
 """ Eiger 1M setup """
 
-from ophyd import ADComponent, Staged, Component, EpicsSignalRO, Device, EpicsSignal
+from ophyd import (
+    ADComponent, Staged, Component, EpicsSignalRO, Device, EpicsSignal, SignalRO, DynamicDeviceComponent
+)
 from ophyd.areadetector import DetectorBase, EpicsSignalWithRBV
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
 from bluesky.plan_stubs import wait_for
 import asyncio
 from pathlib import Path
+from collections import OrderedDict
 from time import time as ttime, sleep
 from .ad_mixins import (
     ROIPlugin,
@@ -32,6 +35,7 @@ HDF1_FILE_EXTENSION = iconfig["AREA_DETECTOR"]["HDF5_FILE_EXTENSION"]
 HDF1_NAME_FORMAT = HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION
 
 MAX_IMAGES = 12216
+MAX_ROIS = 8
 
 
 class Trigger(TriggerBase):
@@ -134,18 +138,37 @@ class ROIStatN(Device):
 
 
 class VortexROIStatPlugin(ROIStatPlugin):
+    _default_read_attrs = tuple(
+        f"roi{i}" for i in range(1, MAX_ROIS+1)
+    )
+
     # ROIs
-    roi1 = Component(ROIStatN, "1:", kind="normal")
-    roi2 = Component(ROIStatN, "2:", kind="omitted")
-    roi3 = Component(ROIStatN, "3:", kind="omitted")
-    roi4 = Component(ROIStatN, "4:", kind="omitted")
-    roi5 = Component(ROIStatN, "5:", kind="omitted")
-    roi6 = Component(ROIStatN, "6:", kind="omitted")
-    roi7 = Component(ROIStatN, "7:", kind="omitted")
-    roi8 = Component(ROIStatN, "8:", kind="omitted")
+    roi1 = Component(ROIStatN, "1:")
+    roi2 = Component(ROIStatN, "2:")
+    roi3 = Component(ROIStatN, "3:")
+    roi4 = Component(ROIStatN, "4:")
+    roi5 = Component(ROIStatN, "5:")
+    roi6 = Component(ROIStatN, "6:")
+    roi7 = Component(ROIStatN, "7:")
+    roi8 = Component(ROIStatN, "8:")
 
 
 class VortexSCA(AttributePlugin):
+
+    _default_read_attrs = (
+        'clock_ticks',
+        'reset_ticks',
+        'reset_counts',
+        'all_events',
+        'all_good',
+        'window1',
+        'window2',
+        'pileup',
+        'event_width',
+        'dt_factor',
+        'dt_percent'
+    )
+
     clock_ticks = Component(EpicsSignalRO, '0:Value_RBV', kind="normal")
     reset_ticks = Component(EpicsSignalRO, '1:Value_RBV', kind="normal")
     reset_counts = Component(EpicsSignalRO, '2:Value_RBV', kind="normal")
@@ -167,6 +190,36 @@ class VortexHDF1Plugin(PolarHDF5Plugin):
     )
 
 
+class TotalCorrectedSignal(SignalRO):
+    """ Signal that returns the deadtime corrected total counts """
+
+    def __init__(self, prefix, roi_index, **kwargs):
+        if not roi_index:
+            raise ValueError('chnum must be the channel number, but '
+                             'f{roi_index} was passed.')
+        self.roi_index = roi_index
+        super().__init__(**kwargs)
+
+    def get(self, **kwargs):
+        value = 0
+        for ch_num in range(1, self.root.cam.num_channels.get()+1):
+            channel = getattr(self.root, f'sca{ch_num}')
+            roi = getattr(self.root, 'stats{:d}.roi{:d}'.format(ch_num, self.roi_index))
+            value += (
+                channel.dt_factor.get(**kwargs) * roi.total_value.get(**kwargs)
+            )
+        return value
+
+
+def _totals(attr_fix, id_range):
+    defn = OrderedDict()
+    for k in id_range:
+        defn['{}{:d}'.format(attr_fix, k)] = (
+            TotalCorrectedSignal, '', {'roi_index': k, 'kind': "normal"}
+        )
+    return defn
+
+
 class VortexDetector(Trigger, DetectorBase):
 
     _default_configuration_attrs = ('cam', 'chan1', 'chan2', 'chan3', 'chan4')
@@ -179,8 +232,11 @@ class VortexDetector(Trigger, DetectorBase):
         'sca1',
         'sca2',
         'sca3',
-        'sca4'
+        'sca4',
+        'total'
     )
+
+    _read_rois = [1]
 
     cam = ADComponent(VortexDetectorCam, "det1:")
 
@@ -198,6 +254,8 @@ class VortexDetector(Trigger, DetectorBase):
     sca2 = ADComponent(VortexSCA, "C2SCA:")
     sca3 = ADComponent(VortexSCA, "C3SCA:")
     sca4 = ADComponent(VortexSCA, "C4SCA:")
+
+    total = DynamicDeviceComponent(_totals('roi', range(1, MAX_ROIS+1)))
 
     hdf1 = ADComponent(
         VortexHDF1Plugin,
@@ -283,6 +341,7 @@ class VortexDetector(Trigger, DetectorBase):
 
         self.setup_manual_trigger()
         self.save_images_off()
+        self.read_rois = [1]
         self.plot_roi1()
 
         self.stage_sigs.pop("cam.image_mode")
@@ -304,9 +363,67 @@ class VortexDetector(Trigger, DetectorBase):
                 except TimeoutError:
                     sleep(0.5)
 
+    @property
+    def read_rois(self):
+        return self._read_rois
+
+    @read_rois.setter
+    def read_rois(self, rois):
+        for pixel in range(1, 5):
+            pix = getattr(self, f"stats{pixel}")
+            for i in range(1, MAX_ROIS+1):
+                k = "normal" if i in rois else "omitted"
+                getattr(pix, f"roi{i}").kind = k
+        self._read_rois = list(rois)
+
+    def select_roi(self, rois):
+
+        for i in range(1, MAX_ROIS+1):
+            kh = "hinted" if i in rois else "normal"
+            getattr(self.total, f"roi{i}").total_value.kind = kh
+
+            if kh == "hinted" and i not in self.read_rois:
+                self.read_rois.append(i)
+
+            kr = "normal" if i in self.read_rois else "omitted"
+            getattr(self.total, f"roi{i}").kind = kr
+
+        # for pixel in range(1, 5):
+        #     pix = getattr(self, f"stats{pixel}")
+        #     for i in range(1, MAX_ROIS+1):
+        #         kh = "hinted" if i in rois else "normal"
+        #         getattr(pix, f"roi{i}").total_value.kind = kh
+
+        #         if kh == "hinted" and i not in self.read_rois:
+        #             self.read_rois.append(i)
+
+        #         kr = "normal" if i in self.read_rois else "omitted"
+        #         getattr(pix, f"roi{i}").kind = kr
+
     def plot_roi1(self):
-        # TODO: This is just temporary to have something.
-        self.stats1.roi1.total_value.kind = "hinted"
+        self.select_roi([1])
+
+    def plot_roi2(self):
+        self.select_roi([2])
+
+    def plot_roi3(self):
+        self.select_roi([3])
+
+    def plot_roi4(self):
+        self.select_roi([4])
+
+    @property
+    def label_option_map(self):
+        return {f"ROI{i} Total": i for i in range(1, 8+1)}
+
+    @property
+    def plot_options(self):
+        # Return all named scaler channels
+        return list(self.label_option_map.keys())
+
+    def select_plot(self, channels):
+        chans = [self.label_option_map[i] for i in channels]
+        self.select_roi(chans)
 
     def setup_images(
             self, base_folder, file_name_base, file_number, flyscan=False

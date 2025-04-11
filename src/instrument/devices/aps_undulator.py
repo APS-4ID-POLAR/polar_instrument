@@ -25,7 +25,7 @@ class PolarUndulatorPositioner(UndulatorPositioner):
         # If position is within the deadband --> do nothing.
         if (
             abs(new_position - self.readback.get()) <
-            self.parent.energy_deadband.get()
+            self.parent.energy_deadband.get()*self.parent.harmonic_value.get()
         ):
             _status = Status()
             _status.set_finished()

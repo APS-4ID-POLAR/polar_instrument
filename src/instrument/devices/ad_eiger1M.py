@@ -179,7 +179,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         """Start detector in alignment mode"""
         self.save_images_off()
         self.cam.manual_trigger.set("Disable").wait(timeout=10)
-        self.cam.num_triggers.set(int(1e6)).wait(timeout=10)
+        self.cam.num_triggers.set(int(1e9)).wait(timeout=10)
         self.cam.trigger_mode.set("Continuous").wait(timeout=10)
         self.preset_monitor.set(time).wait(timeout=10)
         self.cam.acquire.set(1).wait(timeout=10)

@@ -1574,10 +1574,15 @@ def ubr(h, k, l):
     -------
     """
     _geom_ = current_diffractometer()
-    plan = mv(_geom_.h, float(h), _geom_.k, float(k), _geom_.l, float(l))
-    RE.waiting_hook = pbar_manager
+    def _plan():
+        yield from mv(
+            _geom_.h, float(h),
+            _geom_.k, float(k),
+            _geom_.l, float(l)
+        )
+    RE.waiting_hook = ProgressBarManager()
     try:
-        RE(plan)
+        RE(_plan())
     except RunEngineInterrupted:
         ...
     RE.waiting_hook = None

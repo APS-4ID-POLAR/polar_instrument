@@ -22,13 +22,15 @@ from apstools.devices import TrackingSignal
 from toolz import partition
 from numpy import poly1d, loadtxt
 from scipy.interpolate import interp1d
-from .energy_device import energy as edevice
+from time import sleep
+from .monochromator import mono
 from ..utils._logging_setup import logger
 from ..utils.transfocator_calculation_new import transfocator_calculation
 
 logger.info(__file__)
 
 MOTORS_IOC = "4idgSoft:"
+EPICS_ENERGY_SLEEP = 0.12
 
 
 def _make_lenses_motors(motors: list):
@@ -100,6 +102,7 @@ class PyCRL(Device):
     focal_size_readback = Component(EpicsSignalRO, "fSize_actual")
     focal_power_index_setpoint = Component(EpicsSignal, "1:sortedIndex")
     focal_power_index_readback = Component(EpicsSignal, "1:sortedIndex_RBV")
+    focal_sizes = Component(EpicsSignal, "fSizes", kind="omitted")
 
     # Parameters readbacks
     dq = Component(PyCRLSignal, "dq", kind="config")
@@ -145,6 +148,9 @@ class PyCRL(Device):
 
 
 class EnergySignal(Signal):
+
+    _epics_sleep = EPICS_ENERGY_SLEEP
+
     def put(self, *args, **kwargs):
         raise NotImplementedError("put operation not setup in this signal.")
 
@@ -152,20 +158,15 @@ class EnergySignal(Signal):
 
         self._readback = value
 
-        try:
-            position = self.parent._setup_optimize_distance(energy=value)
-            status = self.parent.z.set(position)
-        except ValueError:
-            lenses, position= self.parent._setup_optimize_lenses(energy=value)
-            status = self.parent.z.set(position)
-            for lens in range(1, 9):
-                step = 1 if lens in lenses else 0
-                status = AndStatus(
-                    status,
-                    getattr(self.parent, f"lens{lens}").set(step)
-                )
+        if self.parent.energy_select.get() != 1:
+            self.parent.energy_select.set(1).wait(1)
 
-        return status
+        self.parent.energy_local.set(value).wait(1)
+        sleep(self._epics_sleep) # this is needed because the scan of the transfocator is 0.1 s
+
+        zpos = self.parent.z.user_readback.get() - self.parent.dq.get()*1000.  # dq in meters
+
+        return self.parent.z.set(zpos, **kwargs)
 
 
 class ZMotor(EpicsMotor):
@@ -174,30 +175,27 @@ class ZMotor(EpicsMotor):
         zstatus = super().set(new_position, **kwargs)
 
         if self.parent.trackxy.get():
-            # xpos = (
-            #     self.parent.reference_x.get() +
-            #     poly1d(self.parent.polynomial_x.get())(new_position)
-            # )
-            # ypos = (
-            #     self.parent.reference_y.get() +
-            #     poly1d(self.parent.polynomial_y.get())(new_position)
-            # )
-
             if self.parent._x_interpolation is None:
                 raise ValueError(
-                    "The reference data for X tracking has not been entered. Cannot track the X motion."
+                    "The reference data for X tracking has not been entered. "
+                    "Cannot track the X motion."
                 )
 
             if self.parent._y_interpolation is None:
                 raise ValueError(
-                    "The reference data for Y tracking has not been entered. Cannot track the Y motion."
+                    "The reference data for Y tracking has not been entered. "
+                    "Cannot track the Y motion."
                 )
 
-            xpos = self.parent._x_interpolation(new_position)
-            ypos = self.parent._y_interpolation(new_position)
+            xpos = (
+                self.parent._x_interpolation(new_position) + self.parent.deltax.get()
+            )
+            ypos = (
+                self.parent._y_interpolation(new_position) + self.parent.deltay.get()
+            )
 
             xystatus = AndStatus(
-                self.parent.x.set(xpos), 
+                self.parent.x.set(xpos),
                 self.parent.y.set(ypos)
             )
 
@@ -211,9 +209,11 @@ class ZMotor(EpicsMotor):
             self.parent.x.stop(success=success)
             self.parent.y.stop(success=success)
 
+
 class TransfocatorClass(PyCRL):
 
     energy = Component(EnergySignal)
+    tracking = Component(TrackingSignal, value=False, kind="config")
 
     # Motors -- setup in 4idgSoft
     x = FormattedComponent(EpicsMotor, "{_motors_IOC}m58", labels=("motor",))
@@ -240,12 +240,11 @@ class TransfocatorClass(PyCRL):
         component_class=FormattedComponent
     )
 
-    # reference_x = Component(Signal, kind="config")
-    # reference_y = Component(Signal, kind="config")
-    # polynomial_x = Component(Signal, kind="config")
-    # polynomial_y = Component(Signal, kind="config")
+
     reference_data_x = Component(Signal, kind="config")
     reference_data_y = Component(Signal, kind="config")
+    deltax = Component(Signal, value=0, kind="config")
+    deltay = Component(Signal, value=0, kind="config")
     trackxy = Component(TrackingSignal, value=False, kind="config")
 
     def __init__(
@@ -351,75 +350,13 @@ class TransfocatorClass(PyCRL):
         else:
             return False
 
-    def _setup_optimize_lenses(
-        self,
-        energy=None,
-        optimize_position=None,
-        reference_distance=None,
-        experiment="diffractometer",
-    ):
+    def _setup_optimize_distance(self):
 
-        lenses, distance = self.calc(
-            energy=energy,
-            optimize_position=optimize_position,
-            reference_distance=reference_distance,
-            experiment=experiment,
-            verbose=False
-        )
+        if self.energy_select.get() in (1, "Local"):
+            logger.info("WARNING: transfocator in 'Local' energy mode")
 
-        if not self._check_z_lims(distance):
-            raise ValueError(
-                f"The distance {distance} is outsize the Z travel range. No"
-                "motion will occur."
-            )
-
-        return lenses, distance
-
-    def optimize_lenses(
-        self,
-        energy=None,
-        optimize_position=0,
-        reference_distance=None,
-        experiment="diffractometer",
-    ):
-        lenses, distance = self._setup_optimize_lenses(
-            energy=energy,
-            optimize_position=optimize_position,
-            reference_distance=reference_distance,
-            experiment=experiment,
-        )
-
-        self.set_lenses(lenses)
-        self.z.move(distance).wait()
-
-    def optimize_lenses_plan(
-        self,
-        energy=None,
-        optimize_position=0,
-        reference_distance=None,
-        experiment="diffractometer",
-    ):
-        lenses, distance = self._setup_optimize_lenses(
-            energy=energy,
-            optimize_position=optimize_position,
-            reference_distance=reference_distance,
-            experiment=experiment,
-        )
-        args = self._setup_lenses_move(lenses)
-        return (yield from mv(self.z, distance, *args))
-
-    def _setup_optimize_distance(
-        self,
-        energy=None,
-        experiment="diffractometer",
-        selected_lenses=None,
-    ):
-        _, distance = self.calc(
-            energy=energy,
-            experiment=experiment,
-            distance_only=True,
-            selected_lenses=selected_lenses,
-            verbose=False
+        distance = (
+            self.z.user_readback.get() - self.dq.get()*1000
         )
 
         if not self._check_z_lims(distance):
@@ -430,33 +367,42 @@ class TransfocatorClass(PyCRL):
 
         return distance
 
-    def optimize_distance(
-        self,
-        energy=None,
-        selected_lenses=None,
-        experiment="diffractometer",
-    ):
-        distance = self._setup_optimize_distance(
-            energy=energy,
-            experiment=experiment,
-            selected_lenses=selected_lenses
+    def optimize_lenses(self,):
+
+        self.focal_power_index_setpoint.set(
+            self.focal_sizes.get().argmin()
+        ).wait()
+
+        self.z.move(
+            self._setup_optimize_distance()
+        ).wait()
+
+    def optimize_lenses_plan(self):
+
+        def _moves():
+            yield from mv(
+                self.focal_power_index_setpoint,
+                self.focal_sizes.get().argmin()
+            )
+            yield from mv(
+                self.z,
+                self._setup_optimize_distance()
+            )
+
+        return (yield from _moves())
+
+    def optimize_distance(self):
+        self.z.move(
+            self._setup_optimize_distance()
+        ).wait()
+
+    def optimize_distance_plan(self):
+        return (
+            yield from mv(
+                self.z,
+                self._setup_optimize_distance()
+            )
         )
-
-        self.z.move(distance).wait()
-
-    def optimize_distance_plan(
-        self,
-        energy=None,
-        experiment="diffractometer",
-        selected_lenses=None,
-    ):
-        distance = self._setup_optimize_distance(
-            energy=energy,
-            experiment=experiment,
-            selected_lenses=selected_lenses,
-        )
-
-        return (yield from mv(self.z, distance))
 
     def calc(
         self,
@@ -469,7 +415,7 @@ class TransfocatorClass(PyCRL):
         verbose=True
     ):
         if energy is None:
-            energy = edevice.get()
+            energy = mono.energy.get()
 
         if selected_lenses is None:
             selected_lenses = self.lenses_in
@@ -489,7 +435,7 @@ class TransfocatorClass(PyCRL):
             selected_lenses=selected_lenses,
             verbose=verbose
         )
-    
+
     def move_z_correct_xy_plan(self, zpos):
         xpos = (
             self.reference_x.get() +
@@ -509,8 +455,8 @@ class TransfocatorClass(PyCRL):
 
 transfocator = TransfocatorClass(
     "4idPyCRL:CRL4ID:",
-    # x_polynomial=[-5.78754544e-09, 1.51026831e-06, -7.44668091e-04, 0],
-    # y_polynomial=[1.63341632e-11, -2.62999686e-09, -4.60512101e-08, -1.52140979e-05, 0],
     name="transfocator",
     labels=("4idg", "optics")
 )
+
+transfocator.stage_sigs["energy_select"] = 1
