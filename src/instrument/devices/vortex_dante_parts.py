@@ -11,6 +11,32 @@ from .ad_mixins import PolarHDF5Plugin
 
 class DanteCAM(ADBase):
 
+    _default_configuration_attrs = (
+        'port_name',
+        'manufacturer',
+        'model',
+        'firmware',
+        'sdk_version',
+        'driver_version',
+        'adcore_version',
+        'connected',
+        'array_callbacks',
+        'mca_mode',
+        'mca_channels',
+        'mca_mapping_points',
+        'mca_gatting',
+        'mca_list_buffer_size',
+        'snl_connected'
+    )
+
+    _default_read_attrs = (
+        'real_time_preset',
+        'real_time_elapsed',
+        'real_time_live',
+        'instant_deadtime',
+        'average_deadtime',
+    )
+
     # Setup
     port_name = ADComponent(EpicsSignalRO, "PortName_RBV")
     manufacturer = ADComponent(EpicsSignalRO, "Manufacturer_RBV")
@@ -74,7 +100,7 @@ class DanteCAM(ADBase):
 
 class DanteSCA(ADBase):
 
-    _default_read_attrs = ("icr", "ocr")
+    _default_read_attrs = ("icr", "ocr", "f1_deadtime")
 
     _default_configuration_attrs = (
         'enable',
@@ -107,7 +133,7 @@ class DanteSCA(ADBase):
     triggers = ADComponent(EpicsSignalRO, "Triggers")
     events = ADComponent(EpicsSignalRO, "Events")
     fast_deadtime = ADComponent(EpicsSignalRO, "FastDeadTime")
-    f1_deadtime = ADComponent(EpicsSignalRO, "F1DeadTime", kind="normal")
+    f1_deadtime = ADComponent(EpicsSignalRO, "F1DeadTime")
     zero_counts = ADComponent(EpicsSignalRO, "ZeroCounts")
     baseline_counts = ADComponent(EpicsSignalRO, "BaselineCount")
     pileup = ADComponent(EpicsSignalRO, "PileUp")
@@ -149,7 +175,3 @@ class DanteHDF1Plugin(PolarHDF5Plugin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._num_images_device = "cam.mca_mapping_points"
-
-
-class DanteConfPort(ADBase):
-    port_name = Component(Signal, value="DANTE1")

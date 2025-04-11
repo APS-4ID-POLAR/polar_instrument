@@ -125,29 +125,27 @@ class Trigger(TriggerBase):
 class TotalCorrectedSignal(SignalRO):
     """ Signal that returns the deadtime corrected total counts """
 
-    def __init__(self, prefix, roi_index, **kwargs):
-        if not roi_index:
-            raise ValueError('chnum must be the channel number, but '
-                             'f{roi_index} was passed.')
+    def __init__(self, prefix, roi_index=0, **kwargs):
         self.roi_index = roi_index
         super().__init__(**kwargs)
 
     def get(self, **kwargs):
         value = 0
-        for ch_num in range(1, self.root.cam.num_channels.get()+1):
-            channel = getattr(self.root, f'sca{ch_num}')
-            roi = getattr(self.root, 'stats{:d}.roi{:d}'.format(ch_num, self.roi_index))
-            value += (
-                channel.dt_factor.get(**kwargs) * roi.total_value.get(**kwargs)
-            )
+        for ch_num in range(1, self.root._num_channels+1):
+            roi = getattr(self.root.mcas, f'mca{ch_num}.rois.roi{self.roi_index}')
+            sca = getattr(self.root.scas, f"sca{ch_num}")
+            _ocr = sca.ocr.get(**kwargs)
+            correction = 1.0 if _ocr == 0 else sca.icr.get(**kwargs)/_ocr
+            value += roi.count.get(**kwargs) * correction
         return value
 
 
 def _totals(attr_fix, id_range):
     defn = OrderedDict()
     for k in id_range:
+        _kind = "normal" if k == 0 else "omitted"
         defn['{}{:d}'.format(attr_fix, k)] = (
-            TotalCorrectedSignal, '', {'roi_index': k, 'kind': "normal"}
+            TotalCorrectedSignal, '', {'roi_index': k, 'kind': _kind}
         )
     return defn
 
@@ -171,20 +169,21 @@ class DanteDetector(Trigger, DetectorBase):
     _default_configuration_attrs = ('cam',)
     _default_read_attrs = (
         'hdf1',
-        'mca',
-        'sca',
-        # 'total'
+        'mcas',
+        'scas',
+        'total'
     )
 
     _read_rois = [1]
     _num_channels = 4
+    _mca_rois_read_attrs = ("count",)
 
     cam = ADComponent(DanteCAM, "dante:")
 
-    mca = DynamicDeviceComponent(_mcas(_num_channels))
-    sca = DynamicDeviceComponent(_scas(_num_channels))
+    mcas = DynamicDeviceComponent(_mcas(_num_channels))
+    scas = DynamicDeviceComponent(_scas(_num_channels))
 
-    # total = DynamicDeviceComponent(_totals('roi', range(1, MAX_ROIS+1)))
+    total = DynamicDeviceComponent(_totals('roi', range(32)))
 
     hdf1 = ADComponent(
         DanteHDF1Plugin,
@@ -268,6 +267,21 @@ class DanteDetector(Trigger, DetectorBase):
         self.save_images_off()
         # self.read_rois = [1]
         # self.plot_roi1()
+
+        for item in "mca1 mca2 mca3 mca4".split():
+            mca = getattr(self.mcas, item)
+            mca.preset_real_time.kind = "omitted"
+            mca.elapsed_real_time.kind = "omitted"
+            mca.spectrum.kind = "omitted"
+            for roi in mca.rois.component_names:
+                d = getattr(mca,f"rois.{roi}")
+                for c in d.component_names:
+                    k = (
+                        "normal" 
+                        if c in self._mca_rois_read_attrs 
+                        else "config"
+                    )
+                    getattr(d, c).kind = k
 
     # @property
     # def read_rois(self):
