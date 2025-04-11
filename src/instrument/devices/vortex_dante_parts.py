@@ -2,15 +2,16 @@
 Dante CAM
 """
 
-from ophyd import EpicsSignalRO, EpicsSignal
-from ophyd.areadetector import ADBase, ADComponent, EpicsSignalWithRBV
+from ophyd import EpicsSignalRO, EpicsSignal, Signal, Component, DynamicDeviceComponent
+from ophyd.areadetector import ADBase, ADComponent, EpicsSignalWithRBV, CamBase, ad_group
 from .ad_mixins import PolarHDF5Plugin
 
 
 class DanteCAM(ADBase):
+# class DanteCAM(CamBase):
 
     # Setup
-    asyn_port = ADComponent(EpicsSignalRO, "PortName_RBV")
+    port_name = ADComponent(EpicsSignalRO, "PortName_RBV")
     manufacturer = ADComponent(EpicsSignalRO, "Manufacturer_RBV")
     model = ADComponent(EpicsSignalRO, "Model_RBV")
     firmware = ADComponent(EpicsSignalRO, "FirmwareVersion_RBV")
@@ -19,10 +20,21 @@ class DanteCAM(ADBase):
     adcore_version = ADComponent(EpicsSignalRO, "ADCoreVersion_RBV")
     connected = ADComponent(EpicsSignal, "AsynIO.CNCT")
 
+    array_size = DynamicDeviceComponent(
+        ad_group(
+            EpicsSignalRO,
+            (
+                ("array_size_x", "ArraySizeX_RBV"),
+                ("array_size_y", "ArraySizeY_RBV"),
+                ("array_size_z", "ArraySizeZ_RBV")
+            )
+        )
+    )
+
     # Acquire
     acquire_start = ADComponent(EpicsSignal, "EraseStart")
     acquire_stop = ADComponent(EpicsSignal, "StopAll")
-    acquire_status = ADComponent(EpicsSignalRO, "MCAcquiring")
+    acquire_status = ADComponent(EpicsSignalRO, "MCAAcquiring")
     acquire_busy = ADComponent(EpicsSignalRO, "AcquireBusy")
 
     real_time_preset = ADComponent(EpicsSignal, "PresetReal")
@@ -45,12 +57,13 @@ class DanteCAM(ADBase):
     image_counter = ADComponent(EpicsSignalWithRBV, "ArrayCounter")
     image_rate = ADComponent(EpicsSignalRO, "ArrayRate_RBV")
 
-    array_callback = ADComponent(EpicsSignal, "ArrayCallbacks")
+    array_callbacks = ADComponent(EpicsSignal, "ArrayCallbacks")
 
     # MCA setup
     mca_mode = ADComponent(EpicsSignalWithRBV, "CollectMode")
     mca_channels = ADComponent(EpicsSignalWithRBV, "NumMCAChannels")
     mca_mapping_points = ADComponent(EpicsSignalWithRBV, "MappingPoints")
+    num_images = ADComponent(EpicsSignalWithRBV, "MappingPoints")  # intentionally doubling this for test.
     mca_gatting = ADComponent(EpicsSignalWithRBV, "GatingMode")
     mca_list_buffer_size = ADComponent(EpicsSignalWithRBV, "ListBufferSize")
 
@@ -59,6 +72,31 @@ class DanteCAM(ADBase):
 
 
 class DanteSCA(ADBase):
+
+    _default_read_attrs = ("icr", "ocr")
+
+    _default_configuration_attrs = (
+        'enable',
+        'fast_peaking_time',
+        'fast_threshold',
+        'fast_flat_top_time',
+        'peaking_time',
+        'max_peaking_time',
+        'energy_threshold',
+        'baseline_threshold',
+        'max_rise_time',
+        'reset_recovery_time',
+        'zero_peak_frequency',
+        'baseline_samples',
+        'gain',
+        'input_mode',
+        'input_polarity',
+        'analog_offset',
+        'base_offset',
+        'reset_threshold',
+        'time_constant',
+        'max_energy'
+    )
 
     # Statistics
     real_time = ADComponent(EpicsSignalRO, "ElapsedRealTime")
@@ -70,10 +108,10 @@ class DanteSCA(ADBase):
     fast_deadtime = ADComponent(EpicsSignalRO, "FastDeadTime")
     f1_deadtime = ADComponent(EpicsSignalRO, "F1DeadTime", kind="normal")
     zero_counts = ADComponent(EpicsSignalRO, "ZeroCounts")
-    baseline_counts = ADComponent(EpicsSignalRO, "BaselineCounts")
+    baseline_counts = ADComponent(EpicsSignalRO, "BaselineCount")
     pileup = ADComponent(EpicsSignalRO, "PileUp")
     f1_pileup = ADComponent(EpicsSignalRO, "F1PileUp")
-    not_f1_pileup = ADComponent(EpicsSignalRO, "NotF1Pileup")
+    not_f1_pileup = ADComponent(EpicsSignalRO, "NotF1PileUp")
     reset_counts = ADComponent(EpicsSignalRO, "ResetCounts")
 
     # Parameters
@@ -106,3 +144,11 @@ class DanteHDF1Plugin(PolarHDF5Plugin):
     array_counter_readback = ADComponent(
         EpicsSignalRO, "ArrayCounter_RBV", kind="config"
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._num_images_device = "cam.mca_mapping_points"
+
+
+class DanteConfPort(ADBase):
+    port_name = Component(Signal, value="DANTE1")

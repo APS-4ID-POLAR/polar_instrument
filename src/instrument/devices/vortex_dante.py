@@ -1,15 +1,16 @@
 """ Eiger 1M setup """
 
 from ophyd import (
-    ADComponent, Staged, SignalRO, DynamicDeviceComponent
+    ADComponent, Staged, SignalRO, DynamicDeviceComponent, DeviceStatus
 )
 from ophyd.mca import EpicsMCARecord
 from ophyd.areadetector import DetectorBase
-from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
+from ophyd.areadetector.trigger_mixins import ADTriggerStatus
 from pathlib import Path
 from collections import OrderedDict
 from time import time as ttime
-from .vortex_dante_parts import DanteCAM, DanteHDF1Plugin, DanteSCA
+from .ad_mixins import TriggerBase
+from .vortex_dante_parts import DanteCAM, DanteHDF1Plugin, DanteSCA, DanteConfPort
 from ..utils.config import iconfig
 from ..utils._logging_setup import logger
 logger.info(__file__)
@@ -17,7 +18,8 @@ logger.info(__file__)
 __all__ = ["vortex"]
 
 # Bluesky and IOC have the same path root.
-IOC_FILES_ROOT = Path(iconfig["AREA_DETECTOR"]["VORTEX"]["IOC_FILES_ROOT"])
+# IOC_FILES_ROOT = Path(iconfig["AREA_DETECTOR"]["VORTEX"]["IOC_FILES_ROOT"])
+IOC_FILES_ROOT = Path("")
 
 DEFAULT_FOLDER = Path(iconfig["AREA_DETECTOR"]["VORTEX"]["DEFAULT_FOLDER"])
 
@@ -32,18 +34,36 @@ class Trigger(TriggerBase):
     """
     This trigger mixin class takes one acquisition per trigger.
     """
-    _status_type = ADTriggerStatus
+    # _status_type = ADTriggerStatus
+    _status_type = DeviceStatus
 
     def __init__(self, *args, image_name=None, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(
+            *args,
+            acquisition_signal_dev="cam.acquire_start",
+            acquire_busy_signal_dev = "cam.acquire_busy",
+            **kwargs
+        )
+
         if image_name is None:
             image_name = '_'.join([self.name, 'image'])
         self._image_name = image_name
-        self._acquisition_signal = self.cam.acquire_start
+        # self._acquisition_signal = self.cam.acquire_start
         self._acquisition_signal_stop = self.cam.acquire_stop
-        self._acquire_busy_signal = self.cam.acquire_busy
+        # self._acquire_busy_signal = self.cam.acquire_busy
+
+        # self._acquisition_signal_pv = "cam.acquire_start"
+        # self._acquire_busy_signal_pv = "cam.acquire_busy"
         self._flysetup = False
         self._status = None
+
+        self.stage_sigs = OrderedDict(
+            [
+                ("cam.acquire_stop", 1),  # If acquiring, stop
+                ("cam.mca_mode", "MCA Mapping"),  # 'Multiple' mode
+                ("cam.mca_mapping_points", 1),
+            ]
+        )
 
     def setup_manual_trigger(self):
         # Stage signals
@@ -62,7 +82,6 @@ class Trigger(TriggerBase):
             self.setup_external_trigger()
 
         # Make sure that detector not running
-        self._acquisition_signal_stop.set(1).wait(timeout=10)
         self._acquire_busy_signal.subscribe(self._acquire_changed)
 
         super().stage()
@@ -72,7 +91,7 @@ class Trigger(TriggerBase):
 
     def unstage(self):
         super().unstage()
-        self.cam.acquire.set(0).wait(timeout=10)
+        self._acquisition_signal_stop.set(1).wait(timeout=10)
         self._flysetup = False
         self._acquire_busy_signal.clear_sub(self._acquire_changed)
         self._collect_image = False
@@ -149,7 +168,7 @@ def _scas(num_channels):
 
 class DanteDetector(Trigger, DetectorBase):
 
-    _default_configuration_attrs = ('cam')
+    _default_configuration_attrs = ('cam',)
     _default_read_attrs = (
         'hdf1',
         'mca',
@@ -160,10 +179,14 @@ class DanteDetector(Trigger, DetectorBase):
     _read_rois = [1]
     _num_channels = 4
 
+    # The AD support needs to find a port for every plugin
+    # The dante doesn't clearly provide a 
+    # conf = ADComponent(DanteConfPort)
+
     cam = ADComponent(DanteCAM, "dante:")
 
-    mca = ADComponent(DynamicDeviceComponent(_mcas(_num_channels)))
-    sca = ADComponent(DynamicDeviceComponent(_scas(_num_channels)))
+    mca = DynamicDeviceComponent(_mcas(_num_channels))
+    sca = DynamicDeviceComponent(_scas(_num_channels))
 
     # total = DynamicDeviceComponent(_totals('roi', range(1, MAX_ROIS+1)))
 
@@ -173,10 +196,6 @@ class DanteDetector(Trigger, DetectorBase):
         ioc_path_root=IOC_FILES_ROOT,
     )
 
-    def __init__(self, prefix, number_of_channels, **kwargs):
-        self.num_channels = number_of_channels
-        super().__init__(prefix, **kwargs)
-
     # Make this compatible with other detectors
     @property
     def preset_monitor(self):
@@ -185,6 +204,7 @@ class DanteDetector(Trigger, DetectorBase):
     def align_on(self):
         """Start detector in alignment mode"""
         self.save_images_off()
+        self.cam.mca_mode.set("MCA").wait(timeout=10)
         self.preset_monitor.set(MAX_TIME).wait(timeout=10)
         self.cam.acquire_start.set(1).wait(timeout=10)
 
@@ -313,7 +333,10 @@ class DanteDetector(Trigger, DetectorBase):
         self._flysetup = flyscan
 
         base_folder = str(base_folder) + f"/{self.name}/"
-        self.hdf1.file_path.set(base_folder).wait(timeout=10)
+        # self.hdf1.file_path.set(base_folder).wait(timeout=10)
+        # TODO: need to temporarily change the saving folder.
+        base_folder2 = "/local/home/dpuser/sector4/"
+        self.hdf1.file_path.set(base_folder2).wait(timeout=10)
 
         _, full_path, relative_path = self.hdf1.make_write_read_paths(
             base_folder
