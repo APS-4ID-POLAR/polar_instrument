@@ -132,7 +132,7 @@ class StatsPlugin(PluginMixin, StatsPlugin_V34):
         )
     )
 
-    # These generates confusion as it's the exact same as sigma.x and .y 
+    # These generates confusion as it's the exact same as sigma.x and .y
     sigma_x = None
     sigma_y = None
 
@@ -197,7 +197,7 @@ class StatsPlugin(PluginMixin, StatsPlugin_V34):
         k = "normal" if value == "Yes" else "omitted"
         for item in items:
             getattr(self, item).kind = k
-    
+
     def _control_profile(self, value, **kwargs):
         items = [item for item in self.component_names if "profile" in item]
         k = "normal" if value == "Yes" else "omitted"
@@ -533,7 +533,7 @@ class TriggerBase(BlueskyInterface):
             self,
             *args,
             acquisition_signal_dev="cam.acquire",
-            acquire_busy_signal_dev = "cam.acquire_busy",
+            acquire_busy_signal_dev="cam.acquire_busy",
             **kwargs
     ):
         super().__init__(*args, **kwargs)

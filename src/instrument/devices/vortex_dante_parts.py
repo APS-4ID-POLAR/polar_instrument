@@ -2,13 +2,14 @@
 Dante CAM
 """
 
-from ophyd import EpicsSignalRO, EpicsSignal, Signal, Component, DynamicDeviceComponent
-from ophyd.areadetector import ADBase, ADComponent, EpicsSignalWithRBV, CamBase, ad_group
+from ophyd import (
+    EpicsSignalRO, EpicsSignal, Signal, Component, DynamicDeviceComponent
+)
+from ophyd.areadetector import ADBase, ADComponent, EpicsSignalWithRBV, ad_group
 from .ad_mixins import PolarHDF5Plugin
 
 
 class DanteCAM(ADBase):
-# class DanteCAM(CamBase):
 
     # Setup
     port_name = ADComponent(EpicsSignalRO, "PortName_RBV")
@@ -63,7 +64,7 @@ class DanteCAM(ADBase):
     mca_mode = ADComponent(EpicsSignalWithRBV, "CollectMode")
     mca_channels = ADComponent(EpicsSignalWithRBV, "NumMCAChannels")
     mca_mapping_points = ADComponent(EpicsSignalWithRBV, "MappingPoints")
-    num_images = ADComponent(EpicsSignalWithRBV, "MappingPoints")  # intentionally doubling this for test.
+    num_images = ADComponent(EpicsSignalWithRBV, "MappingPoints")
     mca_gatting = ADComponent(EpicsSignalWithRBV, "GatingMode")
     mca_list_buffer_size = ADComponent(EpicsSignalWithRBV, "ListBufferSize")
 

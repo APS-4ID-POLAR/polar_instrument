@@ -1,7 +1,7 @@
 """ Eiger 1M setup """
 
 from ophyd import (
-    ADComponent, Staged, SignalRO, DynamicDeviceComponent, DeviceStatus
+    ADComponent, Staged, SignalRO, DynamicDeviceComponent
 )
 from ophyd.mca import EpicsMCARecord
 from ophyd.areadetector import DetectorBase
@@ -10,7 +10,7 @@ from pathlib import Path
 from collections import OrderedDict
 from time import time as ttime
 from .ad_mixins import TriggerBase
-from .vortex_dante_parts import DanteCAM, DanteHDF1Plugin, DanteSCA, DanteConfPort
+from .vortex_dante_parts import DanteCAM, DanteHDF1Plugin, DanteSCA
 from ..utils.config import iconfig
 from ..utils._logging_setup import logger
 logger.info(__file__)
@@ -34,14 +34,14 @@ class Trigger(TriggerBase):
     """
     This trigger mixin class takes one acquisition per trigger.
     """
-    # _status_type = ADTriggerStatus
-    _status_type = DeviceStatus
+    _status_type = ADTriggerStatus
+    # _status_type = DeviceStatus
 
     def __init__(self, *args, image_name=None, **kwargs):
         super().__init__(
             *args,
             acquisition_signal_dev="cam.acquire_start",
-            acquire_busy_signal_dev = "cam.acquire_busy",
+            acquire_busy_signal_dev="cam.acquire_busy",
             **kwargs
         )
 
@@ -178,10 +178,6 @@ class DanteDetector(Trigger, DetectorBase):
 
     _read_rois = [1]
     _num_channels = 4
-
-    # The AD support needs to find a port for every plugin
-    # The dante doesn't clearly provide a 
-    # conf = ADComponent(DanteConfPort)
 
     cam = ADComponent(DanteCAM, "dante:")
 
