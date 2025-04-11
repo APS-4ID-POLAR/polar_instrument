@@ -27,6 +27,6 @@ if iconfig.get("STATION") == "4idg":
     from .hkl_utils import *
     # from .transfocator_calculation import *
     from .flyscan_utils import read_flyscan_stream, find_eiger_triggers
-    from .attenuator_utils import atten 
+    from .attenuator_utils import atten
 elif iconfig.get("STATION") == "raman":
     pass

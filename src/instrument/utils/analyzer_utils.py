@@ -1,5 +1,6 @@
 import math
 
+
 def calcdhkl(h, k, l, alpha, beta, gamma, symmetry, a, b, c):
     if symmetry == "cub":
         dhkl2inv = (h * h + k * k + l * l) / (a * a)
@@ -8,13 +9,23 @@ def calcdhkl(h, k, l, alpha, beta, gamma, symmetry, a, b, c):
     elif symmetry == "ort":
         dhkl2inv = (h * h) / (a * a) + (k * k) / (b * b) + (l * l) / (c * c)
     elif symmetry == "rho":
-        n = (h * h + k * k + l * l) * pow(math.sin(alpha), 2.0) + 2.0 * (h * k + k * l + h * l) * (
-            pow(math.cos(alpha), 2.0) - math.cos(alpha)
+        n = (h * h + k * k + l * l) * pow(math.sin(alpha), 2.0) + 2.0 * (
+            h * k + k * l + h * l
+        ) * (pow(math.cos(alpha), 2.0) - math.cos(alpha))
+        d = (
+            a
+            * a
+            * (
+                1.0
+                - 3.0 * pow(math.cos(alpha), 2.0)
+                + 2.0 * pow(math.cos(alpha), 3.0)
+            )
         )
-        d = a * a * (1.0 - 3.0 * pow(math.cos(alpha), 2.0) + 2.0 * pow(math.cos(alpha), 3.0))
         dhkl2inv = n / d
     elif symmetry == "hex":
-        dhkl2inv = (4.0 / 3.0) * (h * h + h * k + k * k) / (a * a) + (l * l) / (c * c)
+        dhkl2inv = (4.0 / 3.0) * (h * h + h * k + k * k) / (a * a) + (l * l) / (
+            c * c
+        )
     elif symmetry == "monoclinic":
         dhkl2inv = (
             (h * h) / (a * a)
@@ -42,13 +53,41 @@ def calcdhkl(h, k, l, alpha, beta, gamma, symmetry, a, b, c):
             + pow(k * a * c * math.sin(beta), 2)
             + pow(l * a * b * math.sin(gamma), 2)
         )
-        n2 = 2 * h * k * a * b * c * c * (math.cos(alpha) * math.cos(beta) - math.cos(gamma))
-        n3 = 2 * k * l * a * a * b * c * (math.cos(beta) * math.cos(gamma) - math.cos(alpha))
-        n4 = 2 * h * l * a * b * b * c * (math.cos(alpha) * math.cos(gamma) - math.cos(beta))
+        n2 = (
+            2
+            * h
+            * k
+            * a
+            * b
+            * c
+            * c
+            * (math.cos(alpha) * math.cos(beta) - math.cos(gamma))
+        )
+        n3 = (
+            2
+            * k
+            * l
+            * a
+            * a
+            * b
+            * c
+            * (math.cos(beta) * math.cos(gamma) - math.cos(alpha))
+        )
+        n4 = (
+            2
+            * h
+            * l
+            * a
+            * b
+            * b
+            * c
+            * (math.cos(alpha) * math.cos(gamma) - math.cos(beta))
+        )
         dhkl2inv = (n1 + n2 + n3 + n4) / (pow(V, 2.0))
     else:
         raise ValueError("Lattice system not specified for this analyzer.")
     return 1.0 / math.sqrt(dhkl2inv)
+
 
 def check_structure_factor(h, k, l, spacegroupnumber, special):
     if spacegroupnumber == 225 and special == "none":

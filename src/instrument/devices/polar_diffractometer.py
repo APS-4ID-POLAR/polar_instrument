@@ -40,7 +40,10 @@ PTTH_MAX_DEGREES = 101
 PTH_MIN_DEGREES = 39
 PTH_MAX_DEGREES = 51
 # TODO: Find a better way to get to this
-ANALYZER_LIST_PATH = "/home/beams17/POLAR/joerg/polar_instrument/src/instrument/devices/analyzerlist.dat"
+ANALYZER_LIST_PATH = (
+    "/home/beams17/POLAR/joerg/polar_instrument/src/instrument/devices/"
+    "analyzerlist.dat"
+)
 
 
 class AnalyzerDevice(PseudoPositioner):
@@ -59,7 +62,9 @@ class AnalyzerDevice(PseudoPositioner):
 
     d_spacing = Component(Signal, value=1e4, kind="config")
     analyzer_crystal = Component(Signal, value=None, kind="config")
-    tth_detector_distance = Component(EpicsSignal, "TWTH:Drive.C", kind="config")
+    tth_detector_distance = Component(
+        EpicsSignal, "TWTH:Drive.C", kind="config"
+    )
     tracking = Component(Signal, value=False, kind="config")
 
     def move_single(self, pseudo, position, **kwargs):
@@ -81,34 +86,36 @@ class AnalyzerDevice(PseudoPositioner):
 
     def convert_energy_to_theta(self, energy):
         # lambda in angstroms, theta in degrees, energy in keV
-        lamb = speed_of_light*Planck*6.241509e15*1e10/energy
-        theta = arcsin(lamb/2/self.d_spacing.get())*180./pi
+        lamb = speed_of_light * Planck * 6.241509e15 * 1e10 / energy
+        theta = arcsin(lamb / 2 / self.d_spacing.get()) * 180.0 / pi
         return theta
 
     def convert_energy_to_tth_trans(self, energy):
         # lambda in angstroms, theta in degrees, energy in keV
         th = self.convert_energy_to_theta(energy)
-        tth = 2*th
-        tth_trans = self.tth_detector_distance.get()*tan((tth - 45 - th)*pi/180.)
+        tth = 2 * th
+        tth_trans = self.tth_detector_distance.get() * tan(
+            (tth - 45 - th) * pi / 180.0
+        )
         return tth_trans
 
     def convert_theta_to_energy(self, theta):
         # lambda in angstroms, theta in degrees, energy in keV
-        lamb = 2*self.d_spacing.get()*sin(theta*pi/180)
-        energy = speed_of_light*Planck*6.241509e15*1e10/lamb
+        lamb = 2 * self.d_spacing.get() * sin(theta * pi / 180)
+        energy = speed_of_light * Planck * 6.241509e15 * 1e10 / lamb
         return energy
 
     @pseudo_position_argument
     def forward(self, pseudo_pos):
-        '''Run a forward (pseudo -> real) calculation'''
+        """Run a forward (pseudo -> real) calculation"""
         return self.RealPosition(
             th=self.convert_energy_to_theta(pseudo_pos.energy),
-            tth_trans=self.convert_energy_to_tth_trans(pseudo_pos.energy)
+            tth_trans=self.convert_energy_to_tth_trans(pseudo_pos.energy),
         )
 
     @real_position_argument
     def inverse(self, real_pos):
-        '''Run an inverse (real -> pseudo) calculation'''
+        """Run an inverse (real -> pseudo) calculation"""
         # Changing y does not change the energy.
         return self.PseudoPosition(
             energy=self.convert_theta_to_energy(real_pos.th)
@@ -121,27 +128,35 @@ class AnalyzerDevice(PseudoPositioner):
 
     def calc(self):
         d_ana = self.d_spacing.get()
-        if d_ana ==1e4:
+        if d_ana == 1e4:
             self.setup()
             d_ana = self.d_spacing.get()
-        wavelength = self.beamline_wavelength 
+        wavelength = self.beamline_wavelength
         cryst = self.analyzer_crystal.get()
         th_angle = math.degrees(math.asin(wavelength / (2 * d_ana)))
         tth_angle = 2 * th_angle
-        print(f"[ath, atth] = [{th_angle:6.2f}, {tth_angle:6.2f}] for {cryst} analyzer")
+        print(
+            f"[ath, atth] = [{th_angle:6.2f}, {tth_angle:6.2f}] for {cryst} "
+            "analyzer"
+        )
 
-    def setup(self, analyzer_energy = None, analyzer_list_path=ANALYZER_LIST_PATH):
+    def setup(
+        self, analyzer_energy=None, analyzer_list_path=ANALYZER_LIST_PATH
+    ):
         if not analyzer_energy:
             energy = self.beamline_energy
             wavelength = self.beamline_wavelength
         else:
             energy = analyzer_energy
-            wavelength = WAVELENGTH_CONSTANT / energy       
+            wavelength = WAVELENGTH_CONSTANT / energy
         ptthmin = math.radians(PTTH_MIN_DEGREES)
         ptthmax = math.radians(PTTH_MAX_DEGREES)
 
         d_dict = {}
-        print(f"{'#':>2}{'Crystal':>8}{'Refl.':>11}{'Range (keV)':>15}{'d_hkl':>10}{'2th (deg)':>11}")
+        print(
+            f"{'#':>2}{'Crystal':>8}{'Refl.':>11}{'Range (keV)':>15}"
+            f"{'d_hkl':>10}{'2th (deg)':>11}"
+        )
         with open(analyzer_list_path, "r") as f:
             for num, line in enumerate(f):
                 split = line.split()
@@ -164,20 +179,36 @@ class AnalyzerDevice(PseudoPositioner):
                 ) = split[:13]
                 hh, kk, ll = map(int, [hh, kk, ll])
                 a, b, c = map(float, [a, b, c])
-                alpha, beta, gamma = map(lambda x: math.radians(float(x)), [alpha, beta, gamma])
+                alpha, beta, gamma = map(
+                    lambda x: math.radians(float(x)), [alpha, beta, gamma]
+                )
                 spacegroupnumber = int(spacegroupnumber)
 
-                for i in range(1, 100):  # Arbitrary limit to prevent infinite loop
+                for i in range(
+                    1, 100
+                ):  # Arbitrary limit to prevent infinite loop
                     hhh, kkk, lll = hh * i, kk * i, ll * i
-                    dhkl = calcdhkl(hhh, kkk, lll, alpha, beta, gamma, symmetry, a, b, c)
-                    if check_structure_factor(hhh, kkk, lll, spacegroupnumber, special):
-                        ana_emax = WAVELENGTH_CONSTANT / (2 * dhkl * math.sin(ptthmin / 2))
-                        ana_emin = WAVELENGTH_CONSTANT / (2 * dhkl * math.sin(ptthmax / 2))
+                    dhkl = calcdhkl(
+                        hhh, kkk, lll, alpha, beta, gamma, symmetry, a, b, c
+                    )
+                    if check_structure_factor(
+                        hhh, kkk, lll, spacegroupnumber, special
+                    ):
+                        ana_emax = WAVELENGTH_CONSTANT / (
+                            2 * dhkl * math.sin(ptthmin / 2)
+                        )
+                        ana_emin = WAVELENGTH_CONSTANT / (
+                            2 * dhkl * math.sin(ptthmax / 2)
+                        )
 
                         if ana_emin <= energy <= ana_emax:
-                            tt_angle = 2 * math.degrees(math.asin(wavelength / (2 * dhkl)))
+                            tt_angle = 2 * math.degrees(
+                                math.asin(wavelength / (2 * dhkl))
+                            )
                             print(
-                                f"{num:>2} {analyzer:<9} {hhh:>2}{kkk:>3}{lll:>3}  [{ana_emin:5.2f},{ana_emax:5.2f}]{dhkl:10.3f}{tt_angle:11.2f}"
+                                f"{num:>2} {analyzer:<9} {hhh:>2}{kkk:>3}"
+                                f"{lll:>3}  [{ana_emin:5.2f},{ana_emax:5.2f}]"
+                                f"{dhkl:10.3f}{tt_angle:11.2f}"
                             )
                             d_dict[num] = [
                                 analyzer,
@@ -197,9 +228,15 @@ class AnalyzerDevice(PseudoPositioner):
                 ttdiff = abs(value[5] - 90)
                 d_best = [key, value]
         if analyzer_energy:
-            print(f"Best analyzer to use at {energy}: {d_best[1][0]}_{d_best[1][1]}{d_best[1][2]}{d_best[1][3]}")
+            print(
+                f"Best analyzer to use at {energy}: {d_best[1][0]}_"
+                f"{d_best[1][1]}{d_best[1][2]}{d_best[1][3]}"
+            )
         else:
-            anum = input(f"Choice of polarization analyzer [{d_best[0]}]: ") or d_best[0]
+            anum = (
+                input(f"Choice of polarization analyzer [{d_best[0]}]: ")
+                or d_best[0]
+            )
             anum = int(anum) if isinstance(anum, str) else anum
             if anum in d_dict:
                 ana = d_dict[anum]
@@ -263,7 +300,9 @@ class SixCircleDiffractometer(ApsPolar):
     ana = Component(AnalyzerDevice, "")
 
     # Energy
-    energy = FormattedComponent(EpicsSignalRO, "4idVDCM:BraggERdbkAO", kind="config")
+    energy = FormattedComponent(
+        EpicsSignalRO, "4idVDCM:BraggERdbkAO", kind="config"
+    )
     energy_update_calc_flag = Component(Signal, value=1, kind="config")
     energy_offset = Component(Signal, value=0, kind="config")
 
@@ -301,9 +340,15 @@ class HPDiffractometer(SixCircleDiffractometer):
     y = Component(EpicsMotor, "m14", labels=("motor",))
     z = Component(EpicsMotor, "m13", labels=("motor",))
 
-    nanox = FormattedComponent(EpicsMotor, "4idgSoftX:jena:m1", labels=("motors",))
-    nanoy = FormattedComponent(EpicsMotor, "4idgSoftX:jena:m2", labels=("motors",))
-    nanoz = FormattedComponent(EpicsMotor, "4idgSoftX:jena:m3", labels=("motors",))
+    nanox = FormattedComponent(
+        EpicsMotor, "4idgSoftX:jena:m1", labels=("motors",)
+    )
+    nanoy = FormattedComponent(
+        EpicsMotor, "4idgSoftX:jena:m2", labels=("motors",)
+    )
+    nanoz = FormattedComponent(
+        EpicsMotor, "4idgSoftX:jena:m3", labels=("motors",)
+    )
 
 
 class PolarPSI(ApsPolar):
