@@ -28,6 +28,7 @@ HDF1_FILE_EXTENSION = iconfig["AREA_DETECTOR"]["HDF5_FILE_EXTENSION"]
 HDF1_NAME_FORMAT = HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION
 
 MAX_TIME = 60*60  # time used in align mode
+MAX_ROIS = 32
 
 
 class Trigger(TriggerBase):
@@ -183,7 +184,7 @@ class DanteDetector(Trigger, DetectorBase):
     mcas = DynamicDeviceComponent(_mcas(_num_channels))
     scas = DynamicDeviceComponent(_scas(_num_channels))
 
-    total = DynamicDeviceComponent(_totals('roi', range(32)))
+    total = DynamicDeviceComponent(_totals('roi', range(MAX_ROIS)))
 
     hdf1 = ADComponent(
         DanteHDF1Plugin,
@@ -219,40 +220,6 @@ class DanteDetector(Trigger, DetectorBase):
     def auto_save_off(self):
         self.hdf1.autosave.put("off")
 
-    # def wait_for_detector(self):
-
-    #     async def _wait_for_read():
-    #         future = asyncio.Future()
-
-    #         async def set_future_done(future):
-    #             # This is really just needed when running the detector very
-    #             # fast. Seems like that anything beyond ~50 ms count period is
-    #             # not a problem. So I think this 0.5 sec can be hardcoded.
-    #             sleep_time = 0.5
-
-    #             # Checks if there is a new image being read. Stops when there is
-    #             # no new image for >  sleep_time.
-    #             old = 0
-    #             new = self.cam.array_counter.read()[
-    #                 "vortex_cam_array_counter"
-    #                 ]["timestamp"]
-    #             while old != new:
-    #                 await asyncio.sleep(sleep_time)
-    #                 old = new
-    #                 new = self.cam.array_counter.read()[
-    #                     "vortex_cam_array_counter"
-    #                     ]["timestamp"]
-
-    #             future.set_result("Detector done!")
-
-    #         # Schedule setting the future as done after 10 seconds
-    #         asyncio.create_task(set_future_done(future))
-
-    #         # Wait for the future to complete
-    #         await future
-
-    #     yield from wait_for([_wait_for_read], timeout=15)
-
     def default_settings(self):
 
         self.hdf1.file_template.put(HDF1_NAME_FORMAT)
@@ -265,8 +232,8 @@ class DanteDetector(Trigger, DetectorBase):
 
         self.setup_manual_trigger()
         self.save_images_off()
-        # self.read_rois = [1]
-        # self.plot_roi1()
+        self.read_rois = [0]
+        self.plot_roi0()
 
         for item in "mca1 mca2 mca3 mca4".split():
             mca = getattr(self.mcas, item)
@@ -283,55 +250,53 @@ class DanteDetector(Trigger, DetectorBase):
                     )
                     getattr(d, c).kind = k
 
-    # @property
-    # def read_rois(self):
-    #     return self._read_rois
+    @property
+    def read_rois(self):
+        return self._read_rois
 
-    # @read_rois.setter
-    # def read_rois(self, rois):
-    #     for pixel in range(1, 5):
-    #         pix = getattr(self, f"stats{pixel}")
-    #         for i in range(1, MAX_ROIS+1):
-    #             k = "normal" if i in rois else "omitted"
-    #             getattr(pix, f"roi{i}").kind = k
-    #     self._read_rois = list(rois)
+    @read_rois.setter
+    def read_rois(self, rois):
+        self._read_rois = list(rois)
 
-    # def select_roi(self, rois):
+    def select_roi(self, rois):
 
-    #     for i in range(1, MAX_ROIS+1):
-    #         kh = "hinted" if i in rois else "normal"
-    #         getattr(self.total, f"roi{i}").total_value.kind = kh
+        for i in range(MAX_ROIS):
+            kh = "hinted" if i in rois else "normal"
+            getattr(self.total, f"roi{i}").kind = kh
 
-    #         if kh == "hinted" and i not in self.read_rois:
-    #             self.read_rois.append(i)
+            if kh == "hinted" and i not in self.read_rois:
+                self.read_rois.append(i)
 
-    #         kr = "normal" if i in self.read_rois else "omitted"
-    #         getattr(self.total, f"roi{i}").kind = kr
+            kr = "normal" if i in self.read_rois else "omitted"
+            getattr(self.total, f"roi{i}").kind = kr
 
-    # def plot_roi1(self):
-    #     self.select_roi([1])
+    def plot_roi0(self):
+        self.select_roi([0])
 
-    # def plot_roi2(self):
-    #     self.select_roi([2])
+    def plot_roi1(self):
+        self.select_roi([1])
 
-    # def plot_roi3(self):
-    #     self.select_roi([3])
+    def plot_roi2(self):
+        self.select_roi([2])
 
-    # def plot_roi4(self):
-    #     self.select_roi([4])
+    def plot_roi3(self):
+        self.select_roi([3])
 
-    # @property
-    # def label_option_map(self):
-    #     return {f"ROI{i} Total": i for i in range(1, 8+1)}
+    def plot_roi4(self):
+        self.select_roi([4])
 
-    # @property
-    # def plot_options(self):
-    #     # Return all named scaler channels
-    #     return list(self.label_option_map.keys())
+    @property
+    def label_option_map(self):
+        return {f"ROI{i} Total": i for i in range(1, 8+1)}
 
-    # def select_plot(self, channels):
-    #     chans = [self.label_option_map[i] for i in channels]
-    #     self.select_roi(chans)
+    @property
+    def plot_options(self):
+        # Return all named scaler channels
+        return list(self.label_option_map.keys())
+
+    def select_plot(self, channels):
+        chans = [self.label_option_map[i] for i in channels]
+        self.select_roi(chans)
 
     def setup_images(
             self, base_folder, file_name_base, file_number, flyscan=False
