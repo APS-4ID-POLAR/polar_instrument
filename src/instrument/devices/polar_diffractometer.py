@@ -58,7 +58,9 @@ class AnalyzerDevice(PseudoPositioner):
     chi = Component(EpicsMotor, "m26", labels=("motor",))
 
     d_spacing = Component(Signal, value=1e4, kind="config")
+    analyzer_crystal = Component(Signal, value=None, kind="config")
     tth_detector_distance = Component(EpicsSignal, "TWTH:Drive.C", kind="config")
+    tracking = Component(Signal, value=False, kind="config")
 
     def move_single(self, pseudo, position, **kwargs):
         if self.d_spacing.get() == 1e4:
@@ -118,19 +120,23 @@ class AnalyzerDevice(PseudoPositioner):
         self.th.set_current_position(theta)
 
     def calc(self):
-        # read d_ana and wavelength from PV
-        wavelength = self.beamline_wavelength 
-        # d_ana = 0.904
         d_ana = self.d_spacing.get()
-        wavelength = WAVELENGTH_CONSTANT / 10
+        if d_ana ==1e4:
+            self.setup()
+            d_ana = self.d_spacing.get()
+        wavelength = self.beamline_wavelength 
+        cryst = self.analyzer_crystal.get()
         th_angle = math.degrees(math.asin(wavelength / (2 * d_ana)))
         tth_angle = 2 * th_angle
-        print(f"th_angle={th_angle} tth_angle={tth_angle}")
-        # Implement movement and/or calibration to angles
+        print(f"[ath, atth] = [{th_angle:6.2f}, {tth_angle:6.2f}] for {cryst} analyzer")
 
-    def setup(self, analyzer_list_path=ANALYZER_LIST_PATH):
-        energy = self.beamline_energy
-        wavelength = self.beamline_wavelength
+    def setup(self, analyzer_energy = None, analyzer_list_path=ANALYZER_LIST_PATH):
+        if not analyzer_energy:
+            energy = self.beamline_energy
+            wavelength = self.beamline_wavelength
+        else:
+            energy = analyzer_energy
+            wavelength = WAVELENGTH_CONSTANT / energy       
         ptthmin = math.radians(PTTH_MIN_DEGREES)
         ptthmax = math.radians(PTTH_MAX_DEGREES)
 
@@ -190,19 +196,22 @@ class AnalyzerDevice(PseudoPositioner):
             if abs(value[5] - 90) < ttdiff:
                 ttdiff = abs(value[5] - 90)
                 d_best = [key, value]
-        anum = input(f"Choice of polarization analyzer [{d_best[0]}]: ") or d_best[0]
-        anum = int(anum) if isinstance(anum, str) else anum
-        if anum in d_dict:
-            ana = d_dict[anum]
-            cryst = f"{ana[0]}{ana[1]}{ana[2]}{ana[3]}"
+        if analyzer_energy:
+            print(f"Best analyzer to use at {energy}: {d_best[1][0]}_{d_best[1][1]}{d_best[1][2]}{d_best[1][3]}")
         else:
-            ana = d_best[1:][0]
-            cryst = f"{ana[0]}{ana[1]}{ana[2]}{ana[3]}"
-            print(f"Choice not possible, using {cryst}")
+            anum = input(f"Choice of polarization analyzer [{d_best[0]}]: ") or d_best[0]
+            anum = int(anum) if isinstance(anum, str) else anum
+            if anum in d_dict:
+                ana = d_dict[anum]
+                cryst = f"{ana[0]}_{ana[1]}{ana[2]}{ana[3]}"
+            else:
+                ana = d_best[1:][0]
+                cryst = f"{ana[0]}_{ana[1]}{ana[2]}{ana[3]}"
+                print(f"Choice not possible, using {cryst}")
 
-        d_ana = ana[4]
-        self.d_spacing.put(d_ana)
-        return cryst, d_ana
+            d_ana = ana[4]
+            self.d_spacing.put(d_ana)
+            self.analyzer_crystal.put(cryst)
 
 
 class SixCircleDiffractometer(ApsPolar):
