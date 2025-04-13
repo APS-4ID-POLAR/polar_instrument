@@ -253,6 +253,8 @@ class DanteDetector(Trigger, DetectorBase):
                     )
                     getattr(d, c).kind = k
 
+    # TODO: Probably need to take another look at read_rois.setter and
+    # select_roi
     @property
     def read_rois(self):
         return self._read_rois

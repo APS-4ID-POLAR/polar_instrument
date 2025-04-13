@@ -290,7 +290,7 @@ class VortexDetector(Trigger, DetectorBase):
     @property
     def preset_monitor(self):
         return self.cam.acquire_time
-    
+
     @property
     def num_channels(self):
         return self.cam.num_channels.get()
@@ -422,7 +422,7 @@ class VortexDetector(Trigger, DetectorBase):
                 "normal" if i in self.read_rois else
                 "omitted"
             )
-  
+
             getattr(self.total, f"roi{i}").kind = k
 
             if k == "hinted" and i not in self.read_rois:
@@ -464,7 +464,7 @@ class VortexDetector(Trigger, DetectorBase):
 
         base_folder = str(base_folder) + f"/{self.name}/"
         # self.hdf1.file_path.set(base_folder).wait(timeout=10)
-    
+
         # TODO: need to temporarily change the saving folder.
         self.hdf1.file_path.set(self._local_folder).wait(timeout=10)
 
