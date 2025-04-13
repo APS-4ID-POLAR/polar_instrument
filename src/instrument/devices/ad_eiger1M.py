@@ -4,7 +4,6 @@ from ophyd import ADComponent, Staged
 from ophyd.status import wait as status_wait, SubscriptionStatus
 from ophyd.areadetector import DetectorBase
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
-from apstools.devices import AD_plugin_primed, AD_prime_plugin2
 from apstools.utils import run_in_thread
 from pathlib import Path
 from time import time as ttime, sleep
@@ -21,7 +20,7 @@ from ..utils._logging_setup import logger
 from ..utils.config import iconfig
 logger.info(__file__)
 
-__all__ = ["load_eiger1m", "eiger"]
+__all__ = ["eiger"]
 
 DEFAULT_FOLDER = Path(iconfig["AREA_DETECTOR"]["EIGER_1M"]["DEFAULT_FOLDER"])
 
@@ -290,46 +289,6 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
     def select_plot(self, channels):
         chans = [self.label_option_map[i] for i in channels]
         self.plot_select(chans)
-
-
-def load_eiger1m(prefix="4idEiger:"):
-
-    t0 = ttime()
-    try:
-        connection_timeout = iconfig.get("PV_CONNECTION_TIMEOUT", 15)
-        eiger1m = Eiger1MDetector(prefix, name="eiger1m")
-        eiger1m.wait_for_connection(timeout=connection_timeout)
-    except (KeyError, NameError, TimeoutError) as exinfo:
-        # fmt: off
-        logger.warning(
-            "Error connecting with PV='%s in %.2fs, %s",
-            prefix, ttime() - t0, str(exinfo),
-        )
-        logger.warning("Setting eiger1m to 'None'.")
-        eiger1m = None
-        # fmt: on
-
-    else:
-        # just in case these things are not defined in the class source code
-        eiger1m.cam.stage_sigs["wait_for_plugins"] = "Yes"
-        for nm in eiger1m.component_names:
-            obj = getattr(eiger1m, nm)
-            if "blocking_callbacks" in dir(obj):  # is it a plugin?
-                obj.stage_sigs["blocking_callbacks"] = "No"
-
-        if iconfig.get("ALLOW_AREA_DETECTOR_WARMUP", False):
-            if eiger1m.connected:
-                if not AD_plugin_primed(eiger1m.hdf1):
-                    AD_prime_plugin2(eiger1m.hdf1)
-
-        eiger1m.default_settings()
-
-        # Sometimes we get errors that bluesky gets the wrong value (just the first)
-        # character. This should fix it.
-        for component in "file_path file_name file_template".split():
-            _ = getattr(eiger1m.hdf1, component).get(use_monitor=False)
-
-    return eiger1m
 
 
 eiger = Eiger1MDetector("4idEiger:", name="eiger", labels=("4idg", "detector",))

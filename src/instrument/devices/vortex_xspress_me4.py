@@ -1,7 +1,14 @@
 """ Eiger 1M setup """
 
 from ophyd import (
-    ADComponent, Staged, Component, EpicsSignalRO, Device, EpicsSignal, SignalRO, DynamicDeviceComponent
+    ADComponent,
+    Staged,
+    Component,
+    EpicsSignalRO,
+    Device,
+    EpicsSignal,
+    SignalRO,
+    DynamicDeviceComponent
 )
 from ophyd.areadetector import DetectorBase, EpicsSignalWithRBV
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
