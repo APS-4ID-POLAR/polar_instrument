@@ -671,11 +671,11 @@ def setor0(*args):
         else:
             old_delta = 0
             old_mu = 30
-            old_chi = -90
+            old_chi = 90
             old_phi = 0
-            old_h = 2
+            old_h = 0
             old_k = 0
-            old_l = 0
+            old_l = 2
             old_gamma = 60
             old_tau = 0
 
@@ -775,8 +775,8 @@ def setor1(*args):
             old_mu = 30
             old_chi = 0
             old_phi = 0
-            old_h = 0
-            old_k = 2
+            old_h = 2
+            old_k = 0
             old_l = 0
             old_gamma = 60
             old_tau = 0
