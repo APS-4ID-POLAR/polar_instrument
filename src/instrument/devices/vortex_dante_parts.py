@@ -58,6 +58,9 @@ class DanteCAM(ADBase):
         )
     )
 
+    color_mode = ADComponent(EpicsSignalWithRBV, "ColorMode")
+    data_type = ADComponent(EpicsSignalWithRBV, "DataType")
+
     # Acquire
     acquire_start = ADComponent(EpicsSignal, "EraseStart")
     acquire_stop = ADComponent(EpicsSignal, "StopAll")

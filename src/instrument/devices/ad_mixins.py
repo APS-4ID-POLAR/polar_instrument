@@ -472,55 +472,6 @@ class PolarHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
         super().unstage()
 
 
-def AD_plugin_primed_vortex(plugin):
-    """
-    Modification of the APS AD_plugin_primed for Vortex.
-
-    Uses the timestamp = 0 as a sign of an unprimed plugin. Not sure this is
-    generic.
-    """
-
-    return plugin.time_stamp.get() != 0
-
-
-def AD_prime_plugin2_vortex(plugin):
-    """
-    Modification of the APS AD_plugin_primed for Vortex.
-
-    Some area detectors PVs are not setup in the Vortex.
-    """
-    if AD_plugin_primed_vortex(plugin):
-        logger.debug("'%s' plugin is already primed", plugin.name)
-        return
-
-    sigs = OrderedDict(
-        [
-            (plugin.enable, 1),
-            (plugin.parent.cam.array_callbacks, 1),  # set by number
-            (plugin.parent.cam.image_mode, 0),  # Single, set by number
-            # Trigger mode names are not identical for every camera.
-            # Assume here that the first item in the list is
-            # the best default choice to prime the plugin.
-            (plugin.parent.cam.trigger_mode, 1),  # set by number
-            # just in case the acquisition time is set very long...
-            (plugin.parent.cam.acquire_time, 1),
-            (plugin.parent.cam.acquire, 1),  # set by number
-        ]
-    )
-
-    original_vals = {sig: sig.get() for sig in sigs}
-
-    for sig, val in sigs.items():
-        sleep(0.1)  # abundance of caution
-        sig.set(val).wait()
-
-    sleep(2)  # wait for acquisition
-
-    for sig, val in reversed(list(original_vals.items())):
-        sleep(0.1)
-        sig.set(val).wait()
-
-
 class TriggerBase(BlueskyInterface):
     """Base class for trigger mixin classes
 

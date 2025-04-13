@@ -241,12 +241,17 @@ class PRSetup():
 
         # Transmission check
         while True:
+            _default = (
+              "yes" if 
+              plot_dichro_settings.settings.transmission
+              else "no"
+            )
             trans = (
                 input(
                     "Are you measuring in transmission? ("
-                    f"{self._current_setup['transmission']}): "
+                    f"{_default}): "
                 )
-                or self._current_setup["transmission"]
+                or _default
             )
             if trans.lower() == "yes":
                 plot_dichro_settings.settings.transmission = True
