@@ -3,7 +3,7 @@ Dante CAM
 """
 
 from ophyd import (
-    EpicsSignalRO, EpicsSignal, Signal, Component, DynamicDeviceComponent
+    EpicsSignalRO, EpicsSignal, DynamicDeviceComponent
 )
 from ophyd.areadetector import ADBase, ADComponent, EpicsSignalWithRBV, ad_group
 from .ad_mixins import PolarHDF5Plugin

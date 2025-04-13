@@ -192,6 +192,9 @@ class DanteDetector(Trigger, DetectorBase):
         ioc_path_root=IOC_FILES_ROOT,
     )
 
+    # TODO: TEMPORARY!
+    _local_folder = "/local/home/dpuser/sector4/"
+
     # Make this compatible with other detectors
     @property
     def preset_monitor(self):
@@ -241,11 +244,11 @@ class DanteDetector(Trigger, DetectorBase):
             mca.elapsed_real_time.kind = "omitted"
             mca.spectrum.kind = "omitted"
             for roi in mca.rois.component_names:
-                d = getattr(mca,f"rois.{roi}")
+                d = getattr(mca, f"rois.{roi}")
                 for c in d.component_names:
                     k = (
-                        "normal" 
-                        if c in self._mca_rois_read_attrs 
+                        "normal"
+                        if c in self._mca_rois_read_attrs
                         else "config"
                     )
                     getattr(d, c).kind = k
@@ -310,7 +313,7 @@ class DanteDetector(Trigger, DetectorBase):
         base_folder = str(base_folder) + f"/{self.name}/"
         # self.hdf1.file_path.set(base_folder).wait(timeout=10)
         # TODO: need to temporarily change the saving folder.
-        base_folder2 = "/local/home/dpuser/sector4/"
+        base_folder2 = self._local_folder
         self.hdf1.file_path.set(base_folder2).wait(timeout=10)
 
         _, full_path, relative_path = self.hdf1.make_write_read_paths(
