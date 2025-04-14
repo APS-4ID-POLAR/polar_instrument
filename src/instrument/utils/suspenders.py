@@ -65,8 +65,12 @@ def suspender_stop(suspender_label=None):
 
 
 def suspender_restart(suspender_label=None):
+
     if suspender_label is None:
         suspender_label = _query_label()
+
+    if isinstance(suspender_label, str):
+        suspender_label = [suspender_label]
 
     if "all" in suspender_label:
         suspender_label = list(run_engine_suspenders.keys())
@@ -82,6 +86,9 @@ def suspender_change_sleep(suspender_label=None, sleep_time=None):
 
     if sleep_time is None:
         sleep_time = _query_sleep_time()
+
+    if isinstance(suspender_label, str):
+        suspender_label = [suspender_label]
 
     if "all" in suspender_label:
         suspender_label = list(run_engine_suspenders.keys())

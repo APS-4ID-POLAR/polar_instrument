@@ -38,14 +38,24 @@ Auxilary HKL functions.
 """
 
 import pathlib
+from ophyd import SoftPositioner
 from bluesky import RunEngineInterrupted
 from bluesky.utils import ProgressBarManager
 from bluesky.plan_stubs import mv
+from hkl.util import (
+    restore_sample, restore_constraints, restore_reflections, run_orientation_info
+)
+from hkl.user import current_diffractometer
+from polartools.manage_database import db_query
 from .run_engine import RE
 from ..devices.polar_diffractometer import huber_euler, huber_euler_psi
 from ..devices.simulated_fourc_vertical import fourc
 from ._logging_setup import logger
-from ophyd import SoftPositioner
+
+from .catalog import full_cat
+from .polartools_hklpy_imports import pa
+
+cat = db_query(full_cat, dict(instrument_name = 'polar-4idg'))
 
 try:
     from hkl import cahkl
@@ -2281,3 +2291,42 @@ class Sync_UB_Matrix:
                 ptarget.move(psource.position)
                 print(f"Sync {self.target.name}.{axis}={ptarget.position}")
 
+
+def restore_huber_from_scan(
+    scan_id, diffractometer=None, sample_name=None, force=False
+):
+    info = run_orientation_info(cat[scan_id])
+
+    if diffractometer is None:
+        diffractometer = current_diffractometer()
+  
+    if diffractometer.name not in info.keys():
+        if force == True:
+            print(
+                "WARNING: could not find information on the "
+                f"{diffractometer.name} in the scan {scan_id}. "
+                "Since force = True, then will try to setup using "
+                f"{list(info.keys())[0]}."
+            )
+        else:
+            raise NameError(
+                f"Could not find a setup for {diffractometer.name} "
+                f"in scan {scan_id}."
+            )
+        inp = list(info.items())[0]
+    else:
+        inp = info[diffractometer.name]
+
+    if sample_name is not None:
+        inp["sample_name"] = sample_name
+
+    try:
+        restore_sample(inp, diffractometer)
+    except ValueError as exc:
+        raise ValueError(
+            f"{exc} Use the sample_name keyword argument to change "
+            "the name."
+        )
+    restore_constraints(inp, diffractometer)
+    restore_reflections(inp, diffractometer)
+    print(pa())

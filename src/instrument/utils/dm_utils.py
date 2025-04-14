@@ -28,6 +28,10 @@ __all__ = """
     dm_get_experiment_data_path
     dm_upload
     dm_upload_info
+    list_esafs
+    list_proposals
+    get_esaf_info
+    get_proposal_info
 """.split()
 
 esaf_api = EsafApsDbApi()

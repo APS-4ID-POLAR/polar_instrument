@@ -13,8 +13,7 @@ DATABROKER_CATALOG: &databroker_catalog 4id_polar
 RUN_ENGINE:
     DEFAULT_METADATA:
         beamline_id: 4id-polar
-        instrument_name: 4IDG
-        proposal_id: internal
+        instrument_name: polar-4idg
         databroker_catalog: *databroker_catalog
 
     ### EPICS PV to use for the `scan_id`.

@@ -42,7 +42,7 @@ from ..devices.aps_undulator import undulators
 from ..devices.phaseplates import pr1, pr2, pr3, pr_setup
 from ..devices.polar_diffractometer import huber_euler
 from ..utils._logging_setup import logger
-from ..utils.experiment_setup import experiment
+from ..utils.experiment_utils import experiment
 from ..utils.run_engine import RE
 from ..utils.config import iconfig
 

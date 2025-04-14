@@ -8,9 +8,10 @@ Utility functions
 """
 
 __all__ = """
-    experiment
-    change_sample
+    change_experiment_sample
     setup_experiment
+    load_experiment_from_bluesky
+    experiment
 """.split()
 
 from apstools.utils import (
@@ -86,18 +87,18 @@ class ExperimentClass:
         print("\n-- Experiment setup --")
         if isinstance(self.proposal, dict):
             output = (
-                f"Proposal #{self.proposal['id']} - {self.proposal['title']}."
+                f"Proposal #{self.proposal['id']} - {self.proposal['title']}"
                 "\n"
             )
         else:
-            output = "No proposal entered.\n"
+            output = "No proposal entered\n"
         if isinstance(self.esaf, dict):
-            output += f"ESAF #{self.esaf['esafId']}.\n"
+            output += f"ESAF #{self.esaf['esafId']}\n"
         else:
-            output += "No ESAF entered.\n"
+            output += "No ESAF entered\n"
 
         output += f"Data server: {self.server}\n"
-        output += f"Sample: {self.sample}.\n"
+        output += f"Sample: {self.sample}\n"
         output += f"Experiment name: {self.experiment_name}\n"
         output += f"Base experiment folder: {self.base_experiment_path}\n"
         output += f"Current experiment folder: {self.experiment_path}\n"
@@ -140,6 +141,8 @@ class ExperimentClass:
                     )
                     esaf_id = None
 
+        RE.md["esaf_id"] = str(esaf_id)
+
     def proposal_input(self, proposal_id: int = None):
         while True:
             proposal_id = (
@@ -177,42 +180,51 @@ class ExperimentClass:
                     )
                     proposal_id = None
 
-    def sample_input(self, sample_label: str = None):
+        RE.md["proposal_id"] = str(proposal_id)
+
+    def sample_input(self, sample: str = None):
         self.sample = (
-            sample_label
+            sample
             or input("Enter sample name [DefaultSample]: ")
             or "DefaultSample"
         )
         RE.md["sample"] = self.sample
 
     def base_name_input(self, base_name: str = None):
+        guess = self.file_base_name or "scan"
         self.file_base_name = (
-            base_name or input("Enter files base name [scan]: ") or "scan"
+            base_name or input(f"Enter files base name [{guess}]: ") or guess
         )
+        RE.md["base_name"] = base_name
 
     def server_input(self, server: str = None):
         _server_options = str(tuple(SERVERS.keys()))
+        guess = self.server or list(SERVERS.keys())[0]
         while True:
             self.server = (server or input(
                     "Which data server will be used? options - "
-                    f"{_server_options} [{list(SERVERS.keys())[0]}]: "
-                ) or list(SERVERS.keys())[0]
+                    f"{_server_options} [{guess}]: "
+                ) or guess
             )
 
             if self.server.strip().lower() not in _server_options:
                 print(f"Answer must be one of {_server_options}")
             else:
                 break
+        RE.md["server"] = self.server
 
     def experiment_name_input(self, experiment_name: str = None):
+        guess = self.experiment_name or None
         while True:
             self.experiment_name = experiment_name = (
-                experiment_name or input("Enter experiment name: ") or None
+                experiment_name or input(f"Enter experiment name ({guess}): ")
+                or guess
             )
             if experiment_name is None:
                 print("An experiment name must be entered.")
             else:
                 break
+        RE.md["experiment_name"] = self.experiment_name
 
     def dm_experiment_setup(self, experiment_name):
         try:
@@ -316,24 +328,27 @@ class ExperimentClass:
         specwriter.newfile(fname)
         self.spec_file = specwriter.spec_filename.name
 
-    def load_params_from_bluesky(self):
-        # TODO!!!!
-        # for key in (
-        #     "data_management esaf proposal sample base_experiment_path"
-        # ).split():
-        #     setattr(self, key, RE.md[key])
+    def load_from_bluesky(
+            self, 
+            reset_scan_id: int = -1,
+            skip_DM: bool = False
+        ):
+        kwargs = {}
+        for key in (
+            "esaf_id",
+            "proposal_id",
+            "base_name",
+            "sample",
+            "server",
+            "experiment_name"
+        ):
+            kwargs[key] = RE.md[key]
 
-        # self.use_dm = "yes" if self.data_management else "no"
-
-        # if isinstance(self.data_management, dict):
-        #     self.experiment_name = self.data_management["name"]
-        #     chdir(self.data_management["dataDirectory"])
-
-        # self.base_experiment_path = getcwd()
-        # self.setup_folder()
-
-        # print(self.__repr__)
-        pass
+        self.setup(
+            reset_scan_id=reset_scan_id,
+            skip_DM=skip_DM,
+            **kwargs
+        )
 
     def save_params_to_yaml(self):
         pass
@@ -341,12 +356,12 @@ class ExperimentClass:
     def load_params_from_yaml(self):
         pass
 
-    def setup_experiment(
+    def setup(
             self,
             esaf_id: int = None,
             proposal_id: int = None,
             base_name: str = None,
-            sample_label: str = None,
+            sample: str = None,
             server: str = None,
             experiment_name: str = None,
             reset_scan_id: int = None,
@@ -392,7 +407,7 @@ class ExperimentClass:
             # )
 
         # Sample name. In practice this is used to create another folder layer.
-        self.sample_input(sample_label)
+        self.sample_input(sample)
 
         self.setup_path()
         self.base_name_input(base_name)
@@ -438,18 +453,18 @@ class ExperimentClass:
             esaf_id: int = None,
             proposal_id: int = None,
             base_name: str = None,
-            sample_label: str = None,
+            sample: str = None,
             server: str = None,
             experiment_name: str = None,
             reset_scan_id: int = None,
             skip_DM: bool = False
     ):
 
-        self.setup_experiment(
+        self.setup(
             esaf_id,
             proposal_id,
             base_name,
-            sample_label,
+            sample,
             server,
             experiment_name,
             reset_scan_id,
@@ -460,21 +475,21 @@ class ExperimentClass:
 experiment = ExperimentClass()
 
 
-def setup_experiment(
+def experiment_setup(
         esaf_id: int = None,
         proposal_id: int = None,
         base_name: str = None,
-        sample_label: str = None,
+        sample: str = None,
         server: str = None,
         experiment_name: str = None,
         reset_scan_id: int = None,
         skip_DM: bool = False
 ):
-    experiment.setup_experiment(
+    experiment.setup(
         esaf_id,
         proposal_id,
         base_name,
-        sample_label,
+        sample,
         server,
         experiment_name,
         reset_scan_id,
@@ -482,7 +497,7 @@ def setup_experiment(
     )
 
 
-def change_sample(
+def experiment_change_sample(
     sample_name: str = None,
     base_name: str = None,
     reset_scan_id: int = None
@@ -491,3 +506,12 @@ def change_sample(
     experiment.setup_path()
     experiment.scan_number_input(reset_scan_id)
     experiment.base_name_input(base_name)
+
+
+def experiment_load_from_bluesky(
+    reset_scan_id: int = -1,
+    skip_DM: bool = False,
+):
+    experiment.load_from_bluesky(
+        reset_scan_id, skip_DM
+    )

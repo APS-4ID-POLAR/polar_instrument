@@ -61,7 +61,7 @@ class AnalyzerDevice(PseudoPositioner):
     chi = Component(EpicsMotor, "m26", labels=("motor",))
 
     d_spacing = Component(Signal, value=1e4, kind="config")
-    analyzer_crystal = Component(Signal, value=None, kind="config")
+    crystal = Component(Signal, value="None", kind="config")
     tth_detector_distance = Component(
         EpicsSignal, "TWTH:Drive.C", kind="config"
     )
@@ -132,7 +132,7 @@ class AnalyzerDevice(PseudoPositioner):
             self.setup()
             d_ana = self.d_spacing.get()
         wavelength = self.beamline_wavelength
-        cryst = self.analyzer_crystal.get()
+        cryst = self.crystal.get()
         th_angle = math.degrees(math.asin(wavelength / (2 * d_ana)))
         tth_angle = 2 * th_angle
         print(
@@ -248,7 +248,7 @@ class AnalyzerDevice(PseudoPositioner):
 
             d_ana = ana[4]
             self.d_spacing.put(d_ana)
-            self.analyzer_crystal.put(cryst)
+            self.crystal.put(cryst)
 
 
 class SixCircleDiffractometer(ApsPolar):

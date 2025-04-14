@@ -6,10 +6,12 @@ __all__ = ['energy']
 from ophyd import Signal
 from ophyd.status import Status, AndStatus, wait as status_wait
 from time import time as ttime
+from pyRestTable import Table
 from .monochromator import mono
 from .aps_undulator import undulators
 from .phaseplates import pr1, pr2, pr3
 from .transfocator_device import transfocator
+from .polar_diffractometer import huber_euler, huber_hp
 from ..utils._logging_setup import logger
 logger.info(__file__)
 
@@ -24,6 +26,28 @@ class EnergySignal(Signal):
     
     # Useful for debugging.
     _status = {}
+
+    @property
+    def tracking(self):
+
+        result = Table()
+        result.labels = ("Device", "Tracking?")
+        result.addRow([mono.name, "Yes"]) # Mono always track
+
+        for d in [
+            undulators.ds,
+            undulators.us,
+            pr1,
+            pr2,
+            pr3,
+            transfocator,
+            huber_hp.ana,
+            huber_euler.ana
+        ]:
+            track = "Yes" if d.tracking.get() else "No"
+            result.rows.append((d.name, track))
+
+        print(result.reST(fmt="grid"))
 
     @property
     def position(self):

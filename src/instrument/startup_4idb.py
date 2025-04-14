@@ -49,7 +49,6 @@ from .callbacks import *  # noqa
 from .plans import *  # noqa
 from .utils.polartools_hklpy_imports import *  # noqa
 from .utils import *
-from .utils.experiment_setup import experiment, change_sample, setup_experiment
 from .utils.dm_utils import (
     dm_get_experiment_data_path,
     dm_upload,
