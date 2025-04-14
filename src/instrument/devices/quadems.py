@@ -3,7 +3,6 @@ QuadEMs for POLAR
 """
 
 from ophyd import Component, QuadEM, EpicsSignalRO, Device
-from ophyd.status import Status
 from ophyd.quadem import QuadEMPort
 from collections import OrderedDict
 from .ad_mixins import ImagePlugin, StatsPlugin
@@ -65,16 +64,14 @@ class QuadEMPOLAR(QuadEM):
         return self.averaging_time
 
 
-
 class TetrAMM(QuadEMPOLAR):
     conf = Component(QuadEMPort, port_name="TetrAMM")
 
     # TODO: If we ever want to trigger the TetrAMM, we need
-    # to check if changes are needed to the trigger procedure. 
+    # to check if changes are needed to the trigger procedure.
 
 
 class QuadEMRO_mixins:
-# class QuadEMRO(QuadEMPOLAR):
     # Disables preset_monitor and trigger
 
     def trigger(self):
@@ -88,13 +85,13 @@ class QuadEMRO_mixins:
 
     def stage(self):
         Device.stage(self)
-    
+
     def unstage(self):
         Device.unstage(self)
 
 
 class SydorEMRO(QuadEMRO_mixins, QuadEMPOLAR):
-    
+
     conf = Component(QuadEMPort, port_name="T4U_BPM")
 
     # These are TetrAMM specific!
@@ -144,6 +141,7 @@ class SydorEMRO(QuadEMRO_mixins, QuadEMPOLAR):
             getattr(self, item).kind = "config"
 
         self.stage_sigs = OrderedDict()
+
 
 class TetrAMMRO(QuadEMRO_mixins, TetrAMM):
 

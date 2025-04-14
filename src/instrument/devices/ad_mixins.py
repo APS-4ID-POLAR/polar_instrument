@@ -21,8 +21,6 @@ from ophyd.areadetector.filestore_mixins import FileStoreBase
 from apstools.devices import CamMixin_V34
 from os.path import isfile
 from itertools import count
-from time import sleep
-from collections import OrderedDict
 from pathlib import Path
 from ..utils.config import iconfig
 from ..utils._logging_setup import logger

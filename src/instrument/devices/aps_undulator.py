@@ -55,8 +55,12 @@ class PhaseShifterDevice(Device):
     device_limit = Component(EpicsSignal, "DeviceLimitM.VAL")
     device = Component(EpicsSignalRO, "DeviceM", kind="config")
     location = Component(EpicsSignalRO, "LocationM", kind="config")
-    message1 = Component(EpicsSignalRO, "Message1M.VAL", kind="config", string=True)
-    message2 = Component(EpicsSignalRO, "Message2M.VAL", kind="config", string=True)
+    message1 = Component(
+        EpicsSignalRO, "Message1M.VAL", kind="config", string=True
+    )
+    message2 = Component(
+        EpicsSignalRO, "Message2M.VAL", kind="config", string=True
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -64,9 +68,11 @@ class PhaseShifterDevice(Device):
 
 
 class PolarUndulatorPair(Device):
-    us = Component(PolarUndulator, "USID:")
-    ds = Component(PolarUndulator, "DSID:")
+    us = Component(PolarUndulator, "USID:", labels=("track_energy",))
+    ds = Component(PolarUndulator, "DSID:", labels=("track_energy",))
     phase_shifter = Component(PhaseShifterDevice, "ILPS:")
 
 
-undulators = PolarUndulatorPair("S04ID:", name="undulators", labels=("energy", "source"))
+undulators = PolarUndulatorPair(
+    "S04ID:", name="undulators", labels=("energy", "source")
+)

@@ -329,10 +329,10 @@ class ExperimentClass:
         self.spec_file = specwriter.spec_filename.name
 
     def load_from_bluesky(
-            self, 
+            self,
             reset_scan_id: int = -1,
             skip_DM: bool = False
-        ):
+    ):
         kwargs = {}
         for key in (
             "esaf_id",

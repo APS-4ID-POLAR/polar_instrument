@@ -150,8 +150,12 @@ class TriggerTime(TriggerBase):
 
 class Eiger1MDetector(TriggerTime, DetectorBase):
 
-    _default_configuration_attrs = ('roi1', 'roi2', 'roi3', 'roi4', 'codec', 'image', )
-    _default_read_attrs = ('cam', 'hdf1', 'stats1', 'stats2', 'stats3', 'stats4', 'stats5')
+    _default_configuration_attrs = (
+        'roi1', 'roi2', 'roi3', 'roi4', 'codec', 'image',
+    )
+    _default_read_attrs = (
+        'cam', 'hdf1', 'stats1', 'stats2', 'stats3', 'stats4', 'stats5'
+    )
 
     cam = ADComponent(EigerDetectorCam, "cam1:")
     codec = ADComponent(CodecPlugin, "Codec1:")

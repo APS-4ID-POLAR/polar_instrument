@@ -63,12 +63,10 @@ class Status4ID(Device):
         EpicsSignalRO, "ACIS_FES_PERMIT.VAL", string=True
     )
 
-    a_hutch = Component(ABStatus, "", hutch="A")
-    b_hutch = Component(ABStatus, "", hutch="B")
-    g_hutch = Component(GHStatus, "", hutch="G")
-    h_hutch = Component(GHStatus, "", hutch="H")
+    a_hutch = Component(ABStatus, "", hutch="A", labels=("4ida",))
+    b_hutch = Component(ABStatus, "", hutch="B", labels=("4idb",))
+    g_hutch = Component(GHStatus, "", hutch="G", labels=("4idg",))
+    h_hutch = Component(GHStatus, "", hutch="H", labels=("4idh",))
 
 
-status_polar = Status4ID(
-    "PA:04ID:", name="status_polar", labels=("4ida", "4idb", "4idg", "4idh")
-)
+status_polar = Status4ID("PA:04ID:", name="status_polar")

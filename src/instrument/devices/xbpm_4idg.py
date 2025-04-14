@@ -15,4 +15,5 @@ class XBPM(Device):
     y = Component(EpicsMotor, "m47", labels=("motor",))
     # detector
 
+
 gxbpm = XBPM("4idgSoft:", name="gxbpm", labels=("4idg",))

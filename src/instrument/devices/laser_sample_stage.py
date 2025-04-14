@@ -12,4 +12,3 @@ logger.info(__file__)
 sx = EpicsMotor('4tst:m1', labels=('motor'), name="sx")
 sy = EpicsMotor('4tst:m2', labels=('motor'), name="sy")
 sz = EpicsMotor('4tst:m3', labels=('motor'), name="sz")
-

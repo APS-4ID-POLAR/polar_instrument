@@ -242,7 +242,7 @@ class PRSetup():
         # Transmission check
         while True:
             _default = (
-              "yes" if 
+              "yes" if
               plot_dichro_settings.settings.transmission
               else "no"
             )
@@ -377,7 +377,7 @@ pr1 = PRDevice(
     'pr1',
     1,
     {'x': 'm1', 'y': 'm2', 'th': 'm4'},
-    labels=("4ida", "phase_retarder", "energy")
+    labels=("4ida", "phase_retarder", "energy", "energy_track")
 )
 pr1.pzt.conversion_factor.put(0.00165122)
 pr1._set_d_spacing()
@@ -387,7 +387,7 @@ pr2 = PRDevice(
     'pr2',
     2,
     {'x': 'm6', 'y': 'm7', 'th': 'm9'},
-    labels=("4ida", "phase_retarder", "energy")
+    labels=("4ida", "phase_retarder", "energy", "energy_track")
 )
 pr2.pzt.conversion_factor.put(0.00190893)
 pr2._set_d_spacing()
@@ -396,7 +396,7 @@ pr3 = PRDeviceBase(
     '4ida',
     'pr3',
     {'x': 'm10', 'y': 'm11', 'th': 'm12'},
-    labels=("4ida", "phase_retarder", "energy")
+    labels=("4ida", "phase_retarder", "energy", "energy_track")
 )
 pr3.d_spacing.put(3.135)
 

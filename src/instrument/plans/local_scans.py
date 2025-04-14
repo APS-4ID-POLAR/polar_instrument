@@ -40,11 +40,11 @@ from ..devices.qxscan_setup import qxscan_params
 from ..devices.energy_device import energy
 from ..devices.aps_undulator import undulators
 from ..devices.phaseplates import pr1, pr2, pr3, pr_setup
-from ..devices.polar_diffractometer import huber_euler
 from ..utils._logging_setup import logger
 from ..utils.experiment_utils import experiment
 from ..utils.run_engine import RE
 from ..utils.config import iconfig
+from ..utils.hkl_utils import current_diffractometer
 
 logger.info(__file__)
 
@@ -131,10 +131,11 @@ def one_local_step(detectors, step, pos_cache, take_reading=trigger_and_read):
     yield from move_per_step(step, pos_cache)
 
     if flag.fixq:
-        devices_to_read += [huber_euler]
-        args = (huber_euler.h, flag.hkl_pos[huber_euler.h],
-                huber_euler.k, flag.hkl_pos[huber_euler.k],
-                huber_euler.l, flag.hkl_pos[huber_euler.l])
+        huber = current_diffractometer()
+        devices_to_read += [huber]
+        args = (huber.h, flag.hkl_pos[huber.h],
+                huber.k, flag.hkl_pos[huber.k],
+                huber.l, flag.hkl_pos[huber.l])
         yield from bps_mv(*args)
 
     if flag.dichro:
@@ -223,11 +224,11 @@ def count(
         num=1,
         time=None,
         detectors=None,
-        delay=None,
-        md=None,
-        per_shot=None,
+        lockin=False,
         dichro=False,
-        lockin=False
+        delay=None,
+        per_shot=None,
+        md=None
 ):
     """
     Take one or more readings from detectors.
@@ -244,8 +245,20 @@ def count(
     detectors : list, optional
         List of 'readable' objects. If None, will use the detectors defined in
         `counters.detectors`.
+    lockin : boolean, optional
+        Flag to do a lock-in scan. Please run pr_setup.config() prior do a
+        lock-in scan.
+    dichro : boolean, optional
+        Flag to do a dichro scan. Please run pr_setup.config() prior do a
+        dichro scan. Note that this will switch the x-ray polarization at every
+        point using the +, -, -, + sequence, thus increasing the number of
+        points by a factor of 4
     delay : iterable or scalar, optional
         Time delay in seconds between successive readings; default is 0.
+    per_shot: callable, optional
+        Hook for customizing action of inner loop (messages per step).
+        See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
+        for details.
     md : dict, optional
         metadata
     Notes
@@ -320,10 +333,10 @@ def ascan(
     *args,
     time=None,
     detectors=None,
-    per_step=None,
-    fixq=False,
-    dichro=False,
     lockin=False,
+    dichro=False,
+    fixq=False,
+    per_step=None,
     md=None
 ):
     """
@@ -350,6 +363,18 @@ def ascan(
     detectors : list, optional
         List of detectors to be used in the scan. If None, will use the
         detectors defined in `counters.detectors`.
+    lockin : boolean, optional
+        Flag to do a lock-in scan. Please run pr_setup.config() prior do a
+        lock-in scan.
+    dichro : boolean, optional
+        Flag to do a dichro scan. Please run pr_setup.config() prior do a
+        dichro scan. Note that this will switch the x-ray polarization at every
+        point using the +, -, -, + sequence, thus increasing the number of
+        points by a factor of 4
+    fixq : boolean, optional
+        Flag for fixQ scans. If True, it will fix the diffractometer hkl
+        position during the scan. This is particularly useful for energy scan.
+        Note that hkl is moved ~after~ the other motors!
     per_step: callable, optional
         hook for customizing action of inner loop (messages per step).
         See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
@@ -374,10 +399,11 @@ def ascan(
     if per_step is None:
         per_step = one_local_step if fixq or dichro else None
     if fixq:
+        huber = current_diffractometer()
         flag.hkl_pos = {
-            huber_euler.h: huber_euler.h.get().setpoint,
-            huber_euler.k: huber_euler.k.get().setpoint,
-            huber_euler.l: huber_euler.l.get().setpoint,
+            huber.h: huber.h.get().setpoint,
+            huber.k: huber.k.get().setpoint,
+            huber.l: huber.l.get().setpoint,
         }
 
     # This allows passing "time" without using the keyword.
@@ -542,6 +568,9 @@ def grid_scan(
     time : float, optional
         If a number is passed, it will modify the counts over time. All
         detectors need to have a .preset_monitor signal.
+    detectors : list, optional
+        List of detectors to be used in the scan. If None, will use the
+        detectors defined in `counters.detectors`.
     snake_axes: boolean or iterable, optional
         which axes should be snaked, either ``False`` (do not snake any axes),
         ``True`` (snake all axes) or a list of axes to snake. "Snaking" an axis
@@ -549,9 +578,18 @@ def grid_scan(
         simple left-to-right trajectory. The elements of the list are motors
         that are listed in `args`. The list must not contain the slowest
         (first) motor, since it can't be snaked.
-    detectors : list, optional
-        List of detectors to be used in the scan. If None, will use the
-        detectors defined in `counters.detectors`.
+    lockin : boolean, optional
+        Flag to do a lock-in scan. Please run pr_setup.config() prior do a
+        lock-in scan.
+    dichro : boolean, optional
+        Flag to do a dichro scan. Please run pr_setup.config() prior do a
+        dichro scan. Note that this will switch the x-ray polarization at every
+        point using the +, -, -, + sequence, thus increasing the number of
+        points by a factor of 4
+    fixq : boolean, optional
+        Flag for fixQ scans. If True, it will fix the diffractometer hkl
+        position during the scan. This is particularly useful for energy scan.
+        Note that hkl is moved ~after~ the other motors!
     per_step: callable, optional
         hook for customizing action of inner loop (messages per step).
         See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
@@ -579,10 +617,11 @@ def grid_scan(
         per_step = one_local_step if fixq or dichro else None
 
     if fixq:
+        huber = current_diffractometer()
         flag.hkl_pos = {
-            huber_euler.h: huber_euler.h.get().setpoint,
-            huber_euler.k: huber_euler.k.get().setpoint,
-            huber_euler.l: huber_euler.l.get().setpoint,
+            huber.h: huber.h.get().setpoint,
+            huber.k: huber.k.get().setpoint,
+            huber.l: huber.l.get().setpoint,
         }
 
     # This allows passing "time" without using the keyword.
@@ -640,8 +679,17 @@ def grid_scan(
     return (yield from _inner_grid_scan())
 
 
-def rel_grid_scan(*args, time=None, detectors=None, snake_axes=None,
-                  per_step=None, md=None):
+def rel_grid_scan(
+    *args,
+    time=None,
+    detectors=None,
+    snake_axes=None,
+    lockin=False,
+    dichro=False,
+    fixq=False,
+    per_step=None,
+    md=None
+):
     """
     Scan over a mesh relative to current position.
 
@@ -711,6 +759,9 @@ def rel_grid_scan(*args, time=None, detectors=None, snake_axes=None,
             time=time,
             detectors=detectors,
             snake_axes=snake_axes,
+            lockin=lockin,
+            dichro=dichro,
+            fixq=fixq,
             per_step=per_step,
             md=_md
         ))
@@ -730,7 +781,7 @@ def qxscan(
     """
     Energy scan with fixed delta_K steps.
 
-    WARNING: please run qxscan_params.setup() before using this plan! It will
+    WARNING: please run qxscan_params() before using this plan! It will
     use the parameters set in qxscan_params to determine the energy points.
 
     Parameters
@@ -778,10 +829,11 @@ def qxscan(
     flag.fixq = fixq
     per_step = one_local_step if fixq or dichro else None
     if fixq:
+        huber = current_diffractometer()
         flag.hkl_pos = {
-            huber_euler.h: huber_euler.h.get().setpoint,
-            huber_euler.k: huber_euler.k.get().setpoint,
-            huber_euler.l: huber_euler.l.get().setpoint,
+            huber.h: huber.h.get().setpoint,
+            huber.k: huber.k.get().setpoint,
+            huber.l: huber.l.get().setpoint,
         }
 
     # Get energy argument and extras

@@ -16,14 +16,17 @@ class PSPositioner(UndulatorPositioner):
 
     def move(self, position, wait=True, timeout=None, moved_cb=None):
         if (
-            abs(position - self.readback.get(use_monitor=False)) < 
-            self.parent.gap_deadband.get(use_monitor=False)/1000  # deadband in microns, gap in mm
+            abs(position - self.readback.get(use_monitor=False)) <
+            self.parent.gap_deadband.get(use_monitor=False)/1000
+            # deadband in microns, gap in mm
         ):
             status = DeviceStatus(self)
             status.set_finished()
         else:
-            status = super().move(position, wait=wait, timeout=timeout, moved_cb=moved_cb)
-            
+            status = super().move(
+                position, wait=wait, timeout=timeout, moved_cb=moved_cb
+            )
+
         return status
 
 
@@ -46,4 +49,6 @@ class PhaseShifterDevice(Device):
         self.gap.done_value = 0
 
 
-pshift = PhaseShifterDevice("S04ID:ILPS:", name="pshift", labels=("energy", "source"))
+pshift = PhaseShifterDevice(
+    "S04ID:ILPS:", name="pshift", labels=("energy", "source")
+)

@@ -43,9 +43,9 @@ class MonoFeedback(Device):
     station = Component(EpicsSignal, "MonoFBStation", string=True)
     enable = Component(EpicsSignal, "MonoFBEnable", string=True)
 
-    b = Component(FeedbackStation, "epidB")
-    g = Component(FeedbackStation, "epidG")
-    h = Component(FeedbackStation, "epidH")
+    b = Component(FeedbackStation, "epidB", labels=("4idb",))
+    g = Component(FeedbackStation, "epidG", labels=("4idg",))
+    h = Component(FeedbackStation, "epidH", labels=("4idh",))
 
 
 mono_feedback = MonoFeedback("4idbSoft:", name="mono_feedback", kind="config")

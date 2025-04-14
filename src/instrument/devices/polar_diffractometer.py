@@ -285,7 +285,7 @@ class SixCircleDiffractometer(ApsPolar):
     # guardslt  = ...
 
     # Filters
-    filter = Component(HuberFilter, "atten:", labels=("filter"))
+    filter = Component(HuberFilter, "atten:", labels=("filter",))
 
     # Detector JJ slit
     detslt = Component(
@@ -297,7 +297,7 @@ class SixCircleDiffractometer(ApsPolar):
     )
 
     # Analyzer
-    ana = Component(AnalyzerDevice, "")
+    ana = Component(AnalyzerDevice, "", labels=("energy_track",))
 
     # Energy
     energy = FormattedComponent(

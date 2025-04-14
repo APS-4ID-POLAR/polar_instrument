@@ -5,7 +5,12 @@ HHL mirror
 __all__ = ['hhl_mirror']
 
 from ophyd import (
-    Component, FormattedComponent, Device, EpicsMotor, EpicsSignal, EpicsSignalRO
+    Component,
+    FormattedComponent,
+    Device,
+    EpicsMotor,
+    EpicsSignal,
+    EpicsSignalRO
 )
 from ..utils._logging_setup import logger
 logger.info(__file__)
@@ -24,7 +29,9 @@ class ToroidalMirror(Device):
     # Combined motions
     x = Component(EpicsMotor, 'pm1', labels=('motor',))
     pitch = Component(EpicsMotor, 'pm2', labels=('motor',))
-    fine_pitch = FormattedComponent(EpicsMotor, '4idaSoft:m1', labels=('motor'))
+    fine_pitch = FormattedComponent(
+        EpicsMotor, '4idaSoft:m1', labels=('motor',)
+    )
     curvature = Component(EpicsMotor, 'pm3', labels=('motor',))
     elipticity = Component(EpicsMotor, 'pm4', labels=('motor',))
 

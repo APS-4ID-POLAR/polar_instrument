@@ -18,5 +18,6 @@ class Magnet2T(Device):
     sampley = Component(EpicsMotor, "4idb:m17", labels=("motor",))
     kepco = Component(KepcoController, '4idbSoft:BOP:PS1:', labels=("magnet",))
 
-emag = Magnet2T("", name="electromagnet", labels=("4idb", "magnet"))
+
+emag = Magnet2T("", name="electromagnet", labels=("4idb",))
 emag.kepco.mode_change(value=emag.kepco.mode.get())

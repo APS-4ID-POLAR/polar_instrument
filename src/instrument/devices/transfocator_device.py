@@ -162,9 +162,11 @@ class EnergySignal(Signal):
             self.parent.energy_select.set(1).wait(1)
 
         self.parent.energy_local.set(value).wait(1)
-        sleep(self._epics_sleep) # this is needed because the scan of the transfocator is 0.1 s
+        sleep(self._epics_sleep)
+        # this is needed because the scan of the transfocator is 0.1 s
 
-        zpos = self.parent.z.user_readback.get() - self.parent.dq.get()*1000.  # dq in meters
+        zpos = self.parent.z.user_readback.get() - self.parent.dq.get()*1000.
+        # dq in meters
 
         return self.parent.z.set(zpos, **kwargs)
 
@@ -239,7 +241,6 @@ class TransfocatorClass(PyCRL):
         ),
         component_class=FormattedComponent
     )
-
 
     reference_data_x = Component(Signal, kind="config")
     reference_data_y = Component(Signal, kind="config")
@@ -456,7 +457,7 @@ class TransfocatorClass(PyCRL):
 transfocator = TransfocatorClass(
     "4idPyCRL:CRL4ID:",
     name="transfocator",
-    labels=("4idg", "optics")
+    labels=("4idg", "optics", "energy_track")
 )
 
 transfocator.stage_sigs["energy_select"] = 1

@@ -11,7 +11,7 @@ class SlotDevice(Device):
     label = FormattedComponent(
         EpicsSignal,
         "{prefix}text{i}_in",
-        write_pv="{prefix}text{i}_out", 
+        write_pv="{prefix}text{i}_out",
         string=True,
         kind="config"
     )

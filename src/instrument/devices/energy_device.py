@@ -15,6 +15,8 @@ from .polar_diffractometer import huber_euler, huber_hp
 from ..utils._logging_setup import logger
 logger.info(__file__)
 
+# TODO: use oregistry and label="energy_track" to make it more generic.
+
 
 class EnergySignal(Signal):
 
@@ -23,7 +25,7 @@ class EnergySignal(Signal):
     Here it is setup so that the monochromator is the beamline energy, but note
     that this can be changed.
     """
-    
+
     # Useful for debugging.
     _status = {}
 
@@ -32,7 +34,7 @@ class EnergySignal(Signal):
 
         result = Table()
         result.labels = ("Device", "Tracking?")
-        result.addRow([mono.name, "Yes"]) # Mono always track
+        result.addRow([mono.name, "Yes"])  # Mono always track
 
         for d in [
             undulators.ds,

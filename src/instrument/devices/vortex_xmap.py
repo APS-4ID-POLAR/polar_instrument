@@ -193,7 +193,7 @@ class MyXMAP(SingleTrigger):
                 "normal" if i in self.read_rois else
                 "omitted"
             )
-  
+
             getattr(self.total, f"roi{i}").kind = k
 
             if k == "hinted" and i not in self.read_rois:
