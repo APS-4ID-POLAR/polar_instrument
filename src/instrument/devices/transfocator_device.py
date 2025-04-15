@@ -457,7 +457,7 @@ class TransfocatorClass(PyCRL):
 transfocator = TransfocatorClass(
     "4idPyCRL:CRL4ID:",
     name="transfocator",
-    labels=("4idg", "optics", "energy_track")
+    labels=("4idg", "optics", "track_energy")
 )
 
 transfocator.stage_sigs["energy_select"] = 1

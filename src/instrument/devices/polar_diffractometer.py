@@ -297,7 +297,7 @@ class SixCircleDiffractometer(ApsPolar):
     )
 
     # Analyzer
-    ana = Component(AnalyzerDevice, "", labels=("energy_track",))
+    ana = Component(AnalyzerDevice, "", labels=("track_energy",))
 
     # Energy
     energy = FormattedComponent(
