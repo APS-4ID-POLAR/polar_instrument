@@ -14,15 +14,16 @@ from ophyd import (
     Signal,
     EpicsSignal,
     EpicsSignalRO,
+    EpicsSignalWithRBV,
     DeviceStatus
 )
 from ophyd.status import AndStatus
-from bluesky.plan_stubs import mv
+from bluesky.plan_stubs import mv, sleep as bps_sleep, abs_set
 from apstools.devices import TrackingSignal
 from toolz import partition
 from numpy import poly1d, loadtxt
 from scipy.interpolate import interp1d
-from time import sleep
+from time import sleep as tsleep
 from .monochromator import mono
 from ..utils._logging_setup import logger
 from ..utils.transfocator_calculation_new import transfocator_calculation
@@ -30,7 +31,7 @@ from ..utils.transfocator_calculation_new import transfocator_calculation
 logger.info(__file__)
 
 MOTORS_IOC = "4idgSoft:"
-EPICS_ENERGY_SLEEP = 0.12
+EPICS_ENERGY_SLEEP = 0.15
 
 
 def _make_lenses_motors(motors: list):
@@ -100,9 +101,11 @@ class PyCRL(Device):
     # Focus info/control
     focal_size_setpoint = Component(EpicsSignal, "focalSize")
     focal_size_readback = Component(EpicsSignalRO, "fSize_actual")
-    focal_power_index_setpoint = Component(EpicsSignal, "1:sortedIndex")
-    focal_power_index_readback = Component(EpicsSignal, "1:sortedIndex_RBV")
+    focal_power_index = Component(EpicsSignalWithRBV, "1:sortedIndex")
+    # focal_power_index_readback = Component(EpicsSignal, "1:sortedIndex_RBV")
     focal_sizes = Component(EpicsSignal, "fSizes", kind="omitted")
+    minimize_button = Component(EpicsSignal, "minimizeFsize.PROC", kind="omitted")
+    system_done = Component(EpicsSignalRO, "sysBusy", kind="omitted")
 
     # Parameters readbacks
     dq = Component(PyCRLSignal, "dq", kind="config")
@@ -135,6 +138,7 @@ class PyCRL(Device):
     thickness_error_flag = Component(
         EpicsSignal, "thickerr_flag", kind="config"
     )
+    beam_mode = Component(EpicsSignalWithRBV, "beamMode", kind="config")
 
     # Lenses
     lens1 = Component(PyCRLSingleLens, "1:stack01")
@@ -145,6 +149,35 @@ class PyCRL(Device):
     lens6 = Component(PyCRLSingleLens, "1:stack06")
     lens7 = Component(PyCRLSingleLens, "1:stack07")
     lens8 = Component(PyCRLSingleLens, "1:stack08")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._status = None
+        self.system_done.subscribe(self._update_status_subscription, run=False)
+    
+    def _update_status_subscription(self, value, old_value, **kwarg):
+        if (
+            (self._status is not None) and
+            (value in ["Done", 0]) and
+            (old_value in ["Changing", 1])
+        ):
+            self._status.set_finished()
+            self._status = None
+
+    # def minimize_beam(self, value=1, **kwargs):
+    #     _button_status = self.minimize_button.set(value)
+    #     self._status = DeviceStatus(self)
+    #     return AndStatus(_button_status, self._status)
+
+    def set(self, value, **kwargs):
+        _st = DeviceStatus(self)
+
+        if self.system_done.get() in ["Done", 0]:
+            _st.set_finished()
+        else:
+            self._status = _st
+        
+        return _st
 
 
 class EnergySignal(Signal):
@@ -162,7 +195,7 @@ class EnergySignal(Signal):
             self.parent.energy_select.set(1).wait(1)
 
         self.parent.energy_local.set(value).wait(1)
-        sleep(self._epics_sleep)
+        tsleep(self._epics_sleep)
         # this is needed because the scan of the transfocator is 0.1 s
 
         zpos = self.parent.z.user_readback.get() - self.parent.dq.get()*1000.
@@ -370,7 +403,7 @@ class TransfocatorClass(PyCRL):
 
     def optimize_lenses(self,):
 
-        self.focal_power_index_setpoint.set(
+        self.focal_power_index.set(
             self.focal_sizes.get().argmin()
         ).wait()
 
@@ -378,16 +411,18 @@ class TransfocatorClass(PyCRL):
             self._setup_optimize_distance()
         ).wait()
 
+        self.set(1).wait()
+
     def optimize_lenses_plan(self):
 
         def _moves():
             yield from mv(
-                self.focal_power_index_setpoint,
+                self.focal_power_index,
                 self.focal_sizes.get().argmin()
             )
             yield from mv(
-                self.z,
-                self._setup_optimize_distance()
+                self.z, self._setup_optimize_distance(),
+                self, 1
             )
 
         return (yield from _moves())
