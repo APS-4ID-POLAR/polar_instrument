@@ -5,7 +5,6 @@ Shutters
 __all__ = ["ashutter", "bshutter"]
 
 from apstools.devices import ApsPssShutterWithStatus
-from threading import Thread
 from time import sleep
 from ..utils._logging_setup import logger
 logger.info(__file__)

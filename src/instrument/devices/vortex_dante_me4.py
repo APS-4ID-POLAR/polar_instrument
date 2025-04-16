@@ -199,7 +199,7 @@ class DanteDetector(Trigger, DetectorBase):
     @property
     def preset_monitor(self):
         return self.cam.real_time_preset
-    
+
     @property
     def num_channels(self):
         return self._num_channels

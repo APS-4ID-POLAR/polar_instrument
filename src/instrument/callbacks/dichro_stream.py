@@ -108,7 +108,8 @@ class DichroStream(LiveDispatcher):
                 # )
                 logger.warning(
                     "The input data keys do not match entries in the database. "
-                    "Data is being recorded, but the plot will not be generated."
+                    "Data is being recorded, but the plot will not be "
+                    "generated."
                 )
                 processed_evt[self.data_keys[0]] = 0
                 processed_evt["xas"] = 0
