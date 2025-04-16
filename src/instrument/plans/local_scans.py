@@ -38,12 +38,13 @@ from ..callbacks.nexus_data_file_writer import nxwriter
 from ..devices import counters
 from ..devices.qxscan_setup import qxscan_params
 from ..devices.energy_device import energy
-from ..devices.s4idundulator import undulators
+from ..devices.aps_undulator import undulators
 from ..devices.phaseplates import pr1, pr2, pr3, pr_setup
 from ..utils._logging_setup import logger
-from ..utils.experiment_setup import experiment
+from ..utils.experiment_utils import experiment
 from ..utils.run_engine import RE
 from ..utils.config import iconfig
+from ..utils.hkl_utils import current_diffractometer
 
 logger.info(__file__)
 
@@ -53,16 +54,21 @@ HDF1_NAME_FORMAT = Path(iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"])
 class LocalFlag:
     """Stores flags that are used to select and run local scans."""
     dichro = False
-    # fixq = False
-    # hkl_pos = {}
+    fixq = False
+    hkl_pos = {}
     dichro_steps = None
 
 
 flag = LocalFlag()
 
 
-def _collect_extras(escan_flag, fourc_flag):
+def _collect_extras(escan_flag, huber_flag):
     """Collect all detectors that need to be read during a scan."""
+
+    # TODO: most or all of this can be removed if we add these to the energy
+    # device directly.
+
+    # Initialize the list of extra devices with the standard set from counters
     extras = counters.extra_devices.copy()
 
     if escan_flag:
@@ -70,15 +76,17 @@ def _collect_extras(escan_flag, fourc_flag):
             und_track = yield from rd(und.tracking)
             if und_track:
                 extras.append(und.energy)
+
+        # Do the same for phase plates
         for pr in [pr1, pr2, pr3]:
+            # Fetch tracking status asynchronously
             pr_track = yield from rd(pr.tracking)
             if pr_track:
                 extras.append(pr.th)
 
-    if fourc_flag:
-        # TODO: Add diffractometer
-        # extras.append(fourc)
-        raise NotImplementedError("fixq is not implemented.")
+    if huber_flag:
+        # extras.append(huber)
+        pass
 
     return extras
 
@@ -123,13 +131,12 @@ def one_local_step(detectors, step, pos_cache, take_reading=trigger_and_read):
     yield from move_per_step(step, pos_cache)
 
     if flag.fixq:
-        # TODO: Add diffractometer
-        # devices_to_read += [fourc]
-        # args = (fourc.h, flag.hkl_pos[fourc.h],
-        #         fourc.k, flag.hkl_pos[fourc.k],
-        #         fourc.l, flag.hkl_pos[fourc.l])
-        # yield from bps_mv(*args)
-        raise NotImplementedError("fixq is not implemented.")
+        huber = current_diffractometer()
+        devices_to_read += [huber]
+        args = (huber.h, flag.hkl_pos[huber.h],
+                huber.k, flag.hkl_pos[huber.k],
+                huber.l, flag.hkl_pos[huber.l])
+        yield from bps_mv(*args)
 
     if flag.dichro:
         yield from dichro_steps(devices_to_read, take_reading)
@@ -217,11 +224,11 @@ def count(
         num=1,
         time=None,
         detectors=None,
-        delay=None,
-        md=None,
-        per_shot=None,
+        lockin=False,
         dichro=False,
-        lockin=False
+        delay=None,
+        per_shot=None,
+        md=None
 ):
     """
     Take one or more readings from detectors.
@@ -238,8 +245,20 @@ def count(
     detectors : list, optional
         List of 'readable' objects. If None, will use the detectors defined in
         `counters.detectors`.
+    lockin : boolean, optional
+        Flag to do a lock-in scan. Please run pr_setup.config() prior do a
+        lock-in scan.
+    dichro : boolean, optional
+        Flag to do a dichro scan. Please run pr_setup.config() prior do a
+        dichro scan. Note that this will switch the x-ray polarization at every
+        point using the +, -, -, + sequence, thus increasing the number of
+        points by a factor of 4
     delay : iterable or scalar, optional
         Time delay in seconds between successive readings; default is 0.
+    per_shot: callable, optional
+        Hook for customizing action of inner loop (messages per step).
+        See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
+        for details.
     md : dict, optional
         metadata
     Notes
@@ -314,10 +333,10 @@ def ascan(
     *args,
     time=None,
     detectors=None,
-    per_step=None,
-    fixq=False,
-    dichro=False,
     lockin=False,
+    dichro=False,
+    fixq=False,
+    per_step=None,
     md=None
 ):
     """
@@ -344,6 +363,18 @@ def ascan(
     detectors : list, optional
         List of detectors to be used in the scan. If None, will use the
         detectors defined in `counters.detectors`.
+    lockin : boolean, optional
+        Flag to do a lock-in scan. Please run pr_setup.config() prior do a
+        lock-in scan.
+    dichro : boolean, optional
+        Flag to do a dichro scan. Please run pr_setup.config() prior do a
+        dichro scan. Note that this will switch the x-ray polarization at every
+        point using the +, -, -, + sequence, thus increasing the number of
+        points by a factor of 4
+    fixq : boolean, optional
+        Flag for fixQ scans. If True, it will fix the diffractometer hkl
+        position during the scan. This is particularly useful for energy scan.
+        Note that hkl is moved ~after~ the other motors!
     per_step: callable, optional
         hook for customizing action of inner loop (messages per step).
         See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
@@ -368,13 +399,12 @@ def ascan(
     if per_step is None:
         per_step = one_local_step if fixq or dichro else None
     if fixq:
-        # TODO: Add diffractometer
-        # flag.hkl_pos = {
-        #     fourc.h: fourc.h.get().setpoint,
-        #     fourc.k: fourc.k.get().setpoint,
-        #     fourc.l: fourc.l.get().setpoint,
-        # }
-        raise NotImplementedError("fixq is not implemented.")
+        huber = current_diffractometer()
+        flag.hkl_pos = {
+            huber.h: huber.h.get().setpoint,
+            huber.k: huber.k.get().setpoint,
+            huber.l: huber.l.get().setpoint,
+        }
 
     # This allows passing "time" without using the keyword.
     if len(args) % 3 == 2 and time is None:
@@ -392,7 +422,7 @@ def ascan(
         experiment.experiment_path, _master_fullpath, _rel_dets_paths
     )
 
-    extras = yield from _collect_extras(energy in args, "fourc" in str(args))
+    extras = yield from _collect_extras(energy in args, "huber" in str(args))
 
     _md = dict(
         hints={'monitor': counters.monitor, 'detectors': []},
@@ -538,6 +568,9 @@ def grid_scan(
     time : float, optional
         If a number is passed, it will modify the counts over time. All
         detectors need to have a .preset_monitor signal.
+    detectors : list, optional
+        List of detectors to be used in the scan. If None, will use the
+        detectors defined in `counters.detectors`.
     snake_axes: boolean or iterable, optional
         which axes should be snaked, either ``False`` (do not snake any axes),
         ``True`` (snake all axes) or a list of axes to snake. "Snaking" an axis
@@ -545,9 +578,18 @@ def grid_scan(
         simple left-to-right trajectory. The elements of the list are motors
         that are listed in `args`. The list must not contain the slowest
         (first) motor, since it can't be snaked.
-    detectors : list, optional
-        List of detectors to be used in the scan. If None, will use the
-        detectors defined in `counters.detectors`.
+    lockin : boolean, optional
+        Flag to do a lock-in scan. Please run pr_setup.config() prior do a
+        lock-in scan.
+    dichro : boolean, optional
+        Flag to do a dichro scan. Please run pr_setup.config() prior do a
+        dichro scan. Note that this will switch the x-ray polarization at every
+        point using the +, -, -, + sequence, thus increasing the number of
+        points by a factor of 4
+    fixq : boolean, optional
+        Flag for fixQ scans. If True, it will fix the diffractometer hkl
+        position during the scan. This is particularly useful for energy scan.
+        Note that hkl is moved ~after~ the other motors!
     per_step: callable, optional
         hook for customizing action of inner loop (messages per step).
         See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
@@ -575,13 +617,12 @@ def grid_scan(
         per_step = one_local_step if fixq or dichro else None
 
     if fixq:
-        # TODO: Add diffraction
-        # flag.hkl_pos = {
-        #     fourc.h: fourc.h.get().setpoint,
-        #     fourc.k: fourc.k.get().setpoint,
-        #     fourc.l: fourc.l.get().setpoint,
-        # }
-        raise NotImplementedError("fixq is not implemented.")
+        huber = current_diffractometer()
+        flag.hkl_pos = {
+            huber.h: huber.h.get().setpoint,
+            huber.k: huber.k.get().setpoint,
+            huber.l: huber.l.get().setpoint,
+        }
 
     # This allows passing "time" without using the keyword.
     if len(args) % 4 == 1 and time is None:
@@ -591,17 +632,19 @@ def grid_scan(
     if detectors is None:
         detectors = counters.detectors
 
-    _base_path, _master_fullpath, _dets_file_paths, _rel_dets_paths = (
+    _master_fullpath, _dets_file_paths, _rel_dets_paths = (
         _setup_paths(detectors)
     )
 
-    setup_nxwritter(_base_path, _master_fullpath, _rel_dets_paths)
+    setup_nxwritter(
+        experiment.experiment_path, _master_fullpath, _rel_dets_paths
+    )
 
-    extras = _collect_extras()
+    extras = yield from _collect_extras(energy in args, "huber" in str(args))
 
     _md = dict(
         hints={'monitor': counters.monitor, 'detectors': []},
-        data_management=experiment.data_management,
+        data_management=experiment.data_management or "None",
         esaf=experiment.esaf,
         proposal=experiment.proposal,
         base_experiment_path=str(experiment.base_experiment_path),
@@ -636,8 +679,17 @@ def grid_scan(
     return (yield from _inner_grid_scan())
 
 
-def rel_grid_scan(*args, time=None, detectors=None, snake_axes=None,
-                  per_step=None, md=None):
+def rel_grid_scan(
+    *args,
+    time=None,
+    detectors=None,
+    snake_axes=None,
+    lockin=False,
+    dichro=False,
+    fixq=False,
+    per_step=None,
+    md=None
+):
     """
     Scan over a mesh relative to current position.
 
@@ -707,6 +759,9 @@ def rel_grid_scan(*args, time=None, detectors=None, snake_axes=None,
             time=time,
             detectors=detectors,
             snake_axes=snake_axes,
+            lockin=lockin,
+            dichro=dichro,
+            fixq=fixq,
             per_step=per_step,
             md=_md
         ))
@@ -726,7 +781,7 @@ def qxscan(
     """
     Energy scan with fixed delta_K steps.
 
-    WARNING: please run qxscan_params.setup() before using this plan! It will
+    WARNING: please run qxscan_params() before using this plan! It will
     use the parameters set in qxscan_params to determine the energy points.
 
     Parameters
@@ -774,19 +829,18 @@ def qxscan(
     flag.fixq = fixq
     per_step = one_local_step if fixq or dichro else None
     if fixq:
-        # TODO: Add diffractometer
-        # flag.hkl_pos = {
-        #     fourc.h: fourc.h.get().setpoint,
-        #     fourc.k: fourc.k.get().setpoint,
-        #     fourc.l: fourc.l.get().setpoint,
-        # }
-        raise NotImplementedError("fixq is not implemented.")
+        huber = current_diffractometer()
+        flag.hkl_pos = {
+            huber.h: huber.h.get().setpoint,
+            huber.k: huber.k.get().setpoint,
+            huber.l: huber.l.get().setpoint,
+        }
 
     # Get energy argument and extras
     energy_list = yield from rd(qxscan_params.energy_list)
     args = (energy, array(energy_list) + edge_energy)
 
-    extras = yield from _collect_extras(energy in args, "fourc" in str(args))
+    extras = yield from _collect_extras(energy in args, "huber" in str(args))
 
     # Setup count time
     factor_list = yield from rd(qxscan_params.factor_list)
@@ -818,6 +872,7 @@ def qxscan(
             _ct[det] = yield from rd(det.preset_monitor)
             args += (det.preset_monitor, _ct[det]*array(factor_list))
 
+    @subs_decorator(nxwriter.receiver)
     @configure_counts_decorator(detectors, time)
     @stage_dichro_decorator(dichro, lockin, args)
     @extra_devices_decorator(extras)
@@ -829,6 +884,8 @@ def qxscan(
         # put original times back.
         for det, preset in _ct.items():
             yield from mv(det.preset_monitor, preset)
+
+        yield from nxwriter.wait_writer_plan_stub()
 
     return (yield from _inner_qxscan())
 

@@ -10,5 +10,5 @@ from .ad_vimba import VimbaDetector
 flag_camera_4ida_down = VimbaDetector(
     "4idaPostMonoBeam:",
     name="flag_camera_4ida_down",
-    labels=("camera", "detector", "flag")
+    labels=("4ida", "camera", "detector", "flag")
 )

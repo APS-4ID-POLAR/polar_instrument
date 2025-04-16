@@ -1,29 +1,55 @@
 # 4ID-A setup
 
+xbpm_4idg:
+  device: gxbpm
+  baseline: True
+
+sydor_device:
+  device: gsydor
+  baseline: True
+
+transfocator_device:
+  device: transfocator
+  baseline: True
+
+filters_device_new:
+  device: gfilter
+  baseline: True
+
+jj_slits:
+  device: gslt
+  baseline: True
+
+# KB mirror
+
+# xspress:
+#   device: vortex
+#   baseline: False
+
 polar_diffractometer:
-  device: [polar, polar_psi]
-  baseline: [True, True]
+  device: [huber_euler, huber_euler_psi, huber_hp, huber_hp_psi]
+  baseline: [True, True, True, True]
 
-simulated_fourc_vertical:
-  device: fourc
-  baseline: True
+# simulated_fourc_vertical:
+#   device: fourc
+#   baseline: True
 
-pva_control:
-  device: positioner_stream
-  baseline: True
+# pva_control:
+#   device: positioner_stream
+#   baseline: True
 
-softgluezynq:
-  device: sgz
-  baseline: True
+# softgluezynq:
+#   device: sgz
+#   baseline: True
 
-nanopositioner:
-  device: diff_nano
-  baseline: True
+# nanopositioner:
+#   device: diff_nano
+#   baseline: True
 
 ad_eiger1M:
-  device: eiger1m
+  device: eiger
   baseline: False
 
-xspress:
-  device: vortex
-  baseline: False
+# xspress:
+#   device: vortex
+#   baseline: False

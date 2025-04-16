@@ -3,7 +3,7 @@ Labjacks
 """
 
 __all__ = [
-    "labjack_t7_1",
+    "labjack_4idb",
     "labjack_4ida"
 ]
 
@@ -85,9 +85,13 @@ class CustomLabJackT7(LabJackT7):
     )
 
 
-labjack_t7_1 = CustomLabJackT7("4idLabJackT7_1:", name="labjack_t7_1")
+labjack_4idb = CustomLabJackT7(
+    "4idLabJackT7_1:", name="labjack_4idb", labels=("4idb",)
+)
 
-labjack_4ida = CustomLabJackT7("4idaSoft:LJ:", name="labjack_4ida")
+labjack_4ida = CustomLabJackT7(
+    "4idaSoft:LJ:", name="labjack_4ida", labels=("4ida",)
+)
 labjack_4ida.analog_outputs.kind = "normal"
 labjack_4ida.waveform_digitizer.kind = "omitted"
 labjack_4ida.digital_ios.kind = "omitted"

@@ -2,13 +2,13 @@
 TetrAMMs
 """
 
-__all__ = ["tetramm_4idb"]
+__all__ = ["btetramm"]
 
-from ophyd import TetrAMM
+from .quadems import TetrAMMRO
 from ..utils._logging_setup import logger
 logger.info(__file__)
 
 
-tetramm_4idb = TetrAMM(
-    "4idbSoft:TetrAMM:", name="tetramm_4idb", labels=("detector",)
+btetramm = TetrAMMRO(
+    "4idbSoft:TetrAMM:", name="btetramm", labels=("detector",)
 )

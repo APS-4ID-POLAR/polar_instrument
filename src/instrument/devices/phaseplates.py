@@ -83,7 +83,7 @@ class PRPzt(Device):
     )
 
     ACstatus = FormattedComponent(
-        EpicsSignalRO, '4idaSoft:232DRIO:1:status', kind='config'
+        EpicsSignal, '4idaSoft:232DRIO:1:status', kind='config'
     )
 
     conversion_factor = Component(Signal, value=0.1, kind='config')
@@ -184,6 +184,9 @@ class PRSetup():
     offset = None
     dichro_steps = [1, -1, -1, 1]
 
+    def __init__(self):
+        self._current_setup = {}
+
     def __repr__(self):
 
         tracked = ""
@@ -206,6 +209,26 @@ class PRSetup():
                 f"  PZT center = {pzt_center}\n"
                 f"  Steps for dichro scan = {self.dichro_steps}\n")
 
+    def _get_setup(self, pr):
+
+        _setup = {}
+
+        if self.positioner is None:
+            _setup["oscillate"] = "yes"
+            _setup["method"] = "pzt"
+        else:
+            _setup["oscillate"] = (
+                "yes" if self.positioner.name == pr.name else "no"
+            )
+            _setup["method"] = (
+                "pzt" if "pzt" in self.positioner.name else "motor"
+            )
+
+        _setup["offset"] = pr.pzt.offset_degrees.get()
+        _setup["center"] = pr.pzt.center.get()
+
+        return _setup
+
     def __str__(self):
         return self.__repr__()
 
@@ -216,8 +239,20 @@ class PRSetup():
 
         _positioner = None
 
+        # Transmission check
         while True:
-            trans = input("Are you measuring in transmission? (yes or no): ")
+            _default = (
+              "yes" if
+              plot_dichro_settings.settings.transmission
+              else "no"
+            )
+            trans = (
+                input(
+                    "Are you measuring in transmission? ("
+                    f"{_default}): "
+                )
+                or _default
+            )
             if trans.lower() == "yes":
                 plot_dichro_settings.settings.transmission = True
                 break
@@ -227,34 +262,15 @@ class PRSetup():
             else:
                 print("Invalid answer, it must be yes or no.")
 
+        # Cycle through the PRs
         for pr, label in zip([pr1, pr2, pr3], ["PR1", "PR2", "PR3"]):
-
-            _current = {}
-            _current['track'] = "yes" if pr.tracking.get() else "no"
-            for key in ['oscillate', 'method', 'offset', 'center']:
-                _current[key] = None
-
-            if self.positioner and not _positioner:
-                _current['oscillate'] = (
-                    "yes" if self.positioner.root.name == label.lower()
-                    else "no"
-                    )
-                _current['method'] = ("pzt" if "pzt" in self.positioner.name
-                                      else "motor")
-
-                _current["offset"] = self.positioner.parent.offset_degrees.\
-                    get()
-
-                if _current['method'] == "pzt":
-                    _current["center"] = self.positioner.parent.center.get()
 
             print(" ++ {} ++ ".format(label))
 
             # Track the energy?
             while True:
-                track = input(f"\tTrack? ({_current['track']}): ")
-                if track == '':
-                    track = str(_current['track'])
+                track = "yes" if pr.tracking.get() else "no"
+                track = input(f"\tTrack? ({track}): ") or track
 
                 if track.lower() == "yes":
                     pr.tracking.put(True)
@@ -268,13 +284,13 @@ class PRSetup():
             # If no positioner has been selected to oscillate, we will ask.
             # This assumes that we only oscillate one PR, which is tracked.
             if _positioner is None and track == "yes":
+                setup = self._get_setup(pr)
                 # Oscillate this PR?
                 while True:
-                    oscillate = input(f"\tOscillate? ({_current['oscillate']})"
-                                      ": ")
-
-                    if oscillate == '':
-                        oscillate = str(_current['oscillate'])
+                    oscillate = (
+                        input(f"\tOscillate? ({setup['oscillate']}): ") or
+                        setup["oscillate"]
+                    )
                     # If this will oscillate, need to determine the positioner
                     # to use and its parameters.
                     if oscillate.lower() == "yes":
@@ -284,10 +300,12 @@ class PRSetup():
                             _positioner = pr.th
                         else:
                             while True:
-                                method = input("\tUse motor or PZT? "
-                                               f"({_current['method']}): ")
-                                if method == '':
-                                    method = str(_current['method'])
+                                method = (
+                                    input(
+                                        "\tUse motor or PZT? "
+                                        f"({setup['method']}): "
+                                    ) or setup["method"]
+                                )
                                 if method.lower() == 'motor':
                                     _positioner = pr.th
                                     break
@@ -295,20 +313,23 @@ class PRSetup():
                                     _positioner = pr.pzt.localdc
                                     break
                                 else:
-                                    print("Only motor or pzt are acceptable "
-                                          "answers.")
-
+                                    print(
+                                        "Only motor or pzt are acceptable "
+                                        "answers."
+                                    )
                         # Get offset
                         while True:
                             try:
-                                msg = "\tOffset (in degrees)"
-                                msg += f"({_current['offset']}): "
-                                offset = input(msg)
-                                if offset == '':
-                                    offset = str(_current['offset'])
+                                offset = (
+                                    input(
+                                        "\tOffset (in degrees) "
+                                        f"({setup['offset']}): "
+                                    )
+                                    or setup["offset"]
+                                )
                                 _positioner.parent.offset_degrees.put(
-                                        float(offset)
-                                        )
+                                    float(offset)
+                                )
                                 break
                             except ValueError:
                                 print('Must be a number.')
@@ -320,13 +341,15 @@ class PRSetup():
                             # Get the PZT center.
                             while True:
                                 try:
-                                    center = input(
+                                    center = (
+                                        input(
                                             "\tPZT center in microns "
-                                            f"({_current['center']}): ")
-                                    if center == '':
-                                        center = str(_current['center'])
+                                            f"({setup['center']}): "
+                                        ) or setup["center"]
+                                    )
                                     _positioner.parent.center.put(
-                                            float(center))
+                                        float(center)
+                                    )
                                     break
                                 except ValueError:
                                     print('Must be a number.')
@@ -341,8 +364,10 @@ class PRSetup():
 
             else:
                 if _positioner and track == 'yes':
-                    print('\tYou already selected {} to oscillate.'.format(
-                          _positioner.name))
+                    print(
+                        f"\tYou already selected {_positioner.name} to "
+                        "oscillate."
+                    )
 
         self.positioner = _positioner
 
@@ -352,9 +377,9 @@ pr1 = PRDevice(
     'pr1',
     1,
     {'x': 'm1', 'y': 'm2', 'th': 'm4'},
-    labels=("phase_retarder", "energy")
+    labels=("4ida", "phase_retarder", "energy", "track_energy")
 )
-pr1.pzt.conversion_factor.put(0.001636)
+pr1.pzt.conversion_factor.put(0.00165122)
 pr1._set_d_spacing()
 
 pr2 = PRDevice(
@@ -362,16 +387,16 @@ pr2 = PRDevice(
     'pr2',
     2,
     {'x': 'm6', 'y': 'm7', 'th': 'm9'},
-    labels=("phase_retarder", "energy")
+    labels=("4ida", "phase_retarder", "energy", "track_energy")
 )
-pr2.pzt.conversion_factor.put(0.0019324)
+pr2.pzt.conversion_factor.put(0.00190893)
 pr2._set_d_spacing()
 
 pr3 = PRDeviceBase(
     '4ida',
     'pr3',
     {'x': 'm10', 'y': 'm11', 'th': 'm12'},
-    labels=("phase_retarder", "energy")
+    labels=("4ida", "phase_retarder", "energy", "track_energy")
 )
 pr3.d_spacing.put(3.135)
 

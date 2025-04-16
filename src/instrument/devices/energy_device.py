@@ -6,11 +6,16 @@ __all__ = ['energy']
 from ophyd import Signal
 from ophyd.status import Status, AndStatus, wait as status_wait
 from time import time as ttime
+from pyRestTable import Table
 from .monochromator import mono
-from .s4idundulator import undulators
+from .aps_undulator import undulators
 from .phaseplates import pr1, pr2, pr3
+from .transfocator_device import transfocator
+from .polar_diffractometer import huber_euler, huber_hp
 from ..utils._logging_setup import logger
 logger.info(__file__)
+
+# TODO: use oregistry and label="energy_track" to make it more generic.
 
 
 class EnergySignal(Signal):
@@ -20,6 +25,31 @@ class EnergySignal(Signal):
     Here it is setup so that the monochromator is the beamline energy, but note
     that this can be changed.
     """
+
+    # Useful for debugging.
+    _status = {}
+
+    @property
+    def tracking(self):
+
+        result = Table()
+        result.labels = ("Device", "Tracking?")
+        result.addRow([mono.name, "Yes"])  # Mono always track
+
+        for d in [
+            undulators.ds,
+            undulators.us,
+            pr1,
+            pr2,
+            pr3,
+            transfocator,
+            huber_hp.ana,
+            huber_euler.ana
+        ]:
+            track = "Yes" if d.tracking.get() else "No"
+            result.rows.append((d.name, track))
+
+        print(result.reST(fmt="grid"))
 
     @property
     def position(self):
@@ -48,6 +78,7 @@ class EnergySignal(Signal):
             position, wait=wait, timeout=timeout, moved_cb=moved_cb
         )
         status = AndStatus(status, mono_status)
+        self._status = {mono.name: mono_status}
 
         # Phase retarders
         for pr in [pr1, pr2, pr3]:
@@ -56,6 +87,7 @@ class EnergySignal(Signal):
                     position, wait=wait, timeout=timeout, moved_cb=moved_cb
                 )
                 status = AndStatus(status, pr_status)
+                self._status[pr.name] = pr_status
 
         # Undulator
         for und in [undulators.us, undulators.ds]:
@@ -65,6 +97,15 @@ class EnergySignal(Signal):
                     und_pos, wait=wait, timeout=timeout, moved_cb=moved_cb
                 )
                 status = AndStatus(status, und_status)
+                self._status[und.name] = und_status
+
+        # Transfocator
+        if transfocator.tracking.get():
+            tstatus = transfocator.energy.set(
+                position, wait=wait, timeout=timeout, moved_cb=moved_cb
+            )
+            status = AndStatus(status, tstatus)
+            self._status[transfocator.name] = tstatus
 
         if wait:
             status_wait(status)

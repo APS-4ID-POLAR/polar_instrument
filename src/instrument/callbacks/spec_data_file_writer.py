@@ -26,6 +26,8 @@ logger.info(__file__)
 from ..utils.config import iconfig  # noqa
 from ..utils.run_engine import RE  # noqa
 
+from .apstools_spec_file_writer import SpecWriterCallback2
+
 
 spec_config = iconfig.get("SPEC_DATA_FILES")
 
@@ -71,7 +73,9 @@ def newSpecFile(title, scan_id=None, RE=None):
 # write scans to SPEC data file
 try:
     # apstools >=1.6.21
-    _specwriter = apstools.callbacks.SpecWriterCallback2()
+    # _specwriter = apstools.callbacks.SpecWriterCallback2()
+    _specwriter = SpecWriterCallback2()
+    # _specwriter = apstools.callbacks.SpecWriterCallback()
 except AttributeError:
     # apstools <1.6.21
     _specwriter = apstools.callbacks.SpecWriterCallback()

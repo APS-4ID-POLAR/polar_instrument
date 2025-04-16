@@ -12,7 +12,7 @@ logger.info(__file__)
 
 class PolAnalyzer(Device):
     y = Component(EpicsMotor, "m17", labels=("motor",))
-    # th = Component(EpicsMotor, "XXX", labels=("motor",))
+    th = Component(EpicsMotor, "m9", labels=("motor",))
 
     vertical_preamp = Component(
         LocalPreAmp, 'A1', labels=('preamp', 'detector',), kind="config"
@@ -22,7 +22,7 @@ class PolAnalyzer(Device):
     )
 
 
-pol = PolAnalyzer("4idbSoft:", name="pol")
+pol = PolAnalyzer("4idbSoft:", name="pol", labels=("4idb",))
 
 for pa in [pol.vertical_preamp, pol.horizontal_preamp]:
     pa.offset_fine._string = False

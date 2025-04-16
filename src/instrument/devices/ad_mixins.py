@@ -15,13 +15,12 @@ from ophyd.areadetector.plugins import (
     ROIStatPlugin_V34,
     ROIStatNPlugin_V25,
     AttributePlugin_V34,
+    ProcessPlugin_V34
 )
 from ophyd.areadetector.filestore_mixins import FileStoreBase
 from apstools.devices import CamMixin_V34
 from os.path import isfile
 from itertools import count
-from time import sleep
-from collections import OrderedDict
 from pathlib import Path
 from ..utils.config import iconfig
 from ..utils._logging_setup import logger
@@ -43,6 +42,10 @@ class ImagePlugin(PluginMixin, ImagePlugin_V34):
 
 
 class PvaPlugin(PluginMixin, PvaPlugin_V34):
+    """Remove property attribute found in AD IOCs now."""
+
+
+class ProcessPlugin(PluginMixin, ProcessPlugin_V34):
     """Remove property attribute found in AD IOCs now."""
 
 
@@ -127,9 +130,83 @@ class StatsPlugin(PluginMixin, StatsPlugin_V34):
         )
     )
 
-    # These generates confusion as it's the exact same as sigma.x and .y 
+    # These generates confusion as it's the exact same as sigma.x and .y
     sigma_x = None
     sigma_y = None
+
+    # This is to auto-set the kind depending on what is being computed.
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.compute_statistics.subscribe(self._control_stats)
+        self.compute_centroid.subscribe(self._control_centroid)
+        self.compute_profiles.subscribe(self._control_profile)
+        self.compute_histogram.subscribe(self._control_histogram)
+
+    def start_auto_kind(self):
+        self.compute_statistics.subscribe(self._control_stats)
+        self.compute_centroid.subscribe(self._control_centroid)
+        self.compute_profiles.subscribe(self._control_profile)
+        self.compute_histogram.subscribe(self._control_histogram)
+
+    def stop_auto_kind(self):
+        for item in (
+            "compute_statistics",
+            "compute_centroid",
+            "compute_profiles",
+            "compute_histogram"
+        ):
+            getattr(self, item).unsubscribe_all()
+
+    def _control_stats(self, value, **kwargs):
+        items = (
+            "bgd_width",
+            "max_value",
+            "min_value",
+            "max_xy",
+            "max_xy.x",
+            "max_xy.y",
+            "min_xy",
+            "min_xy.x",
+            "min_xy.y",
+            "total",
+            "net",
+            "mean_value",
+            "sigma_value"
+        )
+        k = "normal" if value == "Yes" else "omitted"
+        for item in items:
+            getattr(self, item).kind = k
+
+    def _control_centroid(self, value, **kwargs):
+        items = (
+            "centroid",
+            "centroid.x",
+            "centroid.y",
+            "sigma_xy",
+            "sigma",
+            'sigma.x',
+            'sigma.y',
+            'centroid_total',
+            'eccentricity',
+            'orientation',
+            'kurtosis',
+            'skew'
+        )
+        k = "normal" if value == "Yes" else "omitted"
+        for item in items:
+            getattr(self, item).kind = k
+
+    def _control_profile(self, value, **kwargs):
+        items = [item for item in self.component_names if "profile" in item]
+        k = "normal" if value == "Yes" else "omitted"
+        for item in items:
+            getattr(self, item).kind = k
+
+    def _control_histogram(self, value, **kwargs):
+        items = [item for item in self.component_names if "hist" in item]
+        k = "normal" if value == "Yes" else "omitted"
+        for item in items:
+            getattr(self, item).kind = k
 
 
 class CodecPlugin(PluginMixin, CodecPlugin_V34):
@@ -283,18 +360,24 @@ class FileStoreHDF5IterativeWriteEpicsName(FileStorePluginBaseEpicsName):
             [
                 ("file_template", "%s%s_%6.6d.h5"),
                 ("file_write_mode", "Stream"),
-                ("capture", 0),  # TODO: Is this true for the EIGER???? --> NO!
+                ("capture", 1),
             ]
         )
         self._point_counter = None
+        # TODO: Come up with a better way to do this... AtributeSignal?
+        self._num_images_device = "cam.num_images"
+
+    @property
+    def _num_images_signal(self):
+        return getattr(self.root, self._num_images_device)
 
     def get_frames_per_point(self):
         num_capture = self.num_capture.get()
         # If num_capture is 0, then the plugin will capture however many frames
-        # it is sent. We can get how frames it will be sent (unless
+        # it is sent. We can get how many frames it will be sent (unless
         # interrupted) by consulting num_images on the detector's camera.
         if num_capture == 0:
-            return self.parent.cam.num_images.get()
+            return self._num_images_signal.get()
         # Otherwise, a nonzero num_capture will cut off capturing at the
         # specified number.
         return num_capture
@@ -387,55 +470,6 @@ class PolarHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
         super().unstage()
 
 
-def AD_plugin_primed_vortex(plugin):
-    """
-    Modification of the APS AD_plugin_primed for Vortex.
-
-    Uses the timestamp = 0 as a sign of an unprimed plugin. Not sure this is
-    generic.
-    """
-
-    return plugin.time_stamp.get() != 0
-
-
-def AD_prime_plugin2_vortex(plugin):
-    """
-    Modification of the APS AD_plugin_primed for Vortex.
-
-    Some area detectors PVs are not setup in the Vortex.
-    """
-    if AD_plugin_primed_vortex(plugin):
-        logger.debug("'%s' plugin is already primed", plugin.name)
-        return
-
-    sigs = OrderedDict(
-        [
-            (plugin.enable, 1),
-            (plugin.parent.cam.array_callbacks, 1),  # set by number
-            (plugin.parent.cam.image_mode, 0),  # Single, set by number
-            # Trigger mode names are not identical for every camera.
-            # Assume here that the first item in the list is
-            # the best default choice to prime the plugin.
-            (plugin.parent.cam.trigger_mode, 1),  # set by number
-            # just in case the acquisition time is set very long...
-            (plugin.parent.cam.acquire_time, 1),
-            (plugin.parent.cam.acquire, 1),  # set by number
-        ]
-    )
-
-    original_vals = {sig: sig.get() for sig in sigs}
-
-    for sig, val in sigs.items():
-        sleep(0.1)  # abundance of caution
-        sig.set(val).wait()
-
-    sleep(2)  # wait for acquisition
-
-    for sig, val in reversed(list(original_vals.items())):
-        sleep(0.1)
-        sig.set(val).wait()
-
-
 class TriggerBase(BlueskyInterface):
     """Base class for trigger mixin classes
 
@@ -444,7 +478,13 @@ class TriggerBase(BlueskyInterface):
     ``acquire_changed(self, value=None, old_value=None, **kwargs)``
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(
+            self,
+            *args,
+            acquisition_signal_dev="cam.acquire",
+            acquire_busy_signal_dev="cam.acquire_busy",
+            **kwargs
+    ):
         super().__init__(*args, **kwargs)
         # settings
         # careful here: quadEM devices have areadetector components but,
@@ -456,15 +496,15 @@ class TriggerBase(BlueskyInterface):
                     ("cam.image_mode", 1),  # 'Multiple' mode
                 ]
             )
-            self._acquisition_signal_pv = "cam.acquire"
-            self._acquire_busy_signal_pv = "cam.acquire_busy"
+            self._acquisition_signal_dev = acquisition_signal_dev
+            self._acquire_busy_signal_dev = acquire_busy_signal_dev
 
         self._status = None
 
     @property
     def _acquisition_signal(self):
-        getattr(self, self._acquisition_signal_pv)
+        return getattr(self, self._acquisition_signal_dev)
 
     @property
     def _acquire_busy_signal(self):
-        getattr(self, self._acquire_busy_signal_pv)
+        return getattr(self, self._acquire_busy_signal_dev)

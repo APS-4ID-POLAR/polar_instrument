@@ -55,21 +55,21 @@ class SlitDevice(Device):
         setpoint_pv='H:size.VAL',
     )
 
-    def __init__(self, PV, name, motorsDict, slitnum, **kwargs):
+    def __init__(self, PV, motorsDict, slitnum, **kwargs):
 
         self._motorsDict = motorsDict
         self._slit_prefix = f'Slit{slitnum}'
 
-        super().__init__(prefix=PV, name=name, **kwargs)
+        super().__init__(prefix=PV, **kwargs)
 
 
 # Mono JJ slit
 monoslt = SlitDevice(
     '4idVDCM:',
-    'monoslt',
     {'top': 'm14', 'bot': 'm13', 'out': 'm16', 'inb': 'm15'},
     2,
-    labels=('slit',)
+    name='monoslt',
+    labels=("4ida", 'slit',)
 )
 monoslt.vcen.tolerance.put(0.001)
 monoslt.vsize.tolerance.put(0.001)
@@ -77,8 +77,17 @@ monoslt.vsize.tolerance.put(0.001)
 # 4idb JJ slit
 bslt = SlitDevice(
     '4idbSoft:',
-    'bslt',
     {'top': 'm11', 'bot': 'm10', 'out': 'm13', 'inb': 'm12'},
     1,
-    labels=('slit',)
+    name='bslt',
+    labels=("4idb", 'slit',)
+)
+
+# 4idg incident JJ slit
+gslt = SlitDevice(
+    '4idgSoft:',
+    {'top': 'm44', 'bot': 'm43', 'out': 'm46', 'inb': 'm45'},
+    1,
+    name='gslt',
+    labels=("4idg", 'slit',)
 )

@@ -16,4 +16,6 @@ class WindowStages(Device):
     y = Component(EpicsMotor, "m2", labels=("motor",))
 
 
-diamond_window = WindowStages("4idbSoft:", name="diamond_window")
+diamond_window = WindowStages(
+    "4idbSoft:", name="diamond_window", labels=("4ida",)
+)

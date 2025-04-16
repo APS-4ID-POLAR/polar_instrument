@@ -95,6 +95,9 @@ class CaenPositioner(PVPositionerSoftDoneWithStop):
         self.setpoint.subscribe(self.cb_update_target)
         self.thread = None
 
+    def cb_update_target(self, value, *args, **kwargs):
+        self.target.put(value)
+
     def set(self, new_position, *, timeout=None, moved_cb=None, wait=False):
         if self.thread is not None and self.thread.is_alive():
             self.thread.stop()

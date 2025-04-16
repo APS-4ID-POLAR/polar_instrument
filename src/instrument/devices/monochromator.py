@@ -93,3 +93,5 @@ class MonoDevice(PseudoPositioner):
 mono = MonoDevice(
     "4idVDCM:", name="mono", labels=("monochromator", "energy", "4ida")
 )
+
+mono._sub_devices.remove("crystal_select")

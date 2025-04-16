@@ -14,7 +14,6 @@ RUN_ENGINE:
     DEFAULT_METADATA:
         beamline_id: 4id-polar
         instrument_name: *station
-        proposal_id: internal
         databroker_catalog: *databroker_catalog
 
     ### EPICS PV to use for the `scan_id`.

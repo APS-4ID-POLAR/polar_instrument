@@ -20,11 +20,13 @@ class PresetMonitorSignal(Signal):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._readback = 0
+        self._freq = getattr(self.parent, "freq", None)
 
     def get(self, **kwargs):
         self._readback = self.parent._monitor.preset.get()
         if self.parent._monitor.s.name == 'Time':
-            self._readback /= 1e7  # convert to seconds
+            freq = 1e7 if not self._freq else self._freq.get()
+            self._readback /= freq  # convert to seconds
         return self._readback
 
     def put(self, value, *, timestamp=None, force=False, metadata=None):
@@ -56,7 +58,8 @@ class PresetMonitorSignal(Signal):
 
         # if self.parent._monitor.s.name == 'Time':
         if "chan01" in self.parent._monitor.name:
-            value_put = 1e7*value  # convert to seconds
+            freq = 1e7 if not self._freq else self._freq.get()
+            value_put = freq*value  # convert to seconds
         else:
             value_put = value
 

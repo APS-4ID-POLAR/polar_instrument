@@ -2,7 +2,7 @@
 Kepko power supply
 """
 
-__all__ = ['kepco']
+# __all__ = ['kepco']
 
 from ophyd import Component, FormattedComponent, Device, Kind
 from ophyd import EpicsSignal, EpicsSignalRO
@@ -25,7 +25,7 @@ class LocalPositioner(PVPositionerSoftDoneWithStop):
 
     def __init__(self, *args, progtype, **kwargs):
         self._type = progtype
-        super().__init__(*args, readback_pv="1", tolerance=0.02, **kwargs)
+        super().__init__(*args, readback_pv="1", **kwargs)
 
 
 class KepcoController(Device):
@@ -54,5 +54,5 @@ class KepcoController(Device):
             self.voltage.readback.kind = Kind.hinted
 
 
-kepco = KepcoController('4idd:BOP:PS1:', name='kepco', labels=("magnet",))
-kepco.mode_change(value=kepco.mode.get())
+# kepco = KepcoController('4idd:BOP:PS1:', name='kepco', labels=("magnet",))
+# kepco.mode_change(value=kepco.mode.get())

@@ -23,9 +23,8 @@ from .utils.best_effort import bec  # noqa
 from .utils.best_effort import peaks  # noqa
 from .utils.catalog import full_cat  # noqa
 from .utils.functions import running_in_queueserver  # noqa
-from .utils.ophyd_setup import oregistry  # noqa
-from .utils.run_engine import RE  # noqa
-from .utils.run_engine import sd  # noqa
+from .utils.oregistry_setup import oregistry, get_devices  # noqa
+from .utils.run_engine import RE, sd  # noqa
 
 # Configure the session with callbacks, devices, and plans.
 # These imports must come after the above setup.
@@ -48,14 +47,10 @@ from .utils.polartools_hklpy_imports import *  # noqa
 from .utils import *
 
 # TODO: Loads plans for development, remove for production.
-from .utils.tests.common import *  # noqa
+# from .utils.tests.common import *  # noqa
 
 from IPython import get_ipython
 from .utils.local_magics import LocalMagics
 get_ipython().register_magics(LocalMagics)
 
 cat = db_query(full_cat, dict(instrument_name = f'polar-{environ["POLAR_INSTRUMENT"]}'))
-
-# TODO: this is useful while we are doing pre-commissioning tests
-# Remove everything from baseline.
-sd.baseline = []

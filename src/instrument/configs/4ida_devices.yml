@@ -1,9 +1,21 @@
 # 4ID-A setup
 
-s4idundulator:
+aps_xbpm:
+  device: aps_xbpm
+  baseline: True
+
+aps_undulator:
   device: undulators
   baseline: True
   timeout: 2
+
+aps_phase_shifter:
+  device: pshift
+  baseline: True
+
+aps_status:
+  device: status_aps
+  baseline: True
 
 hhl_mirror:
   device: hhl_mirror
@@ -39,7 +51,7 @@ jj_slits:
 
 phaseplates:
   device: [pr1, pr2, pr3]
-  baseline: [true, true, true]
+  baseline: [True, True, True]
 
 energy_device:
   device: energy
@@ -51,4 +63,12 @@ qxscan_setup:
 
 data_management:
   device: [dm_experiment, dm_workflow]
+  baseline: [True, True]
+
+polar_status:
+  device: [status_polar]
+  baseline: [True]
+
+shutters:
+  device: [ashutter, bshutter]
   baseline: [True, True]

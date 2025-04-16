@@ -26,17 +26,29 @@ table_4idb:
   baseline: True
 
 tetramms:
-  device: tetramm_4idb
-  baseline: True
-
-jj_slits:
-  device: bslt
+  device: btetramm
   baseline: True
 
 polarimeter:
   device: pol
   baseline: False
 
-magnet_kepco:
-  device: kepco
+jj_slits:
+  device: bslt
+  baseline: True
+
+filters_device:
+  device: bfilter
+  baseline: True
+
+chopper_device:
+  device: chopper
+  baseline: True
+
+kb_mirrors:
+  device: kbb
+  baseline: True
+
+electromagnet:
+  device: emag
   baseline: True
