@@ -195,7 +195,7 @@ class ExperimentClass:
         self.file_base_name = (
             base_name or input(f"Enter files base name [{guess}]: ") or guess
         )
-        RE.md["base_name"] = base_name
+        RE.md["base_name"] = self.file_base_name
 
     def server_input(self, server: str = None):
         _server_options = str(tuple(SERVERS.keys()))

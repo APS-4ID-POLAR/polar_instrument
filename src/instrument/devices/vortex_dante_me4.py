@@ -199,6 +199,10 @@ class DanteDetector(Trigger, DetectorBase):
     @property
     def preset_monitor(self):
         return self.cam.real_time_preset
+    
+    @property
+    def num_channels(self):
+        return self._num_channels
 
     def align_on(self):
         """Start detector in alignment mode"""
@@ -229,7 +233,8 @@ class DanteDetector(Trigger, DetectorBase):
         self.hdf1.file_path.put(str(DEFAULT_FOLDER))
         self.hdf1.num_capture.put(0)
 
-        self.hdf1.stage_sigs.pop("enable")
+        if "enable" in self.hdf1.stage_sigs.keys():
+            self.hdf1.stage_sigs.pop("enable")
         self.hdf1.stage_sigs["num_capture"] = 0
         self.hdf1.stage_sigs["capture"] = 1
 
@@ -255,25 +260,61 @@ class DanteDetector(Trigger, DetectorBase):
 
     # TODO: Probably need to take another look at read_rois.setter and
     # select_roi
+    # @property
+    # def read_rois(self):
+    #     return self._read_rois
+
+    # @read_rois.setter
+    # def read_rois(self, rois):
+    #     self._read_rois = list(rois)
+
+    # def select_roi(self, rois):
+
+    #     for i in range(MAX_ROIS):
+    #         kh = "hinted" if i in rois else "normal"
+    #         getattr(self.total, f"roi{i}").kind = kh
+
+    #         if kh == "hinted" and i not in self.read_rois:
+    #             self.read_rois.append(i)
+
+    #         kr = "normal" if i in self.read_rois else "omitted"
+    #         getattr(self.total, f"roi{i}").kind = kr
     @property
     def read_rois(self):
         return self._read_rois
 
     @read_rois.setter
     def read_rois(self, rois):
+        # Change total kinds
+        for i in range(MAX_ROIS):
+            if i in rois:
+                ktot = getattr(self.total, f"roi{i}").kind.name
+                if ktot == "omitted":
+                    getattr(self.total, f"roi{i}").kind = "normal"
+            else:
+                getattr(self.total, f"roi{i}").kind = "omitted"
+
+        # change ROISTAT kinds
+        for pixel in range(1, self.num_channels+1):
+            pix = getattr(self.mcas, f"mca{pixel}")
+            for i in range(MAX_ROIS):
+                k = "normal" if i in rois else "omitted"
+                getattr(pix.rois, f"roi{i}").kind = k
+
         self._read_rois = list(rois)
 
     def select_roi(self, rois):
-
         for i in range(MAX_ROIS):
-            kh = "hinted" if i in rois else "normal"
-            getattr(self.total, f"roi{i}").kind = kh
+            k = (
+                "hinted" if i in rois else
+                "normal" if i in self.read_rois else
+                "omitted"
+            )
 
-            if kh == "hinted" and i not in self.read_rois:
+            getattr(self.total, f"roi{i}").kind = k
+
+            if k == "hinted" and i not in self.read_rois:
                 self.read_rois.append(i)
-
-            kr = "normal" if i in self.read_rois else "omitted"
-            getattr(self.total, f"roi{i}").kind = kr
 
     def plot_roi0(self):
         self.select_roi([0])

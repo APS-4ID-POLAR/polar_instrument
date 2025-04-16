@@ -6,6 +6,8 @@ from ophyd import (
     EpicsSignalRO, EpicsSignal, DynamicDeviceComponent
 )
 from ophyd.areadetector import ADBase, ADComponent, EpicsSignalWithRBV, ad_group
+from collections import OrderedDict
+from time import sleep
 from .ad_mixins import PolarHDF5Plugin
 
 
@@ -84,7 +86,7 @@ class DanteCAM(ADBase):
 
     wait_for_plugins = ADComponent(EpicsSignal, "WaitForPlugins")
 
-    image_counter = ADComponent(EpicsSignalWithRBV, "ArrayCounter")
+    array_counter = ADComponent(EpicsSignalWithRBV, "ArrayCounter")
     image_rate = ADComponent(EpicsSignalRO, "ArrayRate_RBV")
 
     array_callbacks = ADComponent(EpicsSignal, "ArrayCallbacks")
@@ -178,3 +180,27 @@ class DanteHDF1Plugin(PolarHDF5Plugin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._num_images_device = "cam.mca_mapping_points"
+
+    def warmup(self):
+        sigs = OrderedDict(
+            [
+                (self.enable, 1),
+                (self.parent.cam.array_callbacks, 1),  # set by number
+                (self.parent.cam.mca_mode, "MCA Mapping"),
+                (self.parent.cam.mca_mapping_points, 1),
+                (self.parent.preset_monitor, 1),
+                (self.parent.cam.acquire_start, 1),  # set by number
+            ]
+        )
+
+        original_vals = {sig: sig.get() for sig in sigs}
+
+        for sig, val in sigs.items():
+            sleep(0.1)  # abundance of caution
+            sig.set(val).wait()
+
+        sleep(2)  # wait for acquisition
+
+        for sig, val in reversed(list(original_vals.items())):
+            sleep(0.1)
+            sig.set(val).wait()

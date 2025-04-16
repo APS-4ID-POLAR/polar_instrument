@@ -12,6 +12,7 @@ from streamz import Source
 from numpy import mean, log, array
 from ophyd import Signal, Device, Component
 from ..utils.run_engine import sd
+from ..utils._logging_setup import logger
 
 
 class DichroDevice(Device):
@@ -29,8 +30,8 @@ class DichroDevice(Device):
 
 class Settings():
     positioner = "energy"
-    monitor = "4idbI0"
-    detector = "4idbI"
+    monitor = "4idgI0"
+    detector = "4idbI_APD"
     transmission = True
 
 
@@ -102,9 +103,16 @@ class DichroStream(LiveDispatcher):
                     (_xas[0] + _xas[3])/2 - (_xas[1] + _xas[2])/2
                 )
             else:
-                raise Exception(
-                    'The input data keys do not match entries in the database.'
+                # raise Exception(
+                #     'The input data keys do not match entries in the database.'
+                # )
+                logger.warning(
+                    "The input data keys do not match entries in the database. "
+                    "Data is being recorded, but the plot will not be generated."
                 )
+                processed_evt[self.data_keys[0]] = 0
+                processed_evt["xas"] = 0
+                processed_evt["xmcd"] = 0
 
             dichro.put((
                 processed_evt[self.data_keys[0]],

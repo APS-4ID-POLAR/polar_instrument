@@ -12,7 +12,9 @@ transfocator_device:
   device: transfocator
   baseline: True
 
-# Filters
+filters_device_new:
+  device: gfilter
+  baseline: True
 
 jj_slits:
   device: gslt
