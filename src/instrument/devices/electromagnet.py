@@ -6,7 +6,7 @@ Electromagnet
 __all__ = ['emag']
 
 from ophyd import Component, Device, EpicsMotor
-from .magnet_kepco import KepcoController
+from .magnet_kepco_4idb import KepcoController
 from ..utils._logging_setup import logger
 logger.info(__file__)
 
