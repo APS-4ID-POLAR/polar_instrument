@@ -46,6 +46,10 @@ polar_diffractometer:
 #   device: diff_nano
 #   baseline: True
 
+lakeshores_temperature:
+  device: temperature_4idg
+  baseline: True
+
 ad_eiger1M:
   device: eiger
   baseline: False
