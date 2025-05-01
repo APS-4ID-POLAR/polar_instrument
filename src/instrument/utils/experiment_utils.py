@@ -294,8 +294,10 @@ class ExperimentClass:
         if not self.experiment_path.is_dir():
             self.experiment_path.mkdir(parents=True)
 
-        print(f"Moving to the sample folder: {self.experiment_path}")
-        chdir(self.experiment_path)
+        # print(f"Moving to the sample folder: {self.experiment_path}")
+        # chdir(self.experiment_path)
+        print(f"Moving to the sample folder: {self.base_experiment_path}")
+        chdir(self.base_experiment_path)
 
     def scan_number_input(self, reset_scan_id: int = None):
         if isinstance(reset_scan_id, type(None)):
