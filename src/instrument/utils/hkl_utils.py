@@ -480,12 +480,12 @@ def list_reflections(all_samples=False):
                     "H",
                     "K",
                     "L",
-                    "Delta",
-                    "Eta",
+                    "Gamma",
+                    "Mu",
                     "Chi",
                     "Phi",
-                    "Nu",
-                    "Mu",
+                    "Delta",
+                    "Tau",
                     "orienting",
                 )
             )
@@ -2020,11 +2020,11 @@ def update_lattice(lattice_constant=None):
         )
     else:
         print("Specify lattice parameter 'a', 'b' or 'c' or none")
-    if lattice_constant == "a" and round(hh) > 0:
+    if lattice_constant == "a" and abs(round(hh)) > 0:
         a = a / hh * round(hh)
-    elif lattice_constant == "b" and round(kk) > 0:
+    elif lattice_constant == "b" and abs(round(kk)) > 0:
         b = b / kk * round(kk)
-    elif lattice_constant == "c" and round(ll) > 0:
+    elif lattice_constant == "c" and abs(round(ll)) > 0:
         c = c / ll * round(ll)
     else:
         raise ValueError("Auto calc not possible.")

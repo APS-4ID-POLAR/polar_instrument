@@ -845,20 +845,6 @@ def qxscan(
     # Setup count time
     factor_list = yield from rd(qxscan_params.factor_list)
 
-    # TODO: The md handling might go well in a decorator.
-    # TODO: May need to add reference to stream.
-    _md = {'hints': {'monitor': counters.monitor, 'detectors': []}}
-    for item in detectors:
-        _md['hints']['detectors'].extend(item.hints['fields'])
-
-    _md["hints"]["scan_type"] = "qxscan"
-    if dichro:
-        _md['hints']['scan_type'] += " dichro"
-    if lockin:
-        _md['hints']['scan_type'] += " lockin"
-
-    _md.update(md or {})
-
     _ct = {}
     if time:
         if time < 0 and detectors != [counters.default_scaler]:
@@ -871,6 +857,40 @@ def qxscan(
         for det in detectors:
             _ct[det] = yield from rd(det.preset_monitor)
             args += (det.preset_monitor, _ct[det]*array(factor_list))
+
+    _master_fullpath, _dets_file_paths, _rel_dets_paths = (
+        _setup_paths(detectors)
+    )
+
+    setup_nxwritter(
+        experiment.experiment_path, _master_fullpath, _rel_dets_paths
+    )
+
+    _md = dict(
+        hints={'monitor': counters.monitor, 'detectors': []},
+        data_management=experiment.data_management or "None",
+        esaf=experiment.esaf,
+        proposal=experiment.proposal,
+        base_experiment_path=str(experiment.base_experiment_path),
+        experiment_path=str(experiment.experiment_path),
+        master_file_path=str(_master_fullpath),
+        detectors_file_full_path=_dets_file_paths,
+        detectors_file_relative_path=_rel_dets_paths,
+    )
+
+    # TODO: The md handling might go well in a decorator.
+    # TODO: May need to add reference to stream.
+    # _md = {'hints': {'monitor': counters.monitor, 'detectors': []}}
+    for item in detectors:
+        _md['hints']['detectors'].extend(item.hints['fields'])
+
+    _md["hints"]["scan_type"] = "qxscan"
+    if dichro:
+        _md['hints']['scan_type'] += " dichro"
+    if lockin:
+        _md['hints']['scan_type'] += " lockin"
+
+    _md.update(md or {})
 
     @subs_decorator(nxwriter.receiver)
     @configure_counts_decorator(detectors, time)

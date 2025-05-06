@@ -14,7 +14,8 @@ from .ad_mixins import (
     ROIPlugin,
     StatsPlugin,
     PolarHDF5Plugin,
-    ProcessPlugin
+    ProcessPlugin,
+    TransformPlugin
 )
 from ..utils._logging_setup import logger
 from ..utils.config import iconfig
@@ -160,6 +161,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
     cam = ADComponent(EigerDetectorCam, "cam1:")
     codec = ADComponent(CodecPlugin, "Codec1:")
     proc = ADComponent(ProcessPlugin, "Proc1:")
+    trans = ADComponent(TransformPlugin, "Trans1:")
     image = ADComponent(ImagePlugin, "image1:")
     hdf1 = ADComponent(PolarHDF5Plugin, "HDF1:")
 

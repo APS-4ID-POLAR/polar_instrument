@@ -15,7 +15,8 @@ from ophyd.areadetector.plugins import (
     ROIStatPlugin_V34,
     ROIStatNPlugin_V25,
     AttributePlugin_V34,
-    ProcessPlugin_V34
+    ProcessPlugin_V34,
+    TransformPlugin_V34
 )
 from ophyd.areadetector.filestore_mixins import FileStoreBase
 from apstools.devices import CamMixin_V34
@@ -35,6 +36,10 @@ class PluginMixin(PluginBase_V34):
     """Remove property attribute found in AD IOCs now."""
 
     _asyn_pipeline_configuration_names = None
+
+
+class TransformPlugin(PluginMixin, TransformPlugin_V34):
+    """Remove property attribute found in AD IOCs now."""
 
 
 class ImagePlugin(PluginMixin, ImagePlugin_V34):

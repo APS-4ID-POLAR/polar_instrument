@@ -58,9 +58,9 @@ class APSFilter(Device):
 
     status = Component(EpicsSignalRO, "filterBusy", string=True)
 
-    attenuation_setpoint = Component(EpicsSignalRO, "attenuation")
+    attenuation_setpoint = Component(EpicsSignal, "attenuation")
     attenuation_readback = Component(
-        EpicsSignal, "attenuation_actual", kind="config"
+        EpicsSignalRO, "attenuation_actual", kind="config"
     )
 
     sorted_index = Component(EpicsSignalWithRBV, "sortedIndex")
@@ -69,7 +69,9 @@ class APSFilter(Device):
     attenuation_3e_harmonic = Component(EpicsSignalRO, "attenuation_3E_actual")
 
     # Configuration
-    inter_filter_delay = Component(EpicsSignal, "interFilterDelay", kind="config")
+    inter_filter_delay = Component(
+        EpicsSignal, "interFilterDelay", kind="config"
+    )
 
     filters = DynamicDeviceComponent(make_filter_slots(NUM_FILTERS))
 
