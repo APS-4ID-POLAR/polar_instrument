@@ -1,4 +1,4 @@
-# Master configuration for the Bluesky instrument package
+# Configuration for the Bluesky instrument package.
 
 # identify the version of this iconfig.yml file
 ICONFIG_VERSION: 2.0.0
@@ -14,28 +14,30 @@ RUN_ENGINE:
     DEFAULT_METADATA:
         beamline_id: 4id-polar
         instrument_name: *station
+        proposal_id: commissioning
         databroker_catalog: *databroker_catalog
 
     ### EPICS PV to use for the `scan_id`.
     ### Default: `RE.md["scan_id"]` (not using an EPICS PV)
-    # SCAN_ID_PV: f"{IOC}bluesky_scan_id"
+    # SCAN_ID_PV: "IOC:bluesky_scan_id"
 
-    ### Directory to "autosave" the RE.md dictionary (uses PersistentDict).
-    ### Default: HOME/.config/Bluesky_RunEngine_md'
+    ### Where to "autosave" the RE.md dictionary.
+    ### Defaults:
     MD_PATH: /home/beams/POLAR/.config/Bluesky_RunEngine_md_dev
 
     ### The progress bar is nice to see,
     ### except when it clutters the output in Jupyter notebooks.
-    ### Default: True
+    ### Default: False
     USE_PROGRESS_BAR: true
 
 ### Best Effort Callback Configurations
-### Defaults: all true (except no plots in queueserver)
+### Defaults: all true
+### except no plots in queueserver
 BEC:
-    BASELINE: false
-#     HEADING: false
-#     PLOTS: false
-#     TABLE: false
+    BASELINE: true
+    HEADING: true
+    PLOTS: false
+    TABLE: true
 
 ### APS Data Management
 ### Use bash shell, deactivate all conda environments, source this file:
@@ -73,12 +75,16 @@ AREA_DETECTOR:
 ### Uncomment to use.  If undefined, will not write that type of file.
 ### Each callback should apply its configuration from here.
 NEXUS_DATA_FILES:
-    ENABLE: true
+    ENABLE: false
     FILE_EXTENSION: hdf
-    WARN_MISSING_CONTENT: false
+
 SPEC_DATA_FILES:
     ENABLE: true
     FILE_EXTENSION: dat
+
+### APS Data Management
+### Use bash shell, deactivate all conda environments, source this file:
+DM_SETUP_FILE: "/home/dm/etc/dm.setup.sh"
 
 # ----------------------------------
 
@@ -90,17 +96,8 @@ OPHYD:
 
     ### default timeouts (seconds)
     TIMEOUTS:
-        PV_READ: &TIMEOUT 15
+        PV_READ: &TIMEOUT 5
         PV_WRITE: *TIMEOUT
-        PV_CONNECTION: 5
+        PV_CONNECTION: *TIMEOUT
 
-LOGGING:
-    ### Uncomment any of these to override the defaults
-    # MAX_BYTES: 1000000
-    NUMBER_OF_PREVIOUS_BACKUPS: 9
-    LOG_PATH: /net/s4data/export/sector4/4idd/bluesky_logs
-    ### If LOG_PATH undefined, this session will log into PWD/logs/
-    ### where PWD is present working directory when session is started
-
-# Control detail of exception traces in IPython (console and notebook).
 XMODE_DEBUG_LEVEL: Plain
