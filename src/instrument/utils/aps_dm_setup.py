@@ -15,12 +15,14 @@ __all__ = []
 import logging
 import os
 import pathlib
-
-from .config import iconfig
+from apsbits.utils.config_loaders import get_config
 from apstools.utils.aps_data_management import dm_setup
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
+
+# Get the configuration
+iconfig = get_config()
 
 dm_setup_file = iconfig.get("DM_SETUP_FILE")
 if dm_setup_file is not None:

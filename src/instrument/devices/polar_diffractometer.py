@@ -1,8 +1,6 @@
 """
-Simulated polar
+Polar diffractometer
 """
-
-__all__ = ["huber_euler", "huber_hp", "huber_euler_psi", "huber_hp_psi"]
 
 from ophyd import (
     Component,
@@ -22,16 +20,12 @@ from .jj_slits import SlitDevice
 from .huber_filter import HuberFilter
 from ..utils.analyzer_utils import check_structure_factor, calcdhkl
 
-from ..utils import logger
 import gi
 
 gi.require_version("Hkl", "5.0")
 # MUST come before `import hkl`
 from hkl.geometries import ApsPolar
-from hkl.user import select_diffractometer
 import math
-
-logger.info(__file__)
 
 # Constants
 WAVELENGTH_CONSTANT = 12.39
@@ -315,6 +309,9 @@ class SixCircleDiffractometer(ApsPolar):
                 c_hints = component.hints
                 fields.extend(c_hints.get("fields", []))
         return {"fields": fields}
+    
+    def default_settings(self):
+        self._update_calc_energy()
 
 
 class CradleDiffractometer(SixCircleDiffractometer):
@@ -377,47 +374,3 @@ class CradlePSI(PolarPSI):
 class HPPSI(PolarPSI):
     chi = Component(EpicsMotor, "m5", labels=("motor",))
     phi = Component(EpicsMotor, "m6", labels=("motor",))
-
-
-huber_euler = CradleDiffractometer(
-    "4idgSoft:",
-    name="huber_euler",
-    labels=(
-        "4idg",
-        "diffractometer",
-    ),
-)
-
-
-huber_hp = HPDiffractometer(
-    "4idgSoft:",
-    name="huber_hp",
-    labels=(
-        "4idg",
-        "diffractometer",
-    ),
-)
-
-huber_euler_psi = CradlePSI(
-    "4idgSoft:",
-    name="huber_euler_psi",
-    engine="psi",
-    labels=(
-        "4idg",
-        "diffractometer",
-    ),
-)
-
-huber_hp_psi = CradlePSI(
-    "4idgSoft:",
-    name="huber_hp_psi",
-    engine="psi",
-    labels=(
-        "4idg",
-        "diffractometer",
-    ),
-)
-
-select_diffractometer(huber_euler)
-huber_euler._update_calc_energy()
-huber_euler_psi._update_calc_energy()

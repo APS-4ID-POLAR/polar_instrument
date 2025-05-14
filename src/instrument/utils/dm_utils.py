@@ -21,8 +21,6 @@ from pathlib import Path
 from time import time
 from bluesky.plan_stubs import sleep, null
 from ..devices.data_management import dm_workflow
-from ._logging_setup import logger
-logger.info(__file__)
 
 __all__ = """
     dm_get_experiment_data_path
