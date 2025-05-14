@@ -1,31 +1,31 @@
 # Guarneri-style device YAML configuration
 
-polartools.devices.aps_xbpm.MyXBPM:
+instrument.devices.aps_xbpm.MyXBPM:
 - name: aps_xbpm
   prefix: S04
   labels: ["source"]
 
-polartools.devices.aps_undulator.PolarUndulatorPair:
+instrument.devices.aps_undulator.PolarUndulatorPair:
 - name: undulators
   prefix: "S04ID:"
   labels: ["source", "energy"]
 
-polartools.devices.aps_status.StatusAPS:
+instrument.devices.aps_status.StatusAPS:
 - name: status_aps
   prefix: ""
   labels: ["source", "status"]
 
-polartools.devices.hhl_mirror.ToroidalMirror:
+instrument.devices.hhl_mirror.ToroidalMirror:
 - name: hhl_mirror
   prefix: "4idHHLM:"
   labels: ["4ida", "mirror"]
 
-polartools.devices.monochromator.MonoDevice:
+instrument.devices.monochromator.MonoDevice:
 - name: mono
   prefix: "4idVDCM:"
   labels: ["4ida", "monochromator", "energy"]
 
-polartools.devices.labjacks.CustomLabJackT7:
+instrument.devices.labjacks.CustomLabJackT7:
 - name: labjack_4ida
   prefix: "4idaSoft:LJ:"
   labels: ["4ida"]
@@ -34,7 +34,7 @@ polartools.devices.labjacks.CustomLabJackT7:
   prefix: "4idLabJackT7_1:"
   labels: ["4idb"]
 
-polartools.devices.ad_vimba.VimbaDetector:
+instrument.devices.ad_vimba.VimbaDetector:
 - name: flagcam_hhl
   prefix: "4idaPostMirrBeam:"
   labels: ["4ida", "camera", "detector", "flag"]
@@ -60,7 +60,7 @@ ophyd.EpicsMotor:
   prefix: "4idbSoft:m3"
   labels: ["4idb", "motor", "flag"]
 
-polartools.devices.jj_slits.SlitDevice:
+instrument.devices.jj_slits.SlitDevice:
 - name: monoslt
   PV: "4idVDCM:"
   motorsDict: {top: m14, bot: m13, out: m16, inb: m15}
@@ -79,7 +79,7 @@ polartools.devices.jj_slits.SlitDevice:
   slitnum: 1
   labels: ["4idg", "slit"]
 
-# # polartools.devices.phaseplates.PRDevice:
+# # instrument.devices.phaseplates.PRDevice:
 # # - name: pr1
 # #   PV: "4ida:"
 # #   prnum: 1
@@ -92,13 +92,13 @@ polartools.devices.jj_slits.SlitDevice:
 # #   motorsDict: {x: m6, y: m7, th: m9}
 # #   labels: ["4ida", "phase retarder", "energy", "track_energy"]
 
-# # polartools.devices.phaseplates.PRDeviceBase:
+# # instrument.devices.phaseplates.PRDeviceBase:
 # # - name: pr3
 # #   PV: "4ida:"
 # #   motorsDict: {x: m10, y: m11, th: m12}
 # #   labels: ["4ida", "phase retarder", "energy", "track_energy"]
 
-# # polartools.devices.energy_device.EnergySignal:
+# # instrument.devices.energy_device.EnergySignal:
 # # - name: energy
 # #   value: 10
 # #   kind: hinted
@@ -114,12 +114,12 @@ ophyd.Signal:
   value: ""
   labels: ["dm"]
 
-polartools.devices.polar_status.Status4ID:
+instrument.devices.polar_status.Status4ID:
 - name: status_polar
   prefix: "PA:04ID:"
   labels: ["status"]
 
-polartools.devices.shutters.PolarShutter:
+instrument.devices.shutters.PolarShutter:
 - name: ashutter
   prefix: ""
   state_pv: "PA:04ID:A_BEAM_PRESENT"
@@ -135,7 +135,7 @@ apstools.devices.ApsPssShutterWithStatus:
   close_pv: "PC:04ID:SBS_CLOSE_REQUEST"
   labels: ["4idb", "shutter"]
 
-polartools.devices.scaler.LocalScalerCH:
+instrument.devices.scaler.LocalScalerCH:
 - name: scaler1
   prefix: "4idCTR8_1:scaler1"
   labels: ["detector", "scaler"]
@@ -144,27 +144,27 @@ polartools.devices.scaler.LocalScalerCH:
   prefix: "4idCTR8_1:scaler2"
   labels: ["detector", "scaler"]
 
-polartools.devices.usb_ctr8.CustomMeasCompCtr:
+instrument.devices.usb_ctr8.CustomMeasCompCtr:
 - name: ctr8
   prefix: "4idCTR8_1:"
   labels: ["detector"]
 
-polartools.devices.diamond_window_table.WindowStages:
+instrument.devices.diamond_window_table.WindowStages:
 - name: diamond_window
   prefix: "4idbSoft:"
   labels: ["4ida"]
 
-polartools.devices.table_4idb.Table4idb:
+instrument.devices.table_4idb.Table4idb:
 - name: midtable_4idb
   prefix: "4idbSoft:"
   labels: ["4idb"]
 
-polartools.devices.quadems.TetrAMMRO:
+instrument.devices.quadems.TetrAMMRO:
 - name: btetramm
   prefix: "4idbSoft:TetrAMM:"
   labels: ["detector", "xbpm"]
 
-polartools.devices.quadems.SydorEMRO:
+instrument.devices.quadems.SydorEMRO:
 - name: gsydor
   prefix: "4idgSydor:T4U_BPM:"
   labels: ["detector", "xbpm"]
@@ -173,47 +173,47 @@ polartools.devices.quadems.SydorEMRO:
   prefix: "4idhSydor:T4U_BPM:"
   labels: ["detector", "xbpm"]
 
-polartools.devices.polarimeter.PolAnalyzer:
+instrument.devices.polarimeter.PolAnalyzer:
 - name: pol
   prefix: "4idbSoft:"
   labels: ["4idb"]
 
-polartools.devices.filters_device.APSFilter:
+instrument.devices.filters_device.APSFilter:
 - name: bfilter
   prefix: "4idbSoft:filter:"
   labels: ["4idb", "filter"]
 
-polartools.devices.chopper_device.ChopperDevice:
+instrument.devices.chopper_device.ChopperDevice:
 - name: chopper
   prefix: "4idChopper:"
   labels: ["4idb"]
 
-polartools.devices.chopper_device.ChopperDevice:
+instrument.devices.chopper_device.ChopperDevice:
 - name: chopper
   prefix: "4idChopper:"
   labels: ["4idb"]
 
-polartools.devices.kb_mirrors.KBMirror:
+instrument.devices.kb_mirrors.KBMirror:
 - name: bkb
   prefix: "4idbSoft:"
   labels: ["4idb", "optics"]
 
-polartools.devices.electromagnet.Magnet2T:
+instrument.devices.electromagnet.Magnet2T:
 - name: emag
   prefix: ""
   labels: ["4idb", "magnet"]
 
-polartools.devices.xbpm_4idg.XBPM:
+instrument.devices.xbpm_4idg.XBPM:
 - name: gxbpm
   prefix: "4idgSoft:"
   labels: ["4idg"]
 
-polartools.devices.transfocator_device.TransfocatorClass:
+instrument.devices.transfocator_device.TransfocatorClass:
 - name: transfocator
   prefix: "4idPyCRL:CRL4ID:"
   labels: ["4idg", "optics", "track_energy"]
 
-polartools.devices.filters_device_avs.APSFilter:
+instrument.devices.filters_device_avs.APSFilter:
 - name: gfilter
   prefix: "4idPyFilter:FL1:"
   labels: ["4idg", "filter"]
@@ -223,29 +223,29 @@ apstools.devices.LakeShore336Device:
   prefix: "4idgSoft:LS336:cryo:"
   labels: ["4idg", "temperature"]
 
-# polartools.devices.polar_diffractometer.CradleDiffractometer:
+# instrument.devices.polar_diffractometer.CradleDiffractometer:
 # - name: huber_euler
 #   prefix: "4idgSoft:"
 #   labels: ["4idg", "diffractometer"]
 
-# polartools.devices.polar_diffractometer.HPDiffractometer:
+# instrument.devices.polar_diffractometer.HPDiffractometer:
 # - name: huber_hp
 #   prefix: "4idgSoft:"
 #   labels: ["4idg", "diffractometer"]
 
-# polartools.devices.polar_diffractometer.CradlePSI:
+# instrument.devices.polar_diffractometer.CradlePSI:
 # - name: huber_euler_psi
 #   prefix: "4idgSoft:"
 #   engine: psi
 #   labels: ["4idg", "diffractometer"]
 
-# polartools.devices.polar_diffractometer.HPPSI:
+# instrument.devices.polar_diffractometer.HPPSI:
 # - name: huber_hp_psi
 #   prefix: "4idgSoft:"
 #   engine: psi
 #   labels: ["4idg", "diffractometer"]
 
-polartools.devices.ad_eiger1M.Eiger1MDetector:
+instrument.devices.ad_eiger1M.Eiger1MDetector:
 - name: eiger
   prefix: "4idEiger:"
   labels: ["4idg", "detector"]

@@ -5,8 +5,6 @@ Ring XBPM support
 __all__ = ["aps_xbpm"]
 
 from ophyd import Component, Device, EpicsSignalRO
-from ..utils._logging_setup import logger
-logger.info(__file__)
 
 
 class CMsDevice(Device):

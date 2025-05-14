@@ -17,19 +17,6 @@ from .ad_mixins import (
     ProcessPlugin,
     TransformPlugin
 )
-from ..utils._logging_setup import logger
-from ..utils.config import iconfig
-logger.info(__file__)
-
-__all__ = ["eiger"]
-
-DEFAULT_FOLDER = Path(iconfig["AREA_DETECTOR"]["EIGER_1M"]["DEFAULT_FOLDER"])
-
-HDF1_NAME_TEMPLATE = iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"]
-HDF1_FILE_EXTENSION = iconfig["AREA_DETECTOR"]["HDF5_FILE_EXTENSION"]
-HDF1_NAME_FORMAT = HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION
-
-MAX_NUM_IMAGES = 600000
 
 
 class TriggerTime(TriggerBase):
@@ -68,7 +55,8 @@ class TriggerTime(TriggerBase):
         self.cam.stage_sigs["manual_trigger"] = "Enable"
         self.cam.stage_sigs["num_images"] = 1
         self.cam.stage_sigs["num_exposures"] = 1
-        # TODO: I don't like this too much, would prefer that we set this for each scan.
+        # TODO: I don't like this too much, would prefer that we set this for
+        # each scan.
         self.cam.stage_sigs["num_triggers"] = int(1e5)
 
     def setup_external_trigger(self, trigger_type="gate"):
@@ -85,20 +73,20 @@ class TriggerTime(TriggerBase):
             self.cam.stage_sigs["num_images"] = 1
             self.cam.stage_sigs["num_exposures"] = 1
             # TODO: We may not need this.
-            self.cam.stage_sigs["num_triggers"] = MAX_NUM_IMAGES
+            self.cam.stage_sigs["num_triggers"] = self.max_num_images
 
         elif trigger_type == "gate":
 
             # Stage signals
             self.cam.stage_sigs["num_triggers"] = 1
-            # The num_triggers need to be the first in the Ordered dict! This is because
-            # in EPICS, if trigger_mode = External Gate, then cannot change the
-            # num_triggers.
+            # The num_triggers need to be the first in the Ordered dict! This is
+            # because in EPICS, if trigger_mode = External Gate, then cannot
+            # change the num_triggers.
             self.cam.stage_sigs.move_to_end("num_triggers", last=False)
 
             self.cam.stage_sigs["trigger_mode"] = "External Gate"
             self.cam.stage_sigs["manual_trigger"] = "Disable"
-            self.cam.stage_sigs["num_images"] = MAX_NUM_IMAGES
+            self.cam.stage_sigs["num_images"] = self.max_num_images
             self.cam.stage_sigs["num_exposures"] = 1
 
     def stage(self):
@@ -118,8 +106,8 @@ class TriggerTime(TriggerBase):
             "Return True when detector is done"
             return (value == "Ready" or value == "Acquisition aborted")
 
-        # When stopping the detector, it may take some time processing the images.
-        # This will block until it's done.
+        # When stopping the detector, it may take some time processing the
+        # images. This will block until it's done.
         status_wait(
             SubscriptionStatus(
                 self.cam.status_message, check_value, timeout=10
@@ -175,6 +163,22 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
     stats4 = ADComponent(StatsPlugin, "Stats4:", kind="normal")
     stats5 = ADComponent(StatsPlugin, "Stats5:", kind="normal")
 
+    def __init__(
+        self,
+        *args,
+        default_folder="",
+        hdf1_name_template="%s/%s_%6.6d",
+        hdf1_file_extension="h5",
+        max_num_images=600000,
+        **kwargs
+    ):
+        self.default_folder = default_folder
+        self.hdf1_name_format = (
+            hdf1_name_template + "." + hdf1_file_extension
+        )
+        self.max_num_images = max_num_images
+        super().__init__(*args, **kwargs)
+
     # Make this compatible with other detectors
     @property
     def preset_monitor(self):
@@ -212,8 +216,8 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.cam.trigger_mode.put("Internal Enable")
         self.cam.acquire.put(0)
 
-        self.hdf1.file_template.put(HDF1_NAME_FORMAT)
-        self.hdf1.file_path.put(str(DEFAULT_FOLDER))
+        self.hdf1.file_template.put(self.hdf1_name_format)
+        self.hdf1.file_path.put(str(self.default_folder))
         self.hdf1.num_capture.put(0)
 
         self.hdf1.stage_sigs.pop("enable")
@@ -272,7 +276,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
             List with the stats numbers to be plotted.
         """
 
-        for i in range(1, 5+1):
+        for i in range(1, 5 + 1):
             getattr(self, f"stats{i}").total.kind = (
                 "hinted" if i in stats else "normal"
             )
@@ -285,7 +289,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
 
     @property
     def label_option_map(self):
-        return {f"Stats{i} Total": i for i in range(1, 5+1)}
+        return {f"Stats{i} Total": i for i in range(1, 5 + 1)}
 
     @property
     def plot_options(self):
@@ -295,6 +299,3 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
     def select_plot(self, channels):
         chans = [self.label_option_map[i] for i in channels]
         self.plot_select(chans)
-
-
-eiger = Eiger1MDetector("4idEiger:", name="eiger", labels=("4idg", "detector",))
