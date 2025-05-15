@@ -11,8 +11,10 @@ from bluesky.callbacks.best_effort import BestEffortCallback
 from streamz import Source
 from numpy import mean, log, array
 from ophyd import Signal, Device, Component
+from logging import getLogger
 from ..utils.run_engine import sd
-from ..utils._logging_setup import logger
+
+logger = getLogger(__name__)
 
 
 class DichroDevice(Device):
@@ -103,9 +105,6 @@ class DichroStream(LiveDispatcher):
                     (_xas[0] + _xas[3])/2 - (_xas[1] + _xas[2])/2
                 )
             else:
-                # raise Exception(
-                #     'The input data keys do not match entries in the database.'
-                # )
                 logger.warning(
                     "The input data keys do not match entries in the database. "
                     "Data is being recorded, but the plot will not be "

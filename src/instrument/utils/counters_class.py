@@ -1,9 +1,10 @@
 from pandas import DataFrame
 from ophydregistry import ComponentNotFound
-from .simulated_scaler import scaler_sim
-from ..utils.oregistry_setup import oregistry
-from ..utils._logging_setup import logger
-logger.info(__file__)
+from apsbits.core.instrument_init import oregistry
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.bsdev(__file__)
 
 __all__ = ['counters']
 
@@ -27,11 +28,9 @@ class CountersClass:
     def __init__(self):
         super().__init__()
         # This will hold the devices instances.
-        self._default_scaler = scaler_sim
-        self._dets = [self._default_scaler]
-        self._mon = scaler_sim.monitor
+        self._dets = []
+        self._mon = None
         self._extra_devices = []
-        self._default_scaler = scaler_sim
         # self._available_scalers = [scaler_sim, scaler_ctr8]
 
     def __repr__(self):
@@ -47,7 +46,7 @@ class CountersClass:
         return ("Counters settings\n"
                 " Monitor:\n"
                 f"  Scaler channel = '{self._mon}'\n"
-                f"  Preset counts = '{self.monitor_counts}'\n"
+                # f"  Preset counts = '{self.monitor_counts}'\n"
                 " Detectors:\n"
                 f"  Read devices = {read_names}\n"
                 f"  Plot components = {plot_names}")
@@ -55,7 +54,7 @@ class CountersClass:
     def __str__(self):
         return self.__repr__()
 
-    def __call__(self, detectors, monitor=None, counts=None):
+    def __call__(self, detectors, monitor=None):
         """
         Selects the plotting detector and monitor.
 
@@ -103,107 +102,25 @@ class CountersClass:
 
         """
 
-        self.detectors = detectors
-        self.monitor = monitor
-        self.monitor_counts = counts
+        # self.detectors = detectors
+        # self.monitor = monitor
+        self.plotselect()
 
     @property
     def available_scalers(self):
-        return [device.name for device in oregistry.findall("scaler")]
-
-    @property
-    def default_scaler(self):
-        return self._default_scaler
-
-    @default_scaler.setter
-    def default_scaler(self, value):
-        available = {
-            i: scaler for i, scaler in enumerate(oregistry.findall("scaler"))
-        }
-        if value is not None:
-            if value in [item for _, item in available.items()]:
-                self._default_scaler = value
-            else:
-                print("Invalid entry!")
+        scalers = oregistry.findall("scaler", allow_none=True)
+        if scalers is None:
+            return None
         else:
-            print("Available scaler:")
-            for i, item in available.items():
-                print(f"Option {i} - {item.name}")
-            while True:
-                selected = input("Enter scaler number: ")
-                try:
-                    selected = int(selected)
-                    if len(available) < selected:
-                        print(f"Option {selected} is invalid.")
-                    else:
-                        self._default_scaler = available[selected]
-                        break
-                except ValueError:
-                    print(f"Option {selected} is invalid.")
-
-        all_channels = list(self.default_scaler.channels_name_map.keys())
-        self.__call__(all_channels, 0, 0.1)
-
-    def set_default_scaler(self, value=None):
-        self.default_scaler = value
+            return [device.name for device in scalers]
 
     @property
     def detectors(self):
         return self._dets
 
-    @detectors.setter
-    def detectors(self, value):
-        if value is not None:
-            # Ensures value is iterable.
-            try:
-                value = [value] if isinstance(value, str) else list(value)
-            except TypeError:
-                value = [value]
-
-            # This prevents double of the default scaler.
-            try:
-                value.remove(self._default_scaler)
-            except ValueError:
-                pass
-
-            # self._dets will hold the device instance.
-            # default scaler is always a detector even if it's not plotted.
-            self._dets = [self._default_scaler]
-            scaler_list = []
-            for item in value:
-                if isinstance(item, str):
-                    scaler_list.append(item)
-                elif isinstance(item, int):
-                    if isinstance(item, int):
-                        ch = getattr(
-                            self._default_scaler.channels,
-                            'chan{:02d}'.format(item+1)
-                        )
-                        scaler_list.append(ch.s.name)
-                else:
-                    # item.select_plot_channels(True) This needs to be improved
-                    self._dets.append(item)
-
-            # This is needed to select no scaler channel.
-            if len(scaler_list) == 0:
-                scaler_list = ['']
-
-            self.default_scaler.select_plot_channels(scaler_list)
-
     @property
     def monitor(self):
         return self._mon
-
-    @monitor.setter
-    def monitor(self, value):
-        if value is not None:
-            if isinstance(value, int):
-                ch = getattr(
-                    self._default_scaler.channels, 'chan{:02d}'.format(value+1)
-                )
-                value = ch.s.name
-            self._default_scaler.monitor = value
-            self._mon = self._default_scaler.monitor
 
     @property
     def extra_devices(self):
@@ -226,23 +143,6 @@ class CountersClass:
                 self._extra_devices.append(item)
 
     @property
-    def monitor_counts(self):
-        return self._default_scaler.preset_monitor.get()
-
-    @monitor_counts.setter
-    def monitor_counts(self, value):
-        if value is not None:
-            try:
-                if value > 0:
-                    for det in self.detectors:
-                        det.preset_monitor.put(value)
-                else:
-                    raise ValueError("counts needs to be positive")
-            except TypeError:
-                raise TypeError("counts need to be a number, but "
-                                f"{type(value)} was entered.")
-
-    @property
     def _available_detectors(self):
         try:
             dets = oregistry.findall("detector")
@@ -250,15 +150,7 @@ class CountersClass:
             logger.warning("WARNING: no detectors were found by oregistry.")
             dets = []
 
-        try:
-            dets.remove(self.default_scaler)
-        except ValueError:
-            logger.warning(
-                f"WARNING: the {counters.default_scaler.name} was not found by"
-                "oregistry."
-            )
-
-        return [self.default_scaler] + dets
+        return dets
 
     @property
     def detectors_plot_options(self):
@@ -287,9 +179,10 @@ class CountersClass:
             getattr(det, "select_plot")(list(group["channels"].values))
             dets.append(det)
 
-        if self.default_scaler not in dets:
-            dets.append(self.default_scaler)
-            self.default_scaler.select_plot_channels([''])
+        for scaler in self.available_scalers:
+            if scaler not in dets:
+                dets.append(scaler)
+                scaler.select_plot_channels([''])
 
         self._dets = dets
 
@@ -345,20 +238,16 @@ class CountersClass:
                     print("Please enter the index number only.")
                     continue
 
-                if mon >= self.detectors_plot_options.size:
-                    print(f"Monitor index {mon} is invalid.")
-                    continue
-
-                if (
-                    "scaler" not in
-                    self.detectors_plot_options.iloc[mon].detectors
-                ):
-                    print("Monitor must be a scaler channel.")
+                if mon in dets:
+                    print(
+                        f"Monitor {mon} is invalid because this is being used "
+                        "as detector."
+                    )
                     continue
 
                 break
 
-        self.monitor = mon
+        self._mon = mon
 
         print()
         print(self)

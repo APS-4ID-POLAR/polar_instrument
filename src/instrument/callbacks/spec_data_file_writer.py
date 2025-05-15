@@ -3,36 +3,27 @@ custom callbacks
 ================
 
 .. autosummary::
+    :nosignatures:
+
     ~newSpecFile
     ~spec_comment
     ~specwriter
 """
 
-__all__ = """
-    newSpecFile
-    spec_comment
-    specwriter
-""".split()
-
 import datetime
+import logging
 import pathlib
 
 import apstools.callbacks
 import apstools.utils
-from ..utils._logging_setup import logger
 
-logger.info(__file__)
+from apsbits.utils.config_loaders import get_config
 
-from ..utils.config import iconfig  # noqa
-from ..utils.run_engine import RE  # noqa
+logger = logging.getLogger(__name__)
+logger.bsdev(__file__)
 
-from .apstools_spec_file_writer import SpecWriterCallback2
-
-
-spec_config = iconfig.get("SPEC_DATA_FILES")
-
-DEFAULT_FILE_EXTENSION = "dat"
-file_extension = spec_config.get("FILE_EXTENSION", DEFAULT_FILE_EXTENSION)
+iconfig = get_config()
+file_extension = iconfig.get("SPEC_DATA_FILES", {}).get("FILE_EXTENSION", "dat")
 
 
 def spec_comment(comment, doc=None):
@@ -58,7 +49,7 @@ def newSpecFile(title, scan_id=None, RE=None):
     clean = apstools.utils.cleanupText(title)
     fname = pathlib.Path(f"{mmdd}_{clean}.{file_extension}")
     if fname.exists():
-        logger.warning(f">>> file already exists: {fname} <<<")
+        logger.warning(">>> file already exists: %s <<<", fname)
         handled = "appended"
     else:
         kwargs["scan_id"] = scan_id or 1
@@ -66,37 +57,41 @@ def newSpecFile(title, scan_id=None, RE=None):
 
     specwriter.newfile(fname, **kwargs)
 
-    logger.info(f"SPEC file name : {specwriter.spec_filename}")
-    logger.info(f"File will be {handled} at end of next bluesky scan.")
+    logger.info("SPEC file name : %s", specwriter.spec_filename)
+    logger.info("File will be %s at end of next bluesky scan.", handled)
+
+
+# Add this function to specwriter.py
+def init_specwriter_with_RE(RE):
+    """Initialize specwriter with the run engine."""
+
+    # make the SPEC file in current working directory (assumes is writable)
+    specwriter.newfile(specwriter.spec_filename)
+
+    if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
+        RE.subscribe(specwriter.receiver)  # write data to SPEC files
+        logger.info("SPEC data file: %s", specwriter.spec_filename.resolve())
+
+    try:
+        # feature new in apstools 1.6.14
+        from apstools.plans import label_stream_wrapper
+
+        def motor_start_preprocessor(plan):
+            """Record motor positions at start of each run."""
+            return label_stream_wrapper(plan, "motor", when="start")
+
+        RE.preprocessors.append(motor_start_preprocessor)
+    except Exception:
+        logger.warning("Could load support to log motors positions.")
 
 
 # write scans to SPEC data file
 try:
     # apstools >=1.6.21
-    # _specwriter = apstools.callbacks.SpecWriterCallback2()
-    _specwriter = SpecWriterCallback2()
-    # _specwriter = apstools.callbacks.SpecWriterCallback()
+    _specwriter = apstools.callbacks.SpecWriterCallback2()
 except AttributeError:
     # apstools <1.6.21
     _specwriter = apstools.callbacks.SpecWriterCallback()
 
 specwriter = _specwriter
 """The SPEC file writer object."""
-
-# make the SPEC file in current working directory (assumes is writable)
-_path = pathlib.Path().cwd()
-specwriter.newfile(_path / specwriter.spec_filename)
-
-if "SPEC_DATA_FILES" in iconfig:
-    RE.subscribe(specwriter.receiver)  # write data to SPEC files
-
-try:
-    # feature new in apstools 1.6.14
-    from apstools.plans import label_stream_wrapper
-
-    def motor_start_preprocessor(plan):
-        return label_stream_wrapper(plan, "motor", when="start")
-
-    RE.preprocessors.append(motor_start_preprocessor)
-except Exception:
-    logger.warning("Could load support to log motors positions.")
