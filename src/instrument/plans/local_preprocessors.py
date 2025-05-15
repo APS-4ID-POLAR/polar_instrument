@@ -4,11 +4,14 @@ from bluesky.utils import make_decorator
 from bluesky.preprocessors import finalize_wrapper
 from bluesky.plan_stubs import mv, null, subscribe, unsubscribe
 from ophyd import Kind
+from logging import getLogger
+
 from ..callbacks.dichro_stream import plot_dichro_settings, dichro_bec
-from ..devices import counters
-from ..devices.phaseplates import pr_setup
+from ..utils.counters_class import counters
+from ..utils.pr_setup import pr_setup
 from ..utils.run_engine import bec
-from ..utils._logging_setup import logger
+
+logger = getLogger(__name__)
 logger.info(__file__)
 
 

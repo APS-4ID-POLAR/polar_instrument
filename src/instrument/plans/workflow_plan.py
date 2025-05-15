@@ -7,10 +7,15 @@ from apstools.utils import share_bluesky_metadata_with_dm
 from databroker.core import BlueskyRun
 from pathlib import Path
 from yaml import load as yload, Loader as yloader
+from logging import getLogger
+from apsbits.core.instrument_init import oregistry
 from .local_scans import mv
-from ..devices.data_management import dm_workflow, dm_experiment
-from ..utils._logging_setup import logger
-from ..utils.catalog import full_cat
+from ..utils.run_engine import cat
+
+dm_workflow = oregistry.find("dm_workflow")
+dm_experiment = oregistry.find("dm_experiment")
+
+logger = getLogger(__name__)
 logger.info(__file__)
 
 EXPECTED_KWARGS = {}
@@ -144,7 +149,7 @@ def run_workflow(
     # Check that the bluesky_id works.
     if isinstance(bluesky_id, (str, int)):
         try:
-            run = full_cat[bluesky_id]
+            run = cat[bluesky_id]
         except KeyError:
             raise KeyError(
                 "Could not find a Bluesky run associated with the "

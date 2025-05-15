@@ -33,22 +33,33 @@ from .local_preprocessors import (
 from toolz import partition
 from pathlib import Path
 from numpy import array
+from apsbits.core.instrument_init import oregistry
+from apsbits.utils.config_loaders import get_config
+from hkl.user import current_diffractometer
+from logging import getLogger
 
 from ..callbacks.nexus_data_file_writer import nxwriter
-from ..devices import counters
-from ..devices.qxscan_setup import qxscan_params
-from ..devices.energy_device import energy
-from ..devices.aps_undulator import undulators
-from ..devices.phaseplates import pr1, pr2, pr3, pr_setup
-from ..utils._logging_setup import logger
 from ..utils.experiment_utils import experiment
 from ..utils.run_engine import RE
-from ..utils.config import iconfig
-from ..utils.hkl_utils import current_diffractometer
+from ..utils.counters_class import counters
 
+try:
+    # change to import this only if needed?
+    from ..utils.pr_setup import pr_setup
+except ModuleNotFoundError:
+    pr_setup = None
+
+iconfig = get_config()
+
+logger = getLogger(__name__)
 logger.info(__file__)
 
 HDF1_NAME_FORMAT = Path(iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"])
+
+qxscan_setup = oregistry.find("qxscan_setup")
+energy = oregistry.find("energy")
+undulators = oregistry.find("undulators")
+prs = oregistry.findall("phase retarder")
 
 
 class LocalFlag:
@@ -78,15 +89,14 @@ def _collect_extras(escan_flag, huber_flag):
                 extras.append(und.energy)
 
         # Do the same for phase plates
-        for pr in [pr1, pr2, pr3]:
+        for pr in prs:
             # Fetch tracking status asynchronously
             pr_track = yield from rd(pr.tracking)
             if pr_track:
                 extras.append(pr.th)
 
     if huber_flag:
-        # extras.append(huber)
-        pass
+        extras.append(current_diffractometer())
 
     return extras
 
@@ -837,13 +847,13 @@ def qxscan(
         }
 
     # Get energy argument and extras
-    energy_list = yield from rd(qxscan_params.energy_list)
+    energy_list = yield from rd(qxscan_setup.energy_list)
     args = (energy, array(energy_list) + edge_energy)
 
     extras = yield from _collect_extras(energy in args, "huber" in str(args))
 
     # Setup count time
-    factor_list = yield from rd(qxscan_params.factor_list)
+    factor_list = yield from rd(qxscan_setup.factor_list)
 
     _ct = {}
     if time:

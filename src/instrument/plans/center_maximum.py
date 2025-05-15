@@ -1,6 +1,9 @@
-from ..utils.best_effort import peaks
+
+from logging import getLogger
+from ..utils.run_engine import peaks
 from ..plans import mv
-from ..utils import logger
+
+logger = getLogger(__name__)
 logger.info(__file__)
 
 __all__ = ['maxi', 'cen']
@@ -25,8 +28,10 @@ def cen(positioner, detector=None):
     """
     if detector is None:
         if len(peaks['cen'].keys()) > 1:
-            raise TypeError("You need to provide a detector name if more than "
-                            "1 detector was plotted")
+            raise TypeError(
+                "You need to provide a detector name if more than 1 detector "
+                "was plotted."
+            )
         else:
             pos = peaks['cen'][list(peaks['cen'].keys())[0]]
     else:
@@ -62,8 +67,10 @@ def maxi(positioner, detector=None):
     """
     if detector is None:
         if len(peaks['cen'].keys()) > 1:
-            raise TypeError("You need to provide a detector name if more than "
-                            "1 detector was plotted")
+            raise TypeError(
+                "You need to provide a detector name if more than 1 detector "
+                "was plotted"
+            )
         else:
             pos = peaks['max'][list(peaks['cen'].keys())[0]][0]
     else:
