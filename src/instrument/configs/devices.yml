@@ -249,3 +249,7 @@ instrument.devices.ad_eiger1M.Eiger1MDetector:
 - name: eiger
   prefix: "4idEiger:"
   labels: ["4idg", "detector"]
+
+instrument.devices.qxscan_device.QxscanParams:
+- name: qxscan_setup
+  labels: ["qxscan", "energy"]

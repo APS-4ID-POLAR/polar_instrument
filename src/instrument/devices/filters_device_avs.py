@@ -2,7 +2,6 @@
 APS filter support
 """
 
-
 from ophyd import (
     Component,
     DynamicDeviceComponent,

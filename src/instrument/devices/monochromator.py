@@ -86,9 +86,5 @@ class MonoDevice(PseudoPositioner):
         theta = self.convert_energy_to_theta(energy)
         self.th.set_current_position(theta)
 
-
-mono = MonoDevice(
-    "4idVDCM:", name="mono", labels=("monochromator", "energy", "4ida")
-)
-
-mono._sub_devices.remove("crystal_select")
+    def default_settings(self):
+        self._sub_devices.remove("crystal_select")

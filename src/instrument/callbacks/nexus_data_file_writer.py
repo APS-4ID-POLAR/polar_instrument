@@ -123,21 +123,23 @@ class MyNXWriter(NXWriterAPS):
         return bluesky
 
 
-def nxwriter_init(RE):
-    """Initialize the Nexus data file writer callback."""
-    nxwriter = MyNXWriter()  # create the callback instance
-    """The NeXus file writer object."""
+# TODO: This won't work for us because we need to be able to change the
+# file name for each scan.
+# def nxwriter_init(RE):
+"""Initialize the Nexus data file writer callback."""
+nxwriter = MyNXWriter()  # create the callback instance
+"""The NeXus file writer object."""
 
-    if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
-        RE.subscribe(nxwriter.receiver)  # write data to NeXus files
+# if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
+#     RE.subscribe(nxwriter.receiver)  # write data to NeXus files
 
-    nxwriter.file_extension = iconfig.get("NEXUS_DATA_FILES", {}).get(
-        "FILE_EXTENSION", "hdf"
-    )
+nxwriter.file_extension = iconfig.get("NEXUS_DATA_FILES", {}).get(
+    "FILE_EXTENSION", "hdf"
+)
 
-    warn_missing = iconfig.get("NEXUS_DATA_FILES", {}).get(
-        "WARN_MISSING", False
-    )
-    nxwriter.warn_on_missing_content = warn_missing
+warn_missing = iconfig.get("NEXUS_DATA_FILES", {}).get(
+    "WARN_MISSING", False
+)
+nxwriter.warn_on_missing_content = warn_missing
 
-    return nxwriter
+# return nxwriter

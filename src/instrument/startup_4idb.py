@@ -27,7 +27,7 @@ set_timeouts()
 from .utils.best_effort import bec, peaks  # noqa
 from .utils.catalog import full_cat  # noqa
 from .utils.functions import running_in_queueserver  # noqa
-from .utils.oregistry_setup import oregistry, get_devices  # noqa
+from .utils.oregistry_auxiliar import oregistry, get_devices  # noqa
 from .utils.run_engine import RE, sd  # noqa
 
 # Configure the session with callbacks, devices, and plans.

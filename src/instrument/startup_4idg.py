@@ -23,7 +23,7 @@ from .utils.best_effort import bec  # noqa
 from .utils.best_effort import peaks  # noqa
 from .utils.catalog import full_cat  # noqa
 from .utils.functions import running_in_queueserver  # noqa
-from .utils.oregistry_setup import oregistry, get_devices  # noqa
+from .utils.oregistry_auxiliar import oregistry, get_devices  # noqa
 from .utils.run_engine import RE, sd  # noqa
 
 # Configure the session with callbacks, devices, and plans.
@@ -44,13 +44,13 @@ else:
 from .callbacks import *  # noqa
 from .plans import *  # noqa
 from .utils.polartools_hklpy_imports import *  # noqa
-from .utils import *
+from .utils import *  # noqa: E402, F403
 
 # TODO: Loads plans for development, remove for production.
 # from .utils.tests.common import *  # noqa
 
-from IPython import get_ipython
-from .utils.local_magics import LocalMagics
+from IPython import get_ipython  # noqa: E402
+from .utils.local_magics import LocalMagics  # noqa: E402
 get_ipython().register_magics(LocalMagics)
 
 cat = db_query(full_cat, dict(instrument_name = f'polar-{environ["POLAR_INSTRUMENT"]}'))

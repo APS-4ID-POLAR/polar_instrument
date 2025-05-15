@@ -19,13 +19,13 @@ from numpy import arcsin, pi, sin, tan
 from .jj_slits import SlitDevice
 from .huber_filter import HuberFilter
 from ..utils.analyzer_utils import check_structure_factor, calcdhkl
-
+from pathlib import Path
 import gi
 
 gi.require_version("Hkl", "5.0")
 # MUST come before `import hkl`
-from hkl.geometries import ApsPolar
-import math
+from hkl.geometries import ApsPolar  # noqa: E402
+import math  # noqa: E402
 
 # Constants
 WAVELENGTH_CONSTANT = 12.39
@@ -33,11 +33,10 @@ PTTH_MIN_DEGREES = 79
 PTTH_MAX_DEGREES = 101
 PTH_MIN_DEGREES = 39
 PTH_MAX_DEGREES = 51
-# TODO: Find a better way to get to this
-ANALYZER_LIST_PATH = (
-    "/home/beams17/POLAR/joerg/polar_instrument/src/instrument/devices/"
-    "analyzerlist.dat"
-)
+ANALYZER_LIST_PATH = Path(__file__).parent / "analyzerlist.dat"
+#     "/home/beams17/POLAR/joerg/polar_instrument/src/instrument/devices/"
+#     "analyzerlist.dat"
+# )
 
 
 class AnalyzerDevice(PseudoPositioner):
@@ -255,7 +254,7 @@ class SixCircleDiffractometer(ApsPolar):
     # HKL and 6C motors
     h = Component(PseudoSingle, "", labels=("hkl",))
     k = Component(PseudoSingle, "", labels=("hkl",))
-    l = Component(PseudoSingle, "", labels=("hkl",))
+    l = Component(PseudoSingle, "", labels=("hkl",))  # noqa: E741
 
     # 03/16/2025 - Tau is the whole diffractometer "theta" angle, but
     # it is not currently setup. m73 is a simulated motor.
@@ -309,7 +308,7 @@ class SixCircleDiffractometer(ApsPolar):
                 c_hints = component.hints
                 fields.extend(c_hints.get("fields", []))
         return {"fields": fields}
-    
+
     def default_settings(self):
         self._update_calc_energy()
 

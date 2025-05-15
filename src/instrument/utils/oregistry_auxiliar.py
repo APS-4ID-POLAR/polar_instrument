@@ -1,9 +1,6 @@
 
-from ophydregistry import Registry
+from apsbits.core.instrument_init import oregistry
 from pyRestTable import Table
-
-# Registry of all ophyd-style Devices and Signals.
-oregistry = Registry(auto_register=False)
 
 
 def get_devices(label):

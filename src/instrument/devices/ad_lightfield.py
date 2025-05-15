@@ -2,7 +2,6 @@
 LightField based area detector
 """
 
-
 from ophyd import ADComponent, EpicsSignalRO, Staged, Device, Signal
 from ophyd.areadetector import (
     EpicsSignalWithRBV,

@@ -4,14 +4,14 @@ Define qxscan_setup device.
 This device will holds the parameters and energy list used in a qxscan plan.
 """
 
-__all__ = ['qxscan_params']
-
 import json
 from ophyd import Signal, Device
 from ophyd import Component
 from numpy import sqrt, arange
-from ..utils.catalog import full_cat as cat
-from ..utils._logging_setup import logger
+from logging import getLogger
+from ..utils.run_engine import cat
+
+logger = getLogger(__name__)
 logger.info(__file__)
 
 hbar = 6.582119569E-16  # eV.s
@@ -426,6 +426,3 @@ class QxscanParams(Device):
                     self, item + f".region{i}"
                 ).component_names:
                     _update_value(item + f".region{i}.{component}")
-
-
-qxscan_params = QxscanParams(name='qxscan_setup', labels=("qxscan", "energy"))

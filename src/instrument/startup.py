@@ -13,7 +13,7 @@ import logging
 from pathlib import Path
 
 # from apsbits.core.best_effort_init import init_bec_peaks
-from apsbits.core.catalog_init import init_catalog
+# from apsbits.core.catalog_init import init_catalog
 from apsbits.core.instrument_init import make_devices
 from apsbits.core.instrument_init import oregistry
 # from apsbits.core.run_engine_init import init_RE
@@ -49,13 +49,13 @@ aps_dm_setup(iconfig.get("DM_SETUP_FILE"))
 register_bluesky_magics()
 
 # Initialize core bluesky components
-from .utils.run_engine import RE, sd, bec, cat  # noqa: F401, E402
+from .utils.run_engine import RE, sd, bec, cat, peaks  # noqa: F401, E402
 
 # Import optional components based on configuration
 if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
-    from .callbacks.nexus_data_file_writer import nxwriter_init
-
-    nxwriter = nxwriter_init(RE)
+    # from .callbacks.nexus_data_file_writer import nxwriter_init
+    # nxwriter = nxwriter_init(RE)
+    from .callbacks.nexus_data_file_writer import nxwriter  # noqa: F401
 
 if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
     from .callbacks.spec_data_file_writer import init_specwriter_with_RE
