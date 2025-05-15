@@ -12,13 +12,13 @@ Includes:
 import logging
 from pathlib import Path
 
-from apsbits.core.best_effort_init import init_bec_peaks
+# from apsbits.core.best_effort_init import init_bec_peaks
 from apsbits.core.catalog_init import init_catalog
 from apsbits.core.instrument_init import make_devices
 from apsbits.core.instrument_init import oregistry
-from apsbits.core.run_engine_init import init_RE
+# from apsbits.core.run_engine_init import init_RE
 from apsbits.utils.aps_functions import aps_dm_setup
-from apsbits.utils.aps_functions import host_on_aps_subnet
+# from apsbits.utils.aps_functions import host_on_aps_subnet
 from apsbits.utils.config_loaders import get_config
 from apsbits.utils.config_loaders import load_config
 from apsbits.utils.helper_functions import register_bluesky_magics
@@ -49,9 +49,7 @@ aps_dm_setup(iconfig.get("DM_SETUP_FILE"))
 register_bluesky_magics()
 
 # Initialize core bluesky components
-bec, peaks = init_bec_peaks(iconfig)
-cat = init_catalog(iconfig)
-RE, sd = init_RE(iconfig, bec_instance=bec, cat_instance=cat)
+from .utils.run_engine import RE, sd, bec, cat  # noqa: F401, E402
 
 # Import optional components based on configuration
 if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
@@ -69,16 +67,16 @@ if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
 
 # These imports must come after the above setup.
 if running_in_queueserver():
-    ### To make all the standard plans available in QS, import by '*', otherwise import
-    ### plan by plan.
+    # To make all the standard plans available in QS, import by '*', otherwise
+    # import plan by plan.
     from apstools.plans import lineup2  # noqa: F401
-    from bluesky.plans import *  # noqa: F403
+    from bluesky.plans import *  # noqa: F403, F401
 
 else:
     # Import bluesky plans and stubs with prefixes set by common conventions.
     # The apstools plans and utils are imported by '*'.
-    from apstools.plans import *  # noqa: F403
-    from apstools.utils import *  # noqa: F403
+    from apstools.plans import *  # noqa: F401, F403
+    from apstools.utils import *  # noqa: F401, F403
     from bluesky import plan_stubs as bps  # noqa: F401
     from bluesky import plans as bp  # noqa: F401
 

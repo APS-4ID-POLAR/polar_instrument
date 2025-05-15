@@ -43,22 +43,26 @@ from bluesky import RunEngineInterrupted
 from bluesky.utils import ProgressBarManager
 from bluesky.plan_stubs import mv
 from hkl.util import (
-    restore_sample,
-    restore_constraints,
-    restore_reflections,
-    run_orientation_info
+    restore_sample, restore_constraints, restore_reflections, run_orientation_info
 )
-from logging import getLogger
-from .run_engine import RE, cat
-from .polartools_hklpy_imports import pa
+from hkl.user import current_diffractometer
+from polartools.manage_database import db_query
+from .run_engine import RE
 from ..devices.polar_diffractometer import huber_euler, huber_euler_psi
 from ..devices.simulated_fourc_vertical import fourc
+from ._logging_setup import logger
+
+from .catalog import full_cat
+from .polartools_hklpy_imports import pa
+
+cat = db_query(full_cat, dict(instrument_name = 'polar-4idg'))
 
 try:
     from hkl import cahkl
     from hkl.util import Lattice
     from hkl.user import (
         _check_geom_selected,
+        _geom_,
         select_diffractometer,
         current_diffractometer,
     )
@@ -69,7 +73,6 @@ except ModuleNotFoundError:
     print("gi module is not installed, the hkl_utils functions will not work!")
     cahkl = _check_geom_selected = _geom_ = None
 
-logger = getLogger(__name__)
 logger.info(__file__)
 
 polar_config = pathlib.Path("polar-config.json")
@@ -99,25 +102,21 @@ def set_diffractometer(instrument=None):
     if instrument:
         diff = instrument.name
     elif instrument is None:
-        diff = (
-            input("Diffractometer [polar or fourc] ({})? ".format(_geom_.name))
-        ) or _geom_.name
+        diff = (input("Diffractometer [polar or fourc] ({})? ".format(_geom_.name))) or _geom_.name
     else:
         raise ValueError(
-            "either no argument or diffractometer polar or fourc to be"
-            "provided."
+            "either no argument or diffractometer polar or fourc to be provided."
         )
     if diff == 'fourc':
         select_diffractometer(fourc)
         print("Diffractometer {} selected".format(diff))
     elif diff == 'polar':
-        select_diffractometer(huber_euler)
+        select_diffractometer(huber)
         print("Diffractometer {} selected".format(diff))
     else:
         raise ValueError(
             "{} not an existing diffractometer".format(diff)
         )
-
 
 def sampleNew(*args):
     """
@@ -147,8 +146,7 @@ def sampleNew(*args):
         gamma = (input("Lattice gamma ({})? ".format(lattice[5]))) or lattice[5]
     else:
         raise ValueError(
-            "either no arguments or name, a, b, c, alpha, beta, gamma need to"
-            "be provided."
+            "either no arguments or name, a, b, c, alpha, beta, gamma need to be provided."
         )
 
     if nm in _geom_.calc._samples:
@@ -229,14 +227,14 @@ def sampleNew(*args):
         )
         compute_UB()
         if POLAR_DIFFRACTOMETER in _geom_.name:
-            set_constraints('mu', -100, 100)
-            set_constraints('gamma', -10, 180)
-            set_constraints('delta', -20, 60)
-            set_constraints('tau', -0.5, 0.5)
+            set_constraints('mu',-100,100)
+            set_constraints('gamma',-10,180)
+            set_constraints('delta',-20,60)
+            set_constraints('tau',-0.5,0.5)
         if _geom_.name == "fourc":
-            set_constraints('omega', -100, 100)
-            set_constraints('tth', -10, 180)       
-        setaz(0, 1, 0)
+            set_constraints('omega',-100,100)
+            set_constraints('tth',-10,180)            
+        setaz(0,1,0)
 
 
 def sampleChange(sample_key=None):

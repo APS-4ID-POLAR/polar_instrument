@@ -25,9 +25,7 @@ class SPEHandler(HandlerBase):
 
         if data.shape[0] != self._fpp:
             raise ValueError(
-                "Expected {} frames, found {} frames".format(
-                    self._fpp, data.shape[0]
-                )
+                "Expected {} frames, found {} frames".format(self._fpp, data.shape[0])
             )
 
         return data

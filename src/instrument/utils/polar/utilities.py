@@ -231,8 +231,9 @@ def set_counting_time(time=None, monitor=False):
                 monitor = "Ion Ch 3"
                 counters._mon = scaler.monitor = monitor
                 print(
-                    "Counting against monitor using '{}' as default for {} "
-                    "counts".format(monitor, time)
+                    "Counting against monitor using '{}' as default for {} counts".format(
+                        monitor, time
+                    )
                 )
 
     else:

@@ -124,20 +124,16 @@ def transfocator_calculation(
         energy : float
             Beamline energy in keV.
         optimize_position : float
-            CRL motor Z position that will be used to optimize the lenses for
-            the calculation, in mm.
+            CRL motor Z position that will be used to optimize the lenses for the calculation, in mm.
         experiment : "diffractometer" or "magnet"
             Name of the experimental configuration to focus.
         reference_distance : float
-            Distance between CRL and sample when the CRL Z motor is at zero.
-            This will normally not
+            Distance between CRL and sample when the CRL Z motor is at zero. This will normally not
             change. In mm.
         distance_only : bool
-            If True it will only calculate the optimal distance, and won't try
-            to switch lenses.
+            If True it will only calculate the optimal distance, and won't try to switch lenses.
         selected_lenses : iterable
-            If distance_only == True, then this is the lenses you want to use
-            for the calculation.
+            If distance_only == True, then this is the lenses you want to use for the calculation.
         verbose : bool
             Toggle to print information.
     """
@@ -180,13 +176,10 @@ def transfocator_calculation(
 
     # Effective focal point for the desired distance
 
-    optimize_distance = (optimize_position + reference_distance)*1e3  # microns
+    optimize_distance = (optimize_position + reference_distance)*1e3  # in microns
 
     source_crl_distance = source_sample_distance - optimize_distance
-    f_eff = (
-        source_crl_distance * optimize_distance
-        / (source_crl_distance + optimize_distance)
-    )
+    f_eff = source_crl_distance * optimize_distance / (source_crl_distance + optimize_distance)
 
     lenses = read_csv(LENS_SETTINGS, skiprows=1).set_index("index")
 
@@ -210,15 +203,14 @@ def transfocator_calculation(
     _selected = lenses.loc[best_combination]
     power = _selected["number_of_lenses"]*2/_selected["single_lens_radius"]
     effective_center = (power*_selected["distance"]).sum()/power.sum()
-
+    
     crl_center = source_crl_distance + effective_center
     best_sample_distance = (
         best_focal_length*crl_center/(crl_center-best_focal_length)
     )
-    # correct for lens selection
-    effective_reference_distance = reference_distance - effective_center / 1e3
-    # get relative position
-    crlz_position = effective_reference_distance - best_sample_distance / 1e3
+
+    effective_reference_distance = reference_distance - effective_center/1e3 # correct for lens selection
+    crlz_position = effective_reference_distance - best_sample_distance/1e3  # get relative position
 
     if verbose:
         print("-" * 65)

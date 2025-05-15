@@ -1,14 +1,13 @@
 from ophyd import EpicsSignalRO
 from bluesky.suspenders import SuspendBoolHigh
 from .run_engine import RE
-from logging import getLogger
+from ._logging_setup import logger
 
-logger = getLogger(__name__)
 
 # TODO: I'll leave it zero for now because somebody may want to just
 # go inside A... Maybe I can add a "post_plan" that includes
 # an option to force resume?
-SUSPENDER_SLEEP = 0  # 10*60  # 10 min
+SUSPENDER_SLEEP = 0 # 10*60  # 10 min
 
 run_engine_suspenders = {
     "a_shutter": SuspendBoolHigh(

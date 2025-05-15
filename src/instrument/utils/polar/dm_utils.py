@@ -20,8 +20,7 @@ from numpy import unique
 from pathlib import Path
 from time import time
 from bluesky.plan_stubs import sleep, null
-from apsbits.core.instrument_init import oregistry
-from logging import getLogger
+from ..devices.data_management import dm_workflow
 
 __all__ = """
     dm_get_experiment_data_path
@@ -38,14 +37,6 @@ bss_api = BssApsDbApi()
 exp_api = ExperimentDsApi()
 user_api = UserDsApi()
 
-dm_workflow = oregistry("dm_workflow", allow_none=True)
-if dm_workflow is None:
-    logger = getLogger(__name__)
-    logger.warning(
-        "The dm_workflow device could not be loaded. DM functionality may not "
-        "function properly."
-    )
-
 DEFAULT_USERS = [
     "d206409",  # Gilberto
     "d85892",  # Joerg
@@ -55,9 +46,7 @@ DEFAULT_USERS = [
 
 
 def dm_get_experiment_data_path(dm_experiment_name: str):
-    return Path(dm_api_ds().getExperimentByName(
-        dm_experiment_name)["dataDirectory"]
-    )
+    return Path(dm_api_ds().getExperimentByName(dm_experiment_name)["dataDirectory"])
 
 
 def get_processing_job_status(id=None, owner="user4idd"):
@@ -87,8 +76,7 @@ def dm_upload_wait(
     PARAMETERS
 
     - Experiment id
-    - timeout *float*: Number of seconds to wait before raising a
-    'TimeoutError'.
+    - timeout *float*: Number of seconds to wait before raising a 'TimeoutError'.
     - poll_period *float*: Number of seconds to wait before check DM again.
 
     RAISES

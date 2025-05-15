@@ -31,12 +31,10 @@ from .dm_utils import (
     get_current_run_name
 )
 from .run_engine import RE
-from apsbits.utils.config_loaders import get_config
-from logging import getLogger
+from ._logging_setup import logger
+from .config import iconfig
 
-logger = getLogger(__name__)
 logger.info(__file__)
-iconfig = get_config()
 
 SERVERS = {
     "dserv": Path(iconfig["DSERV_ROOT_PATH"]),
