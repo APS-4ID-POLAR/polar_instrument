@@ -223,15 +223,15 @@ apstools.devices.LakeShore336Device:
   prefix: "4idgSoft:LS336:cryo:"
   labels: ["4idg", "temperature"]
 
-instrument.devices.polar_diffractometer.CradleDiffractometer:
-- name: huber_euler
-  prefix: "4idgSoft:"
-  labels: ["4idg", "diffractometer"]
+# instrument.devices.polar_diffractometer.CradleDiffractometer:
+# - name: huber_euler
+#   prefix: "4idgSoft:"
+#   labels: ["4idg", "diffractometer"]
 
-instrument.devices.polar_diffractometer.HPDiffractometer:
-- name: huber_hp
-  prefix: "4idgSoft:"
-  labels: ["4idg", "diffractometer"]
+# instrument.devices.polar_diffractometer.HPDiffractometer:
+# - name: huber_hp
+#   prefix: "4idgSoft:"
+#   labels: ["4idg", "diffractometer"]
 
 # instrument.devices.polar_diffractometer.CradlePSI:
 # - name: huber_euler_psi

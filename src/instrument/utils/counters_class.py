@@ -29,7 +29,7 @@ class CountersClass:
         super().__init__()
         # This will hold the devices instances.
         self._dets = []
-        self._mon = None
+        self._mon = "Time"
         self._extra_devices = []
         # self._available_scalers = [scaler_sim, scaler_ctr8]
 
@@ -54,7 +54,7 @@ class CountersClass:
     def __str__(self):
         return self.__repr__()
 
-    def __call__(self, detectors, monitor=None):
+    def __call__(self):
         """
         Selects the plotting detector and monitor.
 
@@ -179,7 +179,8 @@ class CountersClass:
             getattr(det, "select_plot")(list(group["channels"].values))
             dets.append(det)
 
-        for scaler in self.available_scalers:
+        for scaler_name in self.available_scalers:
+            scaler = oregistry.find(scaler_name)
             if scaler not in dets:
                 dets.append(scaler)
                 scaler.select_plot_channels([''])
@@ -247,7 +248,7 @@ class CountersClass:
 
                 break
 
-        self._mon = mon
+        self._mon = self.detectors_plot_options.loc[mon]["channels"]
 
         print()
         print(self)
