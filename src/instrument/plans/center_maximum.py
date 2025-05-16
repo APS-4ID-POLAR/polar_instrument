@@ -1,7 +1,7 @@
 
 from logging import getLogger
+from .local_scans import mv
 from ..utils.run_engine import peaks
-from ..plans import mv
 
 logger = getLogger(__name__)
 logger.info(__file__)

@@ -88,7 +88,10 @@ def init_specwriter_with_RE(RE):
 # write scans to SPEC data file
 try:
     # apstools >=1.6.21
-    _specwriter = apstools.callbacks.SpecWriterCallback2()
+    # _specwriter = apstools.callbacks.SpecWriterCallback2()
+    # TODO: This can be removed after apstools 1.7.4 is released.
+    from .apstools_spec_file_writer import SpecWriterCallback2
+    _specwriter = SpecWriterCallback2()
 except AttributeError:
     # apstools <1.6.21
     _specwriter = apstools.callbacks.SpecWriterCallback()

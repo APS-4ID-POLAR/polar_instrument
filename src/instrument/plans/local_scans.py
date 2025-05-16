@@ -56,11 +56,6 @@ logger.info(__file__)
 
 HDF1_NAME_FORMAT = Path(iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"])
 
-qxscan_setup = oregistry.find("qxscan_setup")
-energy = oregistry.find("energy")
-undulators = oregistry.find("undulators")
-prs = oregistry.findall("phase retarder")
-
 
 class LocalFlag:
     """Stores flags that are used to select and run local scans."""
@@ -73,7 +68,7 @@ class LocalFlag:
 flag = LocalFlag()
 
 
-def _collect_extras(escan_flag, huber_flag):
+def _collect_extras(args):
     """Collect all detectors that need to be read during a scan."""
 
     # TODO: most or all of this can be removed if we add these to the energy
@@ -82,19 +77,37 @@ def _collect_extras(escan_flag, huber_flag):
     # Initialize the list of extra devices with the standard set from counters
     extras = counters.extra_devices.copy()
 
+    energy = oregistry.find("energy", allow_none=True)
+    escan_flag = False if energy is None or energy not in args else True
     if escan_flag:
-        for und in (undulators.ds, undulators.us):
-            und_track = yield from rd(und.tracking)
-            if und_track:
-                extras.append(und.energy)
+        undulators = oregistry.find("undulators", allow_none=True)
+        if undulators is None:
+            logger.warning(
+                "Undulators device not found. Will not record the undulator "
+                "energy during scan."
+            )
+        else:
+            for und in (undulators.ds, undulators.us):
+                und_track = yield from rd(und.tracking)
+                if und_track:
+                    extras.append(und.energy)
 
         # Do the same for phase plates
-        for pr in prs:
-            # Fetch tracking status asynchronously
-            pr_track = yield from rd(pr.tracking)
-            if pr_track:
-                extras.append(pr.th)
+        prs = oregistry.findall("phase retarders", allow_none=True)
+        if prs is None:
+            logger.warning(
+                "No phase retarder device not found. Will not record its "
+                "position energy during scan."
+            )
+        else:
+            for pr in prs:
+                # Fetch tracking status asynchronously
+                pr_track = yield from rd(pr.tracking)
+                if pr_track:
+                    extras.append(pr.th)
 
+    diff = current_diffractometer()
+    huber_flag = False if diff is None or diff.name not in str(args) else True
     if huber_flag:
         extras.append(current_diffractometer())
 
@@ -432,7 +445,7 @@ def ascan(
         experiment.experiment_path, _master_fullpath, _rel_dets_paths
     )
 
-    extras = yield from _collect_extras(energy in args, "huber" in str(args))
+    extras = yield from _collect_extras(args)
 
     _md = dict(
         hints={'monitor': counters.monitor, 'detectors': []},
@@ -650,7 +663,7 @@ def grid_scan(
         experiment.experiment_path, _master_fullpath, _rel_dets_paths
     )
 
-    extras = yield from _collect_extras(energy in args, "huber" in str(args))
+    extras = yield from _collect_extras(args)
 
     _md = dict(
         hints={'monitor': counters.monitor, 'detectors': []},
@@ -847,10 +860,19 @@ def qxscan(
         }
 
     # Get energy argument and extras
+
+    energy = oregistry.find("energy", allow_none=True)
+    if energy is None:
+        raise ValueError("energy device not found in registry.")
+
+    qxscan_setup = oregistry.find("qxscan_setup", allow_none=True)
+    if qxscan_setup is None:
+        raise ValueError("qxxcan_setup device not found in registry.")
+
     energy_list = yield from rd(qxscan_setup.energy_list)
     args = (energy, array(energy_list) + edge_energy)
 
-    extras = yield from _collect_extras(energy in args, "huber" in str(args))
+    extras = yield from _collect_extras(args)
 
     # Setup count time
     factor_list = yield from rd(qxscan_setup.factor_list)
