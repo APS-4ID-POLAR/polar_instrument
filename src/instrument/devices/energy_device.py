@@ -8,9 +8,9 @@ from time import time as ttime
 from pyRestTable import Table
 from apsbits.core.instrument_init import oregistry
 from collections.abc import Iterable
+from logging import getLogger
 
-# Mono is a special device as it's the reference. It will always be tracked.
-mono = oregistry("mono")
+logger = getLogger(__name__)
 
 
 class EnergySignal(Signal):
@@ -20,14 +20,21 @@ class EnergySignal(Signal):
     The monochromator defines the beamline energy.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, mono_name="mono", **kwargs):
         super().__init__(*args, **kwargs)
         self._status = {}  # Useful for debugging
         self._extra_devices = []
+        self._mono = None
+        self._mono_name = mono_name
+
+    @property
+    def mono(self):
+        return self._mono
 
     @property
     def trackable_devices(self):
-        return oregistry.findall("track_energy") + self.extra_devices
+        devs = oregistry.findall("track_energy") + self.extra_devices
+        return sorted(devs, key=lambda x: x.name, reverse=True)
 
     # This is here as an way to force the use of a particular device that may
     # not be tagged with "track_energy". Note that the API requires two
@@ -109,28 +116,29 @@ class EnergySignal(Signal):
         for i, device in enumerate(self.trackable_devices):
             if device.tracking.get():
                 current_selection.append(i+1)
+        current_selection = " ".join(map(str, current_selection))
 
         while True:
             new_selection = input(
-                "Enter the index of the devices to track ("
-                f"{' '.join(current_selection)}'): "
+                f"\nEnter the index of the devices to track ({current_selection}): "
             ) or current_selection
 
             try:
                 new_selection = [
-                    int(i) for i in new_selection.replace(",", "").split()
+                    int(i) for i in new_selection.replace(",", " ").split()
                 ]
             except ValueError as err:
-                raise ValueError(
+                logger.info(
                     "Invalid input. Please enter comma or space separated list "
                     "of indices corresponding to the devices you wish to track."
                     f"{err}"
                 )
+                continue
 
             if not all(
                 0 < i <= len(self.trackable_devices) for i in new_selection
             ):
-                print("Invalid selection. Please choose valid indices.")
+                logger.info("Invalid selection. Please choose valid indices.")
                 continue
 
             break
@@ -139,19 +147,20 @@ class EnergySignal(Signal):
             track = True if i+1 in new_selection else False
             device.tracking.put(track)
 
+        print()
         self.tracking
 
     @property
     def position(self):
-        return mono.energy.position
+        return self.mono.energy.position
 
     @property
     def limits(self):
-        return mono.energy.limits
+        return self.mono.energy.limits
 
     def get(self, **kwargs):
         """ Uses the mono as the standard beamline energy. """
-        self._readback = mono.energy.readback.get(**kwargs)
+        self._readback = self.mono.energy.readback.get(**kwargs)
         return self._readback
 
     def set(
@@ -171,11 +180,11 @@ class EnergySignal(Signal):
         old_value = self._readback
 
         # Mono
-        mono_status = mono.energy.set(
+        mono_status = self.mono.energy.set(
             position, wait=wait, timeout=timeout, moved_cb=moved_cb
         )
         status = AndStatus(status, mono_status)
-        self._status = {mono.name: mono_status}
+        self._status = {self.mono.name: mono_status}
 
         # All other devices - PR MAY BE A PROBLEM!
         for d in self.trackable_devices:
@@ -208,7 +217,10 @@ class EnergySignal(Signal):
         """
         Stops only energy devices that are tracking.
         """
-        mono.energy.stop(success=success)
+        self.mono.energy.stop(success=success)
         for positioner in self.trackable_devices:
             if positioner.tracking.get():
                 positioner.energy.stop(success=success)
+
+    def default_settings(self):
+        self._mono = oregistry.find(self._mono_name)

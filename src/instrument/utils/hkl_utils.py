@@ -49,10 +49,9 @@ from hkl.util import (
     run_orientation_info
 )
 from logging import getLogger
+from apsbits.core.instrument_init import oregistry
 from .run_engine import RE, cat
 from .polartools_hklpy_imports import pa
-from ..devices.polar_diffractometer import huber_euler, huber_euler_psi
-from ..devices.simulated_fourc_vertical import fourc
 
 try:
     from hkl import cahkl
@@ -70,13 +69,32 @@ except ModuleNotFoundError:
     cahkl = _check_geom_selected = _geom_ = None
 
 logger = getLogger(__name__)
-logger.info(__file__)
 
 polar_config = pathlib.Path("polar-config.json")
 fourc_config = pathlib.Path("fourc-config.json")
 pbar_manager = ProgressBarManager()
 _geom_for_psi_ = None
 POLAR_DIFFRACTOMETER = "huber"
+
+
+### THIS FILE NEEDS TO BE REVISED!! ###
+fourc = None
+
+
+def get_huber_euler():
+    huber_euler = oregistry.find("huber_euler", allow_none=True)
+    if huber_euler is None:
+        raise ValueError(
+            "Cannot find 'huber_euler' device. Please load and register it."
+        )
+
+
+def get_huber_euler_psi():
+    huber_euler = oregistry.find("huber_euler_psi", allow_none=True)
+    if huber_euler is None:
+        raise ValueError(
+            "Cannot find 'huber_euler_psi' device. Please load and register it."
+        )
 
 
 def select_engine_for_psi(instrument=None):
@@ -111,7 +129,7 @@ def set_diffractometer(instrument=None):
         select_diffractometer(fourc)
         print("Diffractometer {} selected".format(diff))
     elif diff == 'polar':
-        select_diffractometer(huber_euler)
+        select_diffractometer(get_huber_euler())
         print("Diffractometer {} selected".format(diff))
     else:
         raise ValueError(
@@ -152,9 +170,8 @@ def sampleNew(*args):
         )
 
     if nm in _geom_.calc._samples:
-        logger.warning(
-            ("Sample '%s' is already defined."),
-            nm,
+        logger.info(
+            f"Sample '{nm}' is already defined."
         )
     else:
         lattice = Lattice(
@@ -1756,7 +1773,7 @@ def pa_new():
     current_mode = _geom_.calc.engine.mode
 
     print("{},  {} geometry, {} diffractometer".format(_geom_.__class__.__name__, geometry, _geom_.name))
-    print("{} mode".format(huber_euler.calc.engine.mode))
+    print("{} mode".format(get_huber_euler().calc.engine.mode))
 
     print("Sample = {}".format(sample.name))
     for i, ref in enumerate(sample._sample.reflections_get()):
@@ -2227,10 +2244,6 @@ def set_constraints(*args):
             _geom_.apply_constraints(
                 {axis: Constraint(value[0], value[1], angle, True)}
         )
-
-
-select_diffractometer(huber_euler)
-select_engine_for_psi(huber_euler_psi)
 
 
 class whClass:

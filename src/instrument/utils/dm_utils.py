@@ -21,7 +21,6 @@ from pathlib import Path
 from time import time
 from bluesky.plan_stubs import sleep, null
 from apsbits.core.instrument_init import oregistry
-from logging import getLogger
 
 __all__ = """
     dm_get_experiment_data_path
@@ -38,14 +37,6 @@ bss_api = BssApsDbApi()
 exp_api = ExperimentDsApi()
 user_api = UserDsApi()
 
-dm_workflow = oregistry("dm_workflow", allow_none=True)
-if dm_workflow is None:
-    logger = getLogger(__name__)
-    logger.warning(
-        "The dm_workflow device could not be loaded. DM functionality may not "
-        "function properly."
-    )
-
 DEFAULT_USERS = [
     "d206409",  # Gilberto
     "d85892",  # Joerg
@@ -53,6 +44,13 @@ DEFAULT_USERS = [
     "d86103",  # Daniel
 ]
 
+def dm_workflow():
+    dm = oregistry.find("dm_workflow", allow_none=True)
+    if dm is None:
+        raise ValueError(
+            "The dm_workflow device was not found. Please load and register it."
+        )
+    return dm
 
 def dm_get_experiment_data_path(dm_experiment_name: str):
     return Path(dm_api_ds().getExperimentByName(
@@ -62,7 +60,7 @@ def dm_get_experiment_data_path(dm_experiment_name: str):
 
 def get_processing_job_status(id=None, owner="user4idd"):
     if id is None:
-        id = dm_workflow.job_id.get()
+        id = dm_workflow().job_id.get()
     return dm_api_proc().getProcessingJobById(id=id, owner=owner)
 
 

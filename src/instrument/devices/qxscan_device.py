@@ -12,7 +12,6 @@ from logging import getLogger
 from ..utils.run_engine import cat
 
 logger = getLogger(__name__)
-logger.info(__file__)
 
 hbar = 6.582119569E-16  # eV.s
 speed_of_light = 299792458e10  # A/s

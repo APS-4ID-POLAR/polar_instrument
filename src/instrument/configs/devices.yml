@@ -8,7 +8,7 @@ instrument.devices.aps_xbpm.MyXBPM:
 instrument.devices.aps_undulator.PolarUndulatorPair:
 - name: undulators
   prefix: "S04ID:"
-  labels: ["source", "energy"]
+  labels: ["source", "energy device"]
 
 instrument.devices.aps_status.StatusAPS:
 - name: status_aps
@@ -23,7 +23,7 @@ instrument.devices.hhl_mirror.ToroidalMirror:
 instrument.devices.monochromator.MonoDevice:
 - name: mono
   prefix: "4idVDCM:"
-  labels: ["4ida", "monochromator", "energy"]
+  labels: ["4ida", "monochromator", "energy device"]
 
 instrument.devices.labjacks.CustomLabJackT7:
 - name: labjack_4ida
@@ -79,30 +79,30 @@ instrument.devices.jj_slits.SlitDevice:
   slitnum: 1
   labels: ["4idg", "slit"]
 
-# # instrument.devices.phaseplates.PRDevice:
-# # - name: pr1
-# #   PV: "4ida:"
-# #   prnum: 1
-# #   motorsDict: {x: m1, y: m2, th: m4}
-# #   labels: ["4ida", "phase retarder", "energy", "track_energy"]
+instrument.devices.phaseplates.PRDevice:
+- name: pr1
+  prefix: "4ida:"
+  prnum: 1
+  motorsDict: {x: m1, y: m2, th: m4}
+  labels: ["4ida", "phase retarder", "energy device", "track_energy"]
 
-# # - name: pr2
-# #   PV: "4ida:"
-# #   prnum: 2
-# #   motorsDict: {x: m6, y: m7, th: m9}
-# #   labels: ["4ida", "phase retarder", "energy", "track_energy"]
+- name: pr2
+  prefix: "4ida:"
+  prnum: 2
+  motorsDict: {x: m6, y: m7, th: m9}
+  labels: ["4ida", "phase retarder", "energy device", "track_energy"]
 
-# # instrument.devices.phaseplates.PRDeviceBase:
-# # - name: pr3
-# #   PV: "4ida:"
-# #   motorsDict: {x: m10, y: m11, th: m12}
-# #   labels: ["4ida", "phase retarder", "energy", "track_energy"]
+instrument.devices.phaseplates.PRDeviceBase:
+- name: pr3
+  prefix: "4ida:"
+  motorsDict: {x: m10, y: m11, th: m12}
+  labels: ["4ida", "phase retarder", "energy device", "track_energy"]
 
-# # instrument.devices.energy_device.EnergySignal:
-# # - name: energy
-# #   value: 10
-# #   kind: hinted
-# #   labels: ["energy"]
+instrument.devices.energy_device.EnergySignal:
+- name: energy
+  value: 10
+  kind: hinted
+  labels: ["energy device"]
 
 # This is messing up the logger.
 # apstools.devices.DM_WorkflowConnector:
@@ -223,27 +223,27 @@ apstools.devices.LakeShore336Device:
   prefix: "4idgSoft:LS336:cryo:"
   labels: ["4idg", "temperature"]
 
-# instrument.devices.polar_diffractometer.CradleDiffractometer:
-# - name: huber_euler
-#   prefix: "4idgSoft:"
-#   labels: ["4idg", "diffractometer"]
+instrument.devices.polar_diffractometer.CradleDiffractometer:
+- name: huber_euler
+  prefix: "4idgSoft:"
+  labels: ["4idg", "diffractometer"]
 
-# instrument.devices.polar_diffractometer.HPDiffractometer:
-# - name: huber_hp
-#   prefix: "4idgSoft:"
-#   labels: ["4idg", "diffractometer"]
+instrument.devices.polar_diffractometer.HPDiffractometer:
+- name: huber_hp
+  prefix: "4idgSoft:"
+  labels: ["4idg", "diffractometer"]
 
-# instrument.devices.polar_diffractometer.CradlePSI:
-# - name: huber_euler_psi
-#   prefix: "4idgSoft:"
-#   engine: psi
-#   labels: ["4idg", "diffractometer"]
+instrument.devices.polar_diffractometer.CradlePSI:
+- name: huber_euler_psi
+  prefix: "4idgSoft:"
+  engine: psi
+  labels: ["4idg", "diffractometer"]
 
-# instrument.devices.polar_diffractometer.HPPSI:
-# - name: huber_hp_psi
-#   prefix: "4idgSoft:"
-#   engine: psi
-#   labels: ["4idg", "diffractometer"]
+instrument.devices.polar_diffractometer.HPPSI:
+- name: huber_hp_psi
+  prefix: "4idgSoft:"
+  engine: psi
+  labels: ["4idg", "diffractometer"]
 
 instrument.devices.ad_eiger1M.Eiger1MDetector:
 - name: eiger
@@ -252,4 +252,4 @@ instrument.devices.ad_eiger1M.Eiger1MDetector:
 
 instrument.devices.qxscan_device.QxscanParams:
 - name: qxscan_setup
-  labels: ["qxscan", "energy"]
+  labels: ["qxscan", "energy device"]

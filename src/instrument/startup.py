@@ -71,7 +71,6 @@ if running_in_queueserver():
     # import plan by plan.
     from apstools.plans import lineup2  # noqa: F401
     from bluesky.plans import *  # noqa: F403, F401
-
 else:
     # Import bluesky plans and stubs with prefixes set by common conventions.
     # The apstools plans and utils are imported by '*'.
@@ -79,6 +78,24 @@ else:
     from apstools.utils import *  # noqa: F401, F403
     from bluesky import plan_stubs as bps  # noqa: F401
     from bluesky import plans as bp  # noqa: F401
+
+    from .utils.counters_class import counters
+    from .utils.pr_setup import pr_setup
+    from .utils.attenuator_utils import atten
+    from .utils.suspenders import (
+        run_engine_suspenders,
+        suspender_restart,
+        suspender_stop,
+        suspender_change_sleep
+    )
+    # from .utils.dm_utils import *
+    # from .utils.experiment_utils import *
+    # from .utils.hkl_utils import *
+    from .utils.polartools_hklpy_imports import *
+    from .utils.oregistry_auxiliar import get_devices
+    # TODO: Both DM, hklpy, experiment_utils seems to be changing the
+    # logging level. I don't know why.
+    # logger.setLevel(logging.BSDEV)
 
 RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
 

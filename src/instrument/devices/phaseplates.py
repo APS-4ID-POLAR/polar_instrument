@@ -112,9 +112,9 @@ class PRDeviceBase(PseudoPositioner):
 
     tracking = Component(TrackingSignal, value=False, kind='config')
 
-    def __init__(self, PV, name, motorsDict, **kwargs):
+    def __init__(self, prefix, name, motorsDict, **kwargs):
         self._motorsDict = motorsDict
-        super().__init__(prefix=PV, name=name, **kwargs)
+        super().__init__(prefix, name=name, **kwargs)
         self._energy_cid = None
 
     def convert_energy_to_theta(self, energy):

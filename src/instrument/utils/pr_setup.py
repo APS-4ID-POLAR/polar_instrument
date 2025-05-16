@@ -5,8 +5,6 @@ __all__ = ["pr_setup"]
 from ..callbacks import plot_dichro_settings
 from apsbits.core.instrument_init import oregistry
 
-prs = oregistry.findall("phase retarder")
-
 
 class PRSetup():
 
@@ -20,7 +18,7 @@ class PRSetup():
     def __repr__(self):
 
         tracked = ""
-        for pr in prs:
+        for pr in oregistry.findall("phase retarder"):
             if pr.tracking.get():
                 tracked += f"{pr.name} "
 
@@ -93,7 +91,7 @@ class PRSetup():
                 print("Invalid answer, it must be yes or no.")
 
         # Cycle through the PRs
-        for pr in prs:
+        for pr in oregistry.findall("phase retarder"):
 
             print(" ++ {} ++ ".format(pr.name.upper()))
 

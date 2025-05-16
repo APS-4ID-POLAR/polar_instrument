@@ -8,9 +8,9 @@ Utility functions
 """
 
 __all__ = """
-    change_experiment_sample
-    setup_experiment
-    load_experiment_from_bluesky
+    experiment_change_sample
+    experiment_setup
+    experiment_load_from_bluesky
     experiment
 """.split()
 
@@ -21,8 +21,9 @@ from apstools.utils import (
 from dm import ObjectNotFound, DmException
 from os import chdir
 from pathlib import Path
-from ..callbacks.spec_data_file_writer import specwriter
-from ..devices.data_management import dm_experiment
+from apsbits.utils.config_loaders import get_config
+from apsbits.core.instrument_init import oregistry
+from logging import getLogger
 from .dm_utils import (
     get_esaf_info,
     get_proposal_info,
@@ -31,12 +32,12 @@ from .dm_utils import (
     get_current_run_name
 )
 from .run_engine import RE
-from apsbits.utils.config_loaders import get_config
-from logging import getLogger
+from ..callbacks.spec_data_file_writer import specwriter
 
 logger = getLogger(__name__)
 logger.info(__file__)
 iconfig = get_config()
+
 
 SERVERS = {
     "dserv": Path(iconfig["DSERV_ROOT_PATH"]),
@@ -44,6 +45,15 @@ SERVERS = {
 }
 
 path_startup = Path("startup_experiment.py")
+
+
+def _get_dm_experiment():
+    dm = oregistry.find("dm_experiment", allow_none=True)
+    if dm is None:
+        raise ValueError(
+            "The dm_experiment device was not found. Please load and register it."
+        )
+    return dm
 
 
 class ExperimentClass:
@@ -268,7 +278,7 @@ class ExperimentClass:
 
         if self.server == "data management":
             self.data_management = dict(_exp)
-            dm_experiment.put(self.experiment_name)
+            self.dm_experiment.put(self.experiment_name)
         return True
 
     def setup_dm_daq(self):
@@ -371,6 +381,7 @@ class ExperimentClass:
             reset_scan_id: int = None,
             skip_DM: bool = False
     ):
+        dm_experiment = _get_dm_experiment()
         if not skip_DM:
             # ESAF and proposal ID info first. Will get data from APS databases.
             self.esaf_input(esaf_id)
