@@ -88,14 +88,16 @@ else:
         suspender_stop,
         suspender_change_sleep
     )
-    # from .utils.dm_utils import *
-    # from .utils.experiment_utils import *
-    # from .utils.hkl_utils import *
+    from .utils.dm_utils import *
+    from .utils.experiment_utils import *
+    from .utils.hkl_utils import *
     from .utils.polartools_hklpy_imports import *
     from .utils.oregistry_auxiliar import get_devices
     # TODO: Both DM, hklpy, experiment_utils seems to be changing the
     # logging level. I don't know why.
-    # logger.setLevel(logging.BSDEV)
+    logger.setLevel(logging.BSDEV)
+
+    from .plans import *
 
 RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
 

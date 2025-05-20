@@ -303,8 +303,6 @@ def count(
     flag.fixq = fixq
     per_shot = one_local_shot if fixq or dichro else None
 
-    extras = yield from _collect_extras(False, False)
-
     _master_fullpath, _dets_file_paths, _rel_dets_paths = (
         _setup_paths(detectors)
     )
@@ -313,7 +311,7 @@ def count(
         experiment.experiment_path, _master_fullpath, _rel_dets_paths
     )
 
-    extras = yield from _collect_extras(False, False)
+    extras = yield from _collect_extras(("",))
 
     # TODO: The md handling might go well in a decorator.
     # TODO: May need to add reference to stream.

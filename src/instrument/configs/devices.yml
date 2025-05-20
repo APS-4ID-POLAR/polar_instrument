@@ -169,9 +169,9 @@ instrument.devices.quadems.SydorEMRO:
   prefix: "4idgSydor:T4U_BPM:"
   labels: ["detector", "xbpm"]
 
-- name: hsydor
-  prefix: "4idhSydor:T4U_BPM:"
-  labels: ["detector", "xbpm"]
+# - name: hsydor
+#   prefix: "4idhSydor:T4U_BPM:"
+#   labels: ["detector", "xbpm"]
 
 instrument.devices.polarimeter.PolAnalyzer:
 - name: pol
