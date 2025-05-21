@@ -3,13 +3,19 @@ Setup for two CTR8 devices used together
 """
 
 from collections import OrderedDict
-from ophyd import FormattedComponent, Component, Device, Kind
+from ophyd import (
+    FormattedComponent, DynamicDeviceComponent, Component, Device, Kind
+)
 from ophyd.scaler import ScalerChannel, ScalerCH
 from math import floor
 from .scaler import PresetMonitorSignal
-from ..utils.formatted_dynamic_component import FormattedDynamicSubDevice
+
+# TODO: This has the PVs hardcoded in the make_channel function. Need to find a
+# way to create have a DynamicDeviceComponent that also uses FormattedComponent.
 
 NUMCHANNELS = 8  # Hardcoded number of channels... Is it needed?
+PREFIX1 = "4idCRT8_1:scaler1"
+PREFIX2 = "4idCRT8_1:scaler2"
 
 
 class LocalScalerChannel(ScalerChannel):
@@ -20,16 +26,26 @@ class LocalScalerChannel(ScalerChannel):
         self._scaler_number = floor((ch_num-1)/NUMCHANNELS) + 1
 
 
-class LocalScalerCHNoTrigger(ScalerCH):
+def make_channels():
+    defn = OrderedDict()
 
-    # TODO: May want to change this to remove all channels
+    # First scaler
+    for i in range(1, NUMCHANNELS + 1):
+        defn[f"chan{i :02d}"] = (
+            ScalerChannel,
+            PREFIX1,
+            {"ch_num": i, "kind": "normal"}
+        )
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.channels.kind = Kind.omitted
+    # Second scaler
+    for i in range(1, NUMCHANNELS + 1):
+        defn[f"chan{i + NUMCHANNELS :02d}"] = (
+            ScalerChannel,
+            PREFIX2,
+            {"ch_num": i, "kind": "normal"}
+        )
 
-    # def trigger(self):
-    #     pass
+    return defn
 
 
 class DualCTR8Scaler(Device):
@@ -42,29 +58,7 @@ class DualCTR8Scaler(Device):
         self.scaler1.channels.kind = Kind.omitted
         self.scaler2.channels.kind = Kind.omitted
 
-    @classmethod
-    def make_channels(cls, attr_base, *, prefix1=None, prefix2=None):
-        defn = OrderedDict()
-
-        # First scaler
-        for i in range(1, NUMCHANNELS + 1):
-            defn[f"chan{i :02d}"] = (
-                ScalerChannel,
-                "{prefix1}",
-                {"ch_num": i, "kind": "normal"}
-            )
-
-        # Second scaler
-        for i in range(1, NUMCHANNELS + 1):
-            defn[f"chan{i + NUMCHANNELS :02d}"] = (
-                ScalerChannel,
-                "{prefix2}",
-                {"ch_num": i, "kind": "normal"}
-            )
-
-        return defn
-
-    channels = FormattedDynamicSubDevice(lambda self: self.make_channels("bla"))
+    channels = DynamicDeviceComponent(make_channels())
 
     scaler1 = FormattedComponent(ScalerCH, "{prefix1}")
     scaler2 = FormattedComponent(ScalerCH, "{prefix2}")
@@ -120,7 +114,7 @@ class DualCTR8Scaler(Device):
         channel = self.channels_name_map[self.monitor]
         scaler_num = 1 if int(channel.replace("chan", "")) <= 8 else 2
         return getattr(self, f"scaler{scaler_num}")
-    
+
     def trigger(self):
         # Only click trigger in the scaler of the monitor, the other
         # will follow because they are hardwired together.

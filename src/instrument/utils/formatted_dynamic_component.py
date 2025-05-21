@@ -49,8 +49,9 @@ class FormattedDynamicSubDevice:
 
 class InstanceFormattedComponent:
     """
-    Acts like a Component that can interpolate format strings using the instance's __dict__.
-    Used to dynamically build a subdevice based on instance parameters (like self.prefix1).
+    Acts like a Component that can interpolate format strings using the
+    instance's __dict__. Used to dynamically build a subdevice based on
+    instance parameters (like self.prefix1).
     """
 
     def __init__(self, factory_func):
@@ -66,7 +67,9 @@ class InstanceFormattedComponent:
         attr_name = f"_{self._name}_device"
         if not hasattr(instance, attr_name):
             sub_cls = self._build_subdevice_class(instance)
-            sub_inst = sub_cls('', parent=instance, name=f"{instance.name}_{self._name}")
+            sub_inst = sub_cls(
+                '', parent=instance, name=f"{instance.name}_{self._name}"
+            )
             setattr(instance, attr_name, sub_inst)
         return getattr(instance, attr_name)
 
@@ -76,7 +79,7 @@ class InstanceFormattedComponent:
         components_dict = {}
 
         for comp_name, (cls, fmt_str, kwargs) in defn.items():
-            prefix = fmt_str.format(**vars(instance))  # instance-level string formatting
+            prefix = fmt_str.format(**vars(instance))
             if "name" not in kwargs:
                 kwargs["name"] = f"{instance.name}_{self._name}_{comp_name}"
             components_dict[comp_name] = Component(cls, prefix, **kwargs)
