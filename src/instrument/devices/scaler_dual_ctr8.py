@@ -28,23 +28,26 @@ class LocalScalerCHNoTrigger(ScalerCH):
         super().__init__(*args, **kwargs)
         self.channels.kind = Kind.omitted
 
-    def trigger(self):
-        pass
+    # def trigger(self):
+    #     pass
 
 
 class DualCTR8Scaler(Device):
+
     def __init__(self, prefix1, prefix2, **kwargs):
         self.prefix1 = prefix1
         self.prefix2 = prefix2
         super().__init__("", **kwargs)
         self._monitor = self.channels.chan01  # Time is the default monitor.
+        self.scaler1.channels.kind = Kind.omitted
+        self.scaler2.channels.kind = Kind.omitted
 
     def make_channels(self):
         defn = OrderedDict()
 
         # First scaler
         for i in range(1, NUMCHANNELS + 1):
-            defn[f"chan{i}"] = (
+            defn[f"chan{i :02d}"] = (
                 ScalerChannel,
                 "{prefix1}",
                 {"ch_num": i, "kind": "normal"}
@@ -52,7 +55,7 @@ class DualCTR8Scaler(Device):
 
         # Second scaler
         for i in range(1, NUMCHANNELS + 1):
-            defn[f"chan{i + NUMCHANNELS}"] = (
+            defn[f"chan{i + NUMCHANNELS :02d}"] = (
                 ScalerChannel,
                 "{prefix2}",
                 {"ch_num": i, "kind": "normal"}
@@ -62,18 +65,22 @@ class DualCTR8Scaler(Device):
 
     channels = FormattedDynamicSubDevice(make_channels)
 
-    scaler1 = FormattedComponent(LocalScalerCHNoTrigger, "{prefix1}scaler1")
-    scaler2 = FormattedComponent(LocalScalerCHNoTrigger, "{prefix1}scaler2")
+    scaler1 = FormattedComponent(ScalerCH, "{prefix1}")
+    scaler2 = FormattedComponent(ScalerCH, "{prefix2}")
 
     preset_time = None
     preset_monitor = Component(PresetMonitorSignal, kind=Kind.config)
 
     @property
-    def trigger_signals(self):
-        monitor_scaler = getattr(
-            self, f"scaler{self.preset_monitor._scaler_number}"
-        )
-        return [monitor_scaler.count]
+    def trigger_scaler(self):
+        channel = self.channels_name_map[self.monitor]
+        scaler_num = 1 if int(channel.replace("chan", "")) <= 8 else 2
+        return getattr(self, f"scaler{scaler_num}")
+    
+    def trigger(self):
+        # Only click trigger in the scaler of the monitor, the other
+        # will follow because they are hardwired together.
+        return self.trigger_scaler.trigger()
 
     @property
     def channels_name_map(self):
