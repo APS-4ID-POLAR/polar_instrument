@@ -1,34 +1,56 @@
-from collections import OrderedDict
-from math import floor
-
 from ophyd import Device, Component, FormattedComponent, Kind
 from ophyd.scaler import ScalerChannel, ScalerCH
-
+from collections import OrderedDict
+from math import floor
 from .scaler import PresetMonitorSignal
-from ..utils.formatted_dynamic_component import InstanceFormattedComponent
 
 NUMCHANNELS = 8
 
-
 class LocalScalerChannel(ScalerChannel):
     def __init__(self, *args, ch_num=0, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, ch_num=ch_num, **kwargs)
         self._scaler_number = floor((ch_num - 1) / NUMCHANNELS) + 1
-
 
 class LocalScalerCHNoTrigger(ScalerCH):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.channels.kind = Kind.omitted
 
+class FormattedDynamicComponent:
+    def __init__(self, factory_func):
+        self.factory_func = factory_func
+        self.attr_name = None
+
+    def __set_name__(self, owner, name):
+        self.attr_name = name  # Needed for ophyd's internal registry
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+
+        # Cache built device
+        if hasattr(instance, f"_{self.attr_name}"):
+            return getattr(instance, f"_{self.attr_name}")
+
+        comp_dict = {}
+        for comp_name, (cls, fmt_str, kwargs) in self.factory_func(instance).items():
+            prefix = fmt_str.format(**instance.__dict__)
+            comp_dict[comp_name] = Component(cls, prefix, **kwargs)
+
+        subcls = type(f"{instance.name}_{self.attr_name}_SubDevice", (Device,), comp_dict)
+        subdevice = subcls('', parent=instance, name=f"{instance.name}_{self.attr_name}")
+        setattr(instance, f"_{self.attr_name}", subdevice)
+        return subdevice
+
+
+# === Main device ===
 
 class DualCTR8Scaler(Device):
     def __init__(self, prefix1, prefix2, **kwargs):
         self.prefix1 = prefix1
         self.prefix2 = prefix2
-        super().__init__("", **kwargs)
-
-        self._monitor = self.channels.chan01  # Default monitor
+        super().__init__('', **kwargs)
+        self._monitor = self.channels.chan01
         self.scaler1.channels.kind = Kind.omitted
         self.scaler2.channels.kind = Kind.omitted
 
@@ -37,24 +59,18 @@ class DualCTR8Scaler(Device):
         defn = OrderedDict()
         for i in range(1, NUMCHANNELS + 1):
             defn[f"chan{i:02d}"] = (
-                ScalerChannel,
-                "{prefix1}",
-                {"ch_num": i, "kind": Kind.normal},
+                LocalScalerChannel, "{prefix1}", {"ch_num": i, "kind": Kind.normal}
             )
         for i in range(1, NUMCHANNELS + 1):
             defn[f"chan{i + NUMCHANNELS:02d}"] = (
-                ScalerChannel,
-                "{prefix2}",
-                {"ch_num": i, "kind": Kind.normal},
+                LocalScalerChannel, "{prefix2}", {"ch_num": i, "kind": Kind.normal}
             )
         return defn
 
-    channels = InstanceFormattedComponent(make_channels)
+    channels = FormattedDynamicComponent(make_channels)
 
     scaler1 = FormattedComponent(ScalerCH, "{prefix1}")
     scaler2 = FormattedComponent(ScalerCH, "{prefix2}")
-
-    preset_time = None
     preset_monitor = Component(PresetMonitorSignal, kind=Kind.config)
 
     def match_names(self):
