@@ -135,13 +135,19 @@ apstools.devices.ApsPssShutterWithStatus:
   close_pv: "PC:04ID:SBS_CLOSE_REQUEST"
   labels: ["4idb", "shutter"]
 
-instrument.devices.scaler.LocalScalerCH:
-- name: scaler1
-  prefix: "4idCTR8_1:scaler1"
-  labels: ["detector", "scaler"]
+# instrument.devices.scaler.LocalScalerCH:
+# - name: scaler1
+#   prefix: "4idCTR8_1:scaler1"
+#   labels: ["detector", "scaler"]
 
-- name: scaler2
-  prefix: "4idCTR8_1:scaler2"
+# - name: scaler2
+#   prefix: "4idCTR8_1:scaler2"
+#   labels: ["detector", "scaler"]
+
+instrument.devices.scaler_dual_ctr8.DualCTR8Scaler:
+- name: scaler
+  prefix1: "4idCTR8_1:scaler1"
+  prefix2: "4idCTR8_1:scaler2"
   labels: ["detector", "scaler"]
 
 instrument.devices.usb_ctr8.CustomMeasCompCtr:
@@ -159,15 +165,15 @@ instrument.devices.table_4idb.Table4idb:
   prefix: "4idbSoft:"
   labels: ["4idb"]
 
-instrument.devices.quadems.TetrAMMRO:
-- name: btetramm
-  prefix: "4idbSoft:TetrAMM:"
-  labels: ["detector", "xbpm"]
+# instrument.devices.quadems.TetrAMMRO:
+# - name: btetramm
+#   prefix: "4idbSoft:TetrAMM:"
+#   labels: ["detector", "xbpm"]
 
-instrument.devices.quadems.SydorEMRO:
-- name: gsydor
-  prefix: "4idgSydor:T4U_BPM:"
-  labels: ["detector", "xbpm"]
+# instrument.devices.quadems.SydorEMRO:
+# - name: gsydor
+#   prefix: "4idgSydor:T4U_BPM:"
+#   labels: ["detector", "xbpm"]
 
 # - name: hsydor
 #   prefix: "4idhSydor:T4U_BPM:"
