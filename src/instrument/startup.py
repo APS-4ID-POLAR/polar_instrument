@@ -79,25 +79,26 @@ else:
     from bluesky import plan_stubs as bps  # noqa: F401
     from bluesky import plans as bp  # noqa: F401
 
-    from .utils.counters_class import counters
-    from .utils.pr_setup import pr_setup
-    from .utils.attenuator_utils import atten
-    from .utils.suspenders import (
+    from .utils.counters_class import counters  # noqa: F401
+    from .utils.pr_setup import pr_setup  # noqa: F401
+    from .utils.attenuator_utils import atten  # noqa: F401
+    from .utils.suspenders import (  # noqa: F401
         run_engine_suspenders,
         suspender_restart,
         suspender_stop,
         suspender_change_sleep
     )
-    from .utils.dm_utils import *
-    from .utils.experiment_utils import *
-    from .utils.hkl_utils import *
-    from .utils.polartools_hklpy_imports import *
-    from .utils.oregistry_auxiliar import get_devices
+    from .utils.dm_utils import *  # noqa: F401, F403
+    from .utils.experiment_utils import *  # noqa: F401, F403
+    from .utils.hkl_utils import *  # noqa: F401, F403
+    from .utils.polartools_hklpy_imports import *  # noqa: F401, F403
+    from .utils.oregistry_auxiliar import get_devices  # noqa: F401
     # TODO: Both DM, hklpy, experiment_utils seems to be changing the
     # logging level. I don't know why.
     logger.setLevel(logging.BSDEV)
 
-    from .plans import *
+    from .plans import *  # noqa: F401, F403
+
 
 RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
 
