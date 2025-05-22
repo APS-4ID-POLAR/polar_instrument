@@ -115,5 +115,5 @@ for device in devices:
     except TimeoutError:
         logger.warning(
             "TimeoutError encountered while setting default for device: "
-            f"{device.name}"
+            f"{device.name}. Will not add to the baseline."
         )
