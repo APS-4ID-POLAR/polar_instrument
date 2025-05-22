@@ -100,7 +100,20 @@ else:
     from .plans import *  # noqa: F401, F403
 
 
-RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
+RE(make_devices(clear=True, file="devices.yml"))  # Create the devices.
 
-# if host_on_aps_subnet():
-#     RE(make_devices(clear=False, file="device_aps_only.yml"))
+# Only run .default_setting and add to baseline if belongs to the hutch
+# Maybe I can use the device label as a sorting mechanism? - Using oregistry..
+
+STATIONS = ["4ida", "4idb"]
+
+devices = oregistry.findall(STATIONS)  # Not sure oregistry takes a list...
+for device in devices:
+    try:
+        device.default_setting()
+        sd.baseline.append(device)
+    except TimeoutError:
+        logger.warning(
+            "TimeoutError encountered while setting default for device: "
+            f"{device.name}"
+        )
