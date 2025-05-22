@@ -14,8 +14,8 @@ from .scaler import PresetMonitorSignal
 # way to create have a DynamicDeviceComponent that also uses FormattedComponent.
 
 NUMCHANNELS = 8  # Hardcoded number of channels... Is it needed?
-PREFIX1 = "4idCRT8_1:scaler1"
-PREFIX2 = "4idCRT8_1:scaler2"
+PREFIX1 = "4idCTR8_1:scaler1"
+PREFIX2 = "4idCTR8_1:scaler2"
 
 
 class LocalScalerChannel(ScalerChannel):

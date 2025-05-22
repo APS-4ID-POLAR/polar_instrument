@@ -144,7 +144,7 @@ apstools.devices.ApsPssShutterWithStatus:
 #   prefix: "4idCTR8_1:scaler2"
 #   labels: ["detector", "scaler"]
 
-instrument.devices.scaler_dual_ctr82.DualCTR8Scaler:
+instrument.devices.scaler_dual_ctr8.DualCTR8Scaler:
 - name: scaler
   prefix1: "4idCTR8_1:scaler1"
   prefix2: "4idCTR8_1:scaler2"
