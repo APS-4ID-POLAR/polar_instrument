@@ -105,15 +105,24 @@ RE(make_devices(clear=True, file="devices.yml"))  # Create the devices.
 # Only run .default_setting and add to baseline if belongs to the hutch
 # Maybe I can use the device label as a sorting mechanism? - Using oregistry..
 
-STATIONS = ["4ida", "4idb"]
+stations = ["source", "4ida", "4idb", "4idg", "4idh"]
 
-devices = oregistry.findall(STATIONS)  # Not sure oregistry takes a list...
+devices = oregistry.findall(stations)
+baseline_devices = oregistry.findall("baseline")
+
 for device in devices:
     try:
-        device.default_setting()
-        sd.baseline.append(device)
+        device.wait_for_connection()
+        if device in baseline_devices:
+            sd.baseline.append(device)
+        if hasattr(device, "default_settings"):
+            device.default_settings()
     except TimeoutError:
-        logger.warning(
+        message = (
             "TimeoutError encountered while setting default for device: "
-            f"{device.name}. Will not add to the baseline."
+            f"{device.name}."
         )
+        if device in baseline_devices:
+            message += " This device was not added to the baseline."
+        logger.warning(message)
+
