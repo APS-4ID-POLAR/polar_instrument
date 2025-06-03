@@ -2,6 +2,7 @@ from pandas import DataFrame
 from ophydregistry import ComponentNotFound
 from apsbits.core.instrument_init import oregistry
 from logging import getLogger
+from collections.abc import Iterable
 
 logger = getLogger(__name__)
 logger.bsdev(__file__)
@@ -11,7 +12,10 @@ __all__ = ['counters']
 IDEAL_ORDER = [
     "scaler",
     "eiger",
-    "vortex"
+    "vortex",
+    "flagcam_hhl",
+    "flagcam_mono",
+    "flagcam_toro"
 ]
 
 
@@ -158,7 +162,7 @@ class CountersClass:
             _dets = []
 
         dets =[]
-        for name in self.order:
+        for name in self._order:
             dev = oregistry.find(name, allow_none=True)
             if dev in _dets:
                 _dets.remove(dev)
@@ -202,34 +206,61 @@ class CountersClass:
 
         self._dets = dets
 
-    def plotselect(self):
-        print("Options:")
-        print(self.detectors_plot_options)
-        print("")
+    def plotselect(self, dets=None, mon=None):
 
-        while True:
-            dets = input("Enter the indexes of plotting channels: ") or None
-
-            if dets is None:
-                print("A value must be entered.")
-                continue
-
-            # Check these are all numbers
-            try:
-                dets = [int(i) for i in dets.split()]
-            except ValueError:
-                print("Please enter the index numbers only.")
-                continue
-
-            # Check that the numbers are valid.
-            if not all(
-                [i in self.detectors_plot_options.index.values for i in dets]
+        _valid_dets = False
+        _valid_mon = False
+    
+        # Checks if input is valid
+        if dets is not None:
+            if not isinstance(dets, Iterable):
+                dets = [dets]
+            
+            number_of_options = self.detectors_plot_options.shape[0]
+            if (
+                all([isinstance(i, int) for i in dets]) and
+                all([i < number_of_options for i in dets])
             ):
-                print("The index values must be in the table.")
-                continue
+                _valid_dets = True
+            else:
+                logger.warning(f"The detectors option {dets} is invalid!")
 
-            self.select_plot_channels(dets)
-            break
+        if mon is not None:
+            if isinstance(mon, int):
+                _valid_mon = True
+            else:
+                logger.warning(f"The monitor option {mon} is invalid!")
+
+        if not (_valid_dets and _valid_mon):
+            print("Options:")
+            print(self.detectors_plot_options)
+            print("")
+
+        if not _valid_dets:
+            while True:
+                dets = input("Enter the indexes of plotting channels: ") or None
+
+                if dets is None:
+                    print("A value must be entered.")
+                    continue
+
+                # Check these are all numbers
+                try:
+                    dets = [int(i) for i in dets.split()]
+                except ValueError:
+                    print("Please enter the index numbers only.")
+                    continue
+
+                # Check that the numbers are valid.
+                if not all(
+                    [i in self.detectors_plot_options.index.values for i in dets]
+                ):
+                    print("The index values must be in the table.")
+                    continue
+
+                break
+
+        self.select_plot_channels(dets)
 
         selection = self.detectors_plot_options.iloc[dets].detectors.values
         # if any detector is not a scaler, then count agains time!
@@ -239,7 +270,7 @@ class CountersClass:
                 "selected as monitor."
             )
             mon = 0
-        else:
+        elif not _valid_mon:
             _mon = self.detectors_plot_options[
                 self.detectors_plot_options["channels"] == self.monitor
             ].index[0]

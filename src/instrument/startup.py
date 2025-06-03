@@ -112,6 +112,7 @@ baseline_devices = oregistry.findall("baseline")
 
 for device in devices:
     try:
+        logger.info(f"Connecting to {device.name}...")
         device.wait_for_connection()
         if device in baseline_devices:
             sd.baseline.append(device)
@@ -126,3 +127,7 @@ for device in devices:
             message += " This device was not added to the baseline."
         logger.warning(message)
 
+counters.plotselect(11, 0)
+
+# TODO: REMOVE THIS AFTER UPSTREAM FIX
+_ = RE.preprocessors.pop()
