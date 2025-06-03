@@ -23,8 +23,8 @@ run_engine_suspenders = {
     ),
 }
 
-for sus in run_engine_suspenders.values():
-    RE.install_suspender(sus)
+# for sus in run_engine_suspenders.values():
+#     RE.install_suspender(sus)
 
 
 def _query_label():

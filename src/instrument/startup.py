@@ -129,5 +129,8 @@ for device in devices:
 
 counters.plotselect(11, 0)
 
+for sus in run_engine_suspenders.values():
+    RE.install_suspender(sus)
+
 # TODO: REMOVE THIS AFTER UPSTREAM FIX
 _ = RE.preprocessors.pop()
