@@ -8,6 +8,12 @@ logger.bsdev(__file__)
 
 __all__ = ['counters']
 
+IDEAL_ORDER = [
+    "scaler",
+    "eiger",
+    "vortex"
+]
+
 
 class CountersClass:
     """
@@ -25,12 +31,13 @@ class CountersClass:
         Name of the scaler channel that is used as monitor.
     """
 
-    def __init__(self):
+    def __init__(self, order=IDEAL_ORDER):
         super().__init__()
         # This will hold the devices instances.
         self._dets = []
         self._mon = "Time"
         self._extra_devices = []
+        self._order = order
         # self._available_scalers = [scaler_sim, scaler_ctr8]
 
     def __repr__(self):
@@ -145,12 +152,20 @@ class CountersClass:
     @property
     def _available_detectors(self):
         try:
-            dets = oregistry.findall("detector")
+            _dets = oregistry.findall("detector")
         except ComponentNotFound:
             logger.warning("WARNING: no detectors were found by oregistry.")
-            dets = []
+            _dets = []
 
-        return dets
+        dets =[]
+        for name in self.order:
+            dev = oregistry.find(name, allow_none=True)
+            if dev in _dets:
+                _dets.remove(dev)
+            if dev is not None:
+                dets.append(dev)
+
+        return dets + _dets
 
     @property
     def detectors_plot_options(self):

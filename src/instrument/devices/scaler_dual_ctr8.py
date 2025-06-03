@@ -240,3 +240,4 @@ class DualCTR8Scaler(Device):
         self.monitor = 'chan01'
         self.select_read_channels()
         self.select_plot_channels()
+        print("yes")
