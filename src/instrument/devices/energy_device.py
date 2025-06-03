@@ -29,6 +29,8 @@ class EnergySignal(Signal):
 
     @property
     def mono(self):
+        if self._mono is None:
+            self._mono = oregistry.find(self._mono_name)
         return self._mono
 
     @property
