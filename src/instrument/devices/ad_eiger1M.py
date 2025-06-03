@@ -19,11 +19,50 @@ from .ad_mixins import (
 )
 
 
+# TODO: THIS IS A TEMPORARY WORKAROUND
+class MyADTriggerStatus(ADTriggerStatus):
+        def _notify_watchers(self, value, *args, **kwargs):
+            # *args and **kwargs catch extra inputs from pyepics, not needed here
+            if self.done:
+                self.device.cam.array_counter.clear_sub(self._notify_watchers)
+            if not self._watchers:
+                return
+            # Always start progress bar at 0 regardless of starting value of
+            # array_counter.
+            current = value - self._initial_count
+            target = self._target_count
+            initial = 0
+            time_elapsed = ttime() - self.start_ts
+            try:
+                fraction = 1 - (current - initial) / (target - initial)
+                if fraction == 0:
+                    fraction = 1
+            except ZeroDivisionError:
+                fraction = 0
+            except Exception:
+                fraction = None
+                time_remaining = None
+            else:
+                time_remaining = time_elapsed / fraction
+            for watcher in self._watchers:
+                watcher(
+                    name=self._name,
+                    current=current,
+                    initial=initial,
+                    target=target,
+                    unit="images",
+                    precision=0,
+                    fraction=fraction,
+                    time_elapsed=time_elapsed,
+                    time_remaining=time_remaining,
+                )
+
+
 class TriggerTime(TriggerBase):
     """
     This trigger mixin class takes one acquisition per trigger.
     """
-    _status_type = ADTriggerStatus
+    _status_type = MyADTriggerStatus
 
     def __init__(self, *args, image_name=None, min_period=0.2, **kwargs):
         super().__init__(*args, **kwargs)
