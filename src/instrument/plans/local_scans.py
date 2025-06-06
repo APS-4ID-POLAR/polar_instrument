@@ -197,7 +197,7 @@ def _setup_paths(detectors):
 
     if None in (experiment.base_experiment_path, experiment.file_base_name):
         raise ValueError(
-            "The experiment needs to be setup, please run setup_experiment()"
+            "The experiment needs to be setup, please run experiment_setup()"
         )
 
     _scan_id = RE.md["scan_id"] + 1

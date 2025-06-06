@@ -5,6 +5,7 @@ from IPython.core.magic import line_magic
 from operator import attrgetter
 from bluesky import RunEngineInterrupted
 from numpy import round, ndarray
+from apsbits.core.instrument_init import oregistry
 from ..plans import mv, mvr
 
 try:
@@ -75,7 +76,7 @@ class LocalMagics(BlueskyMagics):
                 _print_positioners(positioners, precision=self.FMT_PREC)
         else:
             # new behaviour
-            devices_dict = get_labeled_devices(user_ns=self.shell.user_ns)
+            # devices_dict = get_labeled_devices(user_ns=self.shell.user_ns)
             if line.strip():
                 if "[" in line or "]" in line:
                     raise ValueError(
@@ -91,14 +92,16 @@ class LocalMagics(BlueskyMagics):
                 labels = line.strip().split()
             else:
                 # Show all labels.
-                labels = list(devices_dict.keys())
+                # labels = list(devices_dict.keys())
+                raise ValueError("No label was entered.")
             for label in labels:
                 print(label)
                 try:
-                    devices = devices_dict[label]
+                    # devices = devices_dict[labelb]
+                    devices = oregistry.findall(label)
                     all_children = [
                         (k, getattr(obj, k))
-                        for _, obj in devices
+                        for obj in devices
                         for k in getattr(obj, "read_attrs", [])
                     ]
                 except KeyError:
@@ -106,7 +109,7 @@ class LocalMagics(BlueskyMagics):
                     continue
                 # Search devices and all their children for positioners.
                 positioners = [
-                    dev for _, dev in devices + all_children
+                    dev for dev in devices + all_children
                     if is_positioner(dev)
                 ]
                 if positioners:
@@ -116,7 +119,9 @@ class LocalMagics(BlueskyMagics):
                     print()  # blank line
                 # Just display the top-level devices in the namespace (no
                 # children).
-                _print_devices(devices, prefix=" " * 2)
+                devices.sort(key=lambda x: x.name)
+                devs = [(dev.name, dev) for dev in devices]
+                _print_devices(devs, prefix=" " * 2)
                 print()  # blank line
 
 

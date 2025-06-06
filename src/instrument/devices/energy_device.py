@@ -36,7 +36,7 @@ class EnergySignal(Signal):
     @property
     def trackable_devices(self):
         devs = oregistry.findall("track_energy") + self.extra_devices
-        return sorted(devs, key=lambda x: x.name, reverse=True)
+        return sorted(devs, key=lambda x: x.name)
 
     # This is here as an way to force the use of a particular device that may
     # not be tagged with "track_energy". Note that the API requires two

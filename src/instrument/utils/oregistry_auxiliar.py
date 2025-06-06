@@ -22,6 +22,7 @@ def get_devices(label):
     """
 
     objs = oregistry.findall(label=label, allow_none=True)
+    objs.sort(key=lambda x: x.name)  # Sort by name
     table = {"Ophyd name": [], "PV prefix": [], "Label": []}
     for obj in objs:
         table["Ophyd name"].append(obj.name)
