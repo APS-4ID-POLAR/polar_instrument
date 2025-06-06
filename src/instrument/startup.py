@@ -16,6 +16,7 @@ from pathlib import Path
 # from apsbits.core.catalog_init import init_catalog
 from apsbits.core.instrument_init import make_devices
 from apsbits.core.instrument_init import oregistry
+from apsbits.core.instrument_init import instrument
 # from apsbits.core.run_engine_init import init_RE
 from apsbits.utils.aps_functions import aps_dm_setup
 # from apsbits.utils.aps_functions import host_on_aps_subnet
@@ -47,6 +48,10 @@ aps_dm_setup(iconfig.get("DM_SETUP_FILE"))
 
 # Command-line tools, such as %wa, %ct, ...
 register_bluesky_magics()
+
+from IPython import get_ipython
+from .utils.local_magics import LocalMagics
+get_ipython().register_magics(LocalMagics)
 
 # Initialize core bluesky components
 from .utils.run_engine import RE, sd, bec, cat, peaks  # noqa: F401, E402
@@ -93,6 +98,7 @@ else:
     from .utils.hkl_utils import *  # noqa: F401, F403
     from .utils.polartools_hklpy_imports import *  # noqa: F401, F403
     from .utils.oregistry_auxiliar import get_devices  # noqa: F401
+    from .utils.load_vortex import load_vortex  # noqa: F401
     # TODO: Both DM, hklpy, experiment_utils seems to be changing the
     # logging level. I don't know why.
     logger.setLevel(logging.BSDEV)
@@ -109,6 +115,7 @@ stations = ["source", "4ida", "4idb", "4idg", "4idh"]
 
 devices = oregistry.findall(stations)
 baseline_devices = oregistry.findall("baseline")
+disconnected_devices = {}
 
 for device in devices:
     try:
@@ -120,12 +127,14 @@ for device in devices:
             device.default_settings()
     except TimeoutError:
         message = (
-            "TimeoutError encountered while setting default for device: "
-            f"{device.name}."
+            f"Device {device.name} is disconnected, removing it from oregistry. "
+            "See the disconnected_devices dictionary."
         )
         if device in baseline_devices:
             message += " This device was not added to the baseline."
         logger.warning(message)
+        disconnected_devices[device.name] = oregistry.pop(device)
+
 
 counters.plotselect(11, 0)
 
