@@ -8,7 +8,8 @@ from ophyd import (
     Device,
     EpicsSignal,
     SignalRO,
-    DynamicDeviceComponent
+    DynamicDeviceComponent,
+    FormattedComponent
 )
 from ophyd.areadetector import DetectorBase, EpicsSignalWithRBV
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
@@ -156,21 +157,26 @@ class VortexSCA(AttributePlugin):
         'window2',
         'pileup',
         'event_width',
-        'dt_factor',
-        'dt_percent'
+        # 'dt_factor',
+        # 'dt_percent'
     )
 
-    clock_ticks = Component(EpicsSignalRO, '0:Value_RBV', kind="normal")
-    reset_ticks = Component(EpicsSignalRO, '1:Value_RBV', kind="normal")
-    reset_counts = Component(EpicsSignalRO, '2:Value_RBV', kind="normal")
-    all_events = Component(EpicsSignalRO, '3:Value_RBV', kind="normal")
-    all_good = Component(EpicsSignalRO, '4:Value_RBV', kind="normal")
-    window1 = Component(EpicsSignalRO, '5:Value_RBV', kind="normal")
-    window2 = Component(EpicsSignalRO, '6:Value_RBV', kind="normal")
-    pileup = Component(EpicsSignalRO, '7:Value_RBV', kind="normal")
-    event_width = Component(EpicsSignalRO, '8:Value_RBV', kind="normal")
-    dt_factor = Component(EpicsSignalRO, '9:Value_RBV', kind="normal")
-    dt_percent = Component(EpicsSignalRO, '10:Value_RBV', kind="normal")
+    clock_ticks = FormattedComponent(EpicsSignalRO, '{nprefix}0:Value_RBV', kind="normal")
+    reset_ticks = FormattedComponent(EpicsSignalRO, '{nprefix}1:Value_RBV', kind="normal")
+    reset_counts = FormattedComponent(EpicsSignalRO, '{nprefix}2:Value_RBV', kind="normal")
+    all_events = FormattedComponent(EpicsSignalRO, '{nprefix}3:Value_RBV', kind="normal")
+    all_good = FormattedComponent(EpicsSignalRO, '{nprefix}4:Value_RBV', kind="normal")
+    window1 = FormattedComponent(EpicsSignalRO, '{nprefix}5:Value_RBV', kind="normal")
+    window2 = FormattedComponent(EpicsSignalRO, '{nprefix}6:Value_RBV', kind="normal")
+    pileup = FormattedComponent(EpicsSignalRO, '{nprefix}7:Value_RBV', kind="normal")
+    event_width = FormattedComponent(EpicsSignalRO, '{nprefix}8:Value_RBV', kind="normal")
+    # TODO: Remove?
+    # dt_factor = FormattedComponent(EpicsSignalRO, '{nprefix}9:Value_RBV', kind="normal")
+    # dt_percent = FormattedComponent(EpicsSignalRO, '{nprefix}10:Value_RBV', kind="normal")
+
+    def __init__(self, prefix, **kwargs):
+        self.nprefix = prefix[:-1]
+        super().__init__(prefix, **kwargs)
 
 
 class VortexHDF1Plugin(PolarHDF5Plugin):
@@ -198,9 +204,10 @@ class TotalCorrectedSignal(SignalRO):
             roi = getattr(
                 self.root, 'stats{:d}.roi{:d}'.format(ch_num, self.roi_index)
             )
-            value += (
-                channel.dt_factor.get(**kwargs) * roi.total_value.get(**kwargs)
-            )
+            # value += (
+            #     channel.dt_factor.get(**kwargs) * roi.total_value.get(**kwargs)
+            # )
+            value += roi.total_value.get(**kwargs)
         return value
 
 
@@ -213,7 +220,7 @@ def _totals(attr_fix, id_range):
     return defn
 
 
-class VortexDetector(Trigger, DetectorBase):
+class VortexXspress34(Trigger, DetectorBase):
 
     _default_configuration_attrs = ('cam', 'chan1', 'chan2', 'chan3', 'chan4')
     _default_read_attrs = (
@@ -243,6 +250,7 @@ class VortexDetector(Trigger, DetectorBase):
     stats3 = ADComponent(VortexROIStatPlugin, "MCA3ROI:")
     stats4 = ADComponent(VortexROIStatPlugin, "MCA4ROI:")
 
+    # TODO: the ':' was removed in an update?
     sca1 = ADComponent(VortexSCA, "C1SCA:")
     sca2 = ADComponent(VortexSCA, "C2SCA:")
     sca3 = ADComponent(VortexSCA, "C3SCA:")
@@ -373,14 +381,14 @@ class VortexDetector(Trigger, DetectorBase):
     def select_roi(self, rois):
 
         for i in range(1, MAX_ROIS + 1):
-            kh = "hinted" if i in rois else "normal"
-            getattr(self.total, f"roi{i}").total_value.kind = kh
-
-            if kh == "hinted" and i not in self.read_rois:
-                self.read_rois.append(i)
-
-            kr = "normal" if i in self.read_rois else "omitted"
-            getattr(self.total, f"roi{i}").kind = kr
+            
+            if i in rois:
+                getattr(self.total, f"roi{i}").kind = "hinted"
+                if i not in self.read_rois:
+                    self.read_rois.append(i)
+            else:
+                kr = "normal" if i in self.read_rois else "omitted"
+                getattr(self.total, f"roi{i}").kind = kr
 
         # for pixel in range(1, 5):
         #     pix = getattr(self, f"stats{pixel}")
@@ -408,7 +416,7 @@ class VortexDetector(Trigger, DetectorBase):
 
     @property
     def label_option_map(self):
-        return {f"ROI{i} Total": i for i in range(0, 8)}
+        return {f"ROI{i} Total": i for i in range(1, MAX_ROIS + 1)}
 
     @property
     def plot_options(self):

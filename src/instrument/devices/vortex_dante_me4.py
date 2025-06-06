@@ -152,7 +152,7 @@ def _scas(num_channels):
     return defn
 
 
-class DanteDetector(Trigger, DetectorBase):
+class VortexDante4(Trigger, DetectorBase):
 
     _default_configuration_attrs = ('cam',)
     _default_read_attrs = (

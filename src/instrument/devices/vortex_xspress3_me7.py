@@ -213,7 +213,7 @@ def _totals(attr_fix, id_range):
     return defn
 
 
-class VortexDetector(Trigger, DetectorBase):
+class VortexXspress37(Trigger, DetectorBase):
 
     _default_configuration_attrs = ('cam',)
     _default_read_attrs = (

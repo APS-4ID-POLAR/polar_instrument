@@ -105,7 +105,7 @@ def _totals(attr_fix, id_range):
     return defn
 
 
-class MyXMAP(SingleTrigger):
+class VortexXMAP(SingleTrigger):
 
     # Buttons
     start = Component(EpicsSignal, "StartAll", kind="omitted")
