@@ -87,6 +87,7 @@ def get_huber_euler():
         raise ValueError(
             "Cannot find 'huber_euler' device. Please load and register it."
         )
+    return huber_euler
 
 
 def get_huber_euler_psi():
@@ -95,6 +96,7 @@ def get_huber_euler_psi():
         raise ValueError(
             "Cannot find 'huber_euler_psi' device. Please load and register it."
         )
+    return huber_euler
 
 
 def select_engine_for_psi(instrument=None):
@@ -104,6 +106,7 @@ def select_engine_for_psi(instrument=None):
         _geom_for_psi_ = instrument
     else:
         raise TypeError(f"{instrument} must be a 'Diffractometer' subclass")
+    return _geom_for_psi_
 
 
 def engine_for_psi():
