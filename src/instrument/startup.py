@@ -16,7 +16,7 @@ from pathlib import Path
 # from apsbits.core.catalog_init import init_catalog
 from apsbits.core.instrument_init import make_devices
 from apsbits.core.instrument_init import oregistry
-from apsbits.core.instrument_init import instrument
+from apsbits.core.instrument_init import instrument  # noqa: F401
 # from apsbits.core.run_engine_init import init_RE
 from apsbits.utils.aps_functions import aps_dm_setup
 # from apsbits.utils.aps_functions import host_on_aps_subnet
@@ -24,7 +24,7 @@ from apsbits.utils.config_loaders import get_config
 from apsbits.utils.config_loaders import load_config
 from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.helper_functions import running_in_queueserver
-
+from IPython import get_ipython
 logger = logging.getLogger(__name__)
 logger.bsdev(__file__)
 
@@ -49,8 +49,7 @@ aps_dm_setup(iconfig.get("DM_SETUP_FILE"))
 # Command-line tools, such as %wa, %ct, ...
 register_bluesky_magics()
 
-from IPython import get_ipython
-from .utils.local_magics import LocalMagics
+from .utils.local_magics import LocalMagics  # noqa: E402
 get_ipython().register_magics(LocalMagics)
 
 # Initialize core bluesky components
@@ -69,6 +68,9 @@ if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
     from .callbacks.spec_data_file_writer import specwriter  # noqa: F401
 
     init_specwriter_with_RE(RE)
+    # Remove specwritter preprocessor --> the extra stream tried to trigger
+    # devices that are disconnected.
+    _ = RE.preprocessors.pop()
 
 # These imports must come after the above setup.
 if running_in_queueserver():
@@ -127,8 +129,8 @@ for device in devices:
             device.default_settings()
     except TimeoutError:
         message = (
-            f"Device {device.name} is disconnected, removing it from oregistry. "
-            "See the disconnected_devices dictionary."
+            f"Device {device.name} is disconnected, removing it from oregistry."
+            " See the disconnected_devices dictionary."
         )
         if device in baseline_devices:
             message += " This device was not added to the baseline."

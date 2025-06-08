@@ -44,6 +44,7 @@ DEFAULT_USERS = [
     "d86103",  # Daniel
 ]
 
+
 def dm_workflow():
     dm = oregistry.find("dm_workflow", allow_none=True)
     if dm is None:
@@ -51,6 +52,7 @@ def dm_workflow():
             "The dm_workflow device was not found. Please load and register it."
         )
     return dm
+
 
 def dm_get_experiment_data_path(dm_experiment_name: str):
     return Path(dm_api_ds().getExperimentByName(

@@ -161,7 +161,7 @@ class CountersClass:
             logger.warning("WARNING: no detectors were found by oregistry.")
             _dets = []
 
-        dets =[]
+        dets = []
         for name in self._order:
             dev = oregistry.find(name, allow_none=True)
             if dev in _dets:
@@ -210,12 +210,12 @@ class CountersClass:
 
         _valid_dets = False
         _valid_mon = False
-    
+
         # Checks if input is valid
         if dets is not None:
             if not isinstance(dets, Iterable):
                 dets = [dets]
-            
+
             number_of_options = self.detectors_plot_options.shape[0]
             if (
                 all([isinstance(i, int) for i in dets]) and
@@ -252,9 +252,9 @@ class CountersClass:
                     continue
 
                 # Check that the numbers are valid.
-                if not all(
-                    [i in self.detectors_plot_options.index.values for i in dets]
-                ):
+                if not all([
+                    i in self.detectors_plot_options.index.values for i in dets
+                ]):
                     print("The index values must be in the table.")
                     continue
 

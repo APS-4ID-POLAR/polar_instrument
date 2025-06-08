@@ -51,7 +51,8 @@ def _get_dm_experiment():
     dm = oregistry.find("dm_experiment", allow_none=True)
     if dm is None:
         raise ValueError(
-            "The dm_experiment device was not found. Please load and register it."
+            "The dm_experiment device was not found. Please load and register "
+            "it."
         )
     return dm
 
@@ -381,7 +382,7 @@ class ExperimentClass:
             reset_scan_id: int = None,
             skip_DM: bool = False
     ):
-        dm_experiment = _get_dm_experiment()
+        self.dm_experiment = _get_dm_experiment()
         if not skip_DM:
             # ESAF and proposal ID info first. Will get data from APS databases.
             self.esaf_input(esaf_id)
