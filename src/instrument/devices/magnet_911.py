@@ -115,7 +115,7 @@ class MonChannel(Device):
 def _make_monitors(num=1):
     defn = OrderedDict()
     for i in range(1, num + 1):
-        defn[f"{i :02d}"] = (
+        defn[f"m{i :02d}"] = (
             MonChannel,
             "911TMagnet:TMon:",
             {"ch_num": i, "kind": "normal"}
