@@ -79,6 +79,12 @@ instrument.devices.jj_slits.SlitDevice:
   slitnum: 1
   labels: ["4idg", "slit", "baseline"]
 
+- name: hslt
+  PV: "4idhSoft:"
+  motorsDict: {top: m11, bot: m10, out: m12, inb: m13}
+  slitnum: 1
+  labels: ["4idh", "slit", "baseline"]
+
 # PRs prefix must be without :
 instrument.devices.phaseplates.PRDevice:
 - name: pr1
@@ -246,3 +252,48 @@ instrument.devices.ad_eiger1M.Eiger1MDetector:
 instrument.devices.qxscan_device.QxscanParams:
 - name: qxscan_setup
   labels: ["qxscan", "energy device", "baseline"]
+
+instrument.devices.table_4idh.Table4idh:
+- name: table_4idh
+  prefix: "4idhSoft:"
+  labels: ["4idh", "table", "baseline"]
+
+instrument.devices.xbpm_4idh.XBPM:
+- name: hxbpm
+  prefix: "4idgSoft:"
+  labels: ["4idh", "baseline"]
+
+instrument.devices.magnet_911.Magnet911:
+- name: magnet
+  prefix: "4idhSoft:"
+  labels: ["4idh", "magnet", "baseline"]
+
+
+instrument.devices.preamps.LocalPreAmp:
+- name: preamp_4idbI0
+  prefix: "4idbSoft:A3"
+  labels: ["4idb", "preamp", "baseline"]
+
+- name: preamp_4idbI
+  prefix: "4idbSoft:A4"
+  labels: ["4idb", "preamp", "baseline"]
+
+- name: preamp_4idgI0
+  prefix: "4idgSoft:A1"
+  labels: ["4idg", "preamp", "baseline"]
+
+- name: preamp_4idbI
+  prefix: "4idbSoft:A2"
+  labels: ["4idg", "preamp", "baseline"]
+
+- name: preamp_4idhI0
+  prefix: "4idhSoft:A1"
+  labels: ["4idh", "preamp", "baseline"]
+
+- name: preamp_4idhI1
+  prefix: "4idhSoft:A2"
+  labels: ["4idh", "preamp", "baseline"]
+
+- name: preamp_4idhI2
+  prefix: "4idhSoft:A3"
+  labels: ["4idh", "preamp", "baseline"]
