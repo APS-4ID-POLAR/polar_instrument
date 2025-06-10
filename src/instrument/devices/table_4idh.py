@@ -16,6 +16,7 @@ class Table4idh(Device):
     # TODO: add the combined motion pseudomotors.
     x = Component(
         PVPositionerSoftDoneWithStop,
+        "",
         readback_pv="table1.EX",
         setpoint_pv="table1.X",
         tolerance=0.0003,
@@ -24,6 +25,7 @@ class Table4idh(Device):
 
     y = Component(
         PVPositionerSoftDoneWithStop,
+        "",
         readback_pv="table1.EY",
         setpoint_pv="table1.Y",
         tolerance=0.0003,
@@ -32,6 +34,7 @@ class Table4idh(Device):
 
     ax = Component(
         PVPositionerSoftDoneWithStop,
+        "",
         readback_pv="table1.EAX",
         setpoint_pv="table1.AX",
         tolerance=0.0003,
@@ -40,6 +43,7 @@ class Table4idh(Device):
 
     ay = Component(
         PVPositionerSoftDoneWithStop,
+        "",
         readback_pv="table1.EAY",
         setpoint_pv="table1.AY",
         tolerance=0.0003,

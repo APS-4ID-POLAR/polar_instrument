@@ -37,6 +37,7 @@ class RamanMotors(Device):
 class MagnetMotors(Device):
     y = Component(
         PVPositionerSoftDoneWithStop,
+        "",
         readback_pv="Height",
         setpoint_pv="SetHeight.VAL",
         tolerance=0.0005
@@ -44,6 +45,7 @@ class MagnetMotors(Device):
 
     rot = Component(
         PVPositionerSoftDoneWithStop,
+        "",
         readback_pv="Angle",
         setpoint_pv="SetAngle.VAL",
         tolerance=0.05
@@ -61,6 +63,7 @@ class PowerSupply(Device):
     field = Component(EpicsSignalRO, "Field", kind="hinted")
     target_field = Component(
         PVPositionerSoftDoneWithStop,
+        "",
         setpoint_pv="SetField.VAL",
         readback_pv="TargetField",
         tolerance=0.01  # TODO: Enough?
@@ -75,10 +78,11 @@ class PowerSupply(Device):
     persistant_field = Component(EpicsSignalRO, "PersField")
     current = Component(EpicsSignalRO, "Current")
     voltage = Component(EpicsSignalRO, "Voltage")
-    helium = Component(EpicsSignalRO, "Helium")
+    helium = Component(EpicsSignalRO, "HeliumLevel")
 
     ramp_rate = Component(
         PVPositionerSoftDoneWithStop,
+        "",
         setpoint_pv="SetRampRate.VAL",
         readback_pv="RampRate",
         tolerance=0.001  # TODO: Enough?
@@ -126,28 +130,28 @@ def _make_monitors(num=1):
 
 # TODO: Change these names to something more meaningful.
 class VTIDevice(Device):
-    sensor_a = FormattedComponent(
+    sensor_a = Component(
         EpicsSignalRO,
         "SensorA",
         kind="hinted",
         labels=["temperature"]
     )
 
-    sensor_b = FormattedComponent(
+    sensor_b = Component(
         EpicsSignalRO,
         "SensorB",
         kind="hinted",
         labels=["temperature"]
     )
 
-    sensor_c = FormattedComponent(
+    sensor_c = Component(
         EpicsSignalRO,
         "SensorC",
         kind="hinted",
         labels=["temperature"]
     )
 
-    sensor_d = FormattedComponent(
+    sensor_d = Component(
         EpicsSignalRO,
         "SensorD",
         kind="hinted",
@@ -156,6 +160,7 @@ class VTIDevice(Device):
 
     setpoint_1 = Component(
         PVPositionerSoftDoneWithStop,
+        "",
         readback_pv="Setpoint1",
         setpoint_pv="SetTemp1",
         tolerance=0.01
@@ -163,6 +168,7 @@ class VTIDevice(Device):
 
     setpoint_2 = Component(
         PVPositionerSoftDoneWithStop,
+        "",
         readback_pv="Setpoint2",
         setpoint_pv="SetTemp2",
         tolerance=0.01
@@ -170,6 +176,7 @@ class VTIDevice(Device):
 
     setpoint_3 = Component(
         PVPositionerSoftDoneWithStop,
+        "",
         readback_pv="Setpoint3",
         setpoint_pv="SetTemp3",
         tolerance=0.01
@@ -177,6 +184,7 @@ class VTIDevice(Device):
 
     setpoint_4 = Component(
         PVPositionerSoftDoneWithStop,
+        "",
         readback_pv="Setpoint4",
         setpoint_pv="SetTemp4",
         tolerance=0.01
@@ -197,6 +205,7 @@ class NVDevice(Device):
 
     temp = Component(
         PVPositionerSoftDoneWithStop,
+        "",
         setpoint_pv="SetTargetTemperature",
         readback_pv="Temperature",
         kind="config"
@@ -204,6 +213,7 @@ class NVDevice(Device):
 
     pressure = Component(
         PVPositionerSoftDoneWithStop,
+        "",
         setpoint_pv="SetTargetPressure",
         readback_pv="Pressure",
         kind="config"

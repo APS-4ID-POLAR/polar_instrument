@@ -264,10 +264,9 @@ instrument.devices.xbpm_4idh.XBPM:
   labels: ["4idh", "baseline"]
 
 instrument.devices.magnet_911.Magnet911:
-- name: magnet
+- name: magnet911
   prefix: "4idhSoft:"
   labels: ["4idh", "magnet", "baseline"]
-
 
 instrument.devices.preamps.LocalPreAmp:
 - name: preamp_4idbI0
@@ -279,11 +278,11 @@ instrument.devices.preamps.LocalPreAmp:
   labels: ["4idb", "preamp", "baseline"]
 
 - name: preamp_4idgI0
-  prefix: "4idgSoft:A1"
+  prefix: "4idgSoftX:A1"
   labels: ["4idg", "preamp", "baseline"]
 
-- name: preamp_4idbI
-  prefix: "4idbSoft:A2"
+- name: preamp_4idgI
+  prefix: "4idgSoftX:A2"
   labels: ["4idg", "preamp", "baseline"]
 
 - name: preamp_4idhI0
