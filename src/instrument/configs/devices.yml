@@ -47,6 +47,11 @@ instrument.devices.ad_vimba.VimbaDetector:
   prefix: "4idbPostToroBeam:"
   labels: ["4idb", "camera", "detector", "flag"]
 
+# xray-eye vimba camera, normally on 4-ID-G/Huber-detector arm
+- name: flagcam_Xeye
+  prefix: "4idXrayEye:"
+  labels: ["4idg", "camera", "detector", "flag"]
+
 ophyd.EpicsMotor:
 - name: flagmotor_hhl
   prefix: "4idVDCM:m6"
