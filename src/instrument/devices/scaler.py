@@ -5,7 +5,7 @@ Scalers
 
 from ophyd.scaler import ScalerCH
 from ophyd.signal import Signal
-from ophyd import Kind, Component
+from ophyd import Kind, Component, EpicsSignal
 import time
 
 
@@ -87,6 +87,7 @@ class LocalScalerCH(ScalerCH):
 
     preset_time = None
     preset_monitor = Component(PresetMonitorSignal, kind=Kind.config)
+    freq = Component(EpicsSignal, ".FREQ", kind=Kind.config)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

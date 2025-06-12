@@ -4,7 +4,12 @@ Setup for two CTR8 devices used together
 
 from collections import OrderedDict
 from ophyd import (
-    FormattedComponent, DynamicDeviceComponent, Component, Device, Kind
+    FormattedComponent,
+    DynamicDeviceComponent,
+    Component,
+    Device,
+    Kind,
+    EpicsSignal
 )
 from ophyd.scaler import ScalerChannel, ScalerCH
 from math import floor
@@ -57,14 +62,20 @@ class DualCTR8Scaler(Device):
         self._monitor = self.channels.chan01  # Time is the default monitor.
         self.scaler1.channels.kind = Kind.omitted
         self.scaler2.channels.kind = Kind.omitted
+        self.channels.chan01.subscribe(self._copy_time_to_scaler2)
 
     channels = DynamicDeviceComponent(make_channels())
 
     scaler1 = FormattedComponent(ScalerCH, "{prefix1}")
     scaler2 = FormattedComponent(ScalerCH, "{prefix2}")
+    freq = FormattedComponent(EpicsSignal, "{prefix1}.FREQ", kind=Kind.config)
 
     preset_time = None
     preset_monitor = Component(PresetMonitorSignal, kind=Kind.config)
+
+    def _copy_time_to_scaler2(self, value=None, **kwargs):
+        if value is not None:
+            self.channels.chan09.preset.put(value, use_complete=True)
 
     def match_names(self):
         for s in self.channels.component_names:
@@ -111,9 +122,8 @@ class DualCTR8Scaler(Device):
 
     @property
     def trigger_scaler(self):
-        channel = self.channels_name_map[self.monitor]
-        scaler_num = 1 if int(channel.replace("chan", "")) <= 8 else 2
-        return getattr(self, f"scaler{scaler_num}")
+        # Always use scaler 1 to trigger.
+        return self.scaler1
 
     def trigger(self):
         # Only click trigger in the scaler of the monitor, the other
