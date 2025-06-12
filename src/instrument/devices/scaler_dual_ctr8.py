@@ -43,11 +43,13 @@ def make_channels():
         )
 
     # Second scaler
-    for i in range(1, NUMCHANNELS + 1):
+    # for i in range(1, NUMCHANNELS + 1):
+    # Skip the time channel in 
+    for i in range(1, NUMCHANNELS):
         defn[f"chan{i + NUMCHANNELS :02d}"] = (
             ScalerChannel,
             PREFIX2,
-            {"ch_num": i, "kind": "normal"}
+            {"ch_num": i+1, "kind": "normal"}
         )
 
     return defn
@@ -62,7 +64,7 @@ class DualCTR8Scaler(Device):
         self._monitor = self.channels.chan01  # Time is the default monitor.
         self.scaler1.channels.kind = Kind.omitted
         self.scaler2.channels.kind = Kind.omitted
-        self.channels.chan01.subscribe(self._copy_time_to_scaler2)
+        self.channels.chan01.preset.subscribe(self._copy_time_to_scaler2, run=False)
 
     channels = DynamicDeviceComponent(make_channels())
 
@@ -250,3 +252,5 @@ class DualCTR8Scaler(Device):
         self.monitor = 'chan01'
         self.select_read_channels()
         self.select_plot_channels()
+        for num in range(1, 3):
+            getattr(self, f"scaler{num}").delay.put(0.001)
