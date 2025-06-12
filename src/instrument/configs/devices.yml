@@ -48,7 +48,7 @@ instrument.devices.ad_vimba.VimbaDetector:
   labels: ["4idb", "camera", "detector", "flag"]
 
 # xray-eye vimba camera, normally on 4-ID-G/Huber-detector arm
-- name: flagcam_Xeye
+- name: flagcam_xeye
   prefix: "4idXrayEye:"
   labels: ["4idg", "camera", "detector", "flag"]
 
