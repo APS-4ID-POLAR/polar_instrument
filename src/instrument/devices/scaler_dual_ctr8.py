@@ -64,7 +64,7 @@ class DualCTR8Scaler(Device):
         self._monitor = self.channels.chan01  # Time is the default monitor.
         self.scaler1.channels.kind = Kind.omitted
         self.scaler2.channels.kind = Kind.omitted
-        self.channels.chan01.preset.subscribe(self._copy_time_to_scaler2, run=False)
+        # self.channels.chan01.preset.subscribe(self._copy_time_to_scaler2, run=False)
 
     channels = DynamicDeviceComponent(make_channels())
 
@@ -75,9 +75,9 @@ class DualCTR8Scaler(Device):
     preset_time = None
     preset_monitor = Component(PresetMonitorSignal, kind=Kind.config)
 
-    def _copy_time_to_scaler2(self, value=None, **kwargs):
-        if value is not None:
-            self.channels.chan09.preset.put(value, use_complete=True)
+    # def _copy_time_to_scaler2(self, value=None, **kwargs):
+    #     if value is not None:
+    #         self.channels.chan09.preset.put(value, use_complete=True)
 
     def match_names(self):
         for s in self.channels.component_names:

@@ -2,9 +2,10 @@
 
 from bluesky.utils import make_decorator
 from bluesky.preprocessors import finalize_wrapper
-from bluesky.plan_stubs import mv, null, subscribe, unsubscribe
+from bluesky.plan_stubs import mv, null, subscribe, unsubscribe, rd
 from ophyd import Kind
 from logging import getLogger
+from apsbits.core.instrument_init import oregistry
 
 from ..callbacks.dichro_stream import plot_dichro_settings, dichro_bec
 from ..utils.counters_class import counters
@@ -61,25 +62,52 @@ def configure_counts_wrapper(plan, detectors, count_time):
         messages from plan, with 'set' messages inserted
     """
     original_times = {}
-    original_monitor = []
 
     def setup():
         if count_time < 0:
-            raise ValueError('count_time cannot be < 0.')
+            if counters.monitor == "Time":
+                raise ValueError(
+                    'count_time cannot be < 0 because "Time" is the monitor.'
+                    'Run counters.plotselect() to change the monitor to a scaler channel.'
+                )
+
+            scaler = oregistry.find("scaler")
+
+            # This setup only works for a single scaler!
+            if list(detectors) != [scaler]:
+                raise ValueError(
+                    "Counting against monitor (negative count time) can only be use with a scaler"
+                )
+            
+            scaler_channel = getattr(
+                scaler.channels,
+                scaler.channels_name_map[counters.monitor]
+            )
+
+            # Changing the preset already forces the gate to the "Y"
+            yield from mv(scaler_channel.preset, abs(count_time))
+
         elif count_time > 0:
+            args = ()
             for det in detectors:
-                yield from mv(det.preset_monitor, count_time)
+                original_times[det.preset_monitor] = yield from rd(det.preset_monitor)
+                args += (det.preset_monitor, count_time)
+            yield from mv(*args)
+
         else:
             raise ValueError('count_time cannot be zero.')
 
-    # def reset():
-    #     for det, time in original_times.items():
-    #         yield from mv(det.preset_monitor, time)
     def reset():
-        for det, time in original_times.items():
-            yield from mv(det.preset_monitor, time)
-            if det == counters.default_scaler and len(original_monitor) == 1:
-                det.monitor = original_monitor[0]
+        if count_time < 0:
+            scaler = oregistry.find("scaler")
+            scaler_channel = getattr(
+                scaler.channels,
+                scaler.channels_name_map[counters.monitor]
+            )
+            yield from mv(scaler_channel.gate, "N")
+        else:
+            for det, time in original_times.items():
+                yield from mv(det.preset_monitor, time)
 
     def _inner_plan():
         yield from setup()
