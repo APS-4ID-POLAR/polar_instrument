@@ -10,7 +10,7 @@ logger.bsdev(__file__)
 __all__ = ['counters']
 
 IDEAL_ORDER = [
-    "scaler1",
+    "scaler",
     "eiger",
     "vortex",
     "flagcam_hhl",
@@ -42,6 +42,7 @@ class CountersClass:
         self._mon = "Time"
         self._extra_devices = []
         self._order = order
+        # self._available_scalers = [scaler_sim, scaler_ctr8]
 
     def __repr__(self):
 
@@ -117,34 +118,20 @@ class CountersClass:
         self.plotselect()
 
     @property
-    def _available_scalers(self):
-        return oregistry.findall("scaler", allow_none=True)
+    def available_scalers(self):
+        scalers = oregistry.findall("scaler", allow_none=True)
+        if scalers is None:
+            return None
+        else:
+            return [device.name for device in scalers]
 
     @property
     def detectors(self):
         return self._dets
 
     @property
-    def selected_plot_detectors(self):
-        _selected = []
-        for det in self.detectors:
-            if len(det.hints["fields"]) > 0:
-                _selected.append(det.name)
-        return _selected
-
-    @property
     def monitor(self):
         return self._mon
-
-    @property
-    def monitor_detector(self):
-        if self.monitor == "Time":
-            return self._available_scalers
-        else:
-            name = self.detectors_plot_options[
-                self.detectors_plot_options["channels"] == self.monitor
-            ].iloc[0]
-            return oregistry.find(name)
 
     @property
     def extra_devices(self):
@@ -187,22 +174,10 @@ class CountersClass:
     @property
     def detectors_plot_options(self):
         table = dict(detectors=[], channels=[])
-
-        # If there is any scaler, then we will have a first row with Time
-        if len(self._available_scalers) > 0:
-            table["detectors"] = "scalers"
-            table["channels"] = "Time"
-
         for det in self._available_detectors:
             # det.plot_options will return a list of available
             # plotting options.
             _options = getattr(det, "plot_options", [])
-
-            # We are taking "Time" for all scalers together, so need to remove
-            # it here.
-            if det in self._available_scalers:
-                _options = _options[1:]
-
             table["channels"] += _options
             table["detectors"] += [det.name for _ in range(len(_options))]
 
@@ -212,18 +187,7 @@ class CountersClass:
 
     def select_plot_channels(self, selection):
 
-        plot_options = self.detectors_plot_options
-
-        # If "Time" is selected, then selects the "Time" of every scaler.
-        if 0 in selection:
-            selection.remove(0)
-            for scaler in self._available_scalers:
-                selection.append(len(plot_options))
-                plot_options.loc[len(plot_options)] = [
-                    scaler.name, scaler.channels.chan01.chname.get()
-                ]
-
-        groups = plot_options.iloc[
+        groups = self.detectors_plot_options.iloc[
             list(selection)
         ].groupby("detectors")
 
@@ -234,7 +198,8 @@ class CountersClass:
             getattr(det, "select_plot")(list(group["channels"].values))
             dets.append(det)
 
-        for scaler in self._available_scalers:
+        for scaler_name in self.available_scalers:
+            scaler = oregistry.find(scaler_name)
             if scaler not in dets:
                 dets.append(scaler)
                 scaler.select_plot_channels([''])
@@ -297,13 +262,21 @@ class CountersClass:
 
         self.select_plot_channels(dets)
 
-        if not _valid_mon:
+        selection = self.detectors_plot_options.iloc[dets].detectors.values
+        # if any detector is not a scaler, then count agains time!
+        if any(["scaler" not in i for i in selection]):
+            print(
+                "One of the detectors is not a scaler, so 'Time' will be "
+                "selected as monitor."
+            )
+            mon = 0
+        elif not _valid_mon:
             _mon = self.detectors_plot_options[
                 self.detectors_plot_options["channels"] == self.monitor
             ].index[0]
             while True:
                 mon = input(
-                    f"Enter index number of monitor detector. [{_mon}]: "
+                    f"Enter index number of monitor detector [{_mon}]: "
                 ) or _mon
 
                 try:

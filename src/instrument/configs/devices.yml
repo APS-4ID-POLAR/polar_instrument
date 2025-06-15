@@ -147,11 +147,20 @@ apstools.devices.ApsPssShutterWithStatus:
   close_pv: "PC:04ID:SBS_CLOSE_REQUEST"
   labels: ["4idb", "shutter", "baseline"]
 
-instrument.devices.scaler_dual_ctr8.DualCTR8Scaler:
-- name: scaler
-  prefix1: "4idCTR8_1:scaler1"
-  prefix2: "4idCTR8_1:scaler2"
-  labels: ["detector", "scaler", "4idb", "4idg", "4idh"]
+# instrument.devices.scaler_dual_ctr8.DualCTR8Scaler:
+# - name: scaler
+#   prefix1: "4idCTR8_1:scaler1"
+#   prefix2: "4idCTR8_1:scaler2"
+#   labels: ["detector", "scaler", "4idb", "4idg", "4idh"]
+
+instrument.devices.scaler.LocalScalerCH:
+- name: scaler1
+  prefix: "4idCTR8_1:scaler1"
+  labels: ["detector", "scaler", "4idb", "4idg"]
+
+- name: scaler2
+  prefix: "4idCTR8_1:scaler2"
+  labels: ["detector", "scaler", "4idh"]
 
 instrument.devices.usb_ctr8.CustomMeasCompCtr:
 - name: ctr8

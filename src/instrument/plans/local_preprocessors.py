@@ -5,7 +5,6 @@ from bluesky.preprocessors import finalize_wrapper
 from bluesky.plan_stubs import mv, null, subscribe, unsubscribe, rd
 from ophyd import Kind
 from logging import getLogger
-from apsbits.core.instrument_init import oregistry
 
 from ..callbacks.dichro_stream import plot_dichro_settings, dichro_bec
 from ..utils.counters_class import counters
@@ -68,17 +67,12 @@ def configure_counts_wrapper(plan, detectors, count_time):
             if counters.monitor == "Time":
                 raise ValueError(
                     'count_time cannot be < 0 because "Time" is the monitor.'
-                    'Run counters.plotselect() to change the monitor to a scaler channel.'
+                    'Run counters.plotselect() to change the monitor to a'
+                    'scaler channel.'
                 )
 
-            scaler = oregistry.find("scaler")
+            scaler = counters.monitor_detector
 
-            # This setup only works for a single scaler!
-            if list(detectors) != [scaler]:
-                raise ValueError(
-                    "Counting against monitor (negative count time) can only be use with a scaler"
-                )
-            
             scaler_channel = getattr(
                 scaler.channels,
                 scaler.channels_name_map[counters.monitor]
@@ -90,7 +84,9 @@ def configure_counts_wrapper(plan, detectors, count_time):
         elif count_time > 0:
             args = ()
             for det in detectors:
-                original_times[det.preset_monitor] = yield from rd(det.preset_monitor)
+                original_times[det.preset_monitor] = yield from rd(
+                    det.preset_monitor
+                )
                 args += (det.preset_monitor, count_time)
             yield from mv(*args)
 
@@ -99,7 +95,7 @@ def configure_counts_wrapper(plan, detectors, count_time):
 
     def reset():
         if count_time < 0:
-            scaler = oregistry.find("scaler")
+            scaler = counters.monitor_detector
             scaler_channel = getattr(
                 scaler.channels,
                 scaler.channels_name_map[counters.monitor]

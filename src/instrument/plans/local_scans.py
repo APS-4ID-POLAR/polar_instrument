@@ -243,9 +243,43 @@ def setup_nxwritter(_base_path, _master_fullpath, _rel_dets_paths):
     nxwriter.file_path = str(_base_path)
 
 
+def setup_detectors(is_monitor_time):
+    # If counting against time, then all good, can just use the detectors
+    # setup in counters
+    if is_monitor_time:
+        return counters.detectors  # this should have all scalers by default
+    # If counting against a monitor, it only works if the detectors is in the
+    # same scaler channel.
+    else:
+
+        if counters.monitor == "Time":
+            raise ValueError(
+                "Monitor is set to 'Time', but you are trying to count against "
+                "a scaler channel. Please run counters.plotselect() to change "
+                "the monitor to a scaler channel."
+            )
+
+        monitor_scaler = counters.detectors_plot_options.loc[
+            counters.detectors_plot_options["channels"] == counters.monitor
+        ]["detectors"].iloc[0]
+
+        if any([
+            det_name != monitor_scaler for det_name in
+            counters.selected_plot_detectors
+        ]):
+            raise ValueError(
+                "You can only count against monitor if all detectors are in "
+                "the same scaler of the monitor. But "
+                f"{counters.selected_plot_detectors} have been selected."
+                "Run counters.plotselect() to change the detector channels."
+            )
+
+        return [oregistry.find(monitor_scaler)]
+
+
 def count(
-        num=1,
-        time=None,
+        num,
+        time,
         detectors=None,
         lockin=False,
         dichro=False,
@@ -259,10 +293,10 @@ def count(
     cannot be set here, as it is used for dichro scans.
     Parameters
     ----------
-    num : integer, optional
-        number of readings to take; default is 1
+    num : integer
+        number of readings to take
         If None, capture data until canceled
-    time : float, optional
+    time : float
         If a number is passed, it will modify the counts over time. All
         detectors need to have a .preset_monitor signal.
     detectors : list, optional
@@ -289,9 +323,14 @@ def count(
     If ``delay`` is an iterable, it must have at least ``num - 1`` entries or
     the plan will raise a ``ValueError`` during iteration.
     """
+
+    if time == 0:
+        raise ValueError("time must be different from zero.")
+
     fixq = False
     if detectors is None:
-        detectors = counters.detectors
+        # detectors = counters.detectors
+        detectors = setup_detectors(time > 0)
 
     flag.dichro = dichro
     if dichro:
@@ -332,10 +371,10 @@ def count(
 
     _md.update(md or {})
 
-    @subs_decorator(nxwriter.receiver)
-    @stage_dichro_decorator(dichro, lockin, None)
     @configure_counts_decorator(detectors, time)
+    @stage_dichro_decorator(dichro, lockin, None)
     @extra_devices_decorator(extras)
+    @subs_decorator(nxwriter.receiver)
     def _inner_count():
         yield from bp_count(
             detectors + extras,
@@ -352,7 +391,6 @@ def count(
 
 def ascan(
     *args,
-    time=None,
     detectors=None,
     lockin=False,
     dichro=False,
@@ -369,18 +407,16 @@ def ascan(
     Parameters
     ----------
     *args :
-        For one dimension, ``motor, start, stop, number of points``.
+        For one dimension, ``motor, start, stop, number of points, time``.
         In general:
         .. code-block:: python
             motor1, start1, stop1,
             motor2, start2, start2,
             ...,
             motorN, startN, stopN,
-            number of points
+            number of points,
+            time
         Motors can be any 'settable' object (motor, temp controller, etc.)
-    time : float, optional
-        If a number is passed, it will modify the counts over time. All
-        detectors need to have a .preset_monitor signal.
     detectors : list, optional
         List of detectors to be used in the scan. If None, will use the
         detectors defined in `counters.detectors`.
@@ -409,6 +445,19 @@ def ascan(
     :func:`lup`
     """
 
+    if len(args) % 3 != 2:
+        raise ValueError(
+            "Invalid number of arguments provided. Expected a multiple of 3 "
+            f"plus 2, but got {len(args)}."
+        )
+    else:
+        time = args[-1]
+        args = args[:-1]
+
+    if detectors is None:
+        # detectors = counters.detectors
+        detectors = setup_detectors(time > 0)
+
     flag.dichro = dichro
     if dichro:
         _offset = pr_setup.offset.get()
@@ -426,14 +475,6 @@ def ascan(
             huber.k: huber.k.get().setpoint,
             huber.l: huber.l.get().setpoint,
         }
-
-    # This allows passing "time" without using the keyword.
-    if len(args) % 3 == 2 and time is None:
-        time = args[-1]
-        args = args[:-1]
-
-    if detectors is None:
-        detectors = counters.detectors
 
     _master_fullpath, _dets_file_paths, _rel_dets_paths = (
         _setup_paths(detectors)
@@ -483,7 +524,6 @@ def ascan(
 
 def lup(
     *args,
-    time=None,
     detectors=None,
     lockin=False,
     dichro=False,
@@ -509,9 +549,6 @@ def lup(
             motorN, startN, stopN,
             number of points
         Motors can be any 'settable' object (motor, temp controller, etc.)
-    time : float, optional
-        If a number is passed, it will modify the counts over time. All
-        detectors need to have a .preset_monitor signal.
     detectors : list, optional
         List of detectors to be used in the scan. If None, will use the
         detectors defined in `counters.detectors`.
@@ -550,7 +587,6 @@ def lup(
     def inner_lup():
         return (yield from ascan(
             *args,
-            time=time,
             detectors=detectors,
             lockin=lockin,
             dichro=dichro,
@@ -564,7 +600,6 @@ def lup(
 
 def grid_scan(
     *args,
-    time=None,
     detectors=None,
     snake_axes=None,
     lockin=False,
@@ -626,6 +661,19 @@ def grid_scan(
     :func:`bluesky.plans.scan_nd`
     """
 
+    if len(args) % 4 != 1:
+        raise ValueError(
+            "Invalid number of arguments provided. Expected a multiple of 4 "
+            f"plus 1, but got {len(args)}."
+        )
+    else:
+        time = args[-1]
+        args = args[:-1]
+
+    if detectors is None:
+        # detectors = counters.detectors
+        detectors = setup_detectors(time > 0)
+
     flag.dichro = dichro
     if dichro:
         _offset = pr_setup.offset.get()
@@ -644,14 +692,6 @@ def grid_scan(
             huber.k: huber.k.get().setpoint,
             huber.l: huber.l.get().setpoint,
         }
-
-    # This allows passing "time" without using the keyword.
-    if len(args) % 4 == 1 and time is None:
-        time = args[-1]
-        args = args[:-1]
-
-    if detectors is None:
-        detectors = counters.detectors
 
     _master_fullpath, _dets_file_paths, _rel_dets_paths = (
         _setup_paths(detectors)
@@ -702,7 +742,6 @@ def grid_scan(
 
 def rel_grid_scan(
     *args,
-    time=None,
     detectors=None,
     snake_axes=None,
     lockin=False,
@@ -727,9 +766,6 @@ def rel_grid_scan(
         except the first motor, there is a "snake" argument: a boolean
         indicating whether to following snake-like, winding trajectory or a
         simple left-to-right trajectory.
-    time : float, optional
-        If a number is passed, it will modify the counts over time. All
-        detectors need to have a .preset_monitor signal.
     snake_axes: boolean or iterable, optional
         which axes should be snaked, either ``False`` (do not snake any axes),
         ``True`` (snake all axes) or a list of axes to snake. "Snaking" an axis
@@ -777,7 +813,6 @@ def rel_grid_scan(
     def inner_rel_grid_scan():
         return (yield from grid_scan(
             *args,
-            time=time,
             detectors=detectors,
             snake_axes=snake_axes,
             lockin=lockin,
@@ -792,7 +827,7 @@ def rel_grid_scan(
 
 def qxscan(
     edge_energy,
-    time=None,
+    time,
     detectors=None,
     lockin=False,
     dichro=False,
@@ -810,7 +845,7 @@ def qxscan(
     edge_energy : float
         Absorption edge energy. The parameters in qxscan_params offset by this
         energy.
-    time : float, optional
+    time : float
         If a number is passed, it will modify the counts over time. All
         detectors need to have a .preset_monitor signal.
     detectors : list, optional
@@ -838,7 +873,8 @@ def qxscan(
     """
 
     if detectors is None:
-        detectors = counters.detectors
+        # detectors = counters.detectors
+        detectors = setup_detectors(time > 0)
 
     flag.dichro = dichro
     if dichro:
