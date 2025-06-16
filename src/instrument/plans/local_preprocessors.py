@@ -102,8 +102,8 @@ def configure_counts_wrapper(plan, detectors, count_time):
             )
             yield from mv(scaler_channel.gate, "N")
         else:
-            for det, time in original_times.items():
-                yield from mv(det.preset_monitor, time)
+            for mon, time in original_times.items():
+                yield from mv(mon, time)
 
     def _inner_plan():
         yield from setup()

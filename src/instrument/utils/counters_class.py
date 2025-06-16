@@ -11,6 +11,7 @@ __all__ = ['counters']
 
 IDEAL_ORDER = [
     "scaler1",
+    "scaler2",
     "eiger",
     "vortex",
     "flagcam_hhl",
@@ -143,7 +144,7 @@ class CountersClass:
         else:
             name = self.detectors_plot_options[
                 self.detectors_plot_options["channels"] == self.monitor
-            ].iloc[0]
+            ].iloc[0]["detectors"]
             return oregistry.find(name)
 
     @property
@@ -190,8 +191,8 @@ class CountersClass:
 
         # If there is any scaler, then we will have a first row with Time
         if len(self._available_scalers) > 0:
-            table["detectors"] = "scalers"
-            table["channels"] = "Time"
+            table["detectors"].append("scalers")
+            table["channels"].append("Time")
 
         for det in self._available_detectors:
             # det.plot_options will return a list of available

@@ -19,7 +19,7 @@ class PresetMonitorSignal(Signal):
 
     def get(self, **kwargs):
         self._readback = self.parent._monitor.preset.get()
-        if self.parent._monitor.s.name == 'Time':
+        if "chan01" in self.parent._monitor.name:
             freq = 1e7 if not self._freq else self._freq.get()
             self._readback /= freq  # convert to seconds
         return self._readback
@@ -51,7 +51,6 @@ class PresetMonitorSignal(Signal):
         if float(value) <= 0:
             raise ValueError('preset_value has to be > 0.')
 
-        # if self.parent._monitor.s.name == 'Time':
         if "chan01" in self.parent._monitor.name:
             freq = 1e7 if not self._freq else self._freq.get()
             value_put = freq * value  # convert to seconds
