@@ -72,6 +72,8 @@ if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
     # devices that are disconnected.
     _ = RE.preprocessors.pop()
 
+from .callbacks.dichro_stream import dichro, plot_dichro_settings, dichro_bec
+
 # These imports must come after the above setup.
 if running_in_queueserver():
     # To make all the standard plans available in QS, import by '*', otherwise

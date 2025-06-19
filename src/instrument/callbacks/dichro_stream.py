@@ -32,8 +32,8 @@ class DichroDevice(Device):
 
 class Settings():
     positioner = "energy"
-    monitor = "4idgI0"
-    detector = "4idbI_APD"
+    monitor = "4idhI0"
+    detector = "4idhI1"
     transmission = True
 
 
