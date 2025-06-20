@@ -138,25 +138,29 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
     _dichro_token = [None, None]
 
     def _stage():
-
         if dichro and lockin:
             raise ValueError('Cannot have both dichro and lockin = True.')
 
         if lockin:
-            for chan in counters.default_scaler.channels.component_names:
-                scaler_channel = getattr(counters.default_scaler.channels, chan)
-                if scaler_channel.kind.value >= 5:
-                    _current_scaler_plot.append(scaler_channel.s.name)
+            for scaler in counters._available_scalers:
+                for chan in scaler.channels_name_map.values():
+                    scaler_channel = getattr(scaler.channels, chan).s
+                    if scaler_channel.kind.value >= 5:
+                        _current_scaler_plot.append(scaler_channel.name)
+                        scaler_channel.kind = "normal"
 
-            counters.default_scaler.select_plot_channels(['LockDC', 'LockAC'])
+                for ch in ["LockDC", "LockAC"]:
+                    if ch in scaler.channels_name_map.keys():
+                        getattr(scaler.channels, scaler.channels_name_map[ch]).s.kind = "hinted"
 
             if pr_setup.positioner is None:
                 raise ValueError('Phase retarder was not selected.')
 
             if 'th' in pr_setup.positioner.name:
-                raise TypeError('Theta motor cannot be used in lock in! \
-                                Please run pr_setup.config() and choose \
-                                pzt.')
+                raise TypeError(
+                    "Theta motor cannot be used in lock in!"
+                    "Please run pr_setup.config() and choose pzt."
+                )
 
             yield from mv(pr_setup.positioner.parent.selectAC, 1)
             # yield from mv(pr_setup.positioner.parent.ACstatus, 2)
@@ -183,7 +187,16 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
     def _unstage():
 
         if lockin:
-            counters.default_scaler.select_plot_channels(_current_scaler_plot)
+            for scaler in counters._available_scalers:
+                for ch in ["LockDC", "LockAC"]:
+                    if ch in scaler.channels_name_map.keys():
+                        getattr(scaler.channels, scaler.channels_name_map[ch]).s.kind = "normal"
+
+                for ch in _current_scaler_plot:
+                    if ch in scaler.channels_name_map.keys():
+                        print(ch)
+                        getattr(scaler.channels, scaler.channels_name_map[ch]).s.kind = "hinted"
+
             yield from mv(pr_setup.positioner.parent.selectDC, 1)
             # yield from mv(pr_setup.positioner.parent.ACstatus, 0)
 
