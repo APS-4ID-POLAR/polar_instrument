@@ -873,7 +873,6 @@ def qxscan(
     """
 
     if detectors is None:
-        # detectors = counters.detectors
         detectors = setup_detectors(time > 0)
 
     flag.dichro = dichro
@@ -912,17 +911,10 @@ def qxscan(
     factor_list = yield from rd(qxscan_setup.factor_list)
 
     _ct = {}
-    if time:
-        if time < 0 and detectors != [counters.default_scaler]:
-            raise TypeError('time < 0 can only be used with scaler.')
-        else:
-            for det in detectors:
-                _ct[det] = abs(time)
-                args += (det.preset_monitor, abs(time)*array(factor_list))
-    else:
-        for det in detectors:
-            _ct[det] = yield from rd(det.preset_monitor)
-            args += (det.preset_monitor, _ct[det]*array(factor_list))
+
+    for det in detectors:
+        _ct[det] = abs(time)
+        args += (det.preset_monitor, abs(time)*array(factor_list))
 
     _master_fullpath, _dets_file_paths, _rel_dets_paths = (
         _setup_paths(detectors)
