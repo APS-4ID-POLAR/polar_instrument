@@ -5,6 +5,7 @@ from bluesky.preprocessors import finalize_wrapper
 from bluesky.plan_stubs import mv, null, subscribe, unsubscribe, rd
 from ophyd import Kind
 from logging import getLogger
+from apsbits.core.instrument_init import oregistry
 
 from ..callbacks.dichro_stream import plot_dichro_settings, dichro_bec
 from ..utils.counters_class import counters
@@ -134,7 +135,8 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
         messages from plan, with 'subscribe' and 'unsubscribe' messages
         inserted and appended
     """
-    _current_scaler_plot = []
+    _hinted_devices = []
+    _lockin_devices = []
     _dichro_token = [None, None]
 
     def _stage():
@@ -142,16 +144,25 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
             raise ValueError('Cannot have both dichro and lockin = True.')
 
         if lockin:
+            for det in counters.detectors:
+                hints = det.hints["fields"]
+                for name in hints:
+                    dev = oregistry.find(name.replace("_", "."))
+                    _hinted_devices.append(dev)
+                    dev.kind = "normal"
+
             for scaler in counters._available_scalers:
-                for chan in scaler.channels_name_map.values():
-                    scaler_channel = getattr(scaler.channels, chan).s
-                    if scaler_channel.kind.value >= 5:
-                        _current_scaler_plot.append(scaler_channel.name)
-                        scaler_channel.kind = "normal"
+                # for chan in scaler.channels_name_map.values():
+                #     scaler_channel = getattr(scaler.channels, chan).s
+                #     if scaler_channel.kind.value >= 5:
+                #         _hinted_devices.append(scaler_channel)
+                #         scaler_channel.kind = "normal"
 
                 for ch in ["LockDC", "LockAC"]:
                     if ch in scaler.channels_name_map.keys():
-                        getattr(scaler.channels, scaler.channels_name_map[ch]).s.kind = "hinted"
+                        device = getattr(scaler.channels, scaler.channels_name_map[ch]).s
+                        device.kind = "hinted"
+                        _lockin_devices.append(device)
 
             if pr_setup.positioner is None:
                 raise ValueError('Phase retarder was not selected.')
@@ -163,7 +174,6 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
                 )
 
             yield from mv(pr_setup.positioner.parent.selectAC, 1)
-            # yield from mv(pr_setup.positioner.parent.ACstatus, 2)
 
         if dichro:
 
@@ -187,18 +197,13 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
     def _unstage():
 
         if lockin:
-            for scaler in counters._available_scalers:
-                for ch in ["LockDC", "LockAC"]:
-                    if ch in scaler.channels_name_map.keys():
-                        getattr(scaler.channels, scaler.channels_name_map[ch]).s.kind = "normal"
+            for dev in _lockin_devices:
+                dev.kind = "normal"
 
-                for ch in _current_scaler_plot:
-                    if ch in scaler.channels_name_map.keys():
-                        print(ch)
-                        getattr(scaler.channels, scaler.channels_name_map[ch]).s.kind = "hinted"
+            for dev in _hinted_devices:
+                dev.kind = "hinted"
 
             yield from mv(pr_setup.positioner.parent.selectDC, 1)
-            # yield from mv(pr_setup.positioner.parent.ACstatus, 0)
 
         if dichro:
             # move PZT to off center.
