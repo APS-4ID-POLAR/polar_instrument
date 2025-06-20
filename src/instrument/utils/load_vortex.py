@@ -26,6 +26,27 @@ def load_vortex(
     baseline: bool=False,
     **kwargs
 ):
+    """
+    Load Vortex detector. kwargs are passed to the detector class.
+
+    PARAMETERS
+    ----------
+        electronic : string
+            Name of the electronic. Currently must be one of: dante, xmap,
+            xspress4, xspress7
+        pv : string, optional
+            PV prefix of detector. If None it will use the default.
+        name : str, optional
+            Bluesky name of the detector. Defaults to 'vortex'.
+        labels : list of strings, optional
+            Bluesky labels. Defaults to ["detector",]
+        baseline : bool, optional
+            Flag to add the device to the baseline. Defaults to False.
+    RETURNS
+    -------
+        vortex_detector : Ophyd device
+    """
+
     if electronic not in DETECTORS.keys():
         raise ValueError(
             f"Available electronics are {DETECTORS.keys()}, "
