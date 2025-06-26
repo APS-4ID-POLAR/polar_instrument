@@ -17,6 +17,8 @@ import asyncio
 from pathlib import Path
 from collections import OrderedDict
 from time import time as ttime
+from apsbits.core.instrument_init import oregistry
+from logging import getLogger
 from .ad_mixins import (
     ROIPlugin,
     AttributePlugin,
@@ -24,6 +26,8 @@ from .ad_mixins import (
     PolarHDF5Plugin,
     VortexDetectorCam,
 )
+
+logger = getLogger(__name__)
 
 MAX_IMAGES = 12216
 MAX_ROIS = 8
@@ -44,6 +48,7 @@ class Trigger(TriggerBase):
         self._acquire_busy_signal = self.cam.acquire_busy
         self._flysetup = False
         self._status = None
+        self._status_arm = None
 
     def setup_manual_trigger(self):
         # Stage signals
@@ -56,6 +61,17 @@ class Trigger(TriggerBase):
         self.cam.stage_sigs["trigger_mode"] = "TTL Veto Only"
         self.cam.stage_sigs["num_images"] = MAX_IMAGES
         self.cam.stage_sigs["wait_for_plugins"] = "No"
+
+    def setup_sgzbca_trigger(self):
+        # Stage signals
+        self.cam.stage_sigs["trigger_mode"] = "TTL Veto Only"
+        self.cam.stage_sigs["wait_for_plugins"] = "No"
+        
+        sgz = oregistry.find("sgz_vortex", allow_none=True)
+        if sgz is None:
+            logger.warning("Did not find the softglue detector (sgz_vortex).")
+        else:
+            self.cam.stage_sigs["num_images"] = sgz.down_counter_pulse.preset.get()
 
     def stage(self):
 
@@ -104,6 +120,27 @@ class Trigger(TriggerBase):
             # sleep(self._delay)
             self._status.set_finished()
             self._status = None
+
+    def arm_plan(self):
+        async def _wait_for_read():
+            future = asyncio.Future()
+
+            async def set_future_done(future):
+                # Checks if there is a new image being read. Stops when there is
+                # no new image for >  sleep_time.
+                status = 0
+                while status != 1:
+                    status = self.cam.acquire_busy.get()
+
+                # await asyncio.sleep(5)
+                future.set_result("Detector done!")
+
+            asyncio.create_task(set_future_done(future))
+            self._acquisition_signal.put(1, use_complete=True)
+            # Wait for the future to complete
+            await future
+
+        yield from wait_for([_wait_for_read], timeout=15)
 
 
 class ROIStatN(Device):

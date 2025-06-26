@@ -105,6 +105,27 @@ class Trigger(TriggerBase):
             self._status.set_finished()
             self._status = None
 
+    def arm_plan(self):
+        async def _wait_for_read():
+            future = asyncio.Future()
+
+            async def set_future_done(future):
+                # Checks if there is a new image being read. Stops when there is
+                # no new image for >  sleep_time.
+                status = 0
+                while status != 1:
+                    status = self.cam.acquire_busy.get()
+
+                # await asyncio.sleep(5)
+                future.set_result("Detector done!")
+
+            asyncio.create_task(set_future_done(future))
+            self._acquisition_signal.put(1, use_complete=True)
+            # Wait for the future to complete
+            await future
+
+        yield from wait_for([_wait_for_read], timeout=15)
+
 
 class ROIStatN(Device):
     roi_name = Component(EpicsSignal, "Name", kind="config")

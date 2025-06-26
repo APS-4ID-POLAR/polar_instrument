@@ -63,6 +63,7 @@ class LocalFlag:
     fixq = False
     hkl_pos = {}
     dichro_steps = None
+    vortex_sgz = False
 
 
 flag = LocalFlag()
@@ -164,6 +165,17 @@ def one_local_step(detectors, step, pos_cache, take_reading=trigger_and_read):
     if flag.dichro:
         yield from dichro_steps(devices_to_read, take_reading)
     else:
+        if flag.vortex_sgz:
+            # TODO: Is there a better way for this?
+            sgz_vortex = oregistry.find("sgz_vortex")
+            vortex = oregistry.find("vortex")
+
+            # Reset SGZ
+            yield from sgz_vortex.reset()
+
+            # Arm Vortex
+            yield from vortex.arm_plan()
+
         yield from take_reading(devices_to_read)
 
 
@@ -190,6 +202,17 @@ def one_local_shot(detectors, take_reading=trigger_and_read):
     if flag.dichro:
         yield from dichro_steps(devices_to_read, take_reading)
     else:
+        if flag.vortex_sgz:
+            # TODO: Is there a better way for this?
+            sgz_vortex = oregistry.find("sgz_vortex")
+            vortex = oregistry.find("vortex")
+
+            # Reset SGZ
+            yield from sgz_vortex.reset()
+
+            # Arm Vortex
+            yield from vortex.arm_plan()
+
         yield from take_reading(devices_to_read)
 
 
@@ -247,11 +270,31 @@ def setup_detectors(is_monitor_time):
     # If counting against time, then all good, can just use the detectors
     # setup in counters
     if is_monitor_time:
-        return counters.detectors  # this should have all scalers by default
+        dets = counters.detectors
+
+        if flag.vortex_sgz:
+            vortex = oregistry.find("vortex", allow_none=True)
+            if vortex is None:
+                raise ValueError(
+                    "Vortex detector not found by oregistry! It is "
+                    "required for vortex_sgz mode."
+                )
+            
+            sgz_vortex = oregistry.find("sgz_vortex", allow_none=True)
+            if sgz_vortex is None:
+                raise ValueError(
+                    "sgz_vortex detector not found by oregistry! It is "
+                    "required for vortex_sgz mode."
+            )
+            if vortex not in dets:
+                dets.append(vortex)
+            if sgz_vortex not in dets:
+                dets.append(sgz_vortex)
+
+        return dets  # this should have all scalers by default
     # If counting against a monitor, it only works if the detectors is in the
     # same scaler channel.
     else:
-
         if counters.monitor == "Time":
             raise ValueError(
                 "Monitor is set to 'Time', but you are trying to count against "
@@ -283,6 +326,7 @@ def count(
         detectors=None,
         lockin=False,
         dichro=False,
+        vortex_sgz=False,
         delay=None,
         per_shot=None,
         md=None
@@ -310,6 +354,10 @@ def count(
         dichro scan. Note that this will switch the x-ray polarization at every
         point using the +, -, -, + sequence, thus increasing the number of
         points by a factor of 4
+    vortex_sgz : boolean, optional
+        Measures the Vortex detector using the softgluezynq triggers. This is a
+        special mode that requires the 'vortex' and 'sgz_vortex' devices to exist
+        otherwise an error will be thrown.
     delay : iterable or scalar, optional
         Time delay in seconds between successive readings; default is 0.
     per_shot: callable, optional
@@ -327,9 +375,11 @@ def count(
     if time == 0:
         raise ValueError("time must be different from zero.")
 
+
+    flag.vortex_sgz = vortex_sgz
+
     fixq = False
     if detectors is None:
-        # detectors = counters.detectors
         detectors = setup_detectors(time > 0)
 
     flag.dichro = dichro
@@ -340,7 +390,11 @@ def count(
         flag.dichro_steps = [_center + step*_offset for step in _steps]
 
     flag.fixq = fixq
-    per_shot = one_local_shot if fixq or dichro else None
+
+    if per_shot is not None and (fixq or dichro):
+        logger.warning("there is a custom per_shot, but fixQ or dichro was selected.")
+    elif per_shot is None:
+        per_shot = one_local_shot if fixq or dichro else None
 
     _master_fullpath, _dets_file_paths, _rel_dets_paths = (
         _setup_paths(detectors)
@@ -395,6 +449,7 @@ def ascan(
     lockin=False,
     dichro=False,
     fixq=False,
+    vortex_sgz=False,
     per_step=None,
     md=None
 ):
@@ -432,6 +487,10 @@ def ascan(
         Flag for fixQ scans. If True, it will fix the diffractometer hkl
         position during the scan. This is particularly useful for energy scan.
         Note that hkl is moved ~after~ the other motors!
+    vortex_sgz : boolean, optional
+        Measures the Vortex detector using the softgluezynq triggers. This is a
+        special mode that requires the 'vortex' and 'sgz_vortex' devices to exist
+        otherwise an error will be thrown.
     per_step: callable, optional
         hook for customizing action of inner loop (messages per step).
         See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
@@ -453,6 +512,8 @@ def ascan(
     else:
         time = args[-1]
         args = args[:-1]
+
+    flag.vortex_sgz = vortex_sgz
 
     if detectors is None:
         # detectors = counters.detectors
@@ -528,6 +589,7 @@ def lup(
     lockin=False,
     dichro=False,
     fixq=False,
+    vortex_sgz=False,
     per_step=None,
     md=None
 ):
@@ -564,6 +626,10 @@ def lup(
         Flag for fixQ scans. If True, it will fix the diffractometer hkl
         position during the scan. This is particularly useful for energy scan.
         Note that hkl is moved ~after~ the other motors!
+    vortex_sgz : boolean, optional
+        Measures the Vortex detector using the softgluezynq triggers. This is a
+        special mode that requires the 'vortex' and 'sgz_vortex' devices to exist
+        otherwise an error will be thrown.
     per_step: callable, optional
         hook for customizing action of inner loop (messages per step).
         See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
@@ -591,6 +657,7 @@ def lup(
             lockin=lockin,
             dichro=dichro,
             fixq=fixq,
+            vortex_sgz=vortex_sgz,
             per_step=per_step,
             md=_md
         ))
@@ -605,6 +672,7 @@ def grid_scan(
     lockin=False,
     dichro=False,
     fixq=False,
+    vortex_sgz=False,
     per_step=None,
     md=None
 ):
@@ -646,6 +714,10 @@ def grid_scan(
         Flag for fixQ scans. If True, it will fix the diffractometer hkl
         position during the scan. This is particularly useful for energy scan.
         Note that hkl is moved ~after~ the other motors!
+    vortex_sgz : boolean, optional
+        Measures the Vortex detector using the softgluezynq triggers. This is a
+        special mode that requires the 'vortex' and 'sgz_vortex' devices to exist
+        otherwise an error will be thrown.
     per_step: callable, optional
         hook for customizing action of inner loop (messages per step).
         See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
@@ -670,8 +742,9 @@ def grid_scan(
         time = args[-1]
         args = args[:-1]
 
+    flag.vortex_sgz = vortex_sgz
+
     if detectors is None:
-        # detectors = counters.detectors
         detectors = setup_detectors(time > 0)
 
     flag.dichro = dichro
@@ -747,6 +820,7 @@ def rel_grid_scan(
     lockin=False,
     dichro=False,
     fixq=False,
+    vortex_sgz=False,
     per_step=None,
     md=None
 ):
@@ -788,6 +862,10 @@ def rel_grid_scan(
         Flag for fixQ scans. If True, it will fix the diffractometer hkl
         position during the scan. This is particularly useful for energy scan.
         Note that hkl is moved ~after~ the other motors!
+    vortex_sgz : boolean, optional
+        Measures the Vortex detector using the softgluezynq triggers. This is a
+        special mode that requires the 'vortex' and 'sgz_vortex' devices to exist
+        otherwise an error will be thrown.
     per_step: callable, optional
         hook for customizing action of inner loop (messages per step).
         See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
@@ -818,6 +896,7 @@ def rel_grid_scan(
             lockin=lockin,
             dichro=dichro,
             fixq=fixq,
+            vortex_sgz=vortex_sgz,
             per_step=per_step,
             md=_md
         ))
@@ -832,6 +911,8 @@ def qxscan(
     lockin=False,
     dichro=False,
     fixq=False,
+    vortex_sgz=False,
+    per_step=None,
     md=None
 ):
     """
@@ -872,6 +953,8 @@ def qxscan(
     :func:`lup`
     """
 
+    flag.vortex_sgz = vortex_sgz
+
     if detectors is None:
         detectors = setup_detectors(time > 0)
 
@@ -883,7 +966,10 @@ def qxscan(
         flag.dichro_steps = [_center + step*_offset for step in _steps]
 
     flag.fixq = fixq
-    per_step = one_local_step if fixq or dichro else None
+    
+    if per_step is None:
+        per_step = one_local_step if fixq or dichro else None
+
     if fixq:
         huber = current_diffractometer()
         flag.hkl_pos = {
@@ -957,7 +1043,7 @@ def qxscan(
     def _inner_qxscan():
         yield from list_scan(
             detectors + extras, *args, per_step=per_step, md=_md
-            )
+        )
 
         # put original times back.
         for det, preset in _ct.items():
