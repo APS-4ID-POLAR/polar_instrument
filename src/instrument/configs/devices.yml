@@ -310,3 +310,18 @@ instrument.devices.preamps.LocalPreAmp:
 - name: preamp_4idhI2
   prefix: "4idhSoft:A3"
   labels: ["4idh", "preamp", "baseline"]
+
+instrument.devices.gh_i0_motors.I04idg:
+- name: i0g
+  prefix: "4idgSoft:"
+  labels: ["4idg", "baseline"]
+
+instrument.devices.gh_i0_motors.I04idh:
+- name: i0h
+  prefix: "4idhSoft:"
+  labels: ["4idh", "baseline"]
+
+instrument.devices.softgluezynq_vortex.SGZVortex:
+- name: "sgz_vortex"
+  prefix: "4iddMZ0:"
+  labels: ["detector", "4idg", "4idh"]
