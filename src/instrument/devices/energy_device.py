@@ -20,12 +20,22 @@ class EnergySignal(Signal):
     The monochromator defines the beamline energy.
     """
 
-    def __init__(self, *args, mono_name="mono", **kwargs):
+    def __init__(
+            self,
+            *args,
+            mono_name="mono",
+            feedback_name="mono_feedback",
+            feedback_tolerance=0.1,
+            **kwargs
+    ):
         super().__init__(*args, **kwargs)
         self._status = {}  # Useful for debugging
         self._extra_devices = []
         self._mono = None
         self._mono_name = mono_name
+        self._feedback_name = feedback_name
+        self._feedback_tolerance = feedback_tolerance
+        self.__readback = 0
 
     @property
     def mono(self):
@@ -159,11 +169,30 @@ class EnergySignal(Signal):
     @property
     def limits(self):
         return self.mono.energy.limits
+    
+    @property
+    def feedback_device(self):
+        return oregistry.find(self._feedback_name, allow_none=True)
 
     def get(self, **kwargs):
         """ Uses the mono as the standard beamline energy. """
-        self._readback = self.mono.energy.readback.get(**kwargs)
+        # self._readback = self.mono.energy.readback.get(**kwargs)
         return self._readback
+    
+    @property
+    def _readback(self):
+        if self.mono.connected:
+            return self.mono.energy.readback.get()
+        else:
+            logger.warning("Monochromator is not connected!")
+            return self.__readback
+    
+    @_readback.setter
+    def _readback(self, value):
+        if isinstance(value, (int, float)):
+            self.__readback = value
+        else:
+            raise ValueError("Value must be a number.")
 
     def set(
         self,
@@ -180,6 +209,25 @@ class EnergySignal(Signal):
         status.set_finished()
 
         old_value = self._readback
+
+        feedback_on = False
+        reset_devices = dict()
+        if (
+            self.feedback_device is not None and
+            abs(position - old_value) > self._feedback_tolerance
+        ):
+            feedback_enable = self.feedback_device.enable.get()
+            if feedback_enable in [1, "Enable"]:
+                station = self.feedback_device.station.get().lower()
+                for direction in ["horizontal", "vertical"]:
+                    device = getattr(
+                        self.feedback_device, f"{station}.{direction}"
+                    ).status
+                    reset_devices[device] = device.get()
+ 
+                # Hopefully this is fast enough...
+                self.feedback_device.enable.put("Disable")
+                feedback_on = True
 
         # Mono
         mono_status = self.mono.energy.set(
@@ -212,6 +260,14 @@ class EnergySignal(Signal):
             value=position,
             **md_for_callback
         )
+
+        if feedback_on:
+            def done_callback(status=None):
+                self.feedback_device.enable.set("Enable").wait()
+                for device, value in reset_devices.items():
+                    device.put(value)
+
+            status.add_callback(done_callback)
 
         return status
 
