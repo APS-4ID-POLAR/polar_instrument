@@ -1,12 +1,14 @@
 from bluesky.magics import (
     BlueskyMagics, _print_devices, is_positioner, get_labeled_devices
 )
-from IPython.core.magic import line_magic
+from IPython.core.magic import line_magic, magics_class
 from operator import attrgetter
 from bluesky import RunEngineInterrupted
 from numpy import round, ndarray
 from apsbits.core.instrument_init import oregistry
 from ..plans import mv, mvr
+from pyRestTable import Table
+import re
 
 try:
     # cytools is a drop-in replacement for toolz, implemented in Cython
@@ -14,8 +16,28 @@ try:
 except ImportError:
     from toolz import partition
 
-
+@magics_class
 class LocalMagics(BlueskyMagics):
+
+    #@line_magic
+    #def att(self, line):
+    #    if len(line.split()) >1:
+    #        raise TypeError("Wrong parameters. Expected: att position")
+    #    elif len(line.split()) == 0:
+    #        pass
+       
+
+    @line_magic
+    def wm(self, line):
+        result = Table()
+        result.labels = ("Motor","Position", "Limits")
+        for arg in re.split(r'[, ]+',line):
+            pos = eval(arg, self.shell.user_ns).user_readback.get()
+            llm = eval(arg, self.shell.user_ns).low_limit_travel.get()
+            hlm = eval(arg, self.shell.user_ns).high_limit_travel.get()
+            result.rows.append((eval(arg, self.shell.user_ns).name,f"{pos:.5f}", f"[{llm:.5f},{hlm:.5f}]"))
+        print("")
+        print(result.reST(fmt="markdown"))
 
     @line_magic
     def mov(self, line):
@@ -93,7 +115,7 @@ class LocalMagics(BlueskyMagics):
             else:
                 # Show all labels.
                 # labels = list(devices_dict.keys())
-                raise ValueError("No label was entered.")
+                raise ValueError("Use labels like motor, detector, 4ida, 4idb, 4idg, 4idh, preamp, ")
             for label in labels:
                 print(label)
                 try:
