@@ -2,7 +2,7 @@
 QuadEMs for POLAR
 """
 
-from ophyd import Component, QuadEM, EpicsSignalRO, Device
+from ophyd import Component, QuadEM, EpicsSignalRO, Device, Signal
 from ophyd.quadem import QuadEMPort
 from collections import OrderedDict
 from .ad_mixins import ImagePlugin, StatsPlugin
@@ -69,17 +69,19 @@ class TetrAMM(QuadEMPOLAR):
     # to check if changes are needed to the trigger procedure.
 
 
-class QuadEMRO_mixins:
+class QuadEMRO_mixins(Device):
     # Disables preset_monitor and trigger
+
+    dummy = Component(Signal, value=0, kind="omitted")
+
+    @property
+    def preset_monitor(self):
+        return self.dummy
 
     def trigger(self):
         self._status = self._status_type(self)
         self._status.set_finished()
         return self._status
-
-    @property
-    def preset_monitor(self, value):
-        pass
 
     def stage(self):
         Device.stage(self)
