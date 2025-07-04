@@ -20,7 +20,8 @@ class PolarUndulatorPositioner(UndulatorPositioner):
         moved_cb: Callable = None,
         wait: bool = False,
     ) -> StatusBase:
-        # If position is within the deadband --> do nothing.
+        # If position is within the deadband --> move, but do not wait
+        # for it?
         if (
             abs(new_position - self.readback.get())
             < self.parent.energy_deadband.get()
@@ -36,9 +37,12 @@ class PolarUndulatorPositioner(UndulatorPositioner):
 
 
 class PolarUndulator(STI_Undulator):
+    # TODO: The energy should really follow the gap 1 um deadband...
+
     tracking = Component(TrackingSignal, value=False, kind='config')
     energy_offset = Component(Signal, value=0, kind='config')
-    energy_deadband = Component(Signal, value=0.003, kind='config')
+    energy_deadband = Component(Signal, value=0.001, kind='config')
+    # energy_deadband = Component(Signal, value=0.003, kind='config')
     energy = Component(PolarUndulatorPositioner, "Energy")
     version_hpmu = None
 
