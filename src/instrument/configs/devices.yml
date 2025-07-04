@@ -15,10 +15,22 @@ instrument.devices.aps_status.StatusAPS:
   prefix: ""
   labels: ["source", "status", "baseline"]
 
+instrument.devices.wb_slit.SlitDevice:
+- name: wbslt
+  prefix: '4idVDCM:'
+  motorsDict: {'hor': 'm9', 'diag': 'm10', 'pitch': 'm11', 'yaw': 'm12'}
+  slitnum: 1
+  labels: ["4ida", "slit", "baseline"]
+
 instrument.devices.hhl_mirror.ToroidalMirror:
 - name: hhl_mirror
   prefix: "4idHHLM:"
   labels: ["4ida", "mirror", "baseline"]
+
+instrument.devices.mono_feedback.MonoFeedback:
+- name: mono_feedback
+  prefix: "4idbSoft:"
+  labels: ["monochromator", "feedback", "baseline"]
 
 instrument.devices.monochromator.MonoDevice:
 - name: mono

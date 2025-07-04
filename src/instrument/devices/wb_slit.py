@@ -41,9 +41,9 @@ class SlitDevice(Device):
         EpicsMotor, '{prefix}{_slit_prefix}hSize', labels=('motor',)
     )
 
-    def __init__(self, PV, name, motorsDict, slitnum, **kwargs):
+    def __init__(self, prefix, name, motorsDict, slitnum, **kwargs):
 
         self._motorsDict = motorsDict
         self._slit_prefix = f'Slit{slitnum}:'
 
-        super().__init__(prefix=PV, name=name, **kwargs)
+        super().__init__(prefix=prefix, name=name, **kwargs)
