@@ -1,5 +1,6 @@
 from epics import caget, caput
 import math
+from time import sleep
 
 
 def atten(atten_value_in=None):
@@ -29,3 +30,11 @@ def atten(atten_value_in=None):
     atten_factor = deci * 10**power
 
     caput("4idPyFilter:FL1:attenuation", atten_factor)
+    #print(caget("4idPyFilter:FL1:filterBusy"))
+    #while caget("4idPyFilter:FL1:filterBusy"):
+    sleep(0.1)
+    atten_factor = caget('4idPyFilter:FL1:attenuation_actual')
+    power = math.floor(math.log(atten_factor, 10))
+    deci = 0.1 * (atten_factor / (10**power))
+    atten_value = power + deci
+    print(f"Filter moved to {atten_value}")

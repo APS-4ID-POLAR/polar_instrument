@@ -74,7 +74,7 @@ polar_config = pathlib.Path("polar-config.json")
 fourc_config = pathlib.Path("fourc-config.json")
 pbar_manager = ProgressBarManager()
 _geom_for_psi_ = None
-POLAR_DIFFRACTOMETER = "huber"
+POLAR_DIFFRACTOMETER = "huber_euler"
 
 
 ### THIS FILE NEEDS TO BE REVISED!! ###
@@ -88,6 +88,14 @@ def get_huber_euler():
             "Cannot find 'huber_euler' device. Please load and register it."
         )
     return huber_euler
+
+def get_huber_hp():
+    huber_hp = oregistry.find("huber_hp", allow_none=True)
+    if huber_hp is None:
+        raise ValueError(
+            "Cannot find 'huber_hp' device. Please load and register it."
+        )
+    return huber_hp
 
 
 def get_huber_euler_psi():
@@ -121,7 +129,7 @@ def set_diffractometer(instrument=None):
         diff = instrument.name
     elif instrument is None:
         diff = (
-            input("Diffractometer [polar or fourc] ({})? ".format(_geom_.name))
+            input("Diffractometer [huber_euler, huber_hp or fourc] ({})? ".format(_geom_.name))
         ) or _geom_.name
     else:
         raise ValueError(
@@ -131,8 +139,11 @@ def set_diffractometer(instrument=None):
     if diff == 'fourc':
         select_diffractometer(fourc)
         print("Diffractometer {} selected".format(diff))
-    elif diff == 'polar':
+    elif diff == 'huber_euler':
         select_diffractometer(get_huber_euler())
+        print("Diffractometer {} selected".format(diff))
+    elif diff == 'huber_hp':
+        select_diffractometer(get_huber_hp())
         print("Diffractometer {} selected".format(diff))
     else:
         raise ValueError(
@@ -1535,7 +1546,7 @@ def setmode(mode=None):
         _geom_.calc.engine.mode = _geom_.calc.engine.modes[int(mode) - 1]
 
 
-def ca(h, k, l):
+def ca(h, k, l, energy = None):
     """
     Calculate the motors position of a reflection.
 
@@ -1543,9 +1554,10 @@ def ca(h, k, l):
     ----------
     h, k, l : float
         H, K, and L values.
+    energy: float
+        energy (Optional)
     """
     _geom_ = current_diffractometer()
-    pos = cahkl(h, k, l)
     print("\n   Calculated Positions:")
     print(
         "\n   H K L = {:5f} {:5f} {:5f}".format(
@@ -1554,9 +1566,18 @@ def ca(h, k, l):
             l,
         )
     )
+    if energy:
+        _geom_.calc.energy = energy
+        wavelength = 12.4/energy
+    else:
+        energy = _geom_.calc.energy
+        wavelength = _geom_.calc.wavelength
+
+    pos = cahkl(h, k, l)
+
     print(
-        f"\n   Lambda (Energy) = {_geom_.calc.wavelength:6.4f} \u212b"
-        f" ({_geom_.calc.energy:6.4f}) keV"
+        f"\n   Lambda (Energy) = {wavelength:6.4f} \u212b"
+        f" ({energy:6.4f}) keV"
     )
     if POLAR_DIFFRACTOMETER in _geom_.name:
         print(
@@ -1584,7 +1605,7 @@ def ca(h, k, l):
                 pos[2],
             )
         )
-
+    _geom_._update_calc_energy()
 
 def _ensure_idle():
     if RE.state != "idle":
@@ -1660,7 +1681,7 @@ def uan(*args):
     else:
         delta, th = args
         if len(_geom_.calc.physical_axes) == 6:
-            print("Moving to (delta,eta)=({},{})".format(delta, th))
+            print("Moving to (gamma,mu)=({},{})".format(delta, th))
             plan = mv(_geom_.gamma, delta, _geom_.mu, th)
         elif len(_geom_.calc.physical_axes) == 4:
             print("Moving to (tth,th)=({},{})".format(delta, th))
