@@ -337,13 +337,13 @@ class HPDiffractometer(SixCircleDiffractometer):
     z = Component(EpicsMotor, "m13", labels=("motor",))
 
     nanox = FormattedComponent(
-        EpicsMotor, "4idgSoftX:jena:m1", labels=("motors",)
+        EpicsMotor, "4idgSoftX:jena:m1", labels=("motor",)
     )
     nanoy = FormattedComponent(
-        EpicsMotor, "4idgSoftX:jena:m2", labels=("motors",)
+        EpicsMotor, "4idgSoftX:jena:m2", labels=("motor",)
     )
     nanoz = FormattedComponent(
-        EpicsMotor, "4idgSoftX:jena:m3", labels=("motors",)
+        EpicsMotor, "4idgSoftX:jena:m3", labels=("motor",)
     )
 
 

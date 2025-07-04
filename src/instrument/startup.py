@@ -147,3 +147,7 @@ for sus in run_engine_suspenders.values():
 
 # TODO: REMOVE THIS AFTER UPSTREAM FIX
 _ = RE.preprocessors.pop()
+
+# Diffractometer
+select_diffractometer(get_huber_euler())
+select_engine_for_psi(get_huber_euler_psi())
