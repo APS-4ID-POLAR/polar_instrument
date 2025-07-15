@@ -18,7 +18,7 @@ from apsbits.core.instrument_init import make_devices
 from apsbits.core.instrument_init import oregistry
 from apsbits.core.instrument_init import instrument  # noqa: F401
 # from apsbits.core.run_engine_init import init_RE
-from apsbits.utils.aps_functions import aps_dm_setup
+from apsbits.utils.aps_functions import aps_dm_setup  # TODO: is this correct?
 # from apsbits.utils.aps_functions import host_on_aps_subnet
 from apsbits.utils.config_loaders import get_config
 from apsbits.utils.config_loaders import load_config

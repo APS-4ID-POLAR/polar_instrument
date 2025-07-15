@@ -3,6 +3,7 @@ import math
 from time import sleep
 
 
+# def attenuator(atten_value_in=None):
 def atten(atten_value_in=None):
     # write attenuation factor to attenuator device
     # Input as attenuation value: power.first_decimal
