@@ -292,15 +292,19 @@ class ExperimentClass:
         """
         data_directory = f"@voyager:{self.base_experiment_path}"
 
+        # TODO: 07/15/2025
+        # The normal behavior is to start the DAQ, but currently this
+        # changes files permissions, and prevents us from saving new files.
+
         # Check DM DAQ is running for this experiment, if not then start it.
-        if dm_get_experiment_datadir_active_daq(
-            self.experiment_name, data_directory
-        ) is None:
-            logger.info(
-                "Starting DM voyager DAQ: experiment %r",
-                self.experiment_name
-            )
-            dm_start_daq(self.experiment_name, "@voyager")
+        # if dm_get_experiment_datadir_active_daq(
+        #     self.experiment_name, data_directory
+        # ) is None:
+        #     logger.info(
+        #         "Starting DM voyager DAQ: experiment %r",
+        #         self.experiment_name
+        #     )
+        #     dm_start_daq(self.experiment_name, "@voyager")
 
     def setup_path(self):
         # Make sure that the subfolder structure exists, if not creates it.
@@ -400,7 +404,7 @@ class ExperimentClass:
         while True:
             self.experiment_name_input(experiment_name)
             if self.server == "data management":
-                _done = self.dm_experiment_setup()
+                _done = self.dm_experiment_setup(self.experiment_name)
                 if not _done:
                     continue
             break
@@ -409,7 +413,7 @@ class ExperimentClass:
         # NOTE: you can still change base_experiment_path by hand!!
         if self.data_management:
             self.base_experiment_path = self.data_management["dataDirectory"]
-            self.setup_dm_daq()
+            self.setup_dm_daq() # TODO: NEED TO IMPORT DATA MANAGEMETN SETUP
             self.windows_experiment_path = None  # windows cannot see DM?
         else:
             self.base_experiment_path = (
@@ -427,7 +431,7 @@ class ExperimentClass:
 
         self.setup_path()
         self.base_name_input(base_name)
-        self.scan_number_input(reset_scan_id)
+        self.scan_number_input(reset_scan_id)  #TODO: change the default to NO
 
         self.start_specwriter()
 
