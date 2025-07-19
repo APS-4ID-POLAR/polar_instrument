@@ -18,7 +18,8 @@ logger = getLogger(__name__)
 
 
 class DichroDevice(Device):
-    positioner = Component(Signal, value=0)
+    positioner1 = Component(Signal, value=0)
+    positioner2 = Component(Signal, value=0)
     xas = Component(Signal, value=0)
     xmcd = Component(Signal, value=0)
 
@@ -31,22 +32,32 @@ class DichroDevice(Device):
 
 
 class Settings():
-    positioner = "energy"
+    positioner1 = "energy"
+    positioner2 = None
     monitor = "4idhI0"
     detector = "4idhI1"
     transmission = True
+    pattern = [1, -1, -1, 1]
+
+    def get_keys(self):
+        return {
+            item: getattr(self, item) for item in [
+                "positioner1", "positioner2", "monitor", "detector"
+            ] if getattr(self, item) is not None
+        }
 
 
 # TODO: Should this go in the pr_setup?
 class DichroStream(LiveDispatcher):
     """Stream that processes XMCD and XANES"""
-    def __init__(self, n=4):
-        self.n = n
+    def __init__(self):
+        # self.n = n
         self.in_node = None
         self.out_node = None
         self.processor = None
         self.data_keys = None
         self.settings = Settings()
+        # self.settings.n = n
         self._trigger = False
         super().__init__()
 
@@ -62,13 +73,9 @@ class DichroStream(LiveDispatcher):
         if not self.in_node:
             self.in_node = Source(stream_name='dichro_xmcd')
 
-        self.processor = self.in_node.partition(self.n)
+        self.processor = self.in_node.partition(len(self.settings.pattern))
 
-        self.data_keys = [
-            self.settings.positioner,
-            self.settings.monitor,
-            self.settings.detector,
-        ]
+        self.data_keys = self.settings.get_keys()
 
         def process_xmcd(cache):
             processed_evt = dict()
@@ -82,43 +89,61 @@ class DichroStream(LiveDispatcher):
                 )
 
             # Use the last descriptor to avoid strings and objects
-            if all([key in self.raw_descriptors[desc_id]['data_keys'] for key
-                    in self.data_keys]):
-                processed_evt[self.data_keys[0]] = mean(
-                    [evt['data'][self.data_keys[0]] for evt in cache], axis=0
-                )
+            if all([
+                key in self.raw_descriptors[desc_id]['data_keys']
+                for key in self.data_keys.values()
+            ]):
 
-                _mon = array(
-                    [evt['data'][self.data_keys[1]] for evt in cache]
-                )
-
-                _det = array(
-                    [evt['data'][self.data_keys[2]] for evt in cache]
-                )
+                for key, value in self.data_keys.item():
+                    if "positioner" in key:
+                        processed_evt[value] = mean(
+                            [evt['data'][value] for evt in cache], axis=0
+                        )
+                    elif "monitor" in key:
+                        _mon = sum(
+                            [evt['data'][value] for evt in cache]
+                        )
+                    elif "detector" in key:
+                        _det = array(
+                            [evt['data'][value] for evt in cache]
+                        )
 
                 _xas = (
                     log(_mon/_det) if self.settings.transmission else _det/_mon
                 )
 
                 processed_evt["xas"] = mean(_xas)
-                processed_evt["xmcd"] = (
-                    (_xas[0] + _xas[3])/2 - (_xas[1] + _xas[2])/2
-                )
+                
+                # This assumes that there is two polarization states
+                processed_evt["xmcd"] = mean(_xas*array(self.settings.pattern))*2     
             else:
                 logger.warning(
                     "The input data keys do not match entries in the database. "
                     "Data is being recorded, but the plot will not be "
                     "generated."
                 )
-                processed_evt[self.data_keys[0]] = 0
+
+                for key, value in self.data_keys.item():
+                    if "positioner" in key:
+                        processed_evt[value] = 0
                 processed_evt["xas"] = 0
                 processed_evt["xmcd"] = 0
+        
+            dichro_out = ()
 
-            dichro.put((
-                processed_evt[self.data_keys[0]],
+            for key in ["positioner1", "positioner2"]:
+                pos = getattr(self.settings, key)
+                if pos is not None:
+                    dichro_out += (processed_evt[pos],)
+                else:
+                    dichro_out += (None,)
+            
+            dichro_out += (
                 processed_evt["xas"],
                 processed_evt["xmcd"]
-            ))
+            )
+
+            dichro.put(dichro_out)
 
             return {'data': processed_evt, 'descriptor': desc_id}
 
@@ -141,6 +166,8 @@ class DichroStream(LiveDispatcher):
         self.out_node = None
         self.processor = None
         self.data_keys = None
+        self.settings.positioner1 = None
+        self.settings.positioner2 = None
         self._trigger = False
         super().stop(doc)
 
@@ -148,10 +175,10 @@ class DichroStream(LiveDispatcher):
 class DichroLivePlot(LivePlot):
     def __init__(self, y, stream, **kwargs):
         self.stream = stream
-        super().__init__(y, x=stream.settings.positioner, **kwargs)
+        super().__init__(y, x=stream.settings.positioner1, **kwargs)
 
     def start(self, doc):
-        self.x = self.stream.settings.positioner
+        self.x = self.stream.settings.positioner1
         super().start(doc)
 
 
