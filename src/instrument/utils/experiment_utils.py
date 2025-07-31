@@ -411,7 +411,8 @@ class ExperimentClass:
 
         # This is a very opinionated folder setup.
         # NOTE: you can still change base_experiment_path by hand!!
-        if self.data_management:
+        # if self.data_management:  # TODO: Not sure why I used this before.
+        if self.server == "data management":
             self.base_experiment_path = self.data_management["dataDirectory"]
             self.setup_dm_daq() # TODO: NEED TO IMPORT DATA MANAGEMETN SETUP
             self.windows_experiment_path = None  # windows cannot see DM?
