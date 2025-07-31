@@ -192,16 +192,16 @@ instrument.devices.table_4idb.Table4idb:
 instrument.devices.quadems.TetrAMMRO:
 - name: btetramm
   prefix: "4idbSoft:TetrAMM:"
-  labels: ["detector", "xbpm", "baseline"]
+  labels: ["detector", "xbpm", "baseline", "4idb"]
 
 instrument.devices.quadems.SydorEMRO:
 - name: gsydor
   prefix: "4idgSydor:T4U_BPM:"
-  labels: ["detector", "xbpm", "baseline"]
+  labels: ["detector", "xbpm", "baseline", "4idg"]
 
 - name: hsydor
   prefix: "4idhSydor:T4U_BPM:"
-  labels: ["detector", "xbpm", "baseline"]
+  labels: ["detector", "xbpm", "baseline", "4idh"]
 
 instrument.devices.polarimeter.PolAnalyzer:
 - name: pol
@@ -242,6 +242,11 @@ instrument.devices.filters_device_avs.APSFilter:
 - name: gfilter
   prefix: "4idPyFilter:FL1:"
   labels: ["4idg", "filter", "baseline"]
+
+instrument.devices.kb_4idg.KBDevice:
+- name: gkb
+  prefix: "4idgKB:"
+  labels: ["4idg", "optics", "baseline", "kb"]
 
 apstools.devices.LakeShore336Device:
 - name: temp_4idg
