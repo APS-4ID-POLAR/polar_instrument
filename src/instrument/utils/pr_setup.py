@@ -2,7 +2,7 @@
 
 __all__ = ["pr_setup"]
 
-from ..callbacks import plot_dichro_settings
+from ..callbacks.dichro_stream import plot_dichro_settings
 from apsbits.core.instrument_init import oregistry
 
 

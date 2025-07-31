@@ -9,6 +9,6 @@
 #     from .spec_data_file_writer import *  # noqa
 
 # from dichro_plot import AutoDissschroPlot
-from .dichro_stream import dichro, plot_dichro_settings, dichro_bec
+# from .dichro_stream import dichro, plot_dichro_settings, dichro_bec
 
 # del iconfig

@@ -175,12 +175,13 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
 
             yield from mv(pr_setup.positioner.parent.selectAC, 1)
 
-        if dichro:
-
-            # TODO: This will only work for 1 motor and 1 detector!
-            plot_dichro_settings.settings.positioner = (
-                "None" if positioner is None else positioner[0].name
-            )
+        if dichro:            
+            for i in range(len(positioner)):
+                setattr(
+                    plot_dichro_settings.settings,
+                    f"positioner{i+1}",
+                    None if positioner[i] is None else positioner[i].name
+                )
 
             dichro_bec.enable_plots()
             bec.disable_plots()

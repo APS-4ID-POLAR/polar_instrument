@@ -21,7 +21,7 @@ from bluesky.plan_stubs import (
     mv as bps_mv, abs_set as bps_abs_set, rd, trigger_and_read, move_per_step
 )
 from bluesky.preprocessors import (
-    reset_positions_decorator, relative_set_decorator, subs_decorator
+    reset_positions_decorator, relative_set_decorator, subs_decorator, monitor_during_decorator
 )
 from bluesky.plan_patterns import chunk_outer_product_args
 from .local_preprocessors import (
@@ -39,6 +39,7 @@ from hkl.user import current_diffractometer
 from logging import getLogger
 
 from ..callbacks.nexus_data_file_writer import nxwriter
+from ..callbacks.dichro_stream import dichro as dichro_device
 from ..utils.experiment_utils import experiment
 from ..utils.run_engine import RE
 from ..utils.counters_class import counters
@@ -73,7 +74,7 @@ def _collect_extras(args):
     """Collect all detectors that need to be read during a scan."""
 
     # TODO: most or all of this can be removed if we add these to the energy
-    # device directly.
+    # device directly.dichro_bec
 
     # Initialize the list of extra devices with the standard set from counters
     extras = counters.extra_devices.copy()
@@ -425,8 +426,9 @@ def count(
 
     _md.update(md or {})
 
+    @monitor_during_decorator([dichro_device] if dichro else [])
     @configure_counts_decorator(detectors, time)
-    @stage_dichro_decorator(dichro, lockin, None)
+    @stage_dichro_decorator(dichro, lockin, [None])
     @extra_devices_decorator(extras)
     @subs_decorator(nxwriter.receiver)
     def _inner_count():
@@ -566,9 +568,12 @@ def ascan(
 
     _md.update(md or {})
 
+    motors = [motor for motor, _, _ in partition(3, args)]
+
+    @monitor_during_decorator([dichro_device] if dichro else [])
     @subs_decorator(nxwriter.receiver)
     @configure_counts_decorator(detectors, time)
-    @stage_dichro_decorator(dichro, lockin, args)
+    @stage_dichro_decorator(dichro, lockin, motors)
     @extra_devices_decorator(extras)
     def _inner_ascan():
         yield from scan(
@@ -795,9 +800,12 @@ def grid_scan(
 
     _md.update(md or {})
 
+    motors = [m[0] for m in chunk_outer_product_args(args)]
+
+    @monitor_during_decorator([dichro_device] if dichro else [])
     @subs_decorator(nxwriter.receiver)
     @configure_counts_decorator(detectors, time)
-    @stage_dichro_decorator(dichro, lockin, args)
+    @stage_dichro_decorator(dichro, lockin, motors)
     @extra_devices_decorator(extras)
     def _inner_grid_scan():
         yield from bp_grid_scan(
@@ -1036,9 +1044,10 @@ def qxscan(
 
     _md.update(md or {})
 
+    @monitor_during_decorator([dichro_device] if dichro else [])
     @subs_decorator(nxwriter.receiver)
     @configure_counts_decorator(detectors, time)
-    @stage_dichro_decorator(dichro, lockin, args)
+    @stage_dichro_decorator(dichro, lockin, [energy])
     @extra_devices_decorator(extras)
     def _inner_qxscan():
         yield from list_scan(
