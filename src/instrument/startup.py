@@ -88,6 +88,7 @@ else:
     from bluesky import plan_stubs as bps  # noqa: F401
     from bluesky import plans as bp  # noqa: F401
 
+    from .utils.wax import wm, wax
     from .utils.counters_class import counters  # noqa: F401
     from .utils.pr_setup import pr_setup  # noqa: F401
     from .utils.attenuator_utils import atten  # noqa: F401
