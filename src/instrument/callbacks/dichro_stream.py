@@ -78,7 +78,7 @@ class DichroStream(LiveDispatcher):
                     'The events in this bundle are from different'
                     'configurations!'
                 )
-
+            
             # Use the last descriptor to avoid strings and objects
             if all([
                 key in self.raw_descriptors[desc_id]['data_keys']
@@ -95,7 +95,7 @@ class DichroStream(LiveDispatcher):
                             [evt['data'][value] for evt in cache], axis=0
                         )
                     elif "monitor" in key:
-                        _mon = sum(
+                        _mon = array(
                             [evt['data'][value] for evt in cache]
                         )
                     elif "detector" in key:
