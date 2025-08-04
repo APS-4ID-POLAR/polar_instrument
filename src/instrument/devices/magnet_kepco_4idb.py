@@ -4,10 +4,10 @@ Kepko power supply
 
 from ophyd import Component, FormattedComponent, Device, Kind
 from ophyd import EpicsSignal, EpicsSignalRO
-from apstools.devices import PVPositionerSoftDoneWithStop
+from apstools.devices import PVPositionerSoftDone
 
 
-class LocalPositioner(PVPositionerSoftDoneWithStop):
+class LocalPositioner(PVPositionerSoftDone):
     """ Voltage/Current positioner """
 
     readback = FormattedComponent(
@@ -38,6 +38,11 @@ class KepcoController(Device):
 
     enable = Component(EpicsSignal, 'Enable.VAL', kind='omitted', string=True)
 
+    id = Component(EpicsSignalRO, "IDN", kind="config")
+    id_read = Component(EpicsSignal, "IDN.PROC", kind="omitted")
+
+    scan_rate = Component(EpicsSignal, 'seq_rd.SCAN', kind='omitted', string=True)
+
     @mode.sub_value
     def mode_change(self, value=None, **kwargs):
         if value == 'Current':
@@ -47,3 +52,10 @@ class KepcoController(Device):
         if value == 'Voltage':
             self.current.readback.kind = Kind.normal
             self.voltage.readback.kind = Kind.hinted
+
+    def default_settings(self):
+        self.scan_rate.set(".1 second").wait(5)
+        self.remote.set("Remote").wait(5)
+        self.id_read.set(1).wait(5)
+        self.mode.set("Current").wait(5)
+        self.mode_change(value=self.mode.get())
