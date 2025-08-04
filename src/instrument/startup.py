@@ -104,6 +104,12 @@ else:
     from .utils.polartools_hklpy_imports import *  # noqa: F401, F403
     from .utils.oregistry_auxiliar import get_devices  # noqa: F401
     from .utils.load_vortex import load_vortex  # noqa: F401
+    from .utils.device_loader import (
+        load_yaml_devices,
+        load_device,
+        find_loadable_devices,
+        connect_device
+    )
     # TODO: Both DM, hklpy, experiment_utils seems to be changing the
     # logging level. I don't know why.
     logger.setLevel(logging.BSDEV)
@@ -118,27 +124,27 @@ RE(make_devices(clear=True, file="devices.yml"))  # Create the devices.
 
 stations = ["source", "4ida", "4idb", "4idg", "4idh"]
 
-devices = oregistry.findall(stations)
-baseline_devices = oregistry.findall("baseline")
-disconnected_devices = {}
+# baseline_devices = oregistry.findall("baseline")
+# disconnected_devices = {}
 
-for device in devices:
-    try:
-        logger.info(f"Connecting to {device.name}...")
-        device.wait_for_connection()
-        if device in baseline_devices:
-            sd.baseline.append(device)
-        if hasattr(device, "default_settings"):
-            device.default_settings()
-    except TimeoutError:
-        message = (
-            f"Device {device.name} is disconnected, removing it from oregistry."
-            " See the disconnected_devices dictionary."
-        )
-        if device in baseline_devices:
-            message += " This device was not added to the baseline."
-        logger.warning(message)
-        disconnected_devices[device.name] = oregistry.pop(device)
+for device in oregistry.findall(stations):
+    connect_device(device, raise_error=False)
+    # try:
+    #     logger.info(f"Connecting to {device.name}...")
+    #     device.wait_for_connection()
+    #     if device in baseline_devices:
+    #         sd.baseline.append(device)
+    #     if hasattr(device, "default_settings"):
+    #         device.default_settings()
+    # except TimeoutError:
+    #     message = (
+    #         f"Device {device.name} is disconnected, removing it from oregistry."
+    #         " See the disconnected_devices dictionary."
+    #     )
+    #     if device in baseline_devices:
+    #         message += " This device was not added to the baseline."
+    #     logger.warning(message)
+    #     disconnected_devices[device.name] = oregistry.pop(device)
 
 
 counters.plotselect(11, 0)

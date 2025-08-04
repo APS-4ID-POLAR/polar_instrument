@@ -291,7 +291,7 @@ instrument.devices.table_4idh.Table4idh:
 
 instrument.devices.xbpm_4idh.XBPM:
 - name: hxbpm
-  prefix: "4idgSoft:"
+  prefix: "4idhSoft:"
   labels: ["4idh", "baseline"]
 
 instrument.devices.magnet_911.Magnet911:
