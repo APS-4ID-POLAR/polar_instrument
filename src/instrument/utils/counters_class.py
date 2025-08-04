@@ -50,17 +50,12 @@ class CountersClass:
             item.name for item in (self.detectors + self.extra_devices)
         ]
 
-        plot_names = []
-        for item in self.detectors:
-            plot_names.extend(item.hints['fields'])
-
         return ("Counters settings\n"
                 " Monitor:\n"
                 f"  Scaler channel = '{self._mon}'\n"
-                # f"  Preset counts = '{self.monitor_counts}'\n"
                 " Detectors:\n"
                 f"  Read devices = {read_names}\n"
-                f"  Plot components = {plot_names}")
+                f"  Plot components = {self.plot_names}")
 
     def __str__(self):
         return self.__repr__()
@@ -116,6 +111,13 @@ class CountersClass:
         # self.detectors = detectors
         # self.monitor = monitor
         self.plotselect()
+
+    @property
+    def plot_names(self):
+        plot_names = []
+        for item in self.detectors:
+            plot_names.extend(item.hints['fields'])
+        return plot_names
 
     @property
     def _available_scalers(self):

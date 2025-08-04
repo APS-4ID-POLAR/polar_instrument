@@ -149,6 +149,7 @@ class DichroStream(LiveDispatcher):
         self.processor = self.in_node.partition(self.n)
 
         self.data_keys = self.settings.get_keys()
+
         self.out_node = self.processor.map(process_xmcd)
         self.out_node.sink(self.process_event)
 

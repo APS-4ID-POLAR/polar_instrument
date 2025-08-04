@@ -10,7 +10,16 @@ class PRSetup():
 
     positioner = None
     offset = None
-    dichro_steps = [1, -1, -1, 1]
+    _dichro_steps = [1, -1, -1, 1]
+
+    @property
+    def dichro_steps(self):
+        return self._dichro_steps
+
+    @dichro_steps.setter
+    def dichro_steps(self, value):
+        self._dichro_steps = value
+        plot_dichro_settings.settings.pattern = value
 
     def __init__(self):
         self._current_setup = {}
@@ -201,3 +210,4 @@ class PRSetup():
 
 
 pr_setup = PRSetup()
+pr_setup.dichro_steps = [1, -1, -1, 1]

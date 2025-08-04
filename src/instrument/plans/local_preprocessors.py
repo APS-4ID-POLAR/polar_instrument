@@ -152,12 +152,6 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
                     dev.kind = "normal"
 
             for scaler in counters._available_scalers:
-                # for chan in scaler.channels_name_map.values():
-                #     scaler_channel = getattr(scaler.channels, chan).s
-                #     if scaler_channel.kind.value >= 5:
-                #         _hinted_devices.append(scaler_channel)
-                #         scaler_channel.kind = "normal"
-
                 for ch in ["LockDC", "LockAC"]:
                     if ch in scaler.channels_name_map.keys():
                         device = getattr(scaler.channels, scaler.channels_name_map[ch]).s
@@ -182,6 +176,20 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
                     f"positioner{i+1}",
                     None if positioner[i] is None else positioner[i].name
                 )
+            
+            if len(counters.plot_names) != 0:
+                if len(counters.plot_names) > 1:
+                    msg = (
+                        "There is more than one plotting detector selected, "
+                        "but only one can be used. Will use the first one: "
+                        f"{counters.plot_names[0]}."
+                    )
+                    logger.warning(msg)
+                    print(f"\n=== Warning: {msg} ===")
+
+                plot_dichro_settings.settings.detector = counters.plot_names[0]
+            
+            plot_dichro_settings.settings.monitor = counters.monitor
 
             dichro_bec.enable_plots()
             bec.disable_plots()
