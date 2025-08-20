@@ -5,6 +5,7 @@ Diffractometer magnet
 from apstools.devices import PVPositionerSoftDone
 from ophyd import Component, EpicsSignal, EpicsSignalRO, Device
 from logging import getLogger
+
 logger = getLogger(__name__)
 
 
@@ -35,7 +36,7 @@ class KepcoDevice(Device):
         "",
         readback_pv="interpAtoT_y1.VAL",
         setpoint_pv="interpTtoA_x.VAL",
-        tolerance=0.01
+        tolerance=0.01,
     )
 
     voltage = Component(EpicsSignalRO, "measvolt", kind="config")
@@ -45,7 +46,7 @@ class KepcoDevice(Device):
         "",
         readback_pv="meascurr",
         setpoint_pv="setcurr",
-        tolerance=0.1
+        tolerance=0.1,
     )
 
     mode = Component(

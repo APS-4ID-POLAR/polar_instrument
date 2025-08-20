@@ -8,7 +8,7 @@ from ophyd import (
     Device,
     EpicsSignal,
     EpicsSignalRO,
-    EpicsMotor
+    EpicsMotor,
 )
 
 

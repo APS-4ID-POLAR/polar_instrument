@@ -8,7 +8,7 @@ from ophyd import (
     Device,
     EpicsSignal,
     EpicsSignalRO,
-    EpicsSignalWithRBV
+    EpicsSignalWithRBV,
 )
 
 NUM_FILTERS = 12
@@ -33,9 +33,7 @@ class FilterSlot(Device):
 def make_filter_slots(num: int):
     defn = {}
     for n in range(1, num + 1):
-        defn[f"f{n}"] = (
-            FilterSlot, f"filter{n :02d}", dict(kind="config")
-        )
+        defn[f"f{n}"] = (FilterSlot, f"filter{n :02d}", dict(kind="config"))
     return defn
 
 

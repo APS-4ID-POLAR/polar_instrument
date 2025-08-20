@@ -1,4 +1,3 @@
-
 """
 Scalers
 """
@@ -10,7 +9,7 @@ import time
 
 
 class PresetMonitorSignal(Signal):
-    """ Signal that control the selected monitor channel """
+    """Signal that control the selected monitor channel"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -44,12 +43,15 @@ class PresetMonitorSignal(Signal):
             Check the value prior to setting it, defaults to False
         """
         self.log.debug(
-            'put(value=%s, timestamp=%s, force=%s, metadata=%s)',
-            value, timestamp, force, metadata
+            "put(value=%s, timestamp=%s, force=%s, metadata=%s)",
+            value,
+            timestamp,
+            force,
+            metadata,
         )
 
         if float(value) <= 0:
-            raise ValueError('preset_value has to be > 0.')
+            raise ValueError("preset_value has to be > 0.")
 
         if "chan01" in self.parent._monitor.name:
             freq = 1e7 if not self._freq else self._freq.get()
@@ -65,21 +67,25 @@ class PresetMonitorSignal(Signal):
             metadata = {}
 
         if timestamp is None:
-            timestamp = metadata.get('timestamp', time.time())
+            timestamp = metadata.get("timestamp", time.time())
 
         metadata = metadata.copy()
-        metadata['timestamp'] = timestamp
+        metadata["timestamp"] = timestamp
         self._metadata.update(**metadata)
 
-        md_for_callback = {key: metadata[key]
-                           for key in self._metadata_keys
-                           if key in metadata}
+        md_for_callback = {
+            key: metadata[key] for key in self._metadata_keys if key in metadata
+        }
 
-        if 'timestamp' not in self._metadata_keys:
-            md_for_callback['timestamp'] = timestamp
+        if "timestamp" not in self._metadata_keys:
+            md_for_callback["timestamp"] = timestamp
 
-        self._run_subs(sub_type=self.SUB_VALUE, old_value=old_value,
-                       value=value, **md_for_callback)
+        self._run_subs(
+            sub_type=self.SUB_VALUE,
+            old_value=old_value,
+            value=value,
+            **md_for_callback,
+        )
 
 
 class LocalScalerCH(ScalerCH):
@@ -114,9 +120,11 @@ class LocalScalerCH(ScalerCH):
             try:
                 channel = getattr(self.channels, name_map[ch])
             except KeyError:
-                raise RuntimeError("The channel {} is not configured "
-                                   "on the scaler.  The named channels are "
-                                   "{}".format(ch, tuple(name_map)))
+                raise RuntimeError(
+                    "The channel {} is not configured "
+                    "on the scaler.  The named channels are "
+                    "{}".format(ch, tuple(name_map))
+                )
             if ch in chan_names:
                 channel.s.kind = Kind.hinted
             else:
@@ -140,19 +148,21 @@ class LocalScalerCH(ScalerCH):
         if chan_names is None:
             chan_names = name_map.keys()
 
-        read_attrs = ['chan01']  # always include time
+        read_attrs = ["chan01"]  # always include time
         for ch in chan_names:
             try:
                 read_attrs.append(name_map[ch])
             except KeyError:
-                raise RuntimeError("The channel {} is not configured "
-                                   "on the scaler.  The named channels are "
-                                   "{}".format(ch, tuple(name_map)))
+                raise RuntimeError(
+                    "The channel {} is not configured "
+                    "on the scaler.  The named channels are "
+                    "{}".format(ch, tuple(name_map))
+                )
 
         self.channels.kind = Kind.normal
         self.channels.read_attrs = list(read_attrs)
         self.channels.configuration_attrs = list(read_attrs)
-        if len(self.hints['fields']) == 0:
+        if len(self.hints["fields"]) == 0:
             self.select_plot_channels(chan_names)
 
     @property
@@ -174,10 +184,12 @@ class LocalScalerCH(ScalerCH):
         # Check that value is a valid name.
         name_map = self.channels_name_map
         if value not in (set(name_map.keys()) | set(name_map.values())):
-            raise ValueError(f"Monitor must be either a channel name or the "
-                             "channel component. Valid entries are one of "
-                             f"these: {name_map.keys()}, or these: "
-                             f"{name_map.keys()}.")
+            raise ValueError(
+                f"Monitor must be either a channel name or the "
+                "channel component. Valid entries are one of "
+                f"these: {name_map.keys()}, or these: "
+                f"{name_map.keys()}."
+            )
 
         # Changes value to the channel number if needed. From here on,
         # value will always be something like 'chan01'.
@@ -192,7 +204,7 @@ class LocalScalerCH(ScalerCH):
         # Adjust gates
         for channel_name in self.channels.component_names:
             chan = getattr(self.channels, channel_name)
-            target = 'Y' if chan == channel else 'N'
+            target = "Y" if chan == channel else "N"
             chan.gate.put(target, use_complete=True)
 
         self._monitor = channel
@@ -206,6 +218,6 @@ class LocalScalerCH(ScalerCH):
         self.select_plot_channels(chan_names=channels)
 
     def default_settings(self):
-        self.monitor = 'chan01'
+        self.monitor = "chan01"
         self.select_read_channels()
         self.select_plot_channels()

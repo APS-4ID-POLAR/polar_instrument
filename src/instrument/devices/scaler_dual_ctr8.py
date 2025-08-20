@@ -9,7 +9,7 @@ from ophyd import (
     Component,
     Device,
     Kind,
-    EpicsSignal
+    EpicsSignal,
 )
 from ophyd.scaler import ScalerChannel, ScalerCH
 from math import floor
@@ -28,7 +28,7 @@ class LocalScalerChannel(ScalerChannel):
         super().__init__(*args, **kwargs)
 
         # This stores info on which scaler this belongs to
-        self._scaler_number = floor((ch_num-1)/NUMCHANNELS) + 1
+        self._scaler_number = floor((ch_num - 1) / NUMCHANNELS) + 1
 
 
 def make_channels():
@@ -39,7 +39,7 @@ def make_channels():
         defn[f"chan{i :02d}"] = (
             ScalerChannel,
             PREFIX1,
-            {"ch_num": i, "kind": "normal"}
+            {"ch_num": i, "kind": "normal"},
         )
 
     # Second scaler
@@ -48,7 +48,7 @@ def make_channels():
         defn[f"chan{i + NUMCHANNELS :02d}"] = (
             ScalerChannel,
             PREFIX2,
-            {"ch_num": i+1, "kind": "normal"}
+            {"ch_num": i + 1, "kind": "normal"},
         )
 
     return defn
@@ -175,7 +175,7 @@ class DualCTR8Scaler(Device):
         if chan_names is None:
             chan_names = name_map.keys()
 
-        read_attrs = ['chan01']  # always include time
+        read_attrs = ["chan01"]  # always include time
         for ch in chan_names:
             try:
                 read_attrs.append(name_map[ch])
@@ -188,7 +188,7 @@ class DualCTR8Scaler(Device):
         self.channels.kind = Kind.normal
         self.channels.read_attrs = list(read_attrs)
         self.channels.configuration_attrs = list(read_attrs)
-        if len(self.hints['fields']) == 0:
+        if len(self.hints["fields"]) == 0:
             self.select_plot_channels(chan_names)
 
     @property
@@ -229,7 +229,7 @@ class DualCTR8Scaler(Device):
         # Adjust gates
         for channel_name in self.channels.component_names:
             chan = getattr(self.channels, channel_name)
-            target = 'Y' if chan == channel else 'N'
+            target = "Y" if chan == channel else "N"
             chan.gate.put(target, use_complete=True)
 
         self._monitor = channel
@@ -243,7 +243,7 @@ class DualCTR8Scaler(Device):
         self.select_plot_channels(chan_names=channels)
 
     def default_settings(self):
-        self.monitor = 'chan01'
+        self.monitor = "chan01"
         self.select_read_channels()
         self.select_plot_channels()
         for num in range(1, 3):

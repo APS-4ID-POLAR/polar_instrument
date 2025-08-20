@@ -1,6 +1,6 @@
-'''
+"""
 Ventus Laser
-'''
+"""
 
 from ophyd import EpicsSignal, Component, Device
 

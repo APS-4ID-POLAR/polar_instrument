@@ -1,12 +1,8 @@
-from ophyd import (
-    Component,
-    Device,
-    EpicsSignalRO,
-    EpicsMotor
-)
+from ophyd import Component, Device, EpicsSignalRO, EpicsMotor
 
 # TODO: Will add some as read only for now, but
 # may be able to run as motors
+
 
 class Vertical(Device):
     piezo_ds = Component(EpicsMotor, "m4", labels=("motor",))
@@ -14,7 +10,6 @@ class Vertical(Device):
 
     piezo_us = Component(EpicsMotor, "m5", labels=("motor",))
     pico_us = Component(EpicsMotor, "m7", labels=("motor",))
-
 
     capsensor_ds = Component(EpicsSignalRO, "m16.RBV")
     capsensor_us = Component(EpicsSignalRO, "m15.RBV")

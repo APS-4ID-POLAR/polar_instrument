@@ -14,19 +14,18 @@ logger = getLogger(__name__)
 
 
 class EnergySignal(Signal):
-
     """
     Beamline energy.
     The monochromator defines the beamline energy.
     """
 
     def __init__(
-            self,
-            *args,
-            mono_name="mono",
-            feedback_name="mono_feedback",
-            feedback_tolerance=0.1,
-            **kwargs
+        self,
+        *args,
+        mono_name="mono",
+        feedback_name="mono_feedback",
+        feedback_tolerance=0.1,
+        **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self._status = {}  # Useful for debugging
@@ -80,7 +79,7 @@ class EnergySignal(Signal):
         result.labels = ("Index", "Device", "Tracking?")
 
         for i, d in enumerate(self.trackable_devices):
-            result.rows.append((i+1, d.name, d.tracking.get()))
+            result.rows.append((i + 1, d.name, d.tracking.get()))
 
         print("=== Tracking Status ===")
         print(result.reST(fmt="grid"))
@@ -93,9 +92,8 @@ class EnergySignal(Signal):
         available_devices = {d.name: d for d in self.trackable_devices}
 
         # Check that devices_names is a valid iterable.
-        if (
-            isinstance(devices_names, str)
-            or not isinstance(devices_names, Iterable)
+        if isinstance(devices_names, str) or not isinstance(
+            devices_names, Iterable
         ):
             raise ValueError(
                 "devices_names must be an iterable with names of devices to be "
@@ -104,10 +102,8 @@ class EnergySignal(Signal):
             )
 
         # Check that the names are in the available devices list.
-        if (
-            len(devices_names) != 0 and not all(
-                name in available_devices.keys() for name in devices_names
-            )
+        if len(devices_names) != 0 and not all(
+            name in available_devices.keys() for name in devices_names
         ):
             raise ValueError(
                 "Some device names are not available for tracking. Available "
@@ -127,13 +123,17 @@ class EnergySignal(Signal):
         current_selection = []
         for i, device in enumerate(self.trackable_devices):
             if device.tracking.get():
-                current_selection.append(i+1)
+                current_selection.append(i + 1)
         current_selection = " ".join(map(str, current_selection))
 
         while True:
-            new_selection = input(
-                f"\nEnter the index of the devices to track ({current_selection}): "
-            ) or current_selection
+            new_selection = (
+                input(
+                    "\nEnter the index of the devices to track "
+                    f"({current_selection}): "
+                )
+                or current_selection
+            )
 
             try:
                 new_selection = [
@@ -156,7 +156,7 @@ class EnergySignal(Signal):
             break
 
         for i, device in enumerate(self.trackable_devices):
-            track = True if i+1 in new_selection else False
+            track = True if i + 1 in new_selection else False
             device.tracking.put(track)
 
         print()
@@ -169,16 +169,16 @@ class EnergySignal(Signal):
     @property
     def limits(self):
         return self.mono.energy.limits
-    
+
     @property
     def feedback_device(self):
         return oregistry.find(self._feedback_name, allow_none=True)
 
     def get(self, **kwargs):
-        """ Uses the mono as the standard beamline energy. """
+        """Uses the mono as the standard beamline energy."""
         # self._readback = self.mono.energy.readback.get(**kwargs)
         return self._readback
-    
+
     @property
     def _readback(self):
         if self.mono.connected:
@@ -186,7 +186,7 @@ class EnergySignal(Signal):
         else:
             logger.warning("Monochromator is not connected!")
             return self.__readback
-    
+
     @_readback.setter
     def _readback(self, value):
         if isinstance(value, (int, float)):
@@ -201,7 +201,7 @@ class EnergySignal(Signal):
         wait=False,
         timeout=None,
         settle_time=None,
-        moved_cb=None
+        moved_cb=None,
     ):
 
         # In case nothing needs to be moved, just create a finished status
@@ -213,8 +213,8 @@ class EnergySignal(Signal):
         feedback_on = False
         reset_devices = dict()
         if (
-            self.feedback_device is not None and
-            abs(position - old_value) > self._feedback_tolerance
+            self.feedback_device is not None
+            and abs(position - old_value) > self._feedback_tolerance
         ):
             feedback_enable = self.feedback_device.enable.get()
             if feedback_enable in [1, "Enable"]:
@@ -224,7 +224,7 @@ class EnergySignal(Signal):
                         self.feedback_device, f"{station}.{direction}"
                     ).status
                     reset_devices[device] = device.get()
- 
+
                 # Hopefully this is fast enough...
                 self.feedback_device.enable.put("Disable")
                 feedback_on = True
@@ -245,7 +245,7 @@ class EnergySignal(Signal):
                     position + offset,
                     wait=wait,
                     timeout=timeout,
-                    moved_cb=moved_cb
+                    moved_cb=moved_cb,
                 )
                 status = AndStatus(status, d_status)
                 self._status[d.name] = d_status
@@ -253,15 +253,16 @@ class EnergySignal(Signal):
         if wait:
             status_wait(status)
 
-        md_for_callback = {'timestamp': ttime()}
+        md_for_callback = {"timestamp": ttime()}
         self._run_subs(
             sub_type=self.SUB_VALUE,
             old_value=old_value,
             value=position,
-            **md_for_callback
+            **md_for_callback,
         )
 
         if feedback_on:
+
             def done_callback(status=None):
                 self.feedback_device.enable.set("Enable").wait()
                 for device, value in reset_devices.items():

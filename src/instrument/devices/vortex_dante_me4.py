@@ -1,8 +1,6 @@
-""" Vortex 4 element with Dante electronics """
+"""Vortex 4 element with Dante electronics"""
 
-from ophyd import (
-    ADComponent, Staged, SignalRO, DynamicDeviceComponent
-)
+from ophyd import ADComponent, Staged, SignalRO, DynamicDeviceComponent
 from ophyd.mca import EpicsMCARecord
 from ophyd.areadetector import DetectorBase
 from ophyd.areadetector.trigger_mixins import ADTriggerStatus
@@ -20,6 +18,7 @@ class Trigger(TriggerBase):
     """
     This trigger mixin class takes one acquisition per trigger.
     """
+
     _status_type = ADTriggerStatus
     # _status_type = DeviceStatus
 
@@ -28,11 +27,11 @@ class Trigger(TriggerBase):
             *args,
             acquisition_signal_dev="cam.acquire_start",
             acquire_busy_signal_dev="cam.acquire_busy",
-            **kwargs
+            **kwargs,
         )
 
         if image_name is None:
-            image_name = '_'.join([self.name, 'image'])
+            image_name = "_".join([self.name, "image"])
         self._image_name = image_name
         # self._acquisition_signal = self.cam.acquire_start
         self._acquisition_signal_stop = self.cam.acquire_stop
@@ -85,8 +84,10 @@ class Trigger(TriggerBase):
 
     def trigger(self):
         if self._staged != Staged.yes:
-            raise RuntimeError("This detector is not ready to trigger."
-                               "Call the stage() method before triggering.")
+            raise RuntimeError(
+                "This detector is not ready to trigger."
+                "Call the stage() method before triggering."
+            )
 
         # Click the Acquire_button
         self._status = self._status_type(self)
@@ -109,7 +110,7 @@ class Trigger(TriggerBase):
 
 
 class TotalCorrectedSignal(SignalRO):
-    """ Signal that returns the deadtime corrected total counts """
+    """Signal that returns the deadtime corrected total counts"""
 
     def __init__(self, prefix, roi_index=0, **kwargs):
         self.roi_index = roi_index
@@ -119,7 +120,7 @@ class TotalCorrectedSignal(SignalRO):
         value = 0
         for ch_num in range(1, self.root._num_channels + 1):
             roi = getattr(
-                self.root.mcas, f'mca{ch_num}.rois.roi{self.roi_index}'
+                self.root.mcas, f"mca{ch_num}.rois.roi{self.roi_index}"
             )
             sca = getattr(self.root.scas, f"sca{ch_num}")
             _ocr = sca.ocr.get(**kwargs)
@@ -132,8 +133,10 @@ def _totals(attr_fix, id_range):
     defn = OrderedDict()
     for k in id_range:
         _kind = "normal" if k == 0 else "omitted"
-        defn['{}{:d}'.format(attr_fix, k)] = (
-            TotalCorrectedSignal, '', {'roi_index': k, 'kind': _kind}
+        defn["{}{:d}".format(attr_fix, k)] = (
+            TotalCorrectedSignal,
+            "",
+            {"roi_index": k, "kind": _kind},
         )
     return defn
 
@@ -141,26 +144,21 @@ def _totals(attr_fix, id_range):
 def _mcas(num_channels):
     defn = OrderedDict()
     for k in range(1, num_channels + 1):
-        defn[f'mca{k}'] = (EpicsMCARecord, f'mca{k}', {})
+        defn[f"mca{k}"] = (EpicsMCARecord, f"mca{k}", {})
     return defn
 
 
 def _scas(num_channels):
     defn = OrderedDict()
     for k in range(1, num_channels + 1):
-        defn[f'sca{k}'] = (DanteSCA, f'dante{k}:', {})
+        defn[f"sca{k}"] = (DanteSCA, f"dante{k}:", {})
     return defn
 
 
 class VortexDante4(Trigger, DetectorBase):
 
-    _default_configuration_attrs = ('cam',)
-    _default_read_attrs = (
-        'hdf1',
-        'mcas',
-        'scas',
-        'total'
-    )
+    _default_configuration_attrs = ("cam",)
+    _default_read_attrs = ("hdf1", "mcas", "scas", "total")
 
     _read_rois = [1]
     _num_channels = 4
@@ -171,7 +169,7 @@ class VortexDante4(Trigger, DetectorBase):
     mcas = DynamicDeviceComponent(_mcas(_num_channels))
     scas = DynamicDeviceComponent(_scas(_num_channels))
 
-    total = DynamicDeviceComponent(_totals('roi', range(MAX_ROIS)))
+    total = DynamicDeviceComponent(_totals("roi", range(MAX_ROIS)))
 
     hdf1 = ADComponent(DanteHDF1Plugin, "HDF1:")
 
@@ -185,7 +183,7 @@ class VortexDante4(Trigger, DetectorBase):
             "/net/s4data/export/sector4/4idd/bluesky_images/vortex"
         ),
         hdf1_file_format="%s/%s_%6.6d.h5",
-        **kwargs
+        **kwargs,
     ):
         self.default_folder = default_folder
         self.hdf1_file_format = hdf1_file_format
@@ -247,11 +245,7 @@ class VortexDante4(Trigger, DetectorBase):
             for roi in mca.rois.component_names:
                 d = getattr(mca, f"rois.{roi}")
                 for c in d.component_names:
-                    k = (
-                        "normal"
-                        if c in self._mca_rois_read_attrs
-                        else "config"
-                    )
+                    k = "normal" if c in self._mca_rois_read_attrs else "config"
                     getattr(d, c).kind = k
 
     # TODO: Probably need to take another look at read_rois.setter and
@@ -302,9 +296,9 @@ class VortexDante4(Trigger, DetectorBase):
     def select_roi(self, rois):
         for i in range(MAX_ROIS):
             k = (
-                "hinted" if i in rois else
-                "normal" if i in self.read_rois else
-                "omitted"
+                "hinted"
+                if i in rois
+                else "normal" if i in self.read_rois else "omitted"
             )
 
             getattr(self.total, f"roi{i}").kind = k
@@ -341,7 +335,7 @@ class VortexDante4(Trigger, DetectorBase):
         self.select_roi(chans)
 
     def setup_images(
-            self, base_folder, file_name_base, file_number, flyscan=False
+        self, base_folder, file_name_base, file_number, flyscan=False
     ):
 
         self.hdf1.file_name.set(file_name_base).wait(timeout=10)

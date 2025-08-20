@@ -2,9 +2,7 @@
 Dante CAM
 """
 
-from ophyd import (
-    EpicsSignalRO, EpicsSignal, DynamicDeviceComponent
-)
+from ophyd import EpicsSignalRO, EpicsSignal, DynamicDeviceComponent
 from ophyd.areadetector import ADBase, ADComponent, EpicsSignalWithRBV, ad_group
 from collections import OrderedDict
 from time import sleep
@@ -14,29 +12,29 @@ from .ad_mixins import PolarHDF5Plugin
 class DanteCAM(ADBase):
 
     _default_configuration_attrs = (
-        'port_name',
-        'manufacturer',
-        'model',
-        'firmware',
-        'sdk_version',
-        'driver_version',
-        'adcore_version',
-        'connected',
-        'array_callbacks',
-        'mca_mode',
-        'mca_channels',
-        'mca_mapping_points',
-        'mca_gatting',
-        'mca_list_buffer_size',
-        'snl_connected'
+        "port_name",
+        "manufacturer",
+        "model",
+        "firmware",
+        "sdk_version",
+        "driver_version",
+        "adcore_version",
+        "connected",
+        "array_callbacks",
+        "mca_mode",
+        "mca_channels",
+        "mca_mapping_points",
+        "mca_gatting",
+        "mca_list_buffer_size",
+        "snl_connected",
     )
 
     _default_read_attrs = (
-        'real_time_preset',
-        'real_time_elapsed',
-        'real_time_live',
-        'instant_deadtime',
-        'average_deadtime',
+        "real_time_preset",
+        "real_time_elapsed",
+        "real_time_live",
+        "instant_deadtime",
+        "average_deadtime",
     )
 
     # Setup
@@ -55,8 +53,8 @@ class DanteCAM(ADBase):
             (
                 ("array_size_x", "ArraySizeX_RBV"),
                 ("array_size_y", "ArraySizeY_RBV"),
-                ("array_size_z", "ArraySizeZ_RBV")
-            )
+                ("array_size_z", "ArraySizeZ_RBV"),
+            ),
         )
     )
 
@@ -108,26 +106,26 @@ class DanteSCA(ADBase):
     _default_read_attrs = ("icr", "ocr", "f1_deadtime")
 
     _default_configuration_attrs = (
-        'enable',
-        'fast_peaking_time',
-        'fast_threshold',
-        'fast_flat_top_time',
-        'peaking_time',
-        'max_peaking_time',
-        'energy_threshold',
-        'baseline_threshold',
-        'max_rise_time',
-        'reset_recovery_time',
-        'zero_peak_frequency',
-        'baseline_samples',
-        'gain',
-        'input_mode',
-        'input_polarity',
-        'analog_offset',
-        'base_offset',
-        'reset_threshold',
-        'time_constant',
-        'max_energy'
+        "enable",
+        "fast_peaking_time",
+        "fast_threshold",
+        "fast_flat_top_time",
+        "peaking_time",
+        "max_peaking_time",
+        "energy_threshold",
+        "baseline_threshold",
+        "max_rise_time",
+        "reset_recovery_time",
+        "zero_peak_frequency",
+        "baseline_samples",
+        "gain",
+        "input_mode",
+        "input_polarity",
+        "analog_offset",
+        "base_offset",
+        "reset_threshold",
+        "time_constant",
+        "max_energy",
     )
 
     # Statistics

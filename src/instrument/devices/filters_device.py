@@ -3,7 +3,11 @@ APS filter support
 """
 
 from ophyd import (
-    Component, DynamicDeviceComponent, Device, EpicsSignal, EpicsSignalRO
+    Component,
+    DynamicDeviceComponent,
+    Device,
+    EpicsSignal,
+    EpicsSignalRO,
 )
 
 NUM_FILTERS = 12
@@ -21,9 +25,7 @@ class FilterSlot(Device):
 def make_filter_slots(num: int):
     defn = {}
     for n in range(1, num + 1):
-        defn[f"f{n}"] = (
-            FilterSlot, f"Fi{n}:", dict(kind="config")
-        )
+        defn[f"f{n}"] = (FilterSlot, f"Fi{n}:", dict(kind="config"))
     return defn
 
 

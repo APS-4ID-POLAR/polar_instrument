@@ -8,14 +8,18 @@ from apstools.devices import PVPositionerSoftDone
 
 
 class LocalPositioner(PVPositionerSoftDone):
-    """ Voltage/Current positioner """
+    """Voltage/Current positioner"""
 
     readback = FormattedComponent(
-        EpicsSignalRO, '{prefix}d{_type}', kind='hinted',
+        EpicsSignalRO,
+        "{prefix}d{_type}",
+        kind="hinted",
     )
 
     setpoint = FormattedComponent(
-        EpicsSignal, "{prefix}{_type}", write_pv="{prefix}set{_type}",
+        EpicsSignal,
+        "{prefix}{_type}",
+        write_pv="{prefix}set{_type}",
     )
 
     def __init__(self, *args, progtype, **kwargs):
@@ -25,31 +29,33 @@ class LocalPositioner(PVPositionerSoftDone):
 
 class KepcoController(Device):
 
-    voltage = Component(LocalPositioner, '', progtype='V', tolerance=0.02)
-    current = Component(LocalPositioner, '', progtype='C', tolerance=0.03)
+    voltage = Component(LocalPositioner, "", progtype="V", tolerance=0.02)
+    current = Component(LocalPositioner, "", progtype="C", tolerance=0.03)
 
     mode = Component(
-        EpicsSignal, 'setMode', kind='config', string=True, auto_monitor=True
+        EpicsSignal, "setMode", kind="config", string=True, auto_monitor=True
     )
 
     remote = Component(
-        EpicsSignal, 'setRemote', kind='config', string=True, auto_monitor=True
+        EpicsSignal, "setRemote", kind="config", string=True, auto_monitor=True
     )
 
-    enable = Component(EpicsSignal, 'Enable.VAL', kind='omitted', string=True)
+    enable = Component(EpicsSignal, "Enable.VAL", kind="omitted", string=True)
 
     id = Component(EpicsSignalRO, "IDN", kind="config")
     id_read = Component(EpicsSignal, "IDN.PROC", kind="omitted")
 
-    scan_rate = Component(EpicsSignal, 'seq_rd.SCAN', kind='omitted', string=True)
+    scan_rate = Component(
+        EpicsSignal, "seq_rd.SCAN", kind="omitted", string=True
+    )
 
     @mode.sub_value
     def mode_change(self, value=None, **kwargs):
-        if value == 'Current':
+        if value == "Current":
             self.current.readback.kind = Kind.hinted
             self.voltage.readback.kind = Kind.normal
 
-        if value == 'Voltage':
+        if value == "Voltage":
             self.current.readback.kind = Kind.normal
             self.voltage.readback.kind = Kind.hinted
 

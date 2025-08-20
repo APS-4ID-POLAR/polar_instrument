@@ -1,6 +1,6 @@
-'''
+"""
 Nanopositioner motors
-'''
+"""
 
 from ophyd import Component, MotorBundle, EpicsMotor
 
@@ -15,6 +15,6 @@ class MyEpicsMotor(EpicsMotor):
 
 
 class NanoPositioner(MotorBundle):
-    nanoy = Component(MyEpicsMotor, 'm1')
-    nanox = Component(MyEpicsMotor, 'm2')
-    nanoz = Component(MyEpicsMotor, 'm3')
+    nanoy = Component(MyEpicsMotor, "m1")
+    nanox = Component(MyEpicsMotor, "m2")
+    nanoz = Component(MyEpicsMotor, "m3")

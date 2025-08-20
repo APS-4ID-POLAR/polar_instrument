@@ -1,11 +1,8 @@
- 
 """
 APS status
 """
 
-from ophyd import (
-    Component, EpicsSignalRO, Device
-)
+from ophyd import Component, EpicsSignalRO, Device
 
 
 class StatusAPS(Device):

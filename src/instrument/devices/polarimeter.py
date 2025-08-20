@@ -11,10 +11,22 @@ class PolAnalyzer(Device):
     th = Component(EpicsMotor, "m9", labels=("motor",))
 
     vertical_preamp = Component(
-        LocalPreAmp, 'A1', labels=('preamp', 'detector',), kind="config"
+        LocalPreAmp,
+        "A1",
+        labels=(
+            "preamp",
+            "detector",
+        ),
+        kind="config",
     )
     horizontal_preamp = Component(
-        LocalPreAmp, 'A2', labels=('preamp', 'detector',), kind="config"
+        LocalPreAmp,
+        "A2",
+        labels=(
+            "preamp",
+            "detector",
+        ),
+        kind="config",
     )
 
     def default_settings(self):

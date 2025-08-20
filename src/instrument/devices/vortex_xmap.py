@@ -1,4 +1,4 @@
-""" Vortex with DXP """
+"""Vortex with DXP"""
 
 from ophyd.mca import SaturnDXP, EpicsMCARecord
 from ophyd import (
@@ -24,7 +24,7 @@ class MyDXP(SaturnDXP):
 
 class MyMCA(EpicsMCARecord):
     check_acquiring = Component(
-        EpicsSignal, '.ACQG', kind='omitted', string=False
+        EpicsSignal, ".ACQG", kind="omitted", string=False
     )
 
 
@@ -58,8 +58,10 @@ class SingleTrigger(Device):
     def trigger(self):
         "Trigger one acquisition."
         if self._staged != Staged.yes:
-            raise RuntimeError("This detector is not ready to trigger."
-                               "Call the stage() method before triggering.")
+            raise RuntimeError(
+                "This detector is not ready to trigger."
+                "Call the stage() method before triggering."
+            )
 
         self._status = self._status_type(self)
         self._acquisition_signal.put(1, wait=False)
@@ -76,7 +78,7 @@ class SingleTrigger(Device):
 
 
 class TotalCorrectedSignal(SignalRO):
-    """ Signal that returns the deadtime corrected total counts """
+    """Signal that returns the deadtime corrected total counts"""
 
     def __init__(self, prefix, roi_index=0, **kwargs):
         self.roi_index = roi_index
@@ -85,7 +87,7 @@ class TotalCorrectedSignal(SignalRO):
     def get(self, **kwargs):
         value = 0
         for ch_num in range(1, 4 + 1):
-            roi = getattr(self.root, f'mca{ch_num}.rois.roi{self.roi_index}')
+            roi = getattr(self.root, f"mca{ch_num}.rois.roi{self.roi_index}")
             dxp = getattr(self.root, f"dxp{ch_num}")
             _ocr = dxp.output_count_rate.get(**kwargs)
             correction = (
@@ -99,8 +101,10 @@ def _totals(attr_fix, id_range):
     defn = OrderedDict()
     for k in id_range:
         _kind = "normal" if k == 0 else "omitted"
-        defn['{}{:d}'.format(attr_fix, k)] = (
-            TotalCorrectedSignal, '', {'roi_index': k, 'kind': _kind}
+        defn["{}{:d}".format(attr_fix, k)] = (
+            TotalCorrectedSignal,
+            "",
+            {"roi_index": k, "kind": _kind},
         )
     return defn
 
@@ -130,7 +134,7 @@ class VortexXMAP(SingleTrigger):
     events_preset = Component(EpicsSignal, "PresetEvents", kind="config")
     triggers_preset = Component(EpicsSignal, "PresetTriggers", kind="config")
 
-    total = DynamicDeviceComponent(_totals('roi', range(MAX_ROIS)))
+    total = DynamicDeviceComponent(_totals("roi", range(MAX_ROIS)))
 
     # MCAs
     mca1 = Component(MyMCA, "mca1", kind="config")
@@ -173,9 +177,9 @@ class VortexXMAP(SingleTrigger):
         ]
 
     def default_settings(self):
-        self.stage_sigs['stop_'] = 1
-        self.stage_sigs['erase'] = 1
-        self.stage_sigs['preset_mode'] = "Real time"
+        self.stage_sigs["stop_"] = 1
+        self.stage_sigs["erase"] = 1
+        self.stage_sigs["preset_mode"] = "Real time"
 
     @property
     def read_rois(self):
@@ -189,9 +193,9 @@ class VortexXMAP(SingleTrigger):
 
         for i in range(MAX_ROIS):
             k = (
-                "hinted" if i in rois else
-                "normal" if i in self.read_rois else
-                "omitted"
+                "hinted"
+                if i in rois
+                else "normal" if i in self.read_rois else "omitted"
             )
 
             getattr(self.total, f"roi{i}").kind = k

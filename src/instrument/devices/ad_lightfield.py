@@ -8,7 +8,7 @@ from ophyd.areadetector import (
     EpicsSignal,
     DetectorBase,
     TriggerBase,
-    LightFieldDetectorCam
+    LightFieldDetectorCam,
 )
 from ophyd.areadetector.trigger_mixins import ADTriggerStatus
 from ophyd.areadetector.filestore_mixins import FileStoreBase
@@ -31,12 +31,13 @@ class MySingleTrigger(TriggerBase):
     # optionally, customize name of image
     >>> det = SimDetector('..pv..', image_name='fast_detector_image')
     """
+
     _status_type = ADTriggerStatus
 
     def __init__(self, *args, image_name=None, delay_time=0.1, **kwargs):
         super().__init__(*args, **kwargs)
         if image_name is None:
-            image_name = '_'.join([self.name, 'image'])
+            image_name = "_".join([self.name, "image"])
         self._image_name = image_name
         self._monitor_status = self.cam.detector_state
         self._sleep_time = delay_time
@@ -52,8 +53,10 @@ class MySingleTrigger(TriggerBase):
     def trigger(self):
         "Trigger one acquisition."
         if self._staged != Staged.yes:
-            raise RuntimeError("This detector is not ready to trigger."
-                               "Call the stage() method before triggering.")
+            raise RuntimeError(
+                "This detector is not ready to trigger."
+                "Call the stage() method before triggering."
+            )
 
         self._status = self._status_type(self)
         self._acquisition_signal.put(1, wait=False)
@@ -77,9 +80,7 @@ class LF_HDF(PolarHDF5Plugin):
         if write_path is None:
             write_path = Path(self.file_path.get(as_string=True))
         if read_path is None:
-            _rel_path = Path(
-                str(write_path).replace("\\", "/")
-            ).relative_to(
+            _rel_path = Path(str(write_path).replace("\\", "/")).relative_to(
                 str(self.parent.windows_files_root).replace("\\", "/")
             )
             read_path = Path(self.parent.bluesky_files_root) / _rel_path
@@ -90,7 +91,9 @@ class LF_HDF(PolarHDF5Plugin):
 
         full_path = fname_template % (read_path, fname_base, fname_number)
         relative_path = fname_template % (
-            read_path.name, fname_base, fname_number
+            read_path.name,
+            fname_base,
+            fname_number,
         )
 
         return str(write_path), Path(full_path), Path(relative_path)
@@ -130,9 +133,7 @@ class LightFieldFilePlugin(Device, FileStoreBase):
         if write_path is None:
             write_path = Path(self.parent.cam.file_path.get(as_string=True))
         if read_path is None:
-            _rel_path = Path(
-                str(write_path).replace("\\", "/")
-            ).relative_to(
+            _rel_path = Path(str(write_path).replace("\\", "/")).relative_to(
                 str(self.parent.windows_files_root).replace("\\", "/")
             )
             read_path = Path(self.parent.bluesky_files_root) / _rel_path
@@ -173,16 +174,16 @@ class LightFieldFilePlugin(Device, FileStoreBase):
         )
 
         res_kwargs = {
-            'template': join('%s', fname_template),
-            'filename': self.parent.cam.file_name_base.get(),
-            'frame_per_point': ipf,
+            "template": join("%s", fname_template),
+            "filename": self.parent.cam.file_name_base.get(),
+            "frame_per_point": ipf,
         }
         self._generate_resource(res_kwargs)
 
     def generate_datum(self, key, timestamp, datum_kwargs):
         """Using the num_images_counter to pick image from scan."""
         datum_kwargs.update(
-            {'point_number': int(self.parent.cam.file_number.get())}
+            {"point_number": int(self.parent.cam.file_number.get())}
         )
         return super().generate_datum(key + "_spe", timestamp, datum_kwargs)
 
@@ -197,7 +198,7 @@ class MyLightFieldCam(LightFieldDetectorCam):
     )
     file_number = ADComponent(EpicsSignalWithRBV, "FileNumber")
     file_template = ADComponent(EpicsSignalWithRBV, "FileTemplate")
-    num_images_counter = ADComponent(EpicsSignalRO, 'NumImagesCounter_RBV')
+    num_images_counter = ADComponent(EpicsSignalRO, "NumImagesCounter_RBV")
     # The PV below works better as an EpicsSignal as it gets reported done after
     # the grating reached the target.
     grating_wavelength = ADComponent(EpicsSignal, "LFGratingWL")
@@ -215,10 +216,10 @@ class MyLightFieldCam(LightFieldDetectorCam):
 
 class LightFieldDetector(MySingleTrigger, DetectorBase):
 
-    _default_read_attrs = ('cam', 'file', 'hdf1')
+    _default_read_attrs = ("cam", "file", "hdf1")
     _default_configuration_attrs = ("image",)
 
-    cam = ADComponent(MyLightFieldCam, 'cam1:')
+    cam = ADComponent(MyLightFieldCam, "cam1:")
     image = ADComponent(ImagePlugin, "image1:")
     hdf1 = ADComponent(LF_HDF, "HDF1:")
     file = ADComponent(LightFieldFilePlugin, "cam1:")
@@ -231,7 +232,7 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
         bluesky_files_root="",
         windows_files_root="",
         relative_default_folder="",
-        **kwargs
+        **kwargs,
     ):
         self.hdf1_name_format = hdf1_name_template + "." + hdf1_file_extension
         self.default_ioc_folder = (
@@ -260,7 +261,7 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
         self.hdf1.autosave.put("off")
 
     def default_settings(self):
-        self.stage_sigs['cam.image_mode'] = 0
+        self.stage_sigs["cam.image_mode"] = 0
 
         # Default to preview mode
         self.cam.trigger_mode.put(1)
@@ -279,13 +280,14 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
         self.hdf1.stage_sigs["capture"] = 1
 
     def setup_images(
-            self, base_path, name_template, file_number, flyscan=False
+        self, base_path, name_template, file_number, flyscan=False
     ):
 
         # SPE has to be one file per point, so I'll put it in a new folder!
         # In the new folder, the file number will follow the point number.
         scan_folder = self.cam.file_template.get(as_string=True) % (
-            name_template, file_number
+            name_template,
+            file_number,
         )
         read_path_spe = base_path / self.name / scan_folder
         _rel_spe = read_path_spe.relative_to(self.bluesky_files_root)
@@ -313,8 +315,8 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
 
         self.auto_save_on()
 
-        _, full_path, relative_path = (
-            self.hdf1.make_write_read_paths(write_path, read_path)
+        _, full_path, relative_path = self.hdf1.make_write_read_paths(
+            write_path, read_path
         )
 
         return full_path, relative_path

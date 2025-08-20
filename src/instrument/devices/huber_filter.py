@@ -11,14 +11,14 @@ class SlotDevice(Device):
         "{prefix}text{i}_in",
         write_pv="{prefix}text{i}_out",
         string=True,
-        kind="config"
+        kind="config",
     )
     thickness = FormattedComponent(
         EpicsSignal,
         "{prefix}thickness{i}_in",
         write_pv="{prefix}thickness{i}_out",
         string=True,
-        kind="config"
+        kind="config",
     )
     status = FormattedComponent(
         EpicsSignal, "{prefix}a{i}_in", write_pv="{prefix}a{i}_out"

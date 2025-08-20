@@ -1,9 +1,13 @@
-'''
+"""
 SoftGlueZynq
-'''
+"""
 
 from ophyd import (
-    Component, Device, EpicsSignal, EpicsSignalRO, DynamicDeviceComponent
+    Component,
+    Device,
+    EpicsSignal,
+    EpicsSignalRO,
+    DynamicDeviceComponent,
 )
 from collections import OrderedDict
 from bluesky.plan_stubs import mv
@@ -24,10 +28,14 @@ def _buffer_fields(num=4):
     defn = OrderedDict()
     for i in range(1, num + 1):
         defn[f"in{i}"] = (
-            SoftGlueSignal, f"SG:BUFFER-{i}_IN", {"kind": "config"}
+            SoftGlueSignal,
+            f"SG:BUFFER-{i}_IN",
+            {"kind": "config"},
         )
         defn[f"out{i}"] = (
-            SoftGlueSignal, f"SG:BUFFER-{i}_OUT", {"kind": "config"}
+            SoftGlueSignal,
+            f"SG:BUFFER-{i}_OUT",
+            {"kind": "config"},
         )
     return defn
 
@@ -40,17 +48,21 @@ def _dma_fields(num=8, first_letter="I"):
     defn["clear_button"] = (EpicsSignal, "1acquireDma.D", {"kind": "omitted"})
     defn["clear_buffer"] = (EpicsSignal, "1acquireDma.F", {"kind": "omitted"})
     defn["words_in_buffer"] = (
-        EpicsSignalRO, "1acquireDma.VALJ", {"kind": "config"}
+        EpicsSignalRO,
+        "1acquireDma.VALJ",
+        {"kind": "config"},
     )
     defn["events"] = (EpicsSignalRO, "1acquireDma.VALI", {"kind": "config"})
     for i in range(1, num + 1):
         defn[f"channel_{i}_name"] = (
-            EpicsSignal, f"1s{i}name", {"kind": "config"}
+            EpicsSignal,
+            f"1s{i}name",
+            {"kind": "config"},
         )
         defn[f"channel_{i}_scale"] = (
             EpicsSignal,
             f"1acquireDma.{chr(ord(first_letter)+i-1)}",
-            {"kind": "config"}
+            {"kind": "config"},
         )
     return defn
 
@@ -186,9 +198,12 @@ class SoftGlueZynqDevice(Device):
         self, period_time, pulse_width_time, pulse_delay_time=0
     ):
         yield from mv(
-            self.div_by_n_trigger.n, self._reference_clock * period_time,
-            self.gate_trigger.delay, self._reference_clock * pulse_delay_time,
-            self.gate_trigger.width, self._reference_clock * pulse_width_time
+            self.div_by_n_trigger.n,
+            self._reference_clock * period_time,
+            self.gate_trigger.delay,
+            self._reference_clock * pulse_delay_time,
+            self.gate_trigger.width,
+            self._reference_clock * pulse_width_time,
         )
 
     def setup_count_plan(self, time):

@@ -20,7 +20,7 @@ class Table4idh(Device):
         readback_pv="table1.EX",
         setpoint_pv="table1.X",
         tolerance=0.0003,
-        labels=("motor",)
+        labels=("motor",),
     )
 
     y = Component(
@@ -29,7 +29,7 @@ class Table4idh(Device):
         readback_pv="table1.EY",
         setpoint_pv="table1.Y",
         tolerance=0.0003,
-        labels=("motor",)
+        labels=("motor",),
     )
 
     ax = Component(
@@ -38,7 +38,7 @@ class Table4idh(Device):
         readback_pv="table1.EAX",
         setpoint_pv="table1.AX",
         tolerance=0.0003,
-        labels=("motor",)
+        labels=("motor",),
     )
 
     ay = Component(
@@ -47,5 +47,5 @@ class Table4idh(Device):
         readback_pv="table1.EAY",
         setpoint_pv="table1.AY",
         tolerance=0.0003,
-        labels=("motor",)
+        labels=("motor",),
     )

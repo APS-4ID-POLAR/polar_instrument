@@ -1,11 +1,10 @@
-
 from ophyd import (
     Device,
     DynamicDeviceComponent,
     Component,
     DeviceStatus,
     Staged,
-    Signal
+    Signal,
 )
 from bluesky.plan_stubs import mv, sleep
 from .softgluezynq_parts import (
@@ -19,7 +18,7 @@ from .softgluezynq_parts import (
     SGZGates,
     SGZDFF,
     SGZHistScal,
-    SGZhistScalerDma
+    SGZhistScalerDma,
 )
 
 
@@ -41,9 +40,7 @@ class SGZVortex(Device):
     io = DynamicDeviceComponent(_io_fields(num=3))
 
     # If counts goes +1 then it's done.
-    up_counter_status = Component(
-        SGZUpCounter, "SG:UpCntr-2_", kind="config"
-    )
+    up_counter_status = Component(SGZUpCounter, "SG:UpCntr-2_", kind="config")
 
     # Pulses control
     down_counter_pulse = Component(
@@ -51,19 +48,13 @@ class SGZVortex(Device):
     )
 
     # Setup the frequency of the count and trigger based on 10 MHz clock.
-    div_by_n = Component(
-        SGZDevideByN, "SG:DivByN-2_", kind="config"
-    )
+    div_by_n = Component(SGZDevideByN, "SG:DivByN-2_", kind="config")
 
     # Digitize the sync
-    gate_sync = Component(
-        SGZGateDly, "SG:GateDly-1_", kind="config"
-    )
+    gate_sync = Component(SGZGateDly, "SG:GateDly-1_", kind="config")
 
     # Create a gate pulse
-    gate_trigger = Component(
-        SGZGateDly, "SG:GateDly-2_", kind="config"
-    )
+    gate_trigger = Component(SGZGateDly, "SG:GateDly-2_", kind="config")
 
     # Gates
     and_1 = Component(SGZGates, "SG:AND-1_", kind="config")
@@ -96,7 +87,7 @@ class SGZVortex(Device):
     @property
     def frequency(self):
         return self._frequency
-    
+
     @frequency.setter
     def frequency(self, value):
         if isinstance(value, (int, float)):
@@ -112,8 +103,7 @@ class SGZVortex(Device):
 
     def reset(self):
         yield from mv(
-            self.buffers.in2.signal, "1!",
-            self.histscal.clear.signal, "1!"
+            self.buffers.in2.signal, "1!", self.histscal.clear.signal, "1!"
         )
         yield from sleep(self._reset_sleep_time)
 

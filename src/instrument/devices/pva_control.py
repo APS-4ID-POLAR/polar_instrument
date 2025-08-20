@@ -1,4 +1,3 @@
-
 """
 Device to control the PositionerStream
 """
@@ -45,22 +44,17 @@ class PositionerStream(Device):
         PVASignal,
         pva_channel="4idSoftGluePVA:outputFile",
         pva_label="filePath",
-        kind="normal"
+        kind="normal",
     )
 
     file_name = Component(
         PVASignal,
         pva_channel="4idSoftGluePVA:outputFile",
         pva_label="fileName",
-        kind="normal"
+        kind="normal",
     )
 
-    def __init__(
-        self,
-        *args,
-        hdf1_name="%s/%s_%6.6d.h5",
-        **kwargs
-    ):
+    def __init__(self, *args, hdf1_name="%s/%s_%6.6d.h5", **kwargs):
         self.hdf1_name = hdf1_name
         super().__init__(*args, **kwargs)
 
@@ -103,7 +97,7 @@ class PositionerStream(Device):
 
         self._status_obj = Status()
 
-        if self.status != 'Idle':
+        if self.status != "Idle":
             self.start_pva.stopMonitor()
             self.stop_signal()
             self.status_pva.monitor(
@@ -135,19 +129,17 @@ class PositionerStream(Device):
         # Add the name of the device
         path /= self.name
 
-        full_path = str(self.hdf1_name) % (
-            str(path), name_base, file_number
-        )
+        full_path = str(self.hdf1_name) % (str(path), name_base, file_number)
 
         relative_path = str(self.hdf1_name) % (
-            self.name, name_base, file_number
+            self.name,
+            name_base,
+            file_number,
         )
 
         return path, full_path, relative_path
 
-    def setup_images(
-            self, path, name_base, file_number, flyscan=False
-    ):
+    def setup_images(self, path, name_base, file_number, flyscan=False):
 
         folder, full_path, relative_path = self.setup_file_path_name(
             path, name_base, file_number

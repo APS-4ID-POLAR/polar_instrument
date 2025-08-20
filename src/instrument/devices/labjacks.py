@@ -3,9 +3,7 @@ Labjacks
 """
 
 from apstools.devices import LabJackT7
-from apstools.devices.labjack import (
-    KIND_CONFIG_OR_NORMAL, DigitalIO, Output
-)
+from apstools.devices.labjack import KIND_CONFIG_OR_NORMAL, DigitalIO, Output
 from ophyd import DynamicDeviceComponent, EpicsSignalRO, Component, EpicsSignal
 
 
@@ -34,7 +32,9 @@ def make_analog_outputs(num_aos: int):
     defn = {}
     for n in range(num_aos):
         defn[f"ao{n}"] = (
-            AnalogOutput, f"Ao{n}", dict(kind=KIND_CONFIG_OR_NORMAL)
+            AnalogOutput,
+            f"Ao{n}",
+            dict(kind=KIND_CONFIG_OR_NORMAL),
         )
     return defn
 
@@ -52,7 +52,9 @@ def make_digital_ios(channels_list: list):
     defn = {}
     for n in channels_list:
         defn[f"dio{n}"] = (
-            DigitalIO, "", dict(ch_num=n, kind=KIND_CONFIG_OR_NORMAL)
+            DigitalIO,
+            "",
+            dict(ch_num=n, kind=KIND_CONFIG_OR_NORMAL),
         )
 
     # Add the digital word outputs
@@ -74,7 +76,7 @@ class CustomLabJackT7(LabJackT7):
 
     digital_ios = DynamicDeviceComponent(
         make_digital_ios(list(range(0, 16)) + list(range(20, 23))),
-        kind=KIND_CONFIG_OR_NORMAL
+        kind=KIND_CONFIG_OR_NORMAL,
     )
 
     def default_settings(self):

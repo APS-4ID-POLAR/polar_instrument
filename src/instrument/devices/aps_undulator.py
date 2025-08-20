@@ -39,9 +39,9 @@ class PolarUndulatorPositioner(UndulatorPositioner):
 class PolarUndulator(STI_Undulator):
     # TODO: The energy should really follow the gap 1 um deadband...
 
-    tracking = Component(TrackingSignal, value=False, kind='config')
-    energy_offset = Component(Signal, value=0, kind='config')
-    energy_deadband = Component(Signal, value=0.001, kind='config')
+    tracking = Component(TrackingSignal, value=False, kind="config")
+    energy_offset = Component(Signal, value=0, kind="config")
+    energy_deadband = Component(Signal, value=0.001, kind="config")
     # energy_deadband = Component(Signal, value=0.003, kind='config')
     energy = Component(PolarUndulatorPositioner, "Energy")
     version_hpmu = None

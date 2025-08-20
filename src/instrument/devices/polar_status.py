@@ -1,12 +1,8 @@
-
 """
 Polar status
 """
 
-
-from ophyd import (
-    Component, FormattedComponent, EpicsSignalRO, Device
-)
+from ophyd import Component, FormattedComponent, EpicsSignalRO, Device
 
 
 class GHStatus(Device):
@@ -53,12 +49,8 @@ class ABStatus(GHStatus):
 
 class Status4ID(Device):
 
-    online = Component(
-        EpicsSignalRO, "ACIS_GLOBAL_ONLINE.VAL", string=True
-    )
-    acis = Component(
-        EpicsSignalRO, "ACIS_FES_PERMIT.VAL", string=True
-    )
+    online = Component(EpicsSignalRO, "ACIS_GLOBAL_ONLINE.VAL", string=True)
+    acis = Component(EpicsSignalRO, "ACIS_FES_PERMIT.VAL", string=True)
 
     a_hutch = Component(ABStatus, "", hutch="A", labels=("4ida",))
     b_hutch = Component(ABStatus, "", hutch="B", labels=("4idb",))

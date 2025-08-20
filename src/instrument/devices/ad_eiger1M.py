@@ -1,4 +1,4 @@
-""" Eiger 1M setup """
+"""Eiger 1M setup"""
 
 from ophyd import ADComponent, Staged
 from ophyd.status import wait as status_wait, SubscriptionStatus
@@ -15,59 +15,60 @@ from .ad_mixins import (
     StatsPlugin,
     PolarHDF5Plugin,
     ProcessPlugin,
-    TransformPlugin
+    TransformPlugin,
 )
 
 
 # TODO: THIS IS A TEMPORARY WORKAROUND
 class MyADTriggerStatus(ADTriggerStatus):
-        def _notify_watchers(self, value, *args, **kwargs):
-            # *args and **kwargs catch extra inputs from pyepics, not needed here
-            if self.done:
-                self.device.cam.array_counter.clear_sub(self._notify_watchers)
-            if not self._watchers:
-                return
-            # Always start progress bar at 0 regardless of starting value of
-            # array_counter.
-            current = value - self._initial_count
-            target = self._target_count
-            initial = 0
-            time_elapsed = ttime() - self.start_ts
-            try:
-                fraction = 1 - (current - initial) / (target - initial)
-                if fraction == 0:
-                    fraction = 1
-            except ZeroDivisionError:
-                fraction = 0
-            except Exception:
-                fraction = None
-                time_remaining = None
-            else:
-                time_remaining = time_elapsed / fraction
-            for watcher in self._watchers:
-                watcher(
-                    name=self._name,
-                    current=current,
-                    initial=initial,
-                    target=target,
-                    unit="images",
-                    precision=0,
-                    fraction=fraction,
-                    time_elapsed=time_elapsed,
-                    time_remaining=time_remaining,
-                )
+    def _notify_watchers(self, value, *args, **kwargs):
+        # *args and **kwargs catch extra inputs from pyepics, not needed here
+        if self.done:
+            self.device.cam.array_counter.clear_sub(self._notify_watchers)
+        if not self._watchers:
+            return
+        # Always start progress bar at 0 regardless of starting value of
+        # array_counter.
+        current = value - self._initial_count
+        target = self._target_count
+        initial = 0
+        time_elapsed = ttime() - self.start_ts
+        try:
+            fraction = 1 - (current - initial) / (target - initial)
+            if fraction == 0:
+                fraction = 1
+        except ZeroDivisionError:
+            fraction = 0
+        except Exception:
+            fraction = None
+            time_remaining = None
+        else:
+            time_remaining = time_elapsed / fraction
+        for watcher in self._watchers:
+            watcher(
+                name=self._name,
+                current=current,
+                initial=initial,
+                target=target,
+                unit="images",
+                precision=0,
+                fraction=fraction,
+                time_elapsed=time_elapsed,
+                time_remaining=time_remaining,
+            )
 
 
 class TriggerTime(TriggerBase):
     """
     This trigger mixin class takes one acquisition per trigger.
     """
+
     _status_type = MyADTriggerStatus
 
     def __init__(self, *args, image_name=None, min_period=0.2, **kwargs):
         super().__init__(*args, **kwargs)
         if image_name is None:
-            image_name = '_'.join([self.name, 'image'])
+            image_name = "_".join([self.name, "image"])
         self._image_name = image_name
         self._acquisition_signal_pv = "cam.special_trigger_button"
         self._min_period = min_period
@@ -143,14 +144,12 @@ class TriggerTime(TriggerBase):
 
         def check_value(*, old_value, value, **kwargs):
             "Return True when detector is done"
-            return (value == "Ready" or value == "Acquisition aborted")
+            return value == "Ready" or value == "Acquisition aborted"
 
         # When stopping the detector, it may take some time processing the
         # images. This will block until it's done.
         status_wait(
-            SubscriptionStatus(
-                self.cam.status_message, check_value, timeout=10
-            )
+            SubscriptionStatus(self.cam.status_message, check_value, timeout=10)
         )
         self._flysetup = False
         self.setup_manual_trigger()
@@ -158,8 +157,10 @@ class TriggerTime(TriggerBase):
     def trigger(self):
         "Trigger one acquisition."
         if self._staged != Staged.yes:
-            raise RuntimeError("This detector is not ready to trigger."
-                               "Call the stage() method before triggering.")
+            raise RuntimeError(
+                "This detector is not ready to trigger."
+                "Call the stage() method before triggering."
+            )
 
         @run_in_thread
         def add_delay(status_obj, min_period):
@@ -179,10 +180,22 @@ class TriggerTime(TriggerBase):
 class Eiger1MDetector(TriggerTime, DetectorBase):
 
     _default_configuration_attrs = (
-        'roi1', 'roi2', 'roi3', 'roi4', 'codec1', 'codec2', 'image',
+        "roi1",
+        "roi2",
+        "roi3",
+        "roi4",
+        "codec1",
+        "codec2",
+        "image",
     )
     _default_read_attrs = (
-        'cam', 'hdf1', 'stats1', 'stats2', 'stats3', 'stats4', 'stats5'
+        "cam",
+        "hdf1",
+        "stats1",
+        "stats2",
+        "stats3",
+        "stats4",
+        "stats5",
     )
 
     cam = ADComponent(EigerDetectorCam, "cam1:")
@@ -210,12 +223,10 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         hdf1_name_template="%s/%s_%6.6d",
         hdf1_file_extension="h5",
         max_num_images=600000,
-        **kwargs
+        **kwargs,
     ):
         self.default_folder = default_folder
-        self.hdf1_name_format = (
-            hdf1_name_template + "." + hdf1_file_extension
-        )
+        self.hdf1_name_format = hdf1_name_template + "." + hdf1_file_extension
         self.max_num_images = max_num_images
         super().__init__(*args, **kwargs)
 
@@ -287,7 +298,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.plot_select([5])
 
     def setup_images(
-            self, base_path, name_template, file_number, flyscan=False
+        self, base_path, name_template, file_number, flyscan=False
     ):
 
         self.hdf1.file_number.set(file_number).wait(timeout=10)

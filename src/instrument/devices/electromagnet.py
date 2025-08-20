@@ -1,4 +1,3 @@
-
 """
 Electromagnet
 """
@@ -16,7 +15,7 @@ class Magnet2T(Device):
     my = Component(EpicsMotor, "4idb:m21", labels=("motor",))
     mrot = Component(EpicsMotor, "4idb:m20", labels=("motor",))
 
-    kepco = Component(KepcoController, '4idbSoft:BOP:PS1:', labels=("magnet",))
+    kepco = Component(KepcoController, "4idbSoft:BOP:PS1:", labels=("magnet",))
 
     def default_settings(self):
         self.kepco.default_settings()

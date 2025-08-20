@@ -1,4 +1,4 @@
-""" Interferometer setup """
+"""Interferometer setup"""
 
 from ophyd import Device, Component, EpicsSignalRO
 

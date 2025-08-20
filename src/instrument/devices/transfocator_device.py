@@ -13,7 +13,7 @@ from ophyd import (
     EpicsSignal,
     EpicsSignalRO,
     EpicsSignalWithRBV,
-    DeviceStatus
+    DeviceStatus,
 )
 from ophyd.status import AndStatus
 from bluesky.plan_stubs import mv
@@ -33,7 +33,9 @@ def _make_lenses_motors(motors: list):
     defn = {}
     for n, mot in enumerate(motors):
         defn[f"l{n}"] = (
-            EpicsMotor, f"{mot}", dict(kind="config", labels=("motor",))
+            EpicsMotor,
+            f"{mot}",
+            dict(kind="config", labels=("motor",)),
         )
     return defn
 
@@ -190,7 +192,7 @@ class EnergySignal(Signal):
         tsleep(self._epics_sleep)
         # this is needed because the scan of the transfocator is 0.1 s
 
-        zpos = self.parent.z.user_readback.get() - self.parent.dq.get() * 1000.
+        zpos = self.parent.z.user_readback.get() - self.parent.dq.get() * 1000.0
         # dq in meters
 
         return self.parent.z.set(zpos, **kwargs)
@@ -224,8 +226,7 @@ class ZMotor(EpicsMotor):
             )
 
             xystatus = AndStatus(
-                self.parent.x.set(xpos),
-                self.parent.y.set(ypos)
+                self.parent.x.set(xpos), self.parent.y.set(ypos)
             )
 
             return AndStatus(zstatus, xystatus)
@@ -263,10 +264,10 @@ class TransfocatorClass(PyCRL):
                 f"{MOTORS_IOC}m65",
                 f"{MOTORS_IOC}m64",
                 f"{MOTORS_IOC}m63",
-                f"{MOTORS_IOC}m62"
+                f"{MOTORS_IOC}m62",
             ]
         ),
-        component_class=FormattedComponent
+        component_class=FormattedComponent,
     )
 
     reference_data_x = Component(Signal, kind="config")
@@ -276,15 +277,15 @@ class TransfocatorClass(PyCRL):
     trackxy = Component(TrackingSignal, value=False, kind="config")
 
     def __init__(
-            self,
-            *args,
-            lens_pos=30,
-            default_distance=2591,
-            # reference_x=0,
-            # reference_y=0,
-            # x_polynomial=[0],
-            # y_polynomial=[0],
-            **kwargs
+        self,
+        *args,
+        lens_pos=30,
+        default_distance=2591,
+        # reference_x=0,
+        # reference_y=0,
+        # x_polynomial=[0],
+        # y_polynomial=[0],
+        **kwargs,
     ):
         self._motors_IOC = MOTORS_IOC
         PyCRL.__init__(self, *args, **kwargs)
@@ -354,9 +355,7 @@ class TransfocatorClass(PyCRL):
         args = []
         for lens in range(1, 9):
             step = 1 if lens in lenses_in else 0
-            args += [
-                getattr(self, f"lens{lens}"), step
-            ]
+            args += [getattr(self, f"lens{lens}"), step]
 
         return args
 
@@ -370,9 +369,8 @@ class TransfocatorClass(PyCRL):
         return (yield from mv(*args))
 
     def _check_z_lims(self, position):
-        if (
-            (position > self.z.low_limit_travel.get())
-            & (position < self.z.high_limit_travel.get())
+        if (position > self.z.low_limit_travel.get()) & (
+            position < self.z.high_limit_travel.get()
         ):
             return True
         else:
@@ -383,9 +381,7 @@ class TransfocatorClass(PyCRL):
         if self.energy_select.get() in (1, "Local"):
             logger.info("WARNING: transfocator in 'Local' energy mode")
 
-        distance = (
-            self.z.user_readback.get() - self.dq.get() * 1000
-        )
+        distance = self.z.user_readback.get() - self.dq.get() * 1000
 
         if not self._check_z_lims(distance):
             raise ValueError(
@@ -395,15 +391,13 @@ class TransfocatorClass(PyCRL):
 
         return distance
 
-    def optimize_lenses(self,):
+    def optimize_lenses(
+        self,
+    ):
 
-        self.focal_power_index.set(
-            self.focal_sizes.get().argmin()
-        ).wait()
+        self.focal_power_index.set(self.focal_sizes.get().argmin()).wait()
 
-        self.z.move(
-            self._setup_optimize_distance()
-        ).wait()
+        self.z.move(self._setup_optimize_distance()).wait()
 
         self.set(1).wait()
 
@@ -411,28 +405,17 @@ class TransfocatorClass(PyCRL):
 
         def _moves():
             yield from mv(
-                self.focal_power_index,
-                self.focal_sizes.get().argmin()
+                self.focal_power_index, self.focal_sizes.get().argmin()
             )
-            yield from mv(
-                self.z, self._setup_optimize_distance(),
-                self, 1
-            )
+            yield from mv(self.z, self._setup_optimize_distance(), self, 1)
 
         return (yield from _moves())
 
     def optimize_distance(self):
-        self.z.move(
-            self._setup_optimize_distance()
-        ).wait()
+        self.z.move(self._setup_optimize_distance()).wait()
 
     def optimize_distance_plan(self):
-        return (
-            yield from mv(
-                self.z,
-                self._setup_optimize_distance()
-            )
-        )
+        return (yield from mv(self.z, self._setup_optimize_distance()))
 
     def default_settings(self):
         self.stage_sigs["energy_select"] = 1

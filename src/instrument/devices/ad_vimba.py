@@ -4,7 +4,10 @@ Vimba cameras
 
 from ophyd import EpicsSignal, EpicsSignalRO, Staged
 from ophyd.areadetector import (
-    CamBase, DetectorBase, ADComponent, EpicsSignalWithRBV
+    CamBase,
+    DetectorBase,
+    ADComponent,
+    EpicsSignalWithRBV,
 )
 from ophyd.areadetector.trigger_mixins import ADTriggerStatus
 from pathlib import Path
@@ -16,12 +19,13 @@ class Trigger(TriggerBase):
     """
     This trigger mixin class takes one acquisition per trigger.
     """
+
     _status_type = ADTriggerStatus
 
     def __init__(self, *args, image_name=None, **kwargs):
         super().__init__(*args, **kwargs)
         if image_name is None:
-            image_name = '_'.join([self.name, 'image'])
+            image_name = "_".join([self.name, "image"])
         self._image_name = image_name
         # self._flysetup = False
         self._status = None
@@ -66,8 +70,10 @@ class Trigger(TriggerBase):
 
     def trigger(self):
         if self._staged != Staged.yes:
-            raise RuntimeError("This detector is not ready to trigger."
-                               "Call the stage() method before triggering.")
+            raise RuntimeError(
+                "This detector is not ready to trigger."
+                "Call the stage() method before triggering."
+            )
 
         # Click the Acquire_button
         self._status = self._status_type(self)
@@ -102,7 +108,7 @@ class VimbaCam(CamBase):
         "gain_auto",
         "wait_for_plugins",
         "color_mode",
-        "data_type"
+        "data_type",
     )
 
     # NOTE: There are A LOT of camera-specific EPICS features that are not added
@@ -131,20 +137,12 @@ class VimbaCam(CamBase):
     trigger_exposure_mode = ADComponent(
         EpicsSignalWithRBV, "ExposureMode", string=True
     )
-    trigger_button = ADComponent(
-        EpicsSignal, "TriggerSoftware", kind="omitted"
-    )
+    trigger_button = ADComponent(EpicsSignal, "TriggerSoftware", kind="omitted")
 
     # Exposure
-    exposure_auto = ADComponent(
-        EpicsSignalWithRBV, "ExposureAuto", string=True
-    )
-    frame_rate = ADComponent(
-        EpicsSignalWithRBV, "FrameRate", string=True
-    )
-    image_mode = ADComponent(
-        EpicsSignalWithRBV, "ImageMode", string=True
-    )
+    exposure_auto = ADComponent(EpicsSignalWithRBV, "ExposureAuto", string=True)
+    frame_rate = ADComponent(EpicsSignalWithRBV, "FrameRate", string=True)
+    image_mode = ADComponent(EpicsSignalWithRBV, "ImageMode", string=True)
 
     # Detector state
     acquire_busy = ADComponent(EpicsSignal, "AcquireBusy")
@@ -163,18 +161,18 @@ class VimbaCam(CamBase):
     temperature = ADComponent(EpicsSignalRO, "TemperatureActual")
 
     # Gain
-    gain_auto = ADComponent(
-        EpicsSignalWithRBV, "GainAuto", string=True
-    )
+    gain_auto = ADComponent(EpicsSignalWithRBV, "GainAuto", string=True)
 
 
 class VimbaDetector(Trigger, DetectorBase):
 
-    _default_configuration_attrs = (
-        'cam', 'roi1', 'roi2', 'roi3', 'roi4'
-    )
+    _default_configuration_attrs = ("cam", "roi1", "roi2", "roi3", "roi4")
     _default_read_attrs = (
-        'hdf1', 'stats1', 'stats2', 'stats3', 'stats4',
+        "hdf1",
+        "stats1",
+        "stats2",
+        "stats3",
+        "stats4",
     )
 
     cam = ADComponent(VimbaCam, "cam1:")
@@ -198,12 +196,10 @@ class VimbaDetector(Trigger, DetectorBase):
         hdf1_name_template="%s/%s_%6.6d",
         hdf1_file_extension="h5",
         max_num_images=65535,
-        **kwargs
+        **kwargs,
     ):
         self.default_folder = default_folder
-        self.hdf1_name_format = (
-            hdf1_name_template + "." + hdf1_file_extension
-        )
+        self.hdf1_name_format = hdf1_name_template + "." + hdf1_file_extension
         self.max_num_images = max_num_images
 
         super().__init__(*args, **kwargs)
@@ -298,7 +294,7 @@ class VimbaDetector(Trigger, DetectorBase):
         self.plot_select([5])
 
     def setup_images(
-            self, base_path, name_template, file_number, flyscan=False
+        self, base_path, name_template, file_number, flyscan=False
     ):
 
         self.hdf1.file_number.set(file_number).wait(timeout=10)

@@ -9,7 +9,7 @@ from ophyd import (
     FormattedComponent,
     EpicsMotor,
     EpicsSignalRO,
-    EpicsSignal
+    EpicsSignal,
 )
 from apstools.devices import PVPositionerSoftDoneWithStop
 from collections import OrderedDict
@@ -40,7 +40,7 @@ class MagnetMotors(Device):
         "",
         readback_pv="Height",
         setpoint_pv="SetHeight.VAL",
-        tolerance=0.0005
+        tolerance=0.0005,
     )
 
     rot = Component(
@@ -48,7 +48,7 @@ class MagnetMotors(Device):
         "",
         readback_pv="Angle",
         setpoint_pv="SetAngle.VAL",
-        tolerance=0.05
+        tolerance=0.05,
     )
 
 
@@ -66,13 +66,14 @@ class PowerSupply(Device):
         "",
         setpoint_pv="SetField.VAL",
         readback_pv="TargetField",
-        tolerance=0.01  # TODO: Enough?
+        tolerance=0.01,  # TODO: Enough?
     )
     field_unit = Component(
-        EpicsSignal, "TargetFieldUnits",
+        EpicsSignal,
+        "TargetFieldUnits",
         write_pv="SetTargetFieldUnits",
         string=True,
-        kind="config"
+        kind="config",
     )
 
     persistant_field = Component(EpicsSignalRO, "PersField")
@@ -85,13 +86,14 @@ class PowerSupply(Device):
         "",
         setpoint_pv="SetRampRate.VAL",
         readback_pv="RampRate",
-        tolerance=0.001  # TODO: Enough?
+        tolerance=0.001,  # TODO: Enough?
     )
     ramp_rate_unit = Component(
-        EpicsSignal, "RampRateUnits",
+        EpicsSignal,
+        "RampRateUnits",
         write_pv="SetRampRateUnits",
         string=True,
-        kind="config"
+        kind="config",
     )
 
     ramp_pause = Component(EpicsSignal, "SetPause", kind="config")
@@ -122,7 +124,7 @@ def _make_monitors(num=1):
         defn[f"m{i :02d}"] = (
             MonChannel,
             "911TMagnet:TMon:",
-            {"ch_num": i, "kind": "normal"}
+            {"ch_num": i, "kind": "normal"},
         )
 
     return defn
@@ -131,31 +133,19 @@ def _make_monitors(num=1):
 # TODO: Change these names to something more meaningful.
 class VTIDevice(Device):
     sensor_a = Component(
-        EpicsSignalRO,
-        "SensorA",
-        kind="hinted",
-        labels=["temperature"]
+        EpicsSignalRO, "SensorA", kind="hinted", labels=["temperature"]
     )
 
     sensor_b = Component(
-        EpicsSignalRO,
-        "SensorB",
-        kind="hinted",
-        labels=["temperature"]
+        EpicsSignalRO, "SensorB", kind="hinted", labels=["temperature"]
     )
 
     sensor_c = Component(
-        EpicsSignalRO,
-        "SensorC",
-        kind="hinted",
-        labels=["temperature"]
+        EpicsSignalRO, "SensorC", kind="hinted", labels=["temperature"]
     )
 
     sensor_d = Component(
-        EpicsSignalRO,
-        "SensorD",
-        kind="hinted",
-        labels=["temperature"]
+        EpicsSignalRO, "SensorD", kind="hinted", labels=["temperature"]
     )
 
     setpoint_1 = Component(
@@ -163,7 +153,7 @@ class VTIDevice(Device):
         "",
         readback_pv="Setpoint1",
         setpoint_pv="SetTemp1",
-        tolerance=0.01
+        tolerance=0.01,
     )
 
     setpoint_2 = Component(
@@ -171,7 +161,7 @@ class VTIDevice(Device):
         "",
         readback_pv="Setpoint2",
         setpoint_pv="SetTemp2",
-        tolerance=0.01
+        tolerance=0.01,
     )
 
     setpoint_3 = Component(
@@ -179,7 +169,7 @@ class VTIDevice(Device):
         "",
         readback_pv="Setpoint3",
         setpoint_pv="SetTemp3",
-        tolerance=0.01
+        tolerance=0.01,
     )
 
     setpoint_4 = Component(
@@ -187,7 +177,7 @@ class VTIDevice(Device):
         "",
         readback_pv="Setpoint4",
         setpoint_pv="SetTemp4",
-        tolerance=0.01
+        tolerance=0.01,
     )
 
     read_button = Component(EpicsSignal, "Read.PROC", kind="omitted")
@@ -208,7 +198,7 @@ class NVDevice(Device):
         "",
         setpoint_pv="SetTargetTemperature",
         readback_pv="Temperature",
-        kind="config"
+        kind="config",
     )
 
     pressure = Component(
@@ -216,7 +206,7 @@ class NVDevice(Device):
         "",
         setpoint_pv="SetTargetPressure",
         readback_pv="Pressure",
-        kind="config"
+        kind="config",
     )
 
     read_button = Component(EpicsSignal, "Read.PROC", kind="omitted")

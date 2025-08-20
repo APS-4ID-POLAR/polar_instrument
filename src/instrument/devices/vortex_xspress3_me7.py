@@ -1,4 +1,4 @@
-""" Eiger 1M setup """
+"""Eiger 1M setup"""
 
 from ophyd import (
     ADComponent,
@@ -8,7 +8,7 @@ from ophyd import (
     Device,
     EpicsSignal,
     SignalRO,
-    DynamicDeviceComponent
+    DynamicDeviceComponent,
 )
 from ophyd.areadetector import DetectorBase, EpicsSignalWithRBV
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
@@ -33,12 +33,13 @@ class Trigger(TriggerBase):
     """
     This trigger mixin class takes one acquisition per trigger.
     """
+
     _status_type = ADTriggerStatus
 
     def __init__(self, *args, image_name=None, **kwargs):
         super().__init__(*args, **kwargs)
         if image_name is None:
-            image_name = '_'.join([self.name, 'image'])
+            image_name = "_".join([self.name, "image"])
         self._image_name = image_name
         self._acquisition_signal = self.cam.acquire
         self._acquire_busy_signal = self.cam.acquire_busy
@@ -83,8 +84,10 @@ class Trigger(TriggerBase):
 
     def trigger(self):
         if self._staged != Staged.yes:
-            raise RuntimeError("This detector is not ready to trigger."
-                               "Call the stage() method before triggering.")
+            raise RuntimeError(
+                "This detector is not ready to trigger."
+                "Call the stage() method before triggering."
+            )
 
         # Click the Acquire_button
         self._status = self._status_type(self)
@@ -150,9 +153,7 @@ class ROIStatN(Device):
 
 
 class VortexROIStatPlugin(ROIStatPlugin):
-    _default_read_attrs = tuple(
-        f"roi{i}" for i in range(1, MAX_ROIS + 1)
-    )
+    _default_read_attrs = tuple(f"roi{i}" for i in range(1, MAX_ROIS + 1))
 
     # ROIs
     roi1 = Component(ROIStatN, "1:")
@@ -177,21 +178,21 @@ class VortexSCA(AttributePlugin):
         # 'window2',
         # 'pileup',
         # 'event_width',
-        'dt_factor',
-        'dt_percent'
+        "dt_factor",
+        "dt_percent",
     )
 
-    clock_ticks = Component(EpicsSignalRO, '0:Value_RBV')
-    reset_ticks = Component(EpicsSignalRO, '1:Value_RBV')
-    reset_counts = Component(EpicsSignalRO, '2:Value_RBV')
-    all_events = Component(EpicsSignalRO, '3:Value_RBV')
-    all_good = Component(EpicsSignalRO, '4:Value_RBV')
-    window1 = Component(EpicsSignalRO, '5:Value_RBV')
-    window2 = Component(EpicsSignalRO, '6:Value_RBV')
-    pileup = Component(EpicsSignalRO, '7:Value_RBV')
-    event_width = Component(EpicsSignalRO, '8:Value_RBV')
-    dt_factor = Component(EpicsSignalRO, '9:Value_RBV')
-    dt_percent = Component(EpicsSignalRO, '10:Value_RBV')
+    clock_ticks = Component(EpicsSignalRO, "0:Value_RBV")
+    reset_ticks = Component(EpicsSignalRO, "1:Value_RBV")
+    reset_counts = Component(EpicsSignalRO, "2:Value_RBV")
+    all_events = Component(EpicsSignalRO, "3:Value_RBV")
+    all_good = Component(EpicsSignalRO, "4:Value_RBV")
+    window1 = Component(EpicsSignalRO, "5:Value_RBV")
+    window2 = Component(EpicsSignalRO, "6:Value_RBV")
+    pileup = Component(EpicsSignalRO, "7:Value_RBV")
+    event_width = Component(EpicsSignalRO, "8:Value_RBV")
+    dt_factor = Component(EpicsSignalRO, "9:Value_RBV")
+    dt_percent = Component(EpicsSignalRO, "10:Value_RBV")
 
 
 class VortexHDF1Plugin(PolarHDF5Plugin):
@@ -203,24 +204,26 @@ class VortexHDF1Plugin(PolarHDF5Plugin):
 
 
 class TotalCorrectedSignal(SignalRO):
-    """ Signal that returns the deadtime corrected total counts """
+    """Signal that returns the deadtime corrected total counts"""
 
     def __init__(self, prefix, roi_index, **kwargs):
         if not roi_index:
-            raise ValueError('chnum must be the channel number, but '
-                             'f{roi_index} was passed.')
+            raise ValueError(
+                "chnum must be the channel number, but "
+                "f{roi_index} was passed."
+            )
         self.roi_index = roi_index
         super().__init__(**kwargs)
 
     def get(self, **kwargs):
         value = 0
         for ch_num in range(1, self.root.num_channels + 1):
-            channel = getattr(self.root, f'sca{ch_num}')
+            channel = getattr(self.root, f"sca{ch_num}")
             roi = getattr(
-                self.root, 'stats{:d}.roi{:d}'.format(ch_num, self.roi_index)
+                self.root, "stats{:d}.roi{:d}".format(ch_num, self.roi_index)
             )
-            value += (
-                channel.dt_factor.get(**kwargs) * roi.total_value.get(**kwargs)
+            value += channel.dt_factor.get(**kwargs) * roi.total_value.get(
+                **kwargs
             )
         return value
 
@@ -228,32 +231,34 @@ class TotalCorrectedSignal(SignalRO):
 def _totals(attr_fix, id_range):
     defn = OrderedDict()
     for k in id_range:
-        defn['{}{:d}'.format(attr_fix, k)] = (
-            TotalCorrectedSignal, '', {'roi_index': k, 'kind': "normal"}
+        defn["{}{:d}".format(attr_fix, k)] = (
+            TotalCorrectedSignal,
+            "",
+            {"roi_index": k, "kind": "normal"},
         )
     return defn
 
 
 class VortexXspress37(Trigger, DetectorBase):
 
-    _default_configuration_attrs = ('cam',)
+    _default_configuration_attrs = ("cam",)
     _default_read_attrs = (
-        'hdf1',
-        'stats1',
-        'stats2',
-        'stats3',
-        'stats4',
-        'stats5',
-        'stats6',
-        'stats7',
-        'sca1',
-        'sca2',
-        'sca3',
-        'sca4',
-        'sca5',
-        'sca6',
-        'sca7',
-        'total'
+        "hdf1",
+        "stats1",
+        "stats2",
+        "stats3",
+        "stats4",
+        "stats5",
+        "stats6",
+        "stats7",
+        "sca1",
+        "sca2",
+        "sca3",
+        "sca4",
+        "sca5",
+        "sca6",
+        "sca7",
+        "total",
     )
 
     _read_rois = [1]
@@ -284,7 +289,7 @@ class VortexXspress37(Trigger, DetectorBase):
     sca6 = ADComponent(VortexSCA, "C6SCA:")
     sca7 = ADComponent(VortexSCA, "C7SCA:")
 
-    total = DynamicDeviceComponent(_totals('roi', range(1, MAX_ROIS + 1)))
+    total = DynamicDeviceComponent(_totals("roi", range(1, MAX_ROIS + 1)))
 
     hdf1 = ADComponent(VortexHDF1Plugin, "HDF1:")
 
@@ -298,7 +303,7 @@ class VortexXspress37(Trigger, DetectorBase):
             "/net/s4data/export/sector4/4idd/bluesky_images/vortex"
         ),
         hdf1_file_format="%s/%s_%6.6d.h5",
-        **kwargs
+        **kwargs,
     ):
         self.default_folder = default_folder
         self.hdf1_file_format = hdf1_file_format
@@ -351,9 +356,9 @@ class VortexXspress37(Trigger, DetectorBase):
                 # Checks if there is a new image being read. Stops when there is
                 # no new image for >  sleep_time.
                 old = 0
-                new = self.cam.array_counter.read()[
-                    "vortex_cam_array_counter"
-                ]["timestamp"]
+                new = self.cam.array_counter.read()["vortex_cam_array_counter"][
+                    "timestamp"
+                ]
                 while old != new:
                     await asyncio.sleep(sleep_time)
                     old = new
@@ -425,9 +430,9 @@ class VortexXspress37(Trigger, DetectorBase):
     def select_roi(self, rois):
         for i in range(1, MAX_ROIS + 1):
             k = (
-                "hinted" if i in rois else
-                "normal" if i in self.read_rois else
-                "omitted"
+                "hinted"
+                if i in rois
+                else "normal" if i in self.read_rois else "omitted"
             )
 
             getattr(self.total, f"roi{i}").kind = k
@@ -461,7 +466,7 @@ class VortexXspress37(Trigger, DetectorBase):
         self.select_roi(chans)
 
     def setup_images(
-            self, base_folder, file_name_base, file_number, flyscan=False
+        self, base_folder, file_name_base, file_number, flyscan=False
     ):
 
         self.hdf1.file_name.set(file_name_base).wait(timeout=10)

@@ -34,9 +34,12 @@ class LocalPreAmp(SRS570_PreAmplifier):
             for unit in self.offset_unit.enum_strs:
                 convert["units"].append(unit)
                 convert["vals"].append(val)
-                convert["mags"].append(round(
-                    Quantity(float(val), unit).to("A").magnitude, decimals=12
-                ))
+                convert["mags"].append(
+                    round(
+                        Quantity(float(val), unit).to("A").magnitude,
+                        decimals=12,
+                    )
+                )
         return DataFrame(convert).set_index("mags").sort_index()
 
     @property
@@ -46,9 +49,12 @@ class LocalPreAmp(SRS570_PreAmplifier):
             for unit in self.sensitivity_unit.enum_strs:
                 convert["units"].append(unit)
                 convert["vals"].append(val)
-                convert["mags"].append(round(
-                    Quantity(float(val), unit).to("A/V").magnitude, decimals=12
-                ))
+                convert["mags"].append(
+                    round(
+                        Quantity(float(val), unit).to("A/V").magnitude,
+                        decimals=12,
+                    )
+                )
         return DataFrame(convert).set_index("mags").sort_index()
 
     def opt_sens_plan(self, scaler_channel=None, time=0.1, delay=1):
@@ -81,8 +87,10 @@ class LocalPreAmp(SRS570_PreAmplifier):
 
             for i in range(start, end, direction):
                 yield from mv(
-                    self.sensitivity_value, table.iloc[i]["vals"],
-                    self.sensitivity_unit, table.iloc[i]["units"]
+                    self.sensitivity_value,
+                    table.iloc[i]["vals"],
+                    self.sensitivity_unit,
+                    table.iloc[i]["units"],
                 )
                 yield from mv(self.set_all, 1)
                 yield from sleep(delay)
@@ -90,15 +98,14 @@ class LocalPreAmp(SRS570_PreAmplifier):
                 value = yield from rd(scaler_channel.s)
 
                 # print(value, best)
-                if (
-                    (abs(value / time - 5e5) < abs(best[2] / time - 5e5))
-                    & (value / time < 6e5)
+                if (abs(value / time - 5e5) < abs(best[2] / time - 5e5)) & (
+                    value / time < 6e5
                 ):
                     best = [
                         table.iloc[i]["vals"],
                         table.iloc[i]["units"],
                         value,
-                        True
+                        True,
                     ]
                 else:
                     if best[-1] is True:
@@ -106,8 +113,7 @@ class LocalPreAmp(SRS570_PreAmplifier):
 
         if best[0] is not None:
             yield from mv(
-                self.sensitivity_value, best[0],
-                self.sensitivity_unit, best[1]
+                self.sensitivity_value, best[0], self.sensitivity_unit, best[1]
             )
             yield from mv(self.set_all, 1)
 
@@ -124,13 +130,15 @@ class LocalPreAmp(SRS570_PreAmplifier):
 
         def _offset_scan(
             rng,
-            best=dict(vals=None, units=None, count=1e10, done=False, fine=500)
+            best=dict(vals=None, units=None, count=1e10, done=False, fine=500),
         ):
             fine = yield from rd(self.offset_fine)
             for i in rng:
                 yield from mv(
-                    self.offset_value, gain_pv_conversion.iloc[i]["vals"],
-                    self.offset_unit, gain_pv_conversion.iloc[i]["units"]
+                    self.offset_value,
+                    gain_pv_conversion.iloc[i]["vals"],
+                    self.offset_unit,
+                    gain_pv_conversion.iloc[i]["units"],
                 )
                 yield from mv(self.set_all, 1)
                 yield from sleep(delay)
@@ -140,9 +148,8 @@ class LocalPreAmp(SRS570_PreAmplifier):
 
                 # print(value, best)
                 # If value is better than previous one, then update.
-                if (
-                    (abs(value - 200) < abs(best["count"] - 200))
-                    & (value * time > 2)
+                if (abs(value - 200) < abs(best["count"] - 200)) & (
+                    value * time > 2
                 ):
                     best["vals"] = gain_pv_conversion.iloc[i]["vals"]
                     best["units"] = gain_pv_conversion.iloc[i]["units"]
@@ -157,9 +164,7 @@ class LocalPreAmp(SRS570_PreAmplifier):
         # Keep the offset sign, start with the same "number" as the sensitivity
         yield from mv(self.offset_fine, current_sign * 500)
         yield from sleep(delay)
-        start = gain_pv_conversion.index.get_loc(
-            round(self.computed_gain, 12)
-        )
+        start = gain_pv_conversion.index.get_loc(round(self.computed_gain, 12))
         best = yield from _offset_scan(range(start, -1, -1))
         # print(best)
         if not best["done"]:
@@ -169,20 +174,23 @@ class LocalPreAmp(SRS570_PreAmplifier):
             best = yield from _offset_scan(range(0, start, 1), best=best)
 
         yield from mv(
-            self.offset_fine, best["fine"],
-            self.offset_value, best["vals"],
-            self.offset_unit, best["units"]
+            self.offset_fine,
+            best["fine"],
+            self.offset_value,
+            best["vals"],
+            self.offset_unit,
+            best["units"],
         )
         yield from mv(self.set_all, 1)
 
     def opt_fine_plan(
-            self,
-            scaler_channel=None,
-            start=None,
-            end=None,
-            steps=11,
-            time=0.1,
-            delay=1
+        self,
+        scaler_channel=None,
+        start=None,
+        end=None,
+        steps=11,
+        time=0.1,
+        delay=1,
     ):
 
         if scaler_channel is None:
