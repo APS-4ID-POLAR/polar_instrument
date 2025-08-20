@@ -1,4 +1,4 @@
-""" Local decorators """
+"""Local decorators"""
 
 from bluesky.utils import make_decorator
 from bluesky.preprocessors import finalize_wrapper
@@ -68,15 +68,14 @@ def configure_counts_wrapper(plan, detectors, count_time):
             if counters.monitor == "Time":
                 raise ValueError(
                     'count_time cannot be < 0 because "Time" is the monitor.'
-                    'Run counters.plotselect() to change the monitor to a'
-                    'scaler channel.'
+                    "Run counters.plotselect() to change the monitor to a"
+                    "scaler channel."
                 )
 
             scaler = counters.monitor_detector
 
             scaler_channel = getattr(
-                scaler.channels,
-                scaler.channels_name_map[counters.monitor]
+                scaler.channels, scaler.channels_name_map[counters.monitor]
             )
 
             # Changing the preset already forces the gate to the "Y"
@@ -92,14 +91,13 @@ def configure_counts_wrapper(plan, detectors, count_time):
             yield from mv(*args)
 
         else:
-            raise ValueError('count_time cannot be zero.')
+            raise ValueError("count_time cannot be zero.")
 
     def reset():
         if count_time < 0:
             scaler = counters.monitor_detector
             scaler_channel = getattr(
-                scaler.channels,
-                scaler.channels_name_map[counters.monitor]
+                scaler.channels, scaler.channels_name_map[counters.monitor]
             )
             yield from mv(scaler_channel.gate, "N")
         else:
@@ -141,7 +139,7 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
 
     def _stage():
         if dichro and lockin:
-            raise ValueError('Cannot have both dichro and lockin = True.')
+            raise ValueError("Cannot have both dichro and lockin = True.")
 
         if lockin:
             for det in counters.detectors:
@@ -154,14 +152,16 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
             for scaler in counters._available_scalers:
                 for ch in ["LockDC", "LockAC"]:
                     if ch in scaler.channels_name_map.keys():
-                        device = getattr(scaler.channels, scaler.channels_name_map[ch]).s
+                        device = getattr(
+                            scaler.channels, scaler.channels_name_map[ch]
+                        ).s
                         device.kind = "hinted"
                         _lockin_devices.append(device)
 
             if pr_setup.positioner is None:
-                raise ValueError('Phase retarder was not selected.')
+                raise ValueError("Phase retarder was not selected.")
 
-            if 'th' in pr_setup.positioner.name:
+            if "th" in pr_setup.positioner.name:
                 raise TypeError(
                     "Theta motor cannot be used in lock in!"
                     "Please run pr_setup.config() and choose pzt."
@@ -169,14 +169,14 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
 
             yield from mv(pr_setup.positioner.parent.selectAC, 1)
 
-        if dichro:            
+        if dichro:
             for i in range(len(positioner)):
                 setattr(
                     plot_dichro_settings.settings,
                     f"positioner{i+1}",
-                    None if positioner[i] is None else positioner[i].name
+                    None if positioner[i] is None else positioner[i].name,
                 )
-            
+
             if len(counters.plot_names) != 0:
                 if len(counters.plot_names) > 1:
                     msg = (
@@ -188,17 +188,15 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
                     print(f"\n=== Warning: {msg} ===")
 
                 plot_dichro_settings.settings.detector = counters.plot_names[0]
-            
+
             plot_dichro_settings.settings.monitor = counters.monitor
 
             dichro_bec.enable_plots()
             bec.disable_plots()
 
-            _dichro_token[0] = yield from subscribe(
-                "all", plot_dichro_settings
-            )
+            _dichro_token[0] = yield from subscribe("all", plot_dichro_settings)
             # move PZT to center.
-            if 'pzt' in pr_setup.positioner.name:
+            if "pzt" in pr_setup.positioner.name:
                 yield from mv(
                     pr_setup.positioner, pr_setup.positioner.parent.center.get()
                 )
@@ -216,10 +214,12 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
 
         if dichro:
             # move PZT to off center.
-            if 'pzt' in pr_setup.positioner.name:
-                yield from mv(pr_setup.positioner,
-                              pr_setup.positioner.parent.center.get() +
-                              pr_setup.offset.get())
+            if "pzt" in pr_setup.positioner.name:
+                yield from mv(
+                    pr_setup.positioner,
+                    pr_setup.positioner.parent.center.get()
+                    + pr_setup.offset.get(),
+                )
 
             yield from unsubscribe(_dichro_token[0])
             dichro_bec.disable_plots()

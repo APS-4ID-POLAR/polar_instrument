@@ -2,9 +2,7 @@
 Flyscan using area detector
 """
 
-from bluesky.preprocessors import (
-    stage_decorator, run_decorator, subs_decorator
-)
+from bluesky.preprocessors import stage_decorator, run_decorator, subs_decorator
 from bluesky.plan_stubs import rd, null, move_per_step, sleep
 from bluesky.plan_patterns import outer_product, inner_product
 from apstools.utils import (
@@ -26,7 +24,9 @@ from .workflow_plan import run_workflow
 from ..callbacks.nexus_data_file_writer import nxwriter
 from ..utils.run_engine import RE
 from ..utils.dm_utils import (
-    dm_get_experiment_data_path, dm_upload, dm_upload_wait
+    dm_get_experiment_data_path,
+    dm_upload,
+    dm_upload_wait,
 )
 
 # TODO: what to do with this?
@@ -46,32 +46,31 @@ HDF1_NAME_FORMAT = Path(iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"])
 
 
 def flyscan_snake(
-        detectors,
-        stepping_motor,
-        stepping_motor_start,
-        stepping_motor_end,
-        stepping_motor_number_of_points,
-        flying_motor,
-        flying_motor_start,
-        flying_motor_end,
-        flying_motor_speed,
-        detector_trigger_period: float = 0.02,
-        detector_collection_time: float = 0.01,
-        file_name_base: str = "scan",
-        master_file_templates: list = [],
-        md: dict = {},
-        # internal kwargs ----------------------------------------
-        dm_concise: bool = False,
-        dm_wait: bool = False,
-        dm_reporting_period: float = 10*60,  # TODO: change?
-        dm_reporting_time_limit: float = 10**6,  # TODO: change?
-        nxwriter_warn_missing: bool = False,
-        wf_run: bool = False,
-        wf_settings_file_path: str = None,
-        # everything else is passed to the DM workflow ------------------------
-        **wf_kwargs,
+    detectors,
+    stepping_motor,
+    stepping_motor_start,
+    stepping_motor_end,
+    stepping_motor_number_of_points,
+    flying_motor,
+    flying_motor_start,
+    flying_motor_end,
+    flying_motor_speed,
+    detector_trigger_period: float = 0.02,
+    detector_collection_time: float = 0.01,
+    file_name_base: str = "scan",
+    master_file_templates: list = [],
+    md: dict = {},
+    # internal kwargs ----------------------------------------
+    dm_concise: bool = False,
+    dm_wait: bool = False,
+    dm_reporting_period: float = 10 * 60,  # TODO: change?
+    dm_reporting_time_limit: float = 10**6,  # TODO: change?
+    nxwriter_warn_missing: bool = False,
+    wf_run: bool = False,
+    wf_settings_file_path: str = None,
+    # everything else is passed to the DM workflow ------------------------
+    **wf_kwargs,
 ):
-
     """
     Flyscan using a "snake" trajectory.
 
@@ -121,7 +120,7 @@ def flyscan_snake(
         flying_motor_start,
         flying_motor_end,
         2,
-        True
+        True,
     )
 
     _md = {
@@ -141,7 +140,7 @@ def flyscan_snake(
             "file_name_base": file_name_base,
             "master_file_templates": master_file_templates,
             "nxwriter_warn_missing": nxwriter_warn_missing,
-        }
+        },
     }
 
     _md.update(md)
@@ -170,26 +169,26 @@ def flyscan_snake(
 
 
 def flyscan_1d(
-        detectors,
-        motor,
-        start,
-        end,
-        speed,
-        detector_trigger_period: float = 0.02,
-        detector_collection_time: float = 0.01,
-        master_file_templates: list = [],
-        file_name_base: str = "scan",
-        md: dict = {},
-        # internal kwargs ------------------------------------------------------
-        dm_concise: bool = False,
-        dm_wait: bool = False,
-        dm_reporting_period: float = 10*60,  # TODO: change?
-        dm_reporting_time_limit: float = 10**6,  # TODO: change?
-        nxwriter_warn_missing: bool = False,
-        wf_run: bool = False,
-        wf_settings_file_path: str = None,
-        # everything else is passed to the DM workflow -------------------------
-        **wf_kwargs,
+    detectors,
+    motor,
+    start,
+    end,
+    speed,
+    detector_trigger_period: float = 0.02,
+    detector_collection_time: float = 0.01,
+    master_file_templates: list = [],
+    file_name_base: str = "scan",
+    md: dict = {},
+    # internal kwargs ------------------------------------------------------
+    dm_concise: bool = False,
+    dm_wait: bool = False,
+    dm_reporting_period: float = 10 * 60,  # TODO: change?
+    dm_reporting_time_limit: float = 10**6,  # TODO: change?
+    nxwriter_warn_missing: bool = False,
+    wf_run: bool = False,
+    wf_settings_file_path: str = None,
+    # everything else is passed to the DM workflow -------------------------
+    **wf_kwargs,
 ):
     """
     Flyscan in 1 dimension.
@@ -244,7 +243,7 @@ def flyscan_1d(
             "file_name_base": file_name_base,
             "master_file_templates": master_file_templates,
             "nxwriter_warn_missing": nxwriter_warn_missing,
-        }
+        },
     }
     _md.update(md)
 
@@ -271,26 +270,25 @@ def flyscan_1d(
 
 
 def flyscan_cycler(
-        detectors: list,
-        cycler,
-        speeds: list,
-        detector_trigger_period: float = 0.02,
-        detector_collection_time: float = 0.01,
-        master_file_templates: list = [],
-        file_name_base: str = "scan",
-        md: dict = {},
-        # internal kwargs ------------------------------------------------------
-        dm_concise: bool = False,
-        dm_wait: bool = False,
-        dm_reporting_period: float = 10*60,
-        dm_reporting_time_limit: float = 10**6,
-        nxwriter_warn_missing: bool = False,
-        wf_run: bool = False,
-        wf_settings_file_path: str = None,
-        # everything else is passed to the DM workflow -------------------------
-        **wf_kwargs,
+    detectors: list,
+    cycler,
+    speeds: list,
+    detector_trigger_period: float = 0.02,
+    detector_collection_time: float = 0.01,
+    master_file_templates: list = [],
+    file_name_base: str = "scan",
+    md: dict = {},
+    # internal kwargs ------------------------------------------------------
+    dm_concise: bool = False,
+    dm_wait: bool = False,
+    dm_reporting_period: float = 10 * 60,
+    dm_reporting_time_limit: float = 10**6,
+    nxwriter_warn_missing: bool = False,
+    wf_run: bool = False,
+    wf_settings_file_path: str = None,
+    # everything else is passed to the DM workflow -------------------------
+    **wf_kwargs,
 ):
-
     """
     Flyscan using a generic path.
 
@@ -362,7 +360,9 @@ def flyscan_cycler(
     # TODO: simplify
     # Master file
     _master_fullpath = str(HDF1_NAME_FORMAT) % (
-        str(_base_path), file_name_base, _scan_id
+        str(_base_path),
+        file_name_base,
+        _scan_id,
     )
     _master_fullpath += "_master.hdf"
 
@@ -428,7 +428,7 @@ def flyscan_cycler(
         },
         master_file_path=str(_master_fullpath),
         # TODO: a similar scan with a monitor (scaler...)
-        hints=dict(monitor=None, detectors=[], scan_type="flyscan")
+        hints=dict(monitor=None, detectors=[], scan_type="flyscan"),
     )
 
     for _name, _fpath in _dets_file_paths.items():
@@ -438,7 +438,7 @@ def flyscan_cycler(
         _md[f"{_name}_relative_file_path"] = str(_fpath)
 
     for item in detectors:
-        _md['hints']['detectors'].extend(item.hints['fields'])
+        _md["hints"]["detectors"].extend(item.hints["fields"])
 
     dimensions = [(motor.hints["fields"], "primary") for motor in motors]
     _md["hints"].setdefault("dimensions", dimensions)
@@ -450,7 +450,7 @@ def flyscan_cycler(
             dm_reporting_period=dm_reporting_period,
             dm_reporting_time_limit=dm_reporting_time_limit,
             settings_file_path=wf_settings_file_path,
-            **wf_kwargs
+            **wf_kwargs,
         )
 
     _md.update(md)
@@ -513,9 +513,9 @@ def flyscan_cycler(
         # This will wait for a full new set of packets.
         # TODO: It's an overkill, maybe Keenan's code can broadcast a signal?
         n = yield from rd(sgz.div_by_n_count.n)
-        _time_per_point = n/1e7
-        _number_of_events_per_packet = 1e5/8
-        yield from sleep(_time_per_point*_number_of_events_per_packet + 0.1)
+        _time_per_point = n / 1e7
+        _number_of_events_per_packet = 1e5 / 8
+        yield from sleep(_time_per_point * _number_of_events_per_packet + 0.1)
 
         yield from sgz.stop_softglue()
 
@@ -563,7 +563,7 @@ def flyscan_cycler(
             dm_reporting_period=dm_reporting_period,
             dm_reporting_time_limit=dm_reporting_time_limit,
             settings_file_path=wf_settings_file_path,
-            **wf_kwargs
+            **wf_kwargs,
         )
 
     logger.info("Finished!")

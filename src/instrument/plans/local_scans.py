@@ -3,31 +3,41 @@ Modifed bluesky scans
 """
 
 __all__ = [
-    'lup',
-    'ascan',
-    'mv',
-    'mvr',
-    'grid_scan',
-    'rel_grid_scan',
-    'qxscan',
-    'count',
-    'abs_set'
+    "lup",
+    "ascan",
+    "mv",
+    "mvr",
+    "grid_scan",
+    "rel_grid_scan",
+    "qxscan",
+    "count",
+    "abs_set",
 ]
 
 from bluesky.plans import (
-    scan, grid_scan as bp_grid_scan, count as bp_count, list_scan
+    scan,
+    grid_scan as bp_grid_scan,
+    count as bp_count,
+    list_scan,
 )
 from bluesky.plan_stubs import (
-    mv as bps_mv, abs_set as bps_abs_set, rd, trigger_and_read, move_per_step
+    mv as bps_mv,
+    abs_set as bps_abs_set,
+    rd,
+    trigger_and_read,
+    move_per_step,
 )
 from bluesky.preprocessors import (
-    reset_positions_decorator, relative_set_decorator, subs_decorator, monitor_during_decorator
+    reset_positions_decorator,
+    relative_set_decorator,
+    subs_decorator,
+    monitor_during_decorator,
 )
 from bluesky.plan_patterns import chunk_outer_product_args
 from .local_preprocessors import (
     configure_counts_decorator,
     extra_devices_decorator,
-    stage_dichro_decorator
+    stage_dichro_decorator,
 )
 
 from toolz import partition
@@ -60,6 +70,7 @@ HDF1_NAME_FORMAT = Path(iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"])
 
 class LocalFlag:
     """Stores flags that are used to select and run local scans."""
+
     dichro = False
     fixq = False
     hkl_pos = {}
@@ -158,9 +169,14 @@ def one_local_step(detectors, step, pos_cache, take_reading=trigger_and_read):
     if flag.fixq:
         huber = current_diffractometer()
         devices_to_read += [huber]
-        args = (huber.h, flag.hkl_pos[huber.h],
-                huber.k, flag.hkl_pos[huber.k],
-                huber.l, flag.hkl_pos[huber.l])
+        args = (
+            huber.h,
+            flag.hkl_pos[huber.h],
+            huber.k,
+            flag.hkl_pos[huber.k],
+            huber.l,
+            flag.hkl_pos[huber.l],
+        )
         yield from bps_mv(*args)
 
     if flag.dichro:
@@ -228,7 +244,9 @@ def _setup_paths(detectors):
 
     # Master file
     _master_fullpath = str(HDF1_NAME_FORMAT) % (
-        str(experiment.experiment_path), experiment.file_base_name, _scan_id
+        str(experiment.experiment_path),
+        experiment.file_base_name,
+        _scan_id,
     )
     _master_fullpath += "_master.hdf"
 
@@ -245,7 +263,7 @@ def _setup_paths(detectors):
                 experiment.experiment_path,
                 experiment.file_base_name,
                 _scan_id,
-                flyscan=False
+                flyscan=False,
             )
             _dets_file_paths[det.name] = str(_fp)
             _rel_dets_paths[det.name] = str(_rp)
@@ -280,13 +298,13 @@ def setup_detectors(is_monitor_time):
                     "Vortex detector not found by oregistry! It is "
                     "required for vortex_sgz mode."
                 )
-            
+
             sgz_vortex = oregistry.find("sgz_vortex", allow_none=True)
             if sgz_vortex is None:
                 raise ValueError(
                     "sgz_vortex detector not found by oregistry! It is "
                     "required for vortex_sgz mode."
-            )
+                )
             if vortex not in dets:
                 dets.append(vortex)
             if sgz_vortex not in dets:
@@ -307,10 +325,12 @@ def setup_detectors(is_monitor_time):
             counters.detectors_plot_options["channels"] == counters.monitor
         ]["detectors"].iloc[0]
 
-        if any([
-            det_name != monitor_scaler for det_name in
-            counters.selected_plot_detectors
-        ]):
+        if any(
+            [
+                det_name != monitor_scaler
+                for det_name in counters.selected_plot_detectors
+            ]
+        ):
             raise ValueError(
                 "You can only count against monitor if all detectors are in "
                 "the same scaler of the monitor. But "
@@ -322,15 +342,15 @@ def setup_detectors(is_monitor_time):
 
 
 def count(
-        num,
-        time,
-        detectors=None,
-        lockin=False,
-        dichro=False,
-        vortex_sgz=False,
-        delay=None,
-        per_shot=None,
-        md=None
+    num,
+    time,
+    detectors=None,
+    lockin=False,
+    dichro=False,
+    vortex_sgz=False,
+    delay=None,
+    per_shot=None,
+    md=None,
 ):
     """
     Take one or more readings from detectors.
@@ -357,8 +377,8 @@ def count(
         points by a factor of 4
     vortex_sgz : boolean, optional
         Measures the Vortex detector using the softgluezynq triggers. This is a
-        special mode that requires the 'vortex' and 'sgz_vortex' devices to exist
-        otherwise an error will be thrown.
+        special mode that requires the 'vortex' and 'sgz_vortex' devices to
+        exist otherwise an error will be thrown.
     delay : iterable or scalar, optional
         Time delay in seconds between successive readings; default is 0.
     per_shot: callable, optional
@@ -376,7 +396,6 @@ def count(
     if time == 0:
         raise ValueError("time must be different from zero.")
 
-
     flag.vortex_sgz = vortex_sgz
 
     fixq = False
@@ -388,17 +407,19 @@ def count(
         _offset = pr_setup.offset.get()
         _center = pr_setup.positioner.parent.center.get()
         _steps = pr_setup.dichro_steps
-        flag.dichro_steps = [_center + step*_offset for step in _steps]
+        flag.dichro_steps = [_center + step * _offset for step in _steps]
 
     flag.fixq = fixq
 
     if per_shot is not None and (fixq or dichro):
-        logger.warning("there is a custom per_shot, but fixQ or dichro was selected.")
+        logger.warning(
+            "there is a custom per_shot, but fixQ or dichro was selected."
+        )
     elif per_shot is None:
         per_shot = one_local_shot if fixq or dichro else None
 
-    _master_fullpath, _dets_file_paths, _rel_dets_paths = (
-        _setup_paths(detectors)
+    _master_fullpath, _dets_file_paths, _rel_dets_paths = _setup_paths(
+        detectors
     )
 
     setup_nxwritter(
@@ -410,7 +431,7 @@ def count(
     # TODO: The md handling might go well in a decorator.
     # TODO: May need to add reference to stream.
     _md = dict(
-        hints={'monitor': counters.monitor, 'detectors': []},
+        hints={"monitor": counters.monitor, "detectors": []},
         data_management=experiment.data_management or "None",
         esaf=experiment.esaf,
         proposal=experiment.proposal,
@@ -422,7 +443,7 @@ def count(
     )
 
     for item in detectors:
-        _md['hints']['detectors'].extend(item.hints['fields'])
+        _md["hints"]["detectors"].extend(item.hints["fields"])
 
     _md.update(md or {})
 
@@ -433,11 +454,7 @@ def count(
     @subs_decorator(nxwriter.receiver)
     def _inner_count():
         yield from bp_count(
-            detectors + extras,
-            num=num,
-            per_shot=per_shot,
-            delay=delay,
-            md=_md
+            detectors + extras, num=num, per_shot=per_shot, delay=delay, md=_md
         )
         # Wait for the master file to finish writing.
         yield from nxwriter.wait_writer_plan_stub()
@@ -453,7 +470,7 @@ def ascan(
     fixq=False,
     vortex_sgz=False,
     per_step=None,
-    md=None
+    md=None,
 ):
     """
     Scan over one multi-motor trajectory.
@@ -491,8 +508,8 @@ def ascan(
         Note that hkl is moved ~after~ the other motors!
     vortex_sgz : boolean, optional
         Measures the Vortex detector using the softgluezynq triggers. This is a
-        special mode that requires the 'vortex' and 'sgz_vortex' devices to exist
-        otherwise an error will be thrown.
+        special mode that requires the 'vortex' and 'sgz_vortex' devices to
+        exist otherwise an error will be thrown.
     per_step: callable, optional
         hook for customizing action of inner loop (messages per step).
         See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
@@ -526,7 +543,7 @@ def ascan(
         _offset = pr_setup.offset.get()
         _center = pr_setup.positioner.parent.center.get()
         _steps = pr_setup.dichro_steps
-        flag.dichro_steps = [_center + step*_offset for step in _steps]
+        flag.dichro_steps = [_center + step * _offset for step in _steps]
 
     flag.fixq = fixq
     if per_step is None:
@@ -539,8 +556,8 @@ def ascan(
             huber.l: huber.l.get().setpoint,
         }
 
-    _master_fullpath, _dets_file_paths, _rel_dets_paths = (
-        _setup_paths(detectors)
+    _master_fullpath, _dets_file_paths, _rel_dets_paths = _setup_paths(
+        detectors
     )
 
     setup_nxwritter(
@@ -550,7 +567,7 @@ def ascan(
     extras = yield from _collect_extras(args)
 
     _md = dict(
-        hints={'monitor': counters.monitor, 'detectors': []},
+        hints={"monitor": counters.monitor, "detectors": []},
         data_management=experiment.data_management or "None",
         esaf=experiment.esaf,
         proposal=experiment.proposal,
@@ -562,7 +579,7 @@ def ascan(
     )
 
     for item in detectors:
-        _md['hints']['detectors'].extend(item.hints['fields'])
+        _md["hints"]["detectors"].extend(item.hints["fields"])
 
     _md["hints"]["scan_type"] = "ascan"
 
@@ -576,12 +593,7 @@ def ascan(
     @stage_dichro_decorator(dichro, lockin, motors)
     @extra_devices_decorator(extras)
     def _inner_ascan():
-        yield from scan(
-            detectors + extras,
-            *args,
-            per_step=per_step,
-            md=_md
-        )
+        yield from scan(detectors + extras, *args, per_step=per_step, md=_md)
 
         yield from nxwriter.wait_writer_plan_stub()
 
@@ -596,7 +608,7 @@ def lup(
     fixq=False,
     vortex_sgz=False,
     per_step=None,
-    md=None
+    md=None,
 ):
     """
     Scan over one multi-motor trajectory relative to current position.
@@ -633,8 +645,8 @@ def lup(
         Note that hkl is moved ~after~ the other motors!
     vortex_sgz : boolean, optional
         Measures the Vortex detector using the softgluezynq triggers. This is a
-        special mode that requires the 'vortex' and 'sgz_vortex' devices to exist
-        otherwise an error will be thrown.
+        special mode that requires the 'vortex' and 'sgz_vortex' devices to\
+        exist otherwise an error will be thrown.
     per_step: callable, optional
         hook for customizing action of inner loop (messages per step).
         See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
@@ -648,7 +660,7 @@ def lup(
     :func:`ascan`
     """
 
-    _md = {'plan_name': 'rel_scan'}
+    _md = {"plan_name": "rel_scan"}
     md = md or {}
     _md.update(md)
     motors = [motor for motor, _, _ in partition(3, args)]
@@ -656,16 +668,18 @@ def lup(
     @reset_positions_decorator(motors)
     @relative_set_decorator(motors)
     def inner_lup():
-        return (yield from ascan(
-            *args,
-            detectors=detectors,
-            lockin=lockin,
-            dichro=dichro,
-            fixq=fixq,
-            vortex_sgz=vortex_sgz,
-            per_step=per_step,
-            md=_md
-        ))
+        return (
+            yield from ascan(
+                *args,
+                detectors=detectors,
+                lockin=lockin,
+                dichro=dichro,
+                fixq=fixq,
+                vortex_sgz=vortex_sgz,
+                per_step=per_step,
+                md=_md,
+            )
+        )
 
     return (yield from inner_lup())
 
@@ -679,7 +693,7 @@ def grid_scan(
     fixq=False,
     vortex_sgz=False,
     per_step=None,
-    md=None
+    md=None,
 ):
     """
     Scan over a mesh; each motor is on an independent trajectory.
@@ -721,8 +735,8 @@ def grid_scan(
         Note that hkl is moved ~after~ the other motors!
     vortex_sgz : boolean, optional
         Measures the Vortex detector using the softgluezynq triggers. This is a
-        special mode that requires the 'vortex' and 'sgz_vortex' devices to exist
-        otherwise an error will be thrown.
+        special mode that requires the 'vortex' and 'sgz_vortex' devices to
+        exist otherwise an error will be thrown.
     per_step: callable, optional
         hook for customizing action of inner loop (messages per step).
         See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
@@ -757,7 +771,7 @@ def grid_scan(
         _offset = pr_setup.offset.get()
         _center = pr_setup.positioner.parent.center.get()
         _steps = pr_setup.dichro_steps
-        flag.dichro_steps = [_center + step*_offset for step in _steps]
+        flag.dichro_steps = [_center + step * _offset for step in _steps]
 
     flag.fixq = fixq
     if per_step is None:
@@ -771,8 +785,8 @@ def grid_scan(
             huber.l: huber.l.get().setpoint,
         }
 
-    _master_fullpath, _dets_file_paths, _rel_dets_paths = (
-        _setup_paths(detectors)
+    _master_fullpath, _dets_file_paths, _rel_dets_paths = _setup_paths(
+        detectors
     )
 
     setup_nxwritter(
@@ -782,7 +796,7 @@ def grid_scan(
     extras = yield from _collect_extras(args)
 
     _md = dict(
-        hints={'monitor': counters.monitor, 'detectors': []},
+        hints={"monitor": counters.monitor, "detectors": []},
         data_management=experiment.data_management or "None",
         esaf=experiment.esaf,
         proposal=experiment.proposal,
@@ -794,7 +808,7 @@ def grid_scan(
     )
 
     for item in detectors:
-        _md['hints']['detectors'].extend(item.hints['fields'])
+        _md["hints"]["detectors"].extend(item.hints["fields"])
 
     _md["hints"]["scan_type"] = "gridscan"
 
@@ -813,7 +827,7 @@ def grid_scan(
             *args,
             snake_axes=snake_axes,
             per_step=per_step,
-            md=_md
+            md=_md,
         )
 
         yield from nxwriter.wait_writer_plan_stub()
@@ -830,7 +844,7 @@ def rel_grid_scan(
     fixq=False,
     vortex_sgz=False,
     per_step=None,
-    md=None
+    md=None,
 ):
     """
     Scan over a mesh relative to current position.
@@ -872,8 +886,8 @@ def rel_grid_scan(
         Note that hkl is moved ~after~ the other motors!
     vortex_sgz : boolean, optional
         Measures the Vortex detector using the softgluezynq triggers. This is a
-        special mode that requires the 'vortex' and 'sgz_vortex' devices to exist
-        otherwise an error will be thrown.
+        special mode that requires the 'vortex' and 'sgz_vortex' devices to
+        exist otherwise an error will be thrown.
     per_step: callable, optional
         hook for customizing action of inner loop (messages per step).
         See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
@@ -890,24 +904,26 @@ def rel_grid_scan(
     :func:`bluesky.plans.scan_nd`
     """
 
-    _md = {'plan_name': 'rel_grid_scan'}
+    _md = {"plan_name": "rel_grid_scan"}
     _md.update(md or {})
     motors = [m[0] for m in chunk_outer_product_args(args)]
 
     @reset_positions_decorator(motors)
     @relative_set_decorator(motors)
     def inner_rel_grid_scan():
-        return (yield from grid_scan(
-            *args,
-            detectors=detectors,
-            snake_axes=snake_axes,
-            lockin=lockin,
-            dichro=dichro,
-            fixq=fixq,
-            vortex_sgz=vortex_sgz,
-            per_step=per_step,
-            md=_md
-        ))
+        return (
+            yield from grid_scan(
+                *args,
+                detectors=detectors,
+                snake_axes=snake_axes,
+                lockin=lockin,
+                dichro=dichro,
+                fixq=fixq,
+                vortex_sgz=vortex_sgz,
+                per_step=per_step,
+                md=_md,
+            )
+        )
 
     return (yield from inner_rel_grid_scan())
 
@@ -921,7 +937,7 @@ def qxscan(
     fixq=False,
     vortex_sgz=False,
     per_step=None,
-    md=None
+    md=None,
 ):
     """
     Energy scan with fixed delta_K steps.
@@ -971,10 +987,10 @@ def qxscan(
         _offset = pr_setup.offset.get()
         _center = pr_setup.positioner.parent.center.get()
         _steps = pr_setup.dichro_steps
-        flag.dichro_steps = [_center + step*_offset for step in _steps]
+        flag.dichro_steps = [_center + step * _offset for step in _steps]
 
     flag.fixq = fixq
-    
+
     if per_step is None:
         per_step = one_local_step if fixq or dichro else None
 
@@ -1008,10 +1024,10 @@ def qxscan(
 
     for det in detectors:
         _ct[det] = abs(time)
-        args += (det.preset_monitor, abs(time)*array(factor_list))
+        args += (det.preset_monitor, abs(time) * array(factor_list))
 
-    _master_fullpath, _dets_file_paths, _rel_dets_paths = (
-        _setup_paths(detectors)
+    _master_fullpath, _dets_file_paths, _rel_dets_paths = _setup_paths(
+        detectors
     )
 
     setup_nxwritter(
@@ -1019,7 +1035,7 @@ def qxscan(
     )
 
     _md = dict(
-        hints={'monitor': counters.monitor, 'detectors': []},
+        hints={"monitor": counters.monitor, "detectors": []},
         data_management=experiment.data_management or "None",
         esaf=experiment.esaf,
         proposal=experiment.proposal,
@@ -1034,13 +1050,13 @@ def qxscan(
     # TODO: May need to add reference to stream.
     # _md = {'hints': {'monitor': counters.monitor, 'detectors': []}}
     for item in detectors:
-        _md['hints']['detectors'].extend(item.hints['fields'])
+        _md["hints"]["detectors"].extend(item.hints["fields"])
 
     _md["hints"]["scan_type"] = "qxscan"
     if dichro:
-        _md['hints']['scan_type'] += " dichro"
+        _md["hints"]["scan_type"] += " dichro"
     if lockin:
-        _md['hints']['scan_type'] += " lockin"
+        _md["hints"]["scan_type"] += " lockin"
 
     _md.update(md or {})
 
