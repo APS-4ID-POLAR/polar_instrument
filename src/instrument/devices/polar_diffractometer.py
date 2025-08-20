@@ -327,8 +327,10 @@ class HPDiffractometer(SixCircleDiffractometer):
     phi = Component(EpicsMotor, "m6", labels=("motor",))
 
     basex = Component(EpicsMotor, "m7", labels=("motor",))
-    basey = Component(EpicsMotor, "m9", labels=("motor",))
-    basez = Component(EpicsMotor, "m8", labels=("motor",))
+    basey = Component(EpicsMotor, "SMBaseY", labels=("motor",))
+    basez = Component(EpicsMotor, "SMBaseZ", labels=("motor",))
+    basey_motor = Component(EpicsMotor, "m9", labels=("motor",))
+    basez_motor = Component(EpicsMotor, "m8", labels=("motor",))
 
     sample_tilt = Component(EpicsMotor, "m11", labels=("motor",))
 
