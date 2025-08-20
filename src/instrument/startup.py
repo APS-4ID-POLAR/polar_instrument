@@ -72,7 +72,9 @@ if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
     # devices that are disconnected.
     _ = RE.preprocessors.pop()
 
-from .callbacks.dichro_stream import dichro, plot_dichro_settings, dichro_bec
+from .callbacks.dichro_stream import (  # noqa: F401, E402
+    dichro, plot_dichro_settings, dichro_bec
+)
 
 # These imports must come after the above setup.
 if running_in_queueserver():
@@ -88,7 +90,7 @@ else:
     from bluesky import plan_stubs as bps  # noqa: F401
     from bluesky import plans as bp  # noqa: F401
 
-    from .utils.wax import wm, wax, wa_new
+    from .utils.wax import wm, wax, wa_new  # noqa: F401
     from .utils.counters_class import counters  # noqa: F401
     from .utils.pr_setup import pr_setup  # noqa: F401
     from .utils.attenuator_utils import atten  # noqa: F401
@@ -104,7 +106,7 @@ else:
     from .utils.polartools_hklpy_imports import *  # noqa: F401, F403
     from .utils.oregistry_auxiliar import get_devices  # noqa: F401
     from .utils.load_vortex import load_vortex  # noqa: F401
-    from .utils.device_loader import (
+    from .utils.device_loader import (  # noqa: F401
         load_yaml_devices,
         load_device,
         find_loadable_devices,
@@ -119,33 +121,9 @@ else:
 
 RE(make_devices(clear=True, file="devices.yml"))  # Create the devices.
 
-# Only run .default_setting and add to baseline if belongs to the hutch
-# Maybe I can use the device label as a sorting mechanism? - Using oregistry..
-
 stations = ["source", "4ida", "4idb", "4idg", "4idh"]
-
-# baseline_devices = oregistry.findall("baseline")
-# disconnected_devices = {}
-
 for device in oregistry.findall(stations):
     connect_device(device, raise_error=False)
-    # try:
-    #     logger.info(f"Connecting to {device.name}...")
-    #     device.wait_for_connection()
-    #     if device in baseline_devices:
-    #         sd.baseline.append(device)
-    #     if hasattr(device, "default_settings"):
-    #         device.default_settings()
-    # except TimeoutError:
-    #     message = (
-    #         f"Device {device.name} is disconnected, removing it from oregistry."
-    #         " See the disconnected_devices dictionary."
-    #     )
-    #     if device in baseline_devices:
-    #         message += " This device was not added to the baseline."
-    #     logger.warning(message)
-    #     disconnected_devices[device.name] = oregistry.pop(device)
-
 
 counters.plotselect(11, 0)
 
@@ -156,5 +134,5 @@ for sus in run_engine_suspenders.values():
 _ = RE.preprocessors.pop()
 
 # Diffractometer
-select_diffractometer(get_huber_euler())
-select_engine_for_psi(get_huber_euler_psi())
+select_diffractometer(get_huber_euler())  # noqa: F405
+select_engine_for_psi(get_huber_euler_psi())  # noqa: F405
