@@ -49,8 +49,8 @@ class MyNXWriter(NXWriterAPS):
         for name, path in self.external_files.items():
             link_path = (
                 "/stream"
-                if name == "positioner_stream" else
-                "/entry/instrument"
+                if name == "positioner_stream"
+                else "/entry/instrument"
             )
             h5addr = f"/entry/externals/{name}"
             self.root[h5addr] = h5py.ExternalLink(
@@ -137,9 +137,7 @@ nxwriter.file_extension = iconfig.get("NEXUS_DATA_FILES", {}).get(
     "FILE_EXTENSION", "hdf"
 )
 
-warn_missing = iconfig.get("NEXUS_DATA_FILES", {}).get(
-    "WARN_MISSING", False
-)
+warn_missing = iconfig.get("NEXUS_DATA_FILES", {}).get("WARN_MISSING", False)
 nxwriter.warn_on_missing_content = warn_missing
 
 # return nxwriter
