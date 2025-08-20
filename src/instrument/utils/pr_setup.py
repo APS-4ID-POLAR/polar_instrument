@@ -1,12 +1,10 @@
-
-
 __all__ = ["pr_setup"]
 
 from ..callbacks.dichro_stream import plot_dichro_settings
 from apsbits.core.instrument_init import oregistry
 
 
-class PRSetup():
+class PRSetup:
 
     positioner = None
     offset = None
@@ -38,13 +36,15 @@ class PRSetup():
         except AttributeError:
             pzt_center = "None"
 
-        return ("Phase retarder settings\n"
-                f"  Tracking PRs = {tracked}\n"
-                f"  Oscillating PR = {oscillate}\n"
-                f"  Offset positioner = {offset}\n"
-                f"  Offset value = {self.offset.get()}\n"
-                f"  PZT center = {pzt_center}\n"
-                f"  Steps for dichro scan = {self.dichro_steps}\n")
+        return (
+            "Phase retarder settings\n"
+            f"  Tracking PRs = {tracked}\n"
+            f"  Oscillating PR = {oscillate}\n"
+            f"  Offset positioner = {offset}\n"
+            f"  Offset value = {self.offset.get()}\n"
+            f"  PZT center = {pzt_center}\n"
+            f"  Steps for dichro scan = {self.dichro_steps}\n"
+        )
 
     def _get_setup(self, pr):
 
@@ -71,23 +71,18 @@ class PRSetup():
 
     def __call__(self):
 
-        print('Setup of the phase retarders for dichro scans.')
-        print('Note that you can only oscillate one phase retarder stack.')
+        print("Setup of the phase retarders for dichro scans.")
+        print("Note that you can only oscillate one phase retarder stack.")
 
         _positioner = None
 
         # Transmission check
         while True:
             _default = (
-              "yes" if
-              plot_dichro_settings.settings.transmission
-              else "no"
+                "yes" if plot_dichro_settings.settings.transmission else "no"
             )
             trans = (
-                input(
-                    "Are you measuring in transmission? ("
-                    f"{_default}): "
-                )
+                input("Are you measuring in transmission? (" f"{_default}): ")
                 or _default
             )
             if trans.lower() == "yes":
@@ -125,8 +120,8 @@ class PRSetup():
                 # Oscillate this PR?
                 while True:
                     oscillate = (
-                        input(f"\tOscillate? ({setup['oscillate']}): ") or
-                        setup["oscillate"]
+                        input(f"\tOscillate? ({setup['oscillate']}): ")
+                        or setup["oscillate"]
                     )
                     # If this will oscillate, need to determine the positioner
                     # to use and its parameters.
@@ -141,12 +136,13 @@ class PRSetup():
                                     input(
                                         "\tUse motor or PZT? "
                                         f"({setup['method']}): "
-                                    ) or setup["method"]
+                                    )
+                                    or setup["method"]
                                 )
-                                if method.lower() == 'motor':
+                                if method.lower() == "motor":
                                     _positioner = pr.th
                                     break
-                                elif method.lower() == 'pzt':
+                                elif method.lower() == "pzt":
                                     _positioner = pr.pzt.localdc
                                     break
                                 else:
@@ -169,7 +165,7 @@ class PRSetup():
                                 )
                                 break
                             except ValueError:
-                                print('Must be a number.')
+                                print("Must be a number.")
 
                         # if PZT is used, then get the center.
                         if method.lower() == "pzt":
@@ -182,25 +178,24 @@ class PRSetup():
                                         input(
                                             "\tPZT center in microns "
                                             f"({setup['center']}): "
-                                        ) or setup["center"]
+                                        )
+                                        or setup["center"]
                                     )
-                                    _positioner.parent.center.put(
-                                        float(center)
-                                    )
+                                    _positioner.parent.center.put(float(center))
                                     break
                                 except ValueError:
-                                    print('Must be a number.')
+                                    print("Must be a number.")
                         else:
                             # Get offset signal
                             self.offset = _positioner.parent.offset_degrees
                         break
-                    elif oscillate.lower() == 'no':
+                    elif oscillate.lower() == "no":
                         break
                     else:
                         print("Only yes or no are acceptable answers.")
 
             else:
-                if _positioner and track == 'yes':
+                if _positioner and track == "yes":
                     print(
                         f"\tYou already selected {_positioner.name} to "
                         "oscillate."

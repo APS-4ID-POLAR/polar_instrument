@@ -1,4 +1,3 @@
-
 from apsbits.core.instrument_init import oregistry
 from pyRestTable import Table
 

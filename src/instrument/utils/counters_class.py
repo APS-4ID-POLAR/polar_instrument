@@ -7,7 +7,7 @@ from collections.abc import Iterable
 logger = getLogger(__name__)
 logger.bsdev(__file__)
 
-__all__ = ['counters']
+__all__ = ["counters"]
 
 IDEAL_ORDER = [
     "scaler1",
@@ -16,7 +16,7 @@ IDEAL_ORDER = [
     "vortex",
     "flagcam_hhl",
     "flagcam_mono",
-    "flagcam_toro"
+    "flagcam_toro",
 ]
 
 
@@ -50,12 +50,14 @@ class CountersClass:
             item.name for item in (self.detectors + self.extra_devices)
         ]
 
-        return ("Counters settings\n"
-                " Monitor:\n"
-                f"  Scaler channel = '{self._mon}'\n"
-                " Detectors:\n"
-                f"  Read devices = {read_names}\n"
-                f"  Plot components = {self.plot_names}")
+        return (
+            "Counters settings\n"
+            " Monitor:\n"
+            f"  Scaler channel = '{self._mon}'\n"
+            " Detectors:\n"
+            f"  Read devices = {read_names}\n"
+            f"  Plot components = {self.plot_names}"
+        )
 
     def __str__(self):
         return self.__repr__()
@@ -116,7 +118,7 @@ class CountersClass:
     def plot_names(self):
         plot_names = []
         for item in self.detectors:
-            plot_names.extend(item.hints['fields'])
+            plot_names.extend(item.hints["fields"])
         return plot_names
 
     @property
@@ -164,8 +166,10 @@ class CountersClass:
         self._extra_devices = []
         for item in value:
             if isinstance(item, str):
-                raise ValueError("Input has to be a device instance, not a "
-                                 f"device name, but {item} was entered.")
+                raise ValueError(
+                    "Input has to be a device instance, not a "
+                    f"device name, but {item} was entered."
+                )
             if item not in self.detectors:
                 self._extra_devices.append(item)
 
@@ -223,12 +227,11 @@ class CountersClass:
             for scaler in self._available_scalers:
                 selection.append(len(plot_options))
                 plot_options.loc[len(plot_options)] = [
-                    scaler.name, scaler.channels.chan01.chname.get()
+                    scaler.name,
+                    scaler.channels.chan01.chname.get(),
                 ]
 
-        groups = plot_options.iloc[
-            list(selection)
-        ].groupby("detectors")
+        groups = plot_options.iloc[list(selection)].groupby("detectors")
 
         dets = []
         for name, group in groups:
@@ -240,7 +243,7 @@ class CountersClass:
         for scaler in self._available_scalers:
             if scaler not in dets:
                 dets.append(scaler)
-                scaler.select_plot_channels([''])
+                scaler.select_plot_channels([""])
 
         self._dets = dets
 
@@ -255,9 +258,8 @@ class CountersClass:
                 dets = [dets]
 
             number_of_options = self.detectors_plot_options.shape[0]
-            if (
-                all([isinstance(i, int) for i in dets]) and
-                all([i < number_of_options for i in dets])
+            if all([isinstance(i, int) for i in dets]) and all(
+                [i < number_of_options for i in dets]
             ):
                 _valid_dets = True
             else:
@@ -290,9 +292,12 @@ class CountersClass:
                     continue
 
                 # Check that the numbers are valid.
-                if not all([
-                    i in self.detectors_plot_options.index.values for i in dets
-                ]):
+                if not all(
+                    [
+                        i in self.detectors_plot_options.index.values
+                        for i in dets
+                    ]
+                ):
                     print("The index values must be in the table.")
                     continue
 
@@ -305,9 +310,10 @@ class CountersClass:
                 self.detectors_plot_options["channels"] == self.monitor
             ].index[0]
             while True:
-                mon = input(
-                    f"Enter index number of monitor detector. [{_mon}]: "
-                ) or _mon
+                mon = (
+                    input(f"Enter index number of monitor detector. [{_mon}]: ")
+                    or _mon
+                )
 
                 try:
                     mon = int(mon)

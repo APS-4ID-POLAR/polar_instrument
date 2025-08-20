@@ -1,4 +1,3 @@
-
 from ..devices.vortex_dante_me4 import VortexDante4
 from ..devices.vortex_xmap import VortexXMAP
 from ..devices.vortex_xspress3_me4 import VortexXspress34
@@ -20,11 +19,13 @@ DETECTORS = {
 
 def load_vortex(
     electronic: str,
-    pv: str=None,
-    name: str="vortex",
-    labels: list=["detector",],
-    baseline: bool=False,
-    **kwargs
+    pv: str = None,
+    name: str = "vortex",
+    labels: list = [
+        "detector",
+    ],
+    baseline: bool = False,
+    **kwargs,
 ):
     """
     Load Vortex detector. kwargs are passed to the detector class.
@@ -52,13 +53,11 @@ def load_vortex(
             f"Available electronics are {DETECTORS.keys()}, "
             f"but {electronic} was entered."
         )
-    
+
     vortexclass, _pv = DETECTORS[electronic]
     pv = _pv if pv is None else pv
 
-    device = vortexclass(
-        pv, name=name, labels=labels, **kwargs
-    )
+    device = vortexclass(pv, name=name, labels=labels, **kwargs)
 
     try:
         logger.info(f"Connecting to {device.name}...")
@@ -69,9 +68,7 @@ def load_vortex(
             device.default_settings()
         oregistry.register(device)
     except TimeoutError:
-        message = (
-            f"Device {device.name} is disconnected."
-        )
+        message = f"Device {device.name} is disconnected."
         if baseline:
             message += " This device was not added to the baseline."
         logger.warning(message)

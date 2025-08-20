@@ -5,6 +5,7 @@ class FormattedDynamicSubDevice:
     """
     Creates a subdevice with dynamically formatted components.
     """
+
     def __init__(self, factory_func):
         self.factory_func = factory_func
         self._name = None
@@ -21,7 +22,7 @@ class FormattedDynamicSubDevice:
             # Build subdevice dynamically
             subdevice_class = self._build_subdevice_class(instance)
             subdevice = subdevice_class(
-                '', parent=instance, name=f"{instance.name}_{self._name}"
+                "", parent=instance, name=f"{instance.name}_{self._name}"
             )
             setattr(instance, attr_name, subdevice)
 
@@ -68,7 +69,7 @@ class InstanceFormattedComponent:
         if not hasattr(instance, attr_name):
             sub_cls = self._build_subdevice_class(instance)
             sub_inst = sub_cls(
-                '', parent=instance, name=f"{instance.name}_{self._name}"
+                "", parent=instance, name=f"{instance.name}_{self._name}"
             )
             setattr(instance, attr_name, sub_inst)
         return getattr(instance, attr_name)

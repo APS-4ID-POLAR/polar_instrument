@@ -1,4 +1,4 @@
-""" Handler for SPE files """
+"""Handler for SPE files"""
 
 from area_detector_handlers import HandlerBase
 from imageio.v3 import imread

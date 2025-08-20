@@ -14,12 +14,12 @@ run_engine_suspenders = {
     "a_shutter": SuspendBoolHigh(
         EpicsSignalRO("4ID:BLEPS:FES_CLOSED", name="a_susp"),
         sleep=SUSPENDER_SLEEP,
-        tripped_message="4-ID-A shutter is closed."
+        tripped_message="4-ID-A shutter is closed.",
     ),
     "b_shutter": SuspendBoolHigh(
         EpicsSignalRO("4ID:BLEPS:SBS_CLOSED", name="b_susp"),
         sleep=0,
-        tripped_message="4-ID-B shutter is closed."
+        tripped_message="4-ID-B shutter is closed.",
     ),
 }
 
@@ -42,10 +42,13 @@ def _query_label():
 
 def _query_sleep_time():
     while True:
-        sleep_time = input(
-            "How long the to wait after beam returns in seconds? "
-            f"({SUSPENDER_SLEEP}) "
-        ) or SUSPENDER_SLEEP
+        sleep_time = (
+            input(
+                "How long the to wait after beam returns in seconds? "
+                f"({SUSPENDER_SLEEP}) "
+            )
+            or SUSPENDER_SLEEP
+        )
 
         try:
             return float(sleep_time)

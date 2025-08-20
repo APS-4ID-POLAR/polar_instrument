@@ -1,4 +1,3 @@
-
 from pathlib import Path
 import yaml
 from pyRestTable import Table
@@ -14,6 +13,7 @@ logger = getLogger(__name__)
 DEFAULT_FILE = Path(__file__).parent / "../configs/devices.yml"
 # Main namespace for dynamic imports
 MAIN_NAMESPACE = "__main__"
+
 
 def load_yaml_devices(file=DEFAULT_FILE):
     """
@@ -37,10 +37,7 @@ def load_yaml_devices(file=DEFAULT_FILE):
     must have a 'name' parameter which is used as the key in the returned
     dictionary.
     """
-    devices_yaml = yaml.load(
-        open(file, "r").read(),
-        yaml.Loader
-    )
+    devices_yaml = yaml.load(open(file, "r").read(), yaml.Loader)
 
     devices = dict()
     # Iterate through each device class and its parameters
@@ -49,19 +46,23 @@ def load_yaml_devices(file=DEFAULT_FILE):
             name = params.pop("name")
             devices[name] = {"class": key}
             devices[name].update(params)
-    
+
     return devices
+
 
 # Load available devices from the default YAML configuration file
 AVAILABLE_DEVICES = load_yaml_devices()
 
+
 def _exact(a, b):
-    """ Check if two strings are exactly equal """
+    """Check if two strings are exactly equal"""
     return a == b
 
+
 def _partial(a, b):
-    """ Check if string 'a' is a substring of string 'b' """
+    """Check if string 'a' is a substring of string 'b'"""
     return a in b
+
 
 def find_loadable_devices(name=None, label=None, exact_name=False):
     """
@@ -70,23 +71,27 @@ def find_loadable_devices(name=None, label=None, exact_name=False):
     Parameters
     ----------
     name : str, optional
-        The name of the device to search for. If None, all devices are considered.
+        The name of the device to search for. If None, all devices are
+        considered.
     label : str, optional
-        The label to search for within device labels. If None, all labels are considered.
+        The label to search for within device labels. If None, all labels are
+        considered.
     exact_name : bool, optional
-        If True, perform an exact match on the device name. If False, perform a partial match.
-        Defaults to False.
+        If True, perform an exact match on the device name. If False, perform a
+        partial match. Defaults to False.
 
     Returns
     -------
     None
-        Prints a table of devices matching the search criteria in reStructuredText format.
+        Prints a table of devices matching the search criteria in
+        reStructuredText format.
 
     Notes
     -----
-    The function filters devices from `AVAILABLE_DEVICES` based on the provided `name` and `label`.
-    It uses `_exact` or `_partial` functions for name matching based on the `exact_name` parameter.
-    The filtered devices are displayed in a table format with columns for Name, Prefix, and Labels.
+    The function filters devices from `AVAILABLE_DEVICES` based on the provided
+    `name` and `label`. It uses `_exact` or `_partial` functions for name
+    matching based on the `exact_name` parameter. The filtered devices are
+    displayed in a table format with columns for Name, Prefix, and Labels.
     """
     func = _exact if exact_name else _partial
 
@@ -96,27 +101,30 @@ def find_loadable_devices(name=None, label=None, exact_name=False):
     if name is not None:
         for key, item in AVAILABLE_DEVICES.items():
             if not func(name, key):
-                del(output[key])
+                del output[key]
 
     # Find labels
     if label is not None:
         _out = output.copy()
         for key, item in _out.items():
-            if not label in item["labels"]:
-                del(output[key])
+            if label not in item["labels"]:
+                del output[key]
 
     # Create a table to display filtered devices
     table = Table()
     table.labels = ("Name", "Prefix", "Labels")
     for key, items in output.items():
-        table.rows.append((
-            key,
-            items.get("prefix", None) or items.get("PV", "not found"),
-            ", ".join(items["labels"])
-        ))
+        table.rows.append(
+            (
+                key,
+                items.get("prefix", None) or items.get("PV", "not found"),
+                ", ".join(items["labels"]),
+            )
+        )
 
     # Print the table in reStructuredText format
     print(table.reST())
+
 
 def connect_device(device, baseline=None, raise_error=True):
     """
@@ -137,15 +145,17 @@ def connect_device(device, baseline=None, raise_error=True):
     Raises
     ------
     ValueError
-        If the device is not found in `AVAILABLE_DEVICES` and `baseline` is None.
+        If the device is not found in `AVAILABLE_DEVICES` and `baseline` is
+        None.
 
     Notes
     -----
-    The function first checks if the device is already registered in `oregistry`.
-    If so, it removes the existing entry. It then attempts to connect the device
-    and apply default settings if available. The device is registered in `oregistry`
-    and added to the baseline if applicable. If a `TimeoutError` occurs during
-    connection, the device is removed from `oregistry` and the baseline.
+    The function first checks if the device is already registered in
+    `oregistry`. If so, it removes the existing entry. It then attempts to
+    connect the device and apply default settings if available. The device is
+    registered in `oregistry` and added to the baseline if applicable. If a
+    `TimeoutError` occurs during connection, the device is removed from
+    `oregistry` and the baseline.
     """
 
     # Work out if we want to add to the baseline or not.
@@ -153,15 +163,16 @@ def connect_device(device, baseline=None, raise_error=True):
         if device.name not in AVAILABLE_DEVICES.keys():
             if raise_error:
                 raise ValueError(
-                    f"Could not find the {device.name} in the devices config list. "
-                    "You will need to enter True or False to the baseline "
-                    "keyword argument."
+                    f"Could not find the {device.name} in the devices config "
+                    "list. You will need to enter True or False to the "
+                    "baseline keyword argument."
                 )
             else:
                 return
 
         baseline = (
-            True if "baseline" in AVAILABLE_DEVICES[device.name]["labels"]
+            True
+            if "baseline" in AVAILABLE_DEVICES[device.name]["labels"]
             else False
         )
 
@@ -180,17 +191,17 @@ def connect_device(device, baseline=None, raise_error=True):
         # Register device if not already registered
         if oregistry.find(device.name, allow_none=True) is None:
             oregistry.register(device)
-            
+
         # Add device to baseline if applicable
         if baseline:
             for dev in sd.baseline:
                 if dev.name == device.name:
                     logger.info(
-                        f"Found a duplicated {device.name} name in the baseline. "
-                        "Removing the old one."
+                        f"Found a duplicated {device.name} name in the "
+                        "baseline. Removing the old one."
                     )
                     sd.baseline.remove(dev)
-    
+
             sd.baseline.append(device)
     except TimeoutError:
         message = (
@@ -239,7 +250,7 @@ def load_device(name, file=None):
 
     # Load devices from specified file or default file
     _devices = (
-        AVAILABLE_DEVICES.copy() if file is None else load_yaml_devices(file) 
+        AVAILABLE_DEVICES.copy() if file is None else load_yaml_devices(file)
     )
 
     # Check if device is available in the loaded configurations
@@ -258,7 +269,7 @@ def load_device(name, file=None):
             "Could not find the class of the device. Please check the .yaml "
             "file."
         )
-    
+
     baseline = False
     # Check if device should be added to baseline
     if "labels" in params.keys():

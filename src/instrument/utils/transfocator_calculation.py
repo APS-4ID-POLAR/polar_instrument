@@ -6,6 +6,7 @@ Transfocator functions.
     ~transfocator
 
 """
+
 from hkl.user import current_diffractometer
 from numpy import loadtxt
 from scipy.interpolate import interp1d
@@ -15,10 +16,7 @@ BE_REFR_INDEX_FILE = (
 )
 
 
-def read_delta(
-    energy=None,
-    path=BE_REFR_INDEX_FILE
-):
+def read_delta(energy=None, path=BE_REFR_INDEX_FILE):
     if energy < 2700 or energy > 27000:
         raise ValueError("Energy {} out of range [2700, 27000].".format(energy))
 
@@ -31,7 +29,7 @@ def transfocator_calc(
     energy=None,
     experiment="diffractometer",
     beamline="polar",
-    verbose=True
+    verbose=True,
 ):
     _geom_ = current_diffractometer()
     if not distance:
@@ -66,7 +64,7 @@ def transfocator_calc(
             raise ValueError(
                 "Calculation limited to focus positions at 67.2 m "
                 "(diffractometer) or 73.3 m (magnet)."
-                )
+            )
 
         # 4-ID: [1000, 500, 200, 200, 200, 200, 100, 100]
         # 6-ID-B: [1000, 500, 200, 200, 200, 200, 200, 200, 200]
@@ -173,9 +171,8 @@ def transfocator_calc_old(
             source_sample_distance = 73.3e6
         else:
             raise ValueError(
-                "Calculation limited to focus positions at 67.2 m (diffractometer) or 73.3 m (magnet).".format(
-                    energy
-                )
+                "Calculation limited to focus positions at 67.2 m "
+                "(diffractometer) or 73.3 m (magnet)."
             )
         # 4-ID: [1000, 500, 200, 200, 200, 200, 100, 100]
         # 6-ID-B: [1000, 500, 200, 200, 200, 200, 200, 200, 200]
@@ -236,7 +233,8 @@ def transfocator_calc_old(
     )  # convert rms source size to FWHM
     fv = distance_new / (source_sample_distance - distance_new) * 4.1 * 2.35
     print(
-        "Approximate focus size in brightness mode {:.3f} \u03bcm x {:.3f} \u03bcm".format(
+        "Approximate focus size in brightness mode {:.3f} \u03bcm x {:.3f} "
+        "\u03bcm".format(
             fh, fv
         )
     )

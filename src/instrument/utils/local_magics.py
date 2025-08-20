@@ -1,5 +1,8 @@
 from bluesky.magics import (
-    BlueskyMagics, _print_devices, is_positioner, get_labeled_devices
+    BlueskyMagics,
+    _print_devices,
+    is_positioner,
+    # get_labeled_devices,
 )
 from IPython.core.magic import line_magic, magics_class
 from operator import attrgetter
@@ -16,34 +19,42 @@ try:
 except ImportError:
     from toolz import partition
 
+
 @magics_class
 class LocalMagics(BlueskyMagics):
 
-    #@line_magic
-    #def att(self, line):
+    # @line_magic
+    # def att(self, line):
     #    if len(line.split()) >1:
     #        raise TypeError("Wrong parameters. Expected: att position")
     #    elif len(line.split()) == 0:
     #        pass
-       
 
     @line_magic
     def wm(self, line):
         result = Table()
-        result.labels = ("Motor","Position", "Limits")
-        for arg in re.split(r'[, ]+',line):
+        result.labels = ("Motor", "Position", "Limits")
+        for arg in re.split(r"[, ]+", line):
             pos = eval(arg, self.shell.user_ns).user_readback.get()
             llm = eval(arg, self.shell.user_ns).low_limit_travel.get()
             hlm = eval(arg, self.shell.user_ns).high_limit_travel.get()
-            result.rows.append((eval(arg, self.shell.user_ns).name,f"{pos:.5f}", f"[{llm:.5f},{hlm:.5f}]"))
+            result.rows.append(
+                (
+                    eval(arg, self.shell.user_ns).name,
+                    f"{pos:.5f}",
+                    f"[{llm:.5f},{hlm:.5f}]",
+                )
+            )
         print("")
         print(result.reST(fmt="markdown"))
 
     @line_magic
     def mov(self, line):
         if len(line.split()) % 2 != 0:
-            raise TypeError("Wrong parameters. Expected: "
-                            "%mov motor position (or several pairs like that)")
+            raise TypeError(
+                "Wrong parameters. Expected: "
+                "%mov motor position (or several pairs like that)"
+            )
         args = []
         for motor, pos in partition(2, line.split()):
             args.append(eval(motor, self.shell.user_ns))
@@ -61,8 +72,10 @@ class LocalMagics(BlueskyMagics):
     @line_magic
     def movr(self, line):
         if len(line.split()) % 2 != 0:
-            raise TypeError("Wrong parameters. Expected: "
-                            "%mov motor position (or several pairs like that)")
+            raise TypeError(
+                "Wrong parameters. Expected: "
+                "%mov motor position (or several pairs like that)"
+            )
         args = []
         for motor, pos in partition(2, line.split()):
             args.append(eval(motor, self.shell.user_ns))
@@ -115,7 +128,10 @@ class LocalMagics(BlueskyMagics):
             else:
                 # Show all labels.
                 # labels = list(devices_dict.keys())
-                raise ValueError("Use labels like motor, detector, 4ida, 4idb, 4idg, 4idh, preamp, ")
+                raise ValueError(
+                    "Use labels like motor, detector, 4ida, 4idb, 4idg, 4idh, "
+                    "preamp, "
+                )
             for label in labels:
                 print(label)
                 try:
@@ -131,8 +147,7 @@ class LocalMagics(BlueskyMagics):
                     continue
                 # Search devices and all their children for positioners.
                 positioners = [
-                    dev for dev in devices + all_children
-                    if is_positioner(dev)
+                    dev for dev in devices + all_children if is_positioner(dev)
                 ]
                 if positioners:
                     _print_positioners(
@@ -185,8 +200,9 @@ def _print_positioners(positioners, sort=True, precision=6, prefix=""):
                 prec = precision
             value = round(v, decimals=prec)
             value = (
-                value if not isinstance(value, ndarray) else
-                str(value) if len(value) > 1 else value[0]
+                value
+                if not isinstance(value, ndarray)
+                else str(value) if len(value) > 1 else value[0]
             )
             try:
                 low_limit, high_limit = p.limits

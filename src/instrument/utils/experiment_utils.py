@@ -14,10 +14,11 @@ __all__ = """
     experiment
 """.split()
 
-from apstools.utils import (
-    dm_start_daq,
-    dm_get_experiment_datadir_active_daq,
-)
+# TODO: Temporarily removed
+# from apstools.utils import (
+#     dm_start_daq,
+#     dm_get_experiment_datadir_active_daq,
+# )
 from dm import ObjectNotFound, DmException
 from os import chdir
 from pathlib import Path
@@ -29,7 +30,7 @@ from .dm_utils import (
     get_proposal_info,
     get_experiment,
     dm_experiment_setup,
-    get_current_run_name
+    get_current_run_name,
 )
 from .run_engine import RE
 from ..callbacks.spec_data_file_writer import specwriter
@@ -41,7 +42,7 @@ iconfig = get_config()
 
 SERVERS = {
     "dserv": Path(iconfig["DSERV_ROOT_PATH"]),
-    "data management": Path(iconfig["DM_ROOT_PATH"])
+    "data management": Path(iconfig["DM_ROOT_PATH"]),
 }
 
 path_startup = Path("startup_experiment.py")
@@ -85,8 +86,8 @@ class ExperimentClass:
             )
         return (
             Path(self.base_experiment_path) / self.sample
-            if not windows else
-            Path(self.windows_base_experiment_path) / self.sample
+            if not windows
+            else Path(self.windows_base_experiment_path) / self.sample
         )
 
     @experiment_path.setter
@@ -117,7 +118,7 @@ class ExperimentClass:
         output += f"Current experiment folder: {self.experiment_path}\n"
         output += f"Spec file name: {self.spec_file}\n"
 
-        _id = RE.md.get('scan_id', None)
+        _id = RE.md.get("scan_id", None)
         _id = _id + 1 if isinstance(_id, int) else None
         output += f"Next Bluesky scan_id: {_id}\n"
 
@@ -214,10 +215,13 @@ class ExperimentClass:
         _server_options = str(tuple(SERVERS.keys()))
         guess = self.server or list(SERVERS.keys())[0]
         while True:
-            self.server = (server or input(
+            self.server = (
+                server
+                or input(
                     "Which data server will be used? options - "
                     f"{_server_options} [{guess}]: "
-                ) or guess
+                )
+                or guess
             )
 
             if self.server.strip().lower() not in _server_options:
@@ -230,7 +234,8 @@ class ExperimentClass:
         guess = self.experiment_name or None
         while True:
             self.experiment_name = experiment_name = (
-                experiment_name or input(f"Enter experiment name ({guess}): ")
+                experiment_name
+                or input(f"Enter experiment name ({guess}): ")
                 or guess
             )
             if experiment_name is None:
@@ -243,10 +248,15 @@ class ExperimentClass:
         try:
             _exp = get_experiment(experiment_name)
             while True:
-                _reuse = input(
-                    "This experiment name already exist. Do you want to "
-                    "re-use this experiment? [no]: "
-                ).lower().strip() or "no"
+                _reuse = (
+                    input(
+                        "This experiment name already exist. Do you want to "
+                        "re-use this experiment? [no]: "
+                    )
+                    .lower()
+                    .strip()
+                    or "no"
+                )
                 if _reuse not in "yes no".split():
                     print("Answer must be yes or no.")
                 else:
@@ -256,10 +266,18 @@ class ExperimentClass:
                 return False
         except ObjectNotFound:
             while True:
-                _new_exp = (input(
-                    f"\tExperiment {experiment_name} does not exist in DM. "
-                    "Do you want to create a new experiment? [yes]: "
-                ) or "yes").lower().strip()
+                _new_exp = (
+                    (
+                        input(
+                            f"\tExperiment {experiment_name} does not exist in "
+                            "DM. Do you want to create a new experiment? "
+                            "[yes]: "
+                        )
+                        or "yes"
+                    )
+                    .lower()
+                    .strip()
+                )
                 if _new_exp not in "yes no".strip():
                     print("\tAnswer must be yes or no.")
                 else:
@@ -270,12 +288,9 @@ class ExperimentClass:
                 self.server = "dserv"
             else:
                 _esaf_id = (
-                    self.esaf["esafId"] if isinstance(self.esaf, dict) else
-                    None
+                    self.esaf["esafId"] if isinstance(self.esaf, dict) else None
                 )
-                _exp, _ = dm_experiment_setup(
-                    experiment_name, esaf_id=_esaf_id
-                )
+                _exp, _ = dm_experiment_setup(experiment_name, esaf_id=_esaf_id)
 
         if self.server == "data management":
             self.data_management = dict(_exp)
@@ -290,11 +305,11 @@ class ExperimentClass:
 
         dm_experiment_name *str*:
         """
-        data_directory = f"@voyager:{self.base_experiment_path}"
-
         # TODO: 07/15/2025
         # The normal behavior is to start the DAQ, but currently this
         # changes files permissions, and prevents us from saving new files.
+
+        # data_directory = f"@voyager:{self.base_experiment_path}"
 
         # Check DM DAQ is running for this experiment, if not then start it.
         # if dm_get_experiment_datadir_active_daq(
@@ -320,10 +335,14 @@ class ExperimentClass:
         if isinstance(reset_scan_id, type(None)):
             while True:
                 reset_scan_id = (
-                    reset_scan_id
-                    or input("Reset Bluesky scan_id to 1? [yes]: ")
-                    or "yes"
-                ).strip().lower()
+                    (
+                        reset_scan_id
+                        or input("Reset Bluesky scan_id to 1? [yes]: ")
+                        or "yes"
+                    )
+                    .strip()
+                    .lower()
+                )
                 if reset_scan_id not in "yes no".split():
                     print("Answer must be yes or no.")
                     reset_scan_id = None
@@ -347,11 +366,7 @@ class ExperimentClass:
         specwriter.newfile(fname)
         self.spec_file = specwriter.spec_filename.name
 
-    def load_from_bluesky(
-            self,
-            reset_scan_id: int = -1,
-            skip_DM: bool = False
-    ):
+    def load_from_bluesky(self, reset_scan_id: int = -1, skip_DM: bool = False):
         kwargs = {}
         for key in (
             "esaf_id",
@@ -359,15 +374,11 @@ class ExperimentClass:
             "base_name",
             "sample",
             "server",
-            "experiment_name"
+            "experiment_name",
         ):
             kwargs[key] = RE.md[key]
 
-        self.setup(
-            reset_scan_id=reset_scan_id,
-            skip_DM=skip_DM,
-            **kwargs
-        )
+        self.setup(reset_scan_id=reset_scan_id, skip_DM=skip_DM, **kwargs)
 
     def save_params_to_yaml(self):
         pass
@@ -376,15 +387,15 @@ class ExperimentClass:
         pass
 
     def setup(
-            self,
-            esaf_id: int = None,
-            proposal_id: int = None,
-            base_name: str = None,
-            sample: str = None,
-            server: str = None,
-            experiment_name: str = None,
-            reset_scan_id: int = None,
-            skip_DM: bool = False
+        self,
+        esaf_id: int = None,
+        proposal_id: int = None,
+        base_name: str = None,
+        sample: str = None,
+        server: str = None,
+        experiment_name: str = None,
+        reset_scan_id: int = None,
+        skip_DM: bool = False,
     ):
         self.dm_experiment = _get_dm_experiment()
         if not skip_DM:
@@ -414,13 +425,13 @@ class ExperimentClass:
         # if self.data_management:  # TODO: Not sure why I used this before.
         if self.server == "data management":
             self.base_experiment_path = self.data_management["dataDirectory"]
-            self.setup_dm_daq() # TODO: NEED TO IMPORT DATA MANAGEMETN SETUP
+            self.setup_dm_daq()  # TODO: NEED TO IMPORT DATA MANAGEMETN SETUP
             self.windows_experiment_path = None  # windows cannot see DM?
         else:
             self.base_experiment_path = (
-                SERVERS[self.server] /
-                get_current_run_name() /
-                self.experiment_name
+                SERVERS[self.server]
+                / get_current_run_name()
+                / self.experiment_name
             )
             # self.windows_base_experiment_path = (
             #     rf"{SERVERS[self.server + '_windows']}"
@@ -432,7 +443,7 @@ class ExperimentClass:
 
         self.setup_path()
         self.base_name_input(base_name)
-        self.scan_number_input(reset_scan_id)  #TODO: change the default to NO
+        self.scan_number_input(reset_scan_id)  # TODO: change the default to NO
 
         self.start_specwriter()
 
@@ -458,10 +469,10 @@ class ExperimentClass:
         #         f.write(f"RE.md['sample']='{sample}'\n")
 
     def change_sample(
-            self,
-            sample_name: str = None,
-            base_name: str = None,
-            reset_scan_id: int = None
+        self,
+        sample_name: str = None,
+        base_name: str = None,
+        reset_scan_id: int = None,
     ):
         self.sample_input(sample_name)
         self.setup_path()
@@ -470,15 +481,15 @@ class ExperimentClass:
         self.start_specwriter()
 
     def __call__(
-            self,
-            esaf_id: int = None,
-            proposal_id: int = None,
-            base_name: str = None,
-            sample: str = None,
-            server: str = None,
-            experiment_name: str = None,
-            reset_scan_id: int = None,
-            skip_DM: bool = False
+        self,
+        esaf_id: int = None,
+        proposal_id: int = None,
+        base_name: str = None,
+        sample: str = None,
+        server: str = None,
+        experiment_name: str = None,
+        reset_scan_id: int = None,
+        skip_DM: bool = False,
     ):
 
         self.setup(
@@ -489,7 +500,7 @@ class ExperimentClass:
             server,
             experiment_name,
             reset_scan_id,
-            skip_DM
+            skip_DM,
         )
 
 
@@ -497,14 +508,14 @@ experiment = ExperimentClass()
 
 
 def experiment_setup(
-        esaf_id: int = None,
-        proposal_id: int = None,
-        base_name: str = None,
-        sample: str = None,
-        server: str = None,
-        experiment_name: str = None,
-        reset_scan_id: int = None,
-        skip_DM: bool = False
+    esaf_id: int = None,
+    proposal_id: int = None,
+    base_name: str = None,
+    sample: str = None,
+    server: str = None,
+    experiment_name: str = None,
+    reset_scan_id: int = None,
+    skip_DM: bool = False,
 ):
     experiment.setup(
         esaf_id,
@@ -514,14 +525,12 @@ def experiment_setup(
         server,
         experiment_name,
         reset_scan_id,
-        skip_DM
+        skip_DM,
     )
 
 
 def experiment_change_sample(
-    sample_name: str = None,
-    base_name: str = None,
-    reset_scan_id: int = None
+    sample_name: str = None, base_name: str = None, reset_scan_id: int = None
 ):
     experiment.sample_input(sample_name)
     experiment.setup_path()
@@ -533,6 +542,4 @@ def experiment_load_from_bluesky(
     reset_scan_id: int = -1,
     skip_DM: bool = False,
 ):
-    experiment.load_from_bluesky(
-        reset_scan_id, skip_DM
-    )
+    experiment.load_from_bluesky(reset_scan_id, skip_DM)
