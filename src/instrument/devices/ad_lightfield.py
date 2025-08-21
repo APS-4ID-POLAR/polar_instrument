@@ -278,6 +278,16 @@ class LightFieldDetector(MySingleTrigger, DetectorBase):
         self.hdf1.stage_sigs.pop("enable")
         self.hdf1.stage_sigs["num_capture"] = 0
         self.hdf1.stage_sigs["capture"] = 1
+        
+        self.hdf1.warmup_signals = [
+            (self.hdf1.enable, 1),
+            (self.hdf1.parent.cam.array_callbacks, 1),  # set by number
+            (self.hdf1.parent.cam.image_mode, 0),  # Single, set by number
+            (self.hdf1.parent.cam.trigger_mode, 1),
+            (self.hdf1.parent.cam.acquire_time, 0.01),
+            (self.hdf1.parent.cam.acquire, 1),  # set by number
+        ]
+
 
     def setup_images(
         self, base_path, name_template, file_number, flyscan=False

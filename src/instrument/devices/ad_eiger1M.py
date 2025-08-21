@@ -3,12 +3,12 @@
 from ophyd import ADComponent, Staged
 from ophyd.status import wait as status_wait, SubscriptionStatus
 from ophyd.areadetector import DetectorBase
-from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
 from apstools.utils import run_in_thread
 from pathlib import Path
 from time import time as ttime, sleep
 from .ad_mixins import (
     EigerDetectorCam,
+    TriggerBase,
     CodecPlugin,
     ImagePlugin,
     ROIPlugin,
@@ -16,46 +16,8 @@ from .ad_mixins import (
     PolarHDF5Plugin,
     ProcessPlugin,
     TransformPlugin,
+    ADTriggerStatus
 )
-
-
-# TODO: THIS IS A TEMPORARY WORKAROUND
-class MyADTriggerStatus(ADTriggerStatus):
-    def _notify_watchers(self, value, *args, **kwargs):
-        # *args and **kwargs catch extra inputs from pyepics, not needed here
-        if self.done:
-            self.device.cam.array_counter.clear_sub(self._notify_watchers)
-        if not self._watchers:
-            return
-        # Always start progress bar at 0 regardless of starting value of
-        # array_counter.
-        current = value - self._initial_count
-        target = self._target_count
-        initial = 0
-        time_elapsed = ttime() - self.start_ts
-        try:
-            fraction = 1 - (current - initial) / (target - initial)
-            if fraction == 0:
-                fraction = 1
-        except ZeroDivisionError:
-            fraction = 0
-        except Exception:
-            fraction = None
-            time_remaining = None
-        else:
-            time_remaining = time_elapsed / fraction
-        for watcher in self._watchers:
-            watcher(
-                name=self._name,
-                current=current,
-                initial=initial,
-                target=target,
-                unit="images",
-                precision=0,
-                fraction=fraction,
-                time_elapsed=time_elapsed,
-                time_remaining=time_remaining,
-            )
 
 
 class TriggerTime(TriggerBase):
@@ -63,7 +25,7 @@ class TriggerTime(TriggerBase):
     This trigger mixin class takes one acquisition per trigger.
     """
 
-    _status_type = MyADTriggerStatus
+    _status_type = ADTriggerStatus
 
     def __init__(self, *args, image_name=None, min_period=0.2, **kwargs):
         super().__init__(*args, **kwargs)
@@ -278,6 +240,15 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.setup_manual_trigger()
         self.save_images_off()
         self.plot_stats1()
+
+        self.hdf1.warmup_signals = [
+            (self.hdf1.enable, 1),
+            (self.hdf1.parent.cam.array_callbacks, 1),  # set by number
+            (self.hdf1.parent.cam.image_mode, 0),  # Single, set by number
+            (self.hdf1.parent.cam.trigger_mode, 1),
+            (self.hdf1.parent.cam.acquire_time, 0.01),
+            (self.hdf1.parent.cam.acquire, 1),  # set by number
+        ]
 
     def plot_all(self):
         self.plot_select([1, 2, 3, 4, 5])

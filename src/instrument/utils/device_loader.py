@@ -5,6 +5,8 @@ from apsbits.core.instrument_init import oregistry
 from apstools.utils import dynamic_import
 from logging import getLogger
 import sys
+from time import sleep
+from collections import OrderedDict
 from .run_engine import sd
 
 logger = getLogger(__name__)
@@ -203,6 +205,21 @@ def connect_device(device, baseline=None, raise_error=True):
                     sd.baseline.remove(dev)
 
             sd.baseline.append(device)
+        
+        cam = getattr(device, "cam", None)
+        if cam is not None:
+            cam.stage_sigs["wait_for_plugins"] = "Yes"
+            for nm in device.component_names:
+                item = getattr(device, nm)
+                if "blocking_callbacks" in dir(item):  # is it a plugin?
+                    item.stage_sigs["blocking_callbacks"] = "No"
+
+        hdf1 = getattr(device, "hdf1", None)
+        if hdf1 is not None:
+            if device.connected:
+                if not AD_plugin_primed(hdf1):
+                    AD_prime_plugin2(hdf1)
+
     except TimeoutError:
         message = (
             f"Device {device.name} is disconnected, removing it from oregistry."
@@ -288,3 +305,34 @@ def load_device(name, file=None):
     logger.info("Adding device %r to the main namespace", name)
     namespace = sys.modules[MAIN_NAMESPACE]
     setattr(namespace, name, device)
+
+
+
+def AD_plugin_primed(plugin):
+    """
+    Modification of the APS AD_plugin_primed for Vortex.
+
+    Uses the timestamp = 0 as a sign of an unprimed plugin. Not sure this is
+    generic.
+    """
+
+    return plugin.time_stamp.get() != 0
+
+
+def AD_prime_plugin2(plugin):
+    """
+    Modification of the APS AD_plugin_primed.
+
+    It was 
+    """
+    if AD_plugin_primed(plugin):
+        logger.debug("'%s' plugin is already primed", plugin.name)
+        return
+
+    if getattr(plugin, "warmup", None) is not None:
+        plugin.warmup()
+    else:
+        logger.warning(
+            f"Warmup function not found at {plugin.name}.warmup(). The HDF5 "
+            "plugin of this area detector may need to be manually warmed up."
+        )

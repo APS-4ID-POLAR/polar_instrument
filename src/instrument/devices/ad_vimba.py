@@ -9,11 +9,15 @@ from ophyd.areadetector import (
     ADComponent,
     EpicsSignalWithRBV,
 )
-from ophyd.areadetector.trigger_mixins import ADTriggerStatus
 from pathlib import Path
 from time import time as ttime
-from .ad_mixins import PolarHDF5Plugin, StatsPlugin, ROIPlugin, TriggerBase
-
+from .ad_mixins import (
+    PolarHDF5Plugin,
+    StatsPlugin,
+    ROIPlugin,
+    TriggerBase,
+    ADTriggerStatus
+)
 
 class Trigger(TriggerBase):
     """
@@ -248,7 +252,8 @@ class VimbaDetector(Trigger, DetectorBase):
         self.hdf1.create_directory.put(-2)
         self.hdf1.num_capture.put(0)
 
-        self.hdf1.stage_sigs.pop("enable")
+        if "enable" in self.hdf1.stage_sigs.keys():
+            self.hdf1.stage_sigs.pop("enable")
         self.hdf1.stage_sigs["num_capture"] = 0
         self.hdf1.stage_sigs["capture"] = 1
 
@@ -257,6 +262,15 @@ class VimbaDetector(Trigger, DetectorBase):
         self.auto_save_off()
         self.plot_roi1()
         self.hdf1.enable.subscribe(self.hdf1._setup_kind, run=False)
+
+        self.hdf1.warmup_signals = [
+            (self.hdf1.enable, 1),
+            (self.hdf1.file_name, "warmup_file"),
+            (self.hdf1.parent.cam.array_callbacks, 1),  # set by number
+            (self.hdf1.parent.cam.image_mode, 0),  # Single, set by number
+            (self.hdf1.parent.cam.acquire_time, 0.01),
+            (self.hdf1.parent.cam.acquire, 1),  # set by number
+        ]
 
     def plot_select(self, rois):
         """

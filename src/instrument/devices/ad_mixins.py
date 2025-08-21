@@ -1,6 +1,13 @@
 """AD mixins"""
 
-from ophyd import ADComponent, EpicsSignal, Signal, Component, BlueskyInterface
+from ophyd import (
+    ADComponent,
+    EpicsSignal,
+    Signal,
+    Component,
+    BlueskyInterface,
+    OphydObject
+)
 from ophyd.areadetector import (
     EigerDetectorCam,
     Xspress3DetectorCam,
@@ -21,10 +28,18 @@ from ophyd.areadetector.plugins import (
     TransformPlugin_V34,
 )
 from ophyd.areadetector.filestore_mixins import FileStoreBase
+from ophyd.areadetector.trigger_mixins import (
+    ADTriggerStatus as ophyd_ADTriggerStatus
+)
 from apstools.devices import CamMixin_V34
 from os.path import isfile
 from itertools import count
 from pathlib import Path
+from collections import OrderedDict
+from logging import getLogger
+from time import sleep, time as ttime
+
+logger = getLogger(__name__)
 
 USE_DM_PATH = True
 DM_ROOT_PATH = "/gdata/dm/4IDD"
@@ -458,6 +473,7 @@ class PolarHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
             *args, write_path_template=write_path_template, **kwargs
         )
         # self.enable.subscribe(self._setup_kind, run=False)
+        self._warmup_signals = []
 
     def _setup_kind(self, value, **kwargs):
         if value in (True, 1, "on", "Enable"):
@@ -474,6 +490,43 @@ class PolarHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
         if self.autosave.get() in (True, 1, "on", "Enable"):
             self.parent.save_images_off()
         super().unstage()
+
+    @property
+    def warmup_signals(self):
+        return OrderedDict(self._warmup_signals)
+    
+    @warmup_signals.setter
+    def warmup_signals(self, values):
+        try:
+            for (sig, _) in list(values):
+                if not isinstance(sig, OphydObject):
+                    raise ValueError(
+                        "warmup signal must be a list of "
+                        "(OphydObject, value) tuples."
+                    )
+            self._warmup_signals = values
+        except TypeError:
+            raise TypeError(
+                "warmup signal must be a list of (signal, value) tuples."
+            )
+
+    def warmup(self):
+        if len(self.warmup_signals) == 0:
+            logger.warning(
+                f"The there are no warmup signals for {self.parent.name}"
+            )
+
+        original_vals = {sig: sig.get() for sig in self.warmup_signals}
+
+        for sig, val in self.warmup_signals.items():
+            sleep(0.1)  # abundance of caution
+            sig.set(val).wait()
+
+        sleep(2)  # wait for acquisition
+
+        for sig, val in reversed(list(original_vals.items())):
+            sleep(0.1)
+            sig.set(val).wait()
 
 
 class TriggerBase(BlueskyInterface):
@@ -514,3 +567,41 @@ class TriggerBase(BlueskyInterface):
     @property
     def _acquire_busy_signal(self):
         return getattr(self, self._acquire_busy_signal_dev)
+
+
+class ADTriggerStatus(ophyd_ADTriggerStatus):
+    def _notify_watchers(self, value, *args, **kwargs):
+        # *args and **kwargs catch extra inputs from pyepics, not needed here
+        if self.done:
+            self.device.cam.array_counter.clear_sub(self._notify_watchers)
+        if not self._watchers:
+            return
+        # Always start progress bar at 0 regardless of starting value of
+        # array_counter.
+        current = value - self._initial_count
+        target = self._target_count
+        initial = 0
+        time_elapsed = ttime() - self.start_ts
+        try:
+            fraction = 1 - (current - initial) / (target - initial)
+        except ZeroDivisionError:
+            fraction = 0
+        except Exception:
+            fraction = None
+            time_remaining = None
+        else:
+            time_remaining = (
+                None if fraction == 0 else time_elapsed / fraction
+            )
+        for watcher in self._watchers:
+            watcher(
+                name=self._name,
+                current=current,
+                initial=initial,
+                target=target,
+                unit="images",
+                precision=0,
+                fraction=fraction,
+                time_elapsed=time_elapsed,
+                time_remaining=time_remaining,
+            )
