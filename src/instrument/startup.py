@@ -103,6 +103,12 @@ else:
     from .utils.dm_utils import *  # noqa: F401, F403
     from .utils.experiment_utils import *  # noqa: F401, F403
     from .utils.hkl_utils import *  # noqa: F401, F403
+
+    # TODO: DM, hklpy, experiment_utils seems to be changing the
+    # logging level. I don't know why.
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+
     from .utils.polartools_hklpy_imports import *  # noqa: F401, F403
     from .utils.oregistry_auxiliar import get_devices  # noqa: F401
     from .utils.load_vortex import load_vortex  # noqa: F401
@@ -112,9 +118,6 @@ else:
         find_loadable_devices,
         connect_device
     )
-    # TODO: Both DM, hklpy, experiment_utils seems to be changing the
-    # logging level. I don't know why.
-    logger.setLevel(logging.BSDEV)
 
     from .plans import *  # noqa: F401, F403
 
