@@ -6,8 +6,9 @@ from apstools.utils import dynamic_import
 from logging import getLogger
 import sys
 from time import sleep
-from collections import OrderedDict
-from .run_engine import sd
+from apsbits.core.instrument_init import make_devices
+from ophyd import OphydObject
+from .run_engine import sd, RE
 
 logger = getLogger(__name__)
 
@@ -310,20 +311,60 @@ def load_device(name, file=None):
 
 def AD_plugin_primed(plugin):
     """
-    Modification of the APS AD_plugin_primed for Vortex.
+    Determine whether an AreaDetector plugin is primed.
 
-    Uses the timestamp = 0 as a sign of an unprimed plugin. Not sure this is
-    generic.
+    This variant treats a time stamp of 0 as unprimed.
+
+    Parameters
+    ----------
+    plugin : object
+        The plugin device. Expected to provide:
+        - time_stamp: A signal-like object with a .get() method that returns
+          a numeric time stamp.
+
+    Returns
+    -------
+    bool
+        True if the plugin appears primed (time stamp != 0), False otherwise.
+
+    Notes
+    -----
+    This is a modification of the APS AD_plugin_primed heuristic. Using
+    time_stamp == 0 to indicate an unprimed state may not be generic across
+    all detectors.
     """
-
     return plugin.time_stamp.get() != 0
 
 
 def AD_prime_plugin2(plugin):
     """
-    Modification of the APS AD_plugin_primed.
+    Prime (warm up) the HDF5 AreaDetector plugin if it is not already primed.
 
-    It was 
+    This function checks whether the given plugin has been primed using
+    AD_plugin_primed. If the plugin is not primed, it attempts to call the
+    plugin's warmup method when available. If no warmup method is present,
+    a warning is logged to indicate that manual warmup may be required.
+
+    Parameters
+    ----------
+    plugin : object
+        The AreaDetector plugin device to prime. Expected to have:
+        - name (str): Plugin name for logging.
+        - time_stamp (Signal-like): Used by AD_plugin_primed to determine
+          primed state.
+        - warmup (callable, optional): Method that performs the warmup.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    - Determination of the primed state is delegated to AD_plugin_primed(plugin).
+      For some detectors (e.g., Vortex), a time stamp of 0 is treated as
+      "unprimed."
+    - If the plugin is already primed, this function logs at debug level and
+      returns without performing any action.
     """
     if AD_plugin_primed(plugin):
         logger.debug("'%s' plugin is already primed", plugin.name)
@@ -336,3 +377,74 @@ def AD_prime_plugin2(plugin):
             f"Warmup function not found at {plugin.name}.warmup(). The HDF5 "
             "plugin of this area detector may need to be manually warmed up."
         )
+
+
+def reload_all_devices(file="devices.yml"):
+    """
+    Reload all devices from a configuration file and connect devices.
+
+    Parameters
+    ----------
+    file : str, optional
+        Path to the YAML devices configuration file. Defaults to "devices.yml".
+
+    Returns
+    -------
+    None
+        Creates devices and add them to the main namespace
+
+    Notes
+    -----
+    This function:
+    1. Invokes the `make_devices` plan with `clear=True` via the RunEngine to
+       rebuild and register devices from the specified configuration file.
+    2. Searches the registry for devices matching known station identifiers
+       ("source", "4ida", "4idb", "4idg", "4idh") and attempts to connect them
+       without raising errors on failure.
+    """
+
+    RE(make_devices(clear=True, file=file))  # Create the devices.
+
+    stations = ["source", "4ida", "4idb", "4idg", "4idh"]
+    for device in oregistry.findall(stations):
+        connect_device(device, raise_error=False)
+
+
+def remove_device(device):
+    """
+    Remove a device from the registry and the baseline list.
+
+    Parameters
+    ----------
+    device : OphydObject or str
+        The device instance to remove, or the registered name of the device.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    ValueError
+        If `device` is neither an OphydObject nor a string, or if a device
+        name is provided but no matching device is found in the registry.
+
+    Notes
+    -----
+    If a device name (str) is provided, the function looks up the device in
+    `oregistry`. The device is removed from `oregistry` and, if present, from
+    `sd.baseline`.
+    """
+    if isinstance(device, str):
+        dev_obj = oregistry.find(device, allow_none=True)
+        if dev_obj is None:
+            raise ValueError(
+                f"Could not find a device named {device!r} in the registry."
+            )
+        device = dev_obj
+    elif not isinstance(device, OphydObject):
+        raise ValueError("Input must be an ophyd device or a device name.")
+    
+    _ = oregistry.pop(device)
+    if device in sd.baseline:
+        sd.baseline.remove(device)

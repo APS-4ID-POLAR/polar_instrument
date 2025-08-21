@@ -114,9 +114,11 @@ else:
     from .utils.load_vortex import load_vortex  # noqa: F401
     from .utils.device_loader import (  # noqa: F401
         load_yaml_devices,
-        load_device,
         find_loadable_devices,
-        connect_device
+        load_device,
+        remove_device,
+        connect_device,
+        reload_all_devices,
     )
 
     from .plans import *  # noqa: F401, F403
