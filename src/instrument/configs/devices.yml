@@ -1,0 +1,344 @@
+# Guarneri-style device YAML configuration
+
+instrument.devices.aps_xbpm.MyXBPM:
+- name: aps_xbpm
+  prefix: S04
+  labels: ["source", "baseline"]
+
+instrument.devices.aps_undulator.PolarUndulatorPair:
+- name: undulators
+  prefix: "S04ID:"
+  labels: ["source", "energy device", "baseline"]
+
+instrument.devices.aps_status.StatusAPS:
+- name: status_aps
+  prefix: ""
+  labels: ["source", "status", "baseline"]
+
+instrument.devices.wb_slit.SlitDevice:
+- name: wbslt
+  prefix: '4idVDCM:'
+  motorsDict: {'hor': 'm9', 'diag': 'm10', 'pitch': 'm11', 'yaw': 'm12'}
+  slitnum: 1
+  labels: ["4ida", "slit", "baseline"]
+
+instrument.devices.hhl_mirror.ToroidalMirror:
+- name: hhl_mirror
+  prefix: "4idHHLM:"
+  labels: ["4ida", "mirror", "baseline"]
+
+instrument.devices.mono_feedback.MonoFeedback:
+- name: mono_feedback
+  prefix: "4idbSoft:"
+  labels: ["monochromator", "feedback", "baseline"]
+
+instrument.devices.monochromator.MonoDevice:
+- name: mono
+  prefix: "4idVDCM:"
+  labels: ["4ida", "monochromator", "energy device", "baseline"]
+
+instrument.devices.labjacks.CustomLabJackT7:
+- name: labjack_4ida
+  prefix: "4idaSoft:LJ:"
+  labels: ["4ida", "baseline"]
+
+- name: labjack_4idb
+  prefix: "4idbSoft:LJ:"
+  labels: ["4idb", "baseline"]
+
+instrument.devices.ad_vimba.VimbaDetector:
+- name: flagcam_hhl
+  prefix: "4idaPostMirrBeam:"
+  labels: ["4ida", "camera", "detector", "flag"]
+
+- name: flagcam_mono
+  prefix: "4idaPostMonoBeam:"
+  labels: ["4ida", "camera", "detector", "flag"]
+
+- name: flagcam_toro
+  prefix: "4idbPostToroBeam:"
+  labels: ["4idb", "camera", "detector", "flag"]
+
+# xray-eye vimba camera, normally on 4-ID-G/Huber-detector arm
+- name: flagcam_xeye
+  prefix: "4idXrayEye:"
+  labels: ["4idg", "camera", "detector", "flag"]
+
+ophyd.EpicsMotor:
+- name: flagmotor_hhl
+  prefix: "4idVDCM:m6"
+  labels: ["4ida", "motor", "flag", "baseline"]
+
+- name: flagmotor_mono
+  prefix: "4idVDCM:m7"
+  labels: ["4ida", "motor", "flag", "baseline"]
+
+- name: flagmotor_toro
+  prefix: "4idbSoft:m3"
+  labels: ["4idb", "motor", "flag", "baseline"]
+
+instrument.devices.jj_slits.SlitDevice:
+- name: monoslt
+  PV: "4idVDCM:"
+  motorsDict: {top: m14, bot: m13, out: m16, inb: m15}
+  slitnum: 2
+  labels: ["4ida", "slit", "baseline"]
+
+- name: bslt
+  PV: "4idbSoft:"
+  motorsDict: {top: m11, bot: m10, out: m13, inb: m12}
+  slitnum: 1
+  labels: ["4idb", "slit", "baseline"]
+
+- name: gslt
+  PV: "4idgSoft:"
+  motorsDict: {top: m44, bot: m43, out: m46, inb: m45}
+  slitnum: 1
+  labels: ["4idg", "slit", "baseline"]
+
+- name: hslt
+  PV: "4idhSoft:"
+  motorsDict: {top: m11, bot: m10, out: m12, inb: m13}
+  slitnum: 1
+  labels: ["4idh", "slit", "baseline"]
+
+# PRs prefix must be without :
+instrument.devices.phaseplates.PRDevice:
+- name: pr1
+  prefix: "4ida"
+  prnum: 1
+  motorsDict: {x: m1, y: m2, th: m4}
+  labels: ["4ida", "phase retarder", "energy device", "track_energy", "baseline"]
+
+- name: pr2
+  prefix: "4ida"
+  prnum: 2
+  motorsDict: {x: m6, y: m7, th: m9}
+  labels: ["4ida", "phase retarder", "energy device", "track_energy", "baseline"]
+
+instrument.devices.phaseplates.PRDeviceBase:
+- name: pr3
+  prefix: "4ida"
+  motorsDict: {x: m10, y: m11, th: m12}
+  labels: ["4ida", "phase retarder", "energy device", "track_energy", "baseline"]
+
+instrument.devices.energy_device.EnergySignal:
+- name: energy
+  value: 10
+  kind: hinted
+  labels: ["energy device", "baseline"]
+
+# This is messing up the logger.
+apstools.devices.DM_WorkflowConnector:
+- name: dm_workflow
+  labels: ["dm", "baseline"]
+
+ophyd.Signal:
+- name: dm_experiment
+  value: ""
+  labels: ["dm", "baseline"]
+
+instrument.devices.polar_status.Status4ID:
+- name: status_polar
+  prefix: "PA:04ID:"
+  labels: ["status", "baseline"]
+
+instrument.devices.shutters.PolarShutter:
+- name: ashutter
+  prefix: ""
+  state_pv: "PA:04ID:A_BEAM_PRESENT"
+  open_pv: "PC:04ID:FES_OPEN_REQUEST"
+  close_pv: "PC:04ID:FES_CLOSE_REQUEST"
+  labels: ["4ida", "shutter", "baseline"]
+
+apstools.devices.ApsPssShutterWithStatus:
+- name: bshutter
+  prefix: ""
+  state_pv: "PA:04ID:B_BEAM_PRESENT"
+  open_pv: "PC:04ID:SBS_OPEN_REQUEST"
+  close_pv: "PC:04ID:SBS_CLOSE_REQUEST"
+  labels: ["4idb", "shutter", "baseline"]
+
+# instrument.devices.scaler_dual_ctr8.DualCTR8Scaler:
+# - name: scaler
+#   prefix1: "4idCTR8_1:scaler1"
+#   prefix2: "4idCTR8_1:scaler2"
+#   labels: ["detector", "scaler", "4idb", "4idg", "4idh"]
+
+instrument.devices.scaler.LocalScalerCH:
+- name: scaler1
+  prefix: "4idCTR8_1:scaler1"
+  labels: ["detector", "scaler", "4idb", "4idg"]
+
+- name: scaler2
+  prefix: "4idCTR8_1:scaler2"
+  labels: ["detector", "scaler", "4idh"]
+
+instrument.devices.usb_ctr8.CustomMeasCompCtr:
+- name: ctr8
+  prefix: "4idCTR8_1:"
+  labels: ["detector", "4idb", "4idg", "4idh", "baseline"]
+
+instrument.devices.diamond_window_table.WindowStages:
+- name: diamond_window
+  prefix: "4idbSoft:"
+  labels: ["4ida", "baseline"]
+
+instrument.devices.table_4idb.Table4idb:
+- name: midtable_4idb
+  prefix: "4idbSoft:"
+  labels: ["4idb", "baseline"]
+
+instrument.devices.quadems.TetrAMMRO:
+- name: btetramm
+  prefix: "4idbSoft:TetrAMM:"
+  labels: ["detector", "xbpm", "baseline", "4idb"]
+
+instrument.devices.quadems.SydorEMRO:
+- name: gsydor
+  prefix: "4idgSydor:T4U_BPM:"
+  labels: ["detector", "xbpm", "baseline", "4idg"]
+
+- name: hsydor
+  prefix: "4idhSydor:T4U_BPM:"
+  labels: ["detector", "xbpm", "baseline", "4idh"]
+
+instrument.devices.polarimeter.PolAnalyzer:
+- name: pol
+  prefix: "4idbSoft:"
+  labels: ["4idb", "baseline"]
+
+instrument.devices.filters_device.APSFilter:
+- name: bfilter
+  prefix: "4idbSoft:filter:"
+  labels: ["4idb", "filter", "baseline"]
+
+instrument.devices.chopper_device.ChopperDevice:
+- name: chopper
+  prefix: "4idChopper:"
+  labels: ["4idb", "baseline"]
+
+instrument.devices.kb_mirrors.KBMirror:
+- name: bkb
+  prefix: "4idbSoft:"
+  labels: ["4idb", "optics", "baseline"]
+
+instrument.devices.electromagnet.Magnet2T:
+- name: emag
+  prefix: ""
+  labels: ["4idb", "magnet", "baseline"]
+
+instrument.devices.xbpm_4idg.XBPM:
+- name: gxbpm
+  prefix: "4idgSoft:"
+  labels: ["4idg", "baseline"]
+
+instrument.devices.transfocator_device.TransfocatorClass:
+- name: transfocator
+  prefix: "4idPyCRL:CRL4ID:"
+  labels: ["4idg", "optics", "track_energy", "baseline"]
+
+instrument.devices.filters_device_avs.APSFilter:
+- name: gfilter
+  prefix: "4idPyFilter:FL1:"
+  labels: ["4idg", "filter", "baseline"]
+
+instrument.devices.kb_4idg.KBDevice:
+- name: gkb
+  prefix: "4idgKB:"
+  labels: ["4idg", "optics", "baseline", "kb"]
+
+apstools.devices.LakeShore336Device:
+- name: temp_4idg
+  prefix: "4idgSoft:LS336:cryo:"
+  labels: ["4idg", "temperature", "baseline"]
+
+instrument.devices.polar_diffractometer.CradleDiffractometer:
+- name: huber_euler
+  prefix: "4idgSoft:"
+  labels: ["4idg", "diffractometer", "baseline"]
+
+instrument.devices.polar_diffractometer.HPDiffractometer:
+- name: huber_hp
+  prefix: "4idgSoft:"
+  labels: ["4idg", "diffractometer", "baseline"]
+
+instrument.devices.polar_diffractometer.CradlePSI:
+- name: huber_euler_psi
+  prefix: "4idgSoft:"
+  engine: psi
+  labels: ["4idg", "diffractometer", "baseline"]
+
+instrument.devices.polar_diffractometer.HPPSI:
+- name: huber_hp_psi
+  prefix: "4idgSoft:"
+  engine: psi
+  labels: ["4idg", "diffractometer", "baseline"]
+
+instrument.devices.ad_eiger1M.Eiger1MDetector:
+- name: eiger
+  prefix: "4idEiger:"
+  labels: ["4idg", "detector"]
+
+instrument.devices.qxscan_device.QxscanParams:
+- name: qxscan_setup
+  labels: ["qxscan", "energy device", "baseline"]
+
+instrument.devices.table_4idh.Table4idh:
+- name: table_4idh
+  prefix: "4idhSoft:"
+  labels: ["4idh", "table", "baseline"]
+
+instrument.devices.xbpm_4idh.XBPM:
+- name: hxbpm
+  prefix: "4idhSoft:"
+  labels: ["4idh", "baseline"]
+
+instrument.devices.magnet_911.Magnet911:
+- name: magnet911
+  prefix: "4idhSoft:"
+  labels: ["4idh", "magnet", "baseline"]
+
+instrument.devices.preamps.LocalPreAmp:
+- name: preamp_4idbI0
+  prefix: "4idbSoft:A3"
+  labels: ["4idb", "preamp", "baseline"]
+
+- name: preamp_4idbI
+  prefix: "4idbSoft:A4"
+  labels: ["4idb", "preamp", "baseline"]
+
+- name: preamp_4idgI0
+  prefix: "4idgSoftX:A1"
+  labels: ["4idg", "preamp", "baseline"]
+
+- name: preamp_4idgI
+  prefix: "4idgSoftX:A2"
+  labels: ["4idg", "preamp", "baseline"]
+
+- name: preamp_4idhI0
+  prefix: "4idhSoft:A1"
+  labels: ["4idh", "preamp", "baseline"]
+
+- name: preamp_4idhI1
+  prefix: "4idhSoft:A2"
+  labels: ["4idh", "preamp", "baseline"]
+
+- name: preamp_4idhI2
+  prefix: "4idhSoft:A3"
+  labels: ["4idh", "preamp", "baseline"]
+
+instrument.devices.gh_i0_motors.I04idg:
+- name: i0g
+  prefix: "4idgSoft:"
+  labels: ["4idg", "baseline"]
+
+instrument.devices.gh_i0_motors.I04idh:
+- name: i0h
+  prefix: "4idhSoft:"
+  labels: ["4idh", "baseline"]
+
+instrument.devices.softgluezynq_vortex.SGZVortex:
+- name: "sgz_vortex"
+  prefix: "4iddMZ0:"
+  labels: ["detector", "4idg", "4idh"]

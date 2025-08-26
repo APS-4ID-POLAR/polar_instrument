@@ -9,9 +9,9 @@ aps_undulator:
   baseline: True
   timeout: 2
 
-aps_phase_shifter:
-  device: pshift
-  baseline: True
+# aps_phase_shifter:
+#   device: pshift
+#   baseline: True
 
 aps_status:
   device: status_aps

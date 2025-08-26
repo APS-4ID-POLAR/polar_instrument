@@ -1,8 +1,6 @@
 """
-Simulated polar
+Polar diffractometer
 """
-
-__all__ = ["huber_euler", "huber_hp", "huber_euler_psi", "huber_hp_psi"]
 
 from ophyd import (
     Component,
@@ -21,17 +19,13 @@ from numpy import arcsin, pi, sin, tan
 from .jj_slits import SlitDevice
 from .huber_filter import HuberFilter
 from ..utils.analyzer_utils import check_structure_factor, calcdhkl
-
-from ..utils import logger
+from pathlib import Path
 import gi
 
 gi.require_version("Hkl", "5.0")
 # MUST come before `import hkl`
-from hkl.geometries import ApsPolar
-from hkl.user import select_diffractometer
-import math
-
-logger.info(__file__)
+from hkl.geometries import ApsPolar  # noqa: E402
+import math  # noqa: E402
 
 # Constants
 WAVELENGTH_CONSTANT = 12.39
@@ -39,11 +33,10 @@ PTTH_MIN_DEGREES = 79
 PTTH_MAX_DEGREES = 101
 PTH_MIN_DEGREES = 39
 PTH_MAX_DEGREES = 51
-# TODO: Find a better way to get to this
-ANALYZER_LIST_PATH = (
-    "/home/beams17/POLAR/joerg/polar_instrument/src/instrument/devices/"
-    "analyzerlist.dat"
-)
+ANALYZER_LIST_PATH = Path(__file__).parent / "analyzerlist.dat"
+#     "/home/beams17/POLAR/joerg/polar_instrument/src/instrument/devices/"
+#     "analyzerlist.dat"
+# )
 
 
 class AnalyzerDevice(PseudoPositioner):
@@ -261,7 +254,7 @@ class SixCircleDiffractometer(ApsPolar):
     # HKL and 6C motors
     h = Component(PseudoSingle, "", labels=("hkl",))
     k = Component(PseudoSingle, "", labels=("hkl",))
-    l = Component(PseudoSingle, "", labels=("hkl",))
+    l = Component(PseudoSingle, "", labels=("hkl",))  # noqa: E741
 
     # 03/16/2025 - Tau is the whole diffractometer "theta" angle, but
     # it is not currently setup. m73 is a simulated motor.
@@ -316,6 +309,9 @@ class SixCircleDiffractometer(ApsPolar):
                 fields.extend(c_hints.get("fields", []))
         return {"fields": fields}
 
+    def default_settings(self):
+        self._update_calc_energy()
+
 
 class CradleDiffractometer(SixCircleDiffractometer):
     chi = Component(EpicsMotor, "m37", labels=("motor",))
@@ -331,8 +327,10 @@ class HPDiffractometer(SixCircleDiffractometer):
     phi = Component(EpicsMotor, "m6", labels=("motor",))
 
     basex = Component(EpicsMotor, "m7", labels=("motor",))
-    basey = Component(EpicsMotor, "m9", labels=("motor",))
-    basez = Component(EpicsMotor, "m8", labels=("motor",))
+    basey = Component(EpicsMotor, "SMBaseY", labels=("motor",))
+    basez = Component(EpicsMotor, "SMBaseZ", labels=("motor",))
+    basey_motor = Component(EpicsMotor, "m9", labels=("motor",))
+    basez_motor = Component(EpicsMotor, "m8", labels=("motor",))
 
     sample_tilt = Component(EpicsMotor, "m11", labels=("motor",))
 
@@ -341,13 +339,13 @@ class HPDiffractometer(SixCircleDiffractometer):
     z = Component(EpicsMotor, "m13", labels=("motor",))
 
     nanox = FormattedComponent(
-        EpicsMotor, "4idgSoftX:jena:m1", labels=("motors",)
+        EpicsMotor, "4idgSoftX:jena:m1", labels=("motor",)
     )
     nanoy = FormattedComponent(
-        EpicsMotor, "4idgSoftX:jena:m2", labels=("motors",)
+        EpicsMotor, "4idgSoftX:jena:m2", labels=("motor",)
     )
     nanoz = FormattedComponent(
-        EpicsMotor, "4idgSoftX:jena:m3", labels=("motors",)
+        EpicsMotor, "4idgSoftX:jena:m3", labels=("motor",)
     )
 
 
@@ -377,47 +375,3 @@ class CradlePSI(PolarPSI):
 class HPPSI(PolarPSI):
     chi = Component(EpicsMotor, "m5", labels=("motor",))
     phi = Component(EpicsMotor, "m6", labels=("motor",))
-
-
-huber_euler = CradleDiffractometer(
-    "4idgSoft:",
-    name="huber_euler",
-    labels=(
-        "4idg",
-        "diffractometer",
-    ),
-)
-
-
-huber_hp = HPDiffractometer(
-    "4idgSoft:",
-    name="huber_hp",
-    labels=(
-        "4idg",
-        "diffractometer",
-    ),
-)
-
-huber_euler_psi = CradlePSI(
-    "4idgSoft:",
-    name="huber_euler_psi",
-    engine="psi",
-    labels=(
-        "4idg",
-        "diffractometer",
-    ),
-)
-
-huber_hp_psi = CradlePSI(
-    "4idgSoft:",
-    name="huber_hp_psi",
-    engine="psi",
-    labels=(
-        "4idg",
-        "diffractometer",
-    ),
-)
-
-select_diffractometer(huber_euler)
-huber_euler._update_calc_energy()
-huber_euler_psi._update_calc_energy()

@@ -2,10 +2,14 @@ from importlib import import_module
 from time import time as ttime, sleep
 from ophyd.signal import ConnectionTimeoutError
 from collections import OrderedDict
-from .config import iconfig
-from .run_engine import sd
+# from .run_engine import sd
 from .oregistry_setup import oregistry
-from ._logging_setup import logger
+from apsbits.utils.config_loaders import get_config
+from logging import getLogger
+
+sd = []
+logger = getLogger(__name__)
+iconfig = get_config()
 
 TIMEOUT = iconfig.get("OPHYD", {}).get("TIMEOUTS", {}).get("PV_CONNECTION", 5)
 

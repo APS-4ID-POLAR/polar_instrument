@@ -73,9 +73,11 @@ AREA_DETECTOR:
 ### Uncomment to use.  If undefined, will not write that type of file.
 ### Each callback should apply its configuration from here.
 NEXUS_DATA_FILES:
+    ENABLE: true
     FILE_EXTENSION: hdf
     WARN_MISSING_CONTENT: false
 SPEC_DATA_FILES:
+    ENABLE: true
     FILE_EXTENSION: dat
 
 # ----------------------------------
@@ -84,7 +86,7 @@ OPHYD:
     ### Control layer for ophyd to communicate with EPICS.
     ### Default: PyEpics
     ### Choices: "PyEpics" or "caproto"
-    # CONTROL_LAYER: caproto
+    CONTROL_LAYER: PyEpics
 
     ### default timeouts (seconds)
     TIMEOUTS:
@@ -101,4 +103,4 @@ LOGGING:
     ### where PWD is present working directory when session is started
 
 # Control detail of exception traces in IPython (console and notebook).
-XMODE_DEBUG_LEVEL: Minimal
+XMODE_DEBUG_LEVEL: Plain

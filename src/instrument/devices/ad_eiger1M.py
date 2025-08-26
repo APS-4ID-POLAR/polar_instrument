@@ -1,47 +1,36 @@
-""" Eiger 1M setup """
+"""Eiger 1M setup"""
 
 from ophyd import ADComponent, Staged
 from ophyd.status import wait as status_wait, SubscriptionStatus
 from ophyd.areadetector import DetectorBase
-from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
 from apstools.utils import run_in_thread
 from pathlib import Path
 from time import time as ttime, sleep
 from .ad_mixins import (
     EigerDetectorCam,
+    TriggerBase,
     CodecPlugin,
     ImagePlugin,
     ROIPlugin,
     StatsPlugin,
     PolarHDF5Plugin,
     ProcessPlugin,
-    TransformPlugin
+    TransformPlugin,
+    ADTriggerStatus
 )
-from ..utils._logging_setup import logger
-from ..utils.config import iconfig
-logger.info(__file__)
-
-__all__ = ["eiger"]
-
-DEFAULT_FOLDER = Path(iconfig["AREA_DETECTOR"]["EIGER_1M"]["DEFAULT_FOLDER"])
-
-HDF1_NAME_TEMPLATE = iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"]
-HDF1_FILE_EXTENSION = iconfig["AREA_DETECTOR"]["HDF5_FILE_EXTENSION"]
-HDF1_NAME_FORMAT = HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION
-
-MAX_NUM_IMAGES = 600000
 
 
 class TriggerTime(TriggerBase):
     """
     This trigger mixin class takes one acquisition per trigger.
     """
+
     _status_type = ADTriggerStatus
 
     def __init__(self, *args, image_name=None, min_period=0.2, **kwargs):
         super().__init__(*args, **kwargs)
         if image_name is None:
-            image_name = '_'.join([self.name, 'image'])
+            image_name = "_".join([self.name, "image"])
         self._image_name = image_name
         self._acquisition_signal_pv = "cam.special_trigger_button"
         self._min_period = min_period
@@ -68,7 +57,8 @@ class TriggerTime(TriggerBase):
         self.cam.stage_sigs["manual_trigger"] = "Enable"
         self.cam.stage_sigs["num_images"] = 1
         self.cam.stage_sigs["num_exposures"] = 1
-        # TODO: I don't like this too much, would prefer that we set this for each scan.
+        # TODO: I don't like this too much, would prefer that we set this for
+        # each scan.
         self.cam.stage_sigs["num_triggers"] = int(1e5)
 
     def setup_external_trigger(self, trigger_type="gate"):
@@ -85,20 +75,20 @@ class TriggerTime(TriggerBase):
             self.cam.stage_sigs["num_images"] = 1
             self.cam.stage_sigs["num_exposures"] = 1
             # TODO: We may not need this.
-            self.cam.stage_sigs["num_triggers"] = MAX_NUM_IMAGES
+            self.cam.stage_sigs["num_triggers"] = self.max_num_images
 
         elif trigger_type == "gate":
 
             # Stage signals
             self.cam.stage_sigs["num_triggers"] = 1
-            # The num_triggers need to be the first in the Ordered dict! This is because
-            # in EPICS, if trigger_mode = External Gate, then cannot change the
-            # num_triggers.
+            # The num_triggers need to be the first in the Ordered dict! This is
+            # because in EPICS, if trigger_mode = External Gate, then cannot
+            # change the num_triggers.
             self.cam.stage_sigs.move_to_end("num_triggers", last=False)
 
             self.cam.stage_sigs["trigger_mode"] = "External Gate"
             self.cam.stage_sigs["manual_trigger"] = "Disable"
-            self.cam.stage_sigs["num_images"] = MAX_NUM_IMAGES
+            self.cam.stage_sigs["num_images"] = self.max_num_images
             self.cam.stage_sigs["num_exposures"] = 1
 
     def stage(self):
@@ -116,14 +106,12 @@ class TriggerTime(TriggerBase):
 
         def check_value(*, old_value, value, **kwargs):
             "Return True when detector is done"
-            return (value == "Ready" or value == "Acquisition aborted")
+            return value == "Ready" or value == "Acquisition aborted"
 
-        # When stopping the detector, it may take some time processing the images.
-        # This will block until it's done.
+        # When stopping the detector, it may take some time processing the
+        # images. This will block until it's done.
         status_wait(
-            SubscriptionStatus(
-                self.cam.status_message, check_value, timeout=10
-            )
+            SubscriptionStatus(self.cam.status_message, check_value, timeout=10)
         )
         self._flysetup = False
         self.setup_manual_trigger()
@@ -131,8 +119,10 @@ class TriggerTime(TriggerBase):
     def trigger(self):
         "Trigger one acquisition."
         if self._staged != Staged.yes:
-            raise RuntimeError("This detector is not ready to trigger."
-                               "Call the stage() method before triggering.")
+            raise RuntimeError(
+                "This detector is not ready to trigger."
+                "Call the stage() method before triggering."
+            )
 
         @run_in_thread
         def add_delay(status_obj, min_period):
@@ -152,14 +142,27 @@ class TriggerTime(TriggerBase):
 class Eiger1MDetector(TriggerTime, DetectorBase):
 
     _default_configuration_attrs = (
-        'roi1', 'roi2', 'roi3', 'roi4', 'codec', 'image',
+        "roi1",
+        "roi2",
+        "roi3",
+        "roi4",
+        "codec1",
+        "codec2",
+        "image",
     )
     _default_read_attrs = (
-        'cam', 'hdf1', 'stats1', 'stats2', 'stats3', 'stats4', 'stats5'
+        "cam",
+        "hdf1",
+        "stats1",
+        "stats2",
+        "stats3",
+        "stats4",
+        "stats5",
     )
 
     cam = ADComponent(EigerDetectorCam, "cam1:")
-    codec = ADComponent(CodecPlugin, "Codec1:")
+    codec1 = ADComponent(CodecPlugin, "Codec1:")
+    codec2 = ADComponent(CodecPlugin, "Codec2:")
     proc = ADComponent(ProcessPlugin, "Proc1:")
     trans = ADComponent(TransformPlugin, "Trans1:")
     image = ADComponent(ImagePlugin, "image1:")
@@ -174,6 +177,20 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
     stats3 = ADComponent(StatsPlugin, "Stats3:", kind="normal")
     stats4 = ADComponent(StatsPlugin, "Stats4:", kind="normal")
     stats5 = ADComponent(StatsPlugin, "Stats5:", kind="normal")
+
+    def __init__(
+        self,
+        *args,
+        default_folder="",
+        hdf1_name_template="%s/%s_%6.6d",
+        hdf1_file_extension="h5",
+        max_num_images=600000,
+        **kwargs,
+    ):
+        self.default_folder = default_folder
+        self.hdf1_name_format = hdf1_name_template + "." + hdf1_file_extension
+        self.max_num_images = max_num_images
+        super().__init__(*args, **kwargs)
 
     # Make this compatible with other detectors
     @property
@@ -212,8 +229,8 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.cam.trigger_mode.put("Internal Enable")
         self.cam.acquire.put(0)
 
-        self.hdf1.file_template.put(HDF1_NAME_FORMAT)
-        self.hdf1.file_path.put(str(DEFAULT_FOLDER))
+        self.hdf1.file_template.put(self.hdf1_name_format)
+        self.hdf1.file_path.put(str(self.default_folder))
         self.hdf1.num_capture.put(0)
 
         self.hdf1.stage_sigs.pop("enable")
@@ -223,6 +240,15 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.setup_manual_trigger()
         self.save_images_off()
         self.plot_stats1()
+
+        self.hdf1.warmup_signals = [
+            (self.hdf1.enable, 1),
+            (self.hdf1.parent.cam.array_callbacks, 1),  # set by number
+            (self.hdf1.parent.cam.image_mode, 0),  # Single, set by number
+            (self.hdf1.parent.cam.trigger_mode, 1),
+            (self.hdf1.parent.cam.acquire_time, 0.01),
+            (self.hdf1.parent.cam.acquire, 1),  # set by number
+        ]
 
     def plot_all(self):
         self.plot_select([1, 2, 3, 4, 5])
@@ -243,7 +269,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
         self.plot_select([5])
 
     def setup_images(
-            self, base_path, name_template, file_number, flyscan=False
+        self, base_path, name_template, file_number, flyscan=False
     ):
 
         self.hdf1.file_number.set(file_number).wait(timeout=10)
@@ -272,7 +298,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
             List with the stats numbers to be plotted.
         """
 
-        for i in range(1, 5+1):
+        for i in range(1, 5 + 1):
             getattr(self, f"stats{i}").total.kind = (
                 "hinted" if i in stats else "normal"
             )
@@ -285,7 +311,7 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
 
     @property
     def label_option_map(self):
-        return {f"Stats{i} Total": i for i in range(1, 5+1)}
+        return {f"Stats{i} Total": i for i in range(1, 5 + 1)}
 
     @property
     def plot_options(self):
@@ -295,6 +321,3 @@ class Eiger1MDetector(TriggerTime, DetectorBase):
     def select_plot(self, channels):
         chans = [self.label_option_map[i] for i in channels]
         self.plot_select(chans)
-
-
-eiger = Eiger1MDetector("4idEiger:", name="eiger", labels=("4idg", "detector",))

@@ -2,14 +2,13 @@
 APS filter support
 """
 
-__all__ = ["bfilter"]
-
-
 from ophyd import (
-    Component, DynamicDeviceComponent, Device, EpicsSignal, EpicsSignalRO
+    Component,
+    DynamicDeviceComponent,
+    Device,
+    EpicsSignal,
+    EpicsSignalRO,
 )
-from ..utils._logging_setup import logger
-logger.info(__file__)
 
 NUM_FILTERS = 12
 
@@ -25,10 +24,8 @@ class FilterSlot(Device):
 
 def make_filter_slots(num: int):
     defn = {}
-    for n in range(1, num+1):
-        defn[f"f{n}"] = (
-            FilterSlot, f"Fi{n}:", dict(kind="config")
-        )
+    for n in range(1, num + 1):
+        defn[f"f{n}"] = (FilterSlot, f"Fi{n}:", dict(kind="config"))
     return defn
 
 
@@ -64,8 +61,3 @@ class APSFilter(Device):
     # Configuration
     wait_time = Component(EpicsSignal, "WaitTime", kind="config")
     debug_level = Component(EpicsSignal, "Debug", kind="config")
-
-
-bfilter = APSFilter(
-    "4idbSoft:filter:", name="bfilter", labels=("4idb", "filter")
-)

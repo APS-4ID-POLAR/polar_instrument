@@ -4,7 +4,8 @@ Setup new user in Bluesky.
 
 from apstools.utils import dm_api_ds, dm_api_proc, dm_api_daq
 from apstools.utils.aps_data_management import (
-    DEFAULT_UPLOAD_TIMEOUT, DEFAULT_UPLOAD_POLL_PERIOD
+    DEFAULT_UPLOAD_TIMEOUT,
+    DEFAULT_UPLOAD_POLL_PERIOD,
 )
 
 from dm import (
@@ -13,16 +14,14 @@ from dm import (
     ExperimentDsApi,
     UserDsApi,
     ObjectAlreadyExists,
-    DmException
+    DmException,
 )
 from datetime import datetime
 from numpy import unique
 from pathlib import Path
 from time import time
 from bluesky.plan_stubs import sleep, null
-from ..devices.data_management import dm_workflow
-from ._logging_setup import logger
-logger.info(__file__)
+from apsbits.core.instrument_init import oregistry
 
 __all__ = """
     dm_get_experiment_data_path
@@ -47,20 +46,29 @@ DEFAULT_USERS = [
 ]
 
 
+def dm_workflow():
+    dm = oregistry.find("dm_workflow", allow_none=True)
+    if dm is None:
+        raise ValueError(
+            "The dm_workflow device was not found. Please load and register it."
+        )
+    return dm
+
+
 def dm_get_experiment_data_path(dm_experiment_name: str):
-    return Path(dm_api_ds().getExperimentByName(dm_experiment_name)["dataDirectory"])
+    return Path(
+        dm_api_ds().getExperimentByName(dm_experiment_name)["dataDirectory"]
+    )
 
 
 def get_processing_job_status(id=None, owner="user4idd"):
     if id is None:
-        id = dm_workflow.job_id.get()
+        id = dm_workflow().job_id.get()
     return dm_api_proc().getProcessingJobById(id=id, owner=owner)
 
 
 def dm_upload(experiment_name, folder_path, **daqInfo):
-    return dm_api_daq().upload(
-        experiment_name, folder_path, daqInfo
-    )
+    return dm_api_daq().upload(experiment_name, folder_path, daqInfo)
 
 
 def dm_upload_info(id):
@@ -78,7 +86,8 @@ def dm_upload_wait(
     PARAMETERS
 
     - Experiment id
-    - timeout *float*: Number of seconds to wait before raising a 'TimeoutError'.
+    - timeout *float*: Number of seconds to wait before raising a
+    'TimeoutError'.
     - poll_period *float*: Number of seconds to wait before check DM again.
 
     RAISES
@@ -97,9 +106,7 @@ def dm_upload_wait(
         else:
             return
 
-    raise TimeoutError(
-        f"DM upload timed out after {time()-t0 :.1f} s."
-    )
+    raise TimeoutError(f"DM upload timed out after {time()-t0 :.1f} s.")
 
 
 def list_esafs(year=datetime.now().year, sector="04"):
@@ -132,14 +139,15 @@ def get_current_run_name():
             "be wrong!"
         )
         from datetime import datetime
+
         now = datetime.now()
         for i, date in zip(
             (1, 2, 3),
             (
                 datetime(now.year, 5, 1),
                 datetime(now.year, 9, 15),
-                datetime(now.year+1, 1, 1)
-            )
+                datetime(now.year + 1, 1, 1),
+            ),
         ):
             if now < date:
                 run = f"{now.year}-{i}"
@@ -184,7 +192,7 @@ def create_dm_experiment(
         description=description,
         rootPath=rootPath,
         startDate=startDate,
-        endDate=endDate
+        endDate=endDate,
     )
 
 
@@ -193,9 +201,13 @@ def add_dm_users(experiment_name, users_name_list):
     output = []
     for user in ulist:
         try:
-            output.append(user_api.addUserExperimentRole(
-                username=user, roleName="User", experimentName=experiment_name
-            ))
+            output.append(
+                user_api.addUserExperimentRole(
+                    username=user,
+                    roleName="User",
+                    experimentName=experiment_name,
+                )
+            )
         except ObjectAlreadyExists:
             pass
     return output

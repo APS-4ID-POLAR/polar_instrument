@@ -43,26 +43,21 @@ from bluesky import RunEngineInterrupted
 from bluesky.utils import ProgressBarManager
 from bluesky.plan_stubs import mv
 from hkl.util import (
-    restore_sample, restore_constraints, restore_reflections, run_orientation_info
+    restore_sample,
+    restore_constraints,
+    restore_reflections,
+    run_orientation_info,
 )
-from hkl.user import current_diffractometer
-from polartools.manage_database import db_query
-from .run_engine import RE
-from ..devices.polar_diffractometer import huber_euler, huber_euler_psi
-from ..devices.simulated_fourc_vertical import fourc
-from ._logging_setup import logger
-
-from .catalog import full_cat
+from logging import getLogger
+from apsbits.core.instrument_init import oregistry
+from .run_engine import RE, cat
 from .polartools_hklpy_imports import pa
-
-cat = db_query(full_cat, dict(instrument_name = 'polar-4idg'))
 
 try:
     from hkl import cahkl
     from hkl.util import Lattice
     from hkl.user import (
         _check_geom_selected,
-        _geom_,
         select_diffractometer,
         current_diffractometer,
     )
@@ -73,13 +68,43 @@ except ModuleNotFoundError:
     print("gi module is not installed, the hkl_utils functions will not work!")
     cahkl = _check_geom_selected = _geom_ = None
 
-logger.info(__file__)
+logger = getLogger(__name__)
 
 polar_config = pathlib.Path("polar-config.json")
 fourc_config = pathlib.Path("fourc-config.json")
 pbar_manager = ProgressBarManager()
 _geom_for_psi_ = None
-POLAR_DIFFRACTOMETER = "huber"
+POLAR_DIFFRACTOMETER = "huber_euler"
+
+# TODO: THIS FILE NEEDS TO BE REVISED!!
+fourc = None
+
+
+def get_huber_euler():
+    huber_euler = oregistry.find("huber_euler", allow_none=True)
+    if huber_euler is None:
+        raise ValueError(
+            "Cannot find 'huber_euler' device. Please load and register it."
+        )
+    return huber_euler
+
+
+def get_huber_hp():
+    huber_hp = oregistry.find("huber_hp", allow_none=True)
+    if huber_hp is None:
+        raise ValueError(
+            "Cannot find 'huber_hp' device. Please load and register it."
+        )
+    return huber_hp
+
+
+def get_huber_euler_psi():
+    huber_euler = oregistry.find("huber_euler_psi", allow_none=True)
+    if huber_euler is None:
+        raise ValueError(
+            "Cannot find 'huber_euler_psi' device. Please load and register it."
+        )
+    return huber_euler
 
 
 def select_engine_for_psi(instrument=None):
@@ -89,6 +114,7 @@ def select_engine_for_psi(instrument=None):
         _geom_for_psi_ = instrument
     else:
         raise TypeError(f"{instrument} must be a 'Diffractometer' subclass")
+    return _geom_for_psi_
 
 
 def engine_for_psi():
@@ -102,21 +128,30 @@ def set_diffractometer(instrument=None):
     if instrument:
         diff = instrument.name
     elif instrument is None:
-        diff = (input("Diffractometer [polar or fourc] ({})? ".format(_geom_.name))) or _geom_.name
+        diff = (
+            input(
+                "Diffractometer [huber_euler, huber_hp or fourc] ({})? ".format(
+                    _geom_.name
+                )
+            )
+        ) or _geom_.name
     else:
         raise ValueError(
-            "either no argument or diffractometer polar or fourc to be provided."
+            "either no argument or diffractometer polar or fourc to be"
+            "provided."
         )
-    if diff == 'fourc':
+    if diff == "fourc":
         select_diffractometer(fourc)
         print("Diffractometer {} selected".format(diff))
-    elif diff == 'polar':
-        select_diffractometer(huber)
+    elif diff == "huber_euler":
+        select_diffractometer(get_huber_euler())
+        print("Diffractometer {} selected".format(diff))
+    elif diff == "huber_hp":
+        select_diffractometer(get_huber_hp())
         print("Diffractometer {} selected".format(diff))
     else:
-        raise ValueError(
-            "{} not an existing diffractometer".format(diff)
-        )
+        raise ValueError("{} not an existing diffractometer".format(diff))
+
 
 def sampleNew(*args):
     """
@@ -146,14 +181,12 @@ def sampleNew(*args):
         gamma = (input("Lattice gamma ({})? ".format(lattice[5]))) or lattice[5]
     else:
         raise ValueError(
-            "either no arguments or name, a, b, c, alpha, beta, gamma need to be provided."
+            "either no arguments or name, a, b, c, alpha, beta, gamma need to"
+            "be provided."
         )
 
     if nm in _geom_.calc._samples:
-        logger.warning(
-            ("Sample '%s' is already defined."),
-            nm,
-        )
+        logger.info(f"Sample '{nm}' is already defined.")
     else:
         lattice = Lattice(
             a=float(a),
@@ -227,14 +260,14 @@ def sampleNew(*args):
         )
         compute_UB()
         if POLAR_DIFFRACTOMETER in _geom_.name:
-            set_constraints('mu',-100,100)
-            set_constraints('gamma',-10,180)
-            set_constraints('delta',-20,60)
-            set_constraints('tau',-0.5,0.5)
+            set_constraints("mu", -100, 100)
+            set_constraints("gamma", -10, 180)
+            set_constraints("delta", -20, 60)
+            set_constraints("tau", -0.5, 0.5)
         if _geom_.name == "fourc":
-            set_constraints('omega',-100,100)
-            set_constraints('tth',-10,180)            
-        setaz(0,1,0)
+            set_constraints("omega", -100, 100)
+            set_constraints("tth", -10, 180)
+        setaz(0, 1, 0)
 
 
 def sampleChange(sample_key=None):
@@ -293,10 +326,11 @@ def sampleRemove(sample_key=None):
     except KeyError:
         print("Not a valid sample key")
 
+
 # In development
 """
 def sampleWrite(sample_key=None):
- 
+
     _geom_ = current_diffractometer()
     config = DiffractometerConfiguration(_geom_)
 
@@ -331,6 +365,8 @@ def eslave(selection=None):
         selection = int(input("\nEnter number: "))
 
 """
+
+
 def _sampleList():
     """List all samples currently defined in hklpy; specify  current one."""
 
@@ -345,7 +381,8 @@ def _sampleList():
         if len(orienting_refl) > 1:
             if len(_geom_.calc.physical_axes) == 6:
                 print(
-                    "\n{:>3}{:>4}{:>3}{:>3}{:>9}{:>9}{:>9}{:>9}{:>9}{:>9}".format(
+                    "\n{:>3}{:>4}{:>3}{:>3}{:>9}{:>9}{:>9}{:>9}{:>9}"
+                    "{:>9}".format(
                         "#",
                         "H",
                         "K",
@@ -378,7 +415,8 @@ def _sampleList():
                     pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
                     if len(_geom_.calc.physical_axes) == 6:
                         print(
-                            "{:>3}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}   ".format(
+                            "{:>3}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}"
+                            "{:>9.3f}{:>9.3f}{:>9.3f}   ".format(
                                 "or0",
                                 int(h),
                                 int(k),
@@ -393,7 +431,8 @@ def _sampleList():
                         )
                     elif len(_geom_.calc.physical_axes) == 4:
                         print(
-                            "{:>3}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}   ".format(
+                            "{:>3}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}"
+                            "{:>9.3f}   ".format(
                                 "or0",
                                 int(h),
                                 int(k),
@@ -414,7 +453,8 @@ def _sampleList():
                     pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
                     if len(_geom_.calc.physical_axes) == 6:
                         print(
-                            "{:>3}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}  ".format(
+                            "{:>3}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}"
+                            "{:>9.3f}{:>9.3f}{:>9.3f}  ".format(
                                 "or1",
                                 int(h),
                                 int(k),
@@ -429,7 +469,8 @@ def _sampleList():
                         )
                     elif len(_geom_.calc.physical_axes) == 4:
                         print(
-                            "{:>3}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}  ".format(
+                            "{:>3}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}"
+                            "{:>9.3f}  ".format(
                                 "or1",
                                 int(h),
                                 int(k),
@@ -445,7 +486,8 @@ def _sampleList():
                             "Geometry {} not supported.".format(_geom_.name)
                         )
         print(
-            "======================================================================"
+            "================================================================="
+            "====="
         )
     print("\nCurrent sample: " + _geom_.calc.sample.name)
 
@@ -475,7 +517,8 @@ def list_reflections(all_samples=False):
         orienting_refl = sample._orientation_reflections
         if len(_geom_.calc.physical_axes) == 6:
             print(
-                "\n{:>2}{:>4}{:>3}{:>3}{:>9}{:>9}{:>9}{:>9}{:>9}{:>9}   {:<12}".format(
+                "\n{:>2}{:>4}{:>3}{:>3}{:>9}{:>9}{:>9}{:>9}{:>9}{:>9}   "
+                "{:<12}".format(
                     "#",
                     "H",
                     "K",
@@ -512,7 +555,8 @@ def list_reflections(all_samples=False):
                 pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
                 if len(_geom_.calc.physical_axes) == 6:
                     print(
-                        "{:>2}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}   {:<12} ".format(
+                        "{:>2}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}"
+                        "{:>9.3f}{:>9.3f}   {:<12} ".format(
                             i,
                             int(h),
                             int(k),
@@ -528,7 +572,8 @@ def list_reflections(all_samples=False):
                     )
                 elif len(_geom_.calc.physical_axes) == 4:
                     print(
-                        "{:>2}{:>4}{:>3}{:>3}{:>12.3f}{:>9.3f}{:>9.3f}{:>9.3f}   {:<12} ".format(
+                        "{:>2}{:>4}{:>3}{:>3}{:>12.3f}{:>9.3f}{:>9.3f}{:>9.3f} "
+                        "  {:<12} ".format(
                             i,
                             int(h),
                             int(k),
@@ -549,7 +594,8 @@ def list_reflections(all_samples=False):
                 pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
                 if len(_geom_.calc.physical_axes) == 6:
                     print(
-                        "{:>2}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}   {:<12} ".format(
+                        "{:>2}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}"
+                        "{:>9.3f}{:>9.3f}   {:<12} ".format(
                             i,
                             int(h),
                             int(k),
@@ -565,7 +611,8 @@ def list_reflections(all_samples=False):
                     )
                 elif len(_geom_.calc.physical_axes) == 4:
                     print(
-                        "{:>2}{:>4}{:>3}{:>3}{:>12.3f}{:>9.3f}{:>9.3f}{:>9.3f}   {:<12} ".format(
+                        "{:>2}{:>4}{:>3}{:>3}{:>12.3f}{:>9.3f}{:>9.3f}{:>9.3f} "
+                        "  {:<12} ".format(
                             i,
                             int(h),
                             int(k),
@@ -586,7 +633,8 @@ def list_reflections(all_samples=False):
                 pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
                 if len(_geom_.calc.physical_axes) == 6:
                     print(
-                        "{:>2}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f} ".format(
+                        "{:>2}{:>4}{:>3}{:>3}{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}"
+                        "{:>9.3f}{:>9.3f} ".format(
                             i,
                             int(h),
                             int(k),
@@ -601,7 +649,8 @@ def list_reflections(all_samples=False):
                     )
                 elif len(_geom_.calc.physical_axes) == 4:
                     print(
-                        "{:>2}{:>4}{:>3}{:>3}{:>12.3f}{:>9.3f}{:>9.3f}{:>9.3f} ".format(
+                        "{:>2}{:>4}{:>3}{:>3}{:>12.3f}{:>9.3f}{:>9.3f}"
+                        "{:>9.3f} ".format(
                             i,
                             int(h),
                             int(k),
@@ -618,7 +667,8 @@ def list_reflections(all_samples=False):
                     )
         if len(samples) > 1 and all_samples:
             print(
-                "============================================================================"
+                "=============================================================="
+                "=============="
             )
 
 
@@ -633,6 +683,7 @@ def or_swap():
     else:
         print("Missing orienting reflections!")
     compute_UB()
+
 
 def setor0(*args):
     """
@@ -661,7 +712,10 @@ def setor0(*args):
     else:
         if len(orienting_refl) > 1:
             for ref in sample._sample.reflections_get():
-                if ref == orienting_refl[0] and POLAR_DIFFRACTOMETER in _geom_.name:
+                if (
+                    ref == orienting_refl[0]
+                    and POLAR_DIFFRACTOMETER in _geom_.name
+                ):
                     pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
                     old_delta = pos[5]
                     old_mu = pos[1]
@@ -763,7 +817,10 @@ def setor1(*args):
     else:
         if len(orienting_refl) > 1:
             for ref in sample._sample.reflections_get():
-                if ref == orienting_refl[1] and POLAR_DIFFRACTOMETER in _geom_.name:
+                if (
+                    ref == orienting_refl[1]
+                    and POLAR_DIFFRACTOMETER in _geom_.name
+                ):
                     pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
                     old_gamma = pos[4]
                     old_mu = pos[1]
@@ -1513,7 +1570,7 @@ def setmode(mode=None):
         _geom_.calc.engine.mode = _geom_.calc.engine.modes[int(mode) - 1]
 
 
-def ca(h, k, l):
+def ca(h, k, l, energy=None):
     """
     Calculate the motors position of a reflection.
 
@@ -1521,9 +1578,10 @@ def ca(h, k, l):
     ----------
     h, k, l : float
         H, K, and L values.
+    energy: float
+        energy (Optional)
     """
     _geom_ = current_diffractometer()
-    pos = cahkl(h, k, l)
     print("\n   Calculated Positions:")
     print(
         "\n   H K L = {:5f} {:5f} {:5f}".format(
@@ -1532,9 +1590,18 @@ def ca(h, k, l):
             l,
         )
     )
+    if energy:
+        _geom_.calc.energy = energy
+        wavelength = 12.4 / energy
+    else:
+        energy = _geom_.calc.energy
+        wavelength = _geom_.calc.wavelength
+
+    pos = cahkl(h, k, l)
+
     print(
-        f"\n   Lambda (Energy) = {_geom_.calc.wavelength:6.4f} \u212b"
-        f" ({_geom_.calc.energy:6.4f}) keV"
+        f"\n   Lambda (Energy) = {wavelength:6.4f} \u212b"
+        f" ({energy:6.4f}) keV"
     )
     if POLAR_DIFFRACTOMETER in _geom_.name:
         print(
@@ -1562,6 +1629,7 @@ def ca(h, k, l):
                 pos[2],
             )
         )
+    _geom_._update_calc_energy()
 
 
 def _ensure_idle():
@@ -1584,12 +1652,12 @@ def ubr(h, k, l):
     -------
     """
     _geom_ = current_diffractometer()
+
     def _plan():
         yield from mv(
-            _geom_.h, float(h),
-            _geom_.k, float(k),
-            _geom_.l, float(l)
+            _geom_.h, float(h), _geom_.k, float(k), _geom_.l, float(l)
         )
+
     RE.waiting_hook = ProgressBarManager()
     try:
         RE(_plan())
@@ -1638,7 +1706,7 @@ def uan(*args):
     else:
         delta, th = args
         if len(_geom_.calc.physical_axes) == 6:
-            print("Moving to (delta,eta)=({},{})".format(delta, th))
+            print("Moving to (gamma,mu)=({},{})".format(delta, th))
             plan = mv(_geom_.gamma, delta, _geom_.mu, th)
         elif len(_geom_.calc.physical_axes) == 4:
             print("Moving to (tth,th)=({},{})".format(delta, th))
@@ -1697,14 +1765,14 @@ def _wh():
             _geom_.calc.engine.pseudo_axes["l"],
         )
     )
-    if _geom_.name == 'polar':
+    if _geom_.name == "polar":
         print(
             "   Azimuth = {:6.4f}".format(
                 _geom_for_psi_.inverse(0).psi,
             )
         )
     print(
-        "   Lambda (Energy) = {:6.4f} \u212B ({:6.4f} keV)".format(
+        "   Lambda (Energy) = {:6.4f} \u212b ({:6.4f} keV)".format(
             _geom_.calc.wavelength, _geom_.calc.energy
         )
     )
@@ -1725,11 +1793,7 @@ def _wh():
             )
         )
     else:
-        print(
-            "\n{:>9}{:>9}{:>9}{:>9}".format(
-                "tth", "th", "Chi", "Phi"
-            )
-        )
+        print("\n{:>9}{:>9}{:>9}{:>9}".format("tth", "th", "Chi", "Phi"))
         print(
             "{:>9.3f}{:>9.3f}{:>9.3f}{:>9.3f}".format(
                 _geom_.tth.position,
@@ -1753,13 +1817,21 @@ def pa_new():
     orienting_refl = sample._orientation_reflections
     current_mode = _geom_.calc.engine.mode
 
-    print("{},  {} geometry, {} diffractometer".format(_geom_.__class__.__name__, geometry, _geom_.name))
-    print("{} mode".format(huber_euler.calc.engine.mode))
+    print(
+        "{},  {} geometry, {} diffractometer".format(
+            _geom_.__class__.__name__, geometry, _geom_.name
+        )
+    )
+    print("{} mode".format(get_huber_euler().calc.engine.mode))
 
     print("Sample = {}".format(sample.name))
     for i, ref in enumerate(sample._sample.reflections_get()):
         if orienting_refl[0] == ref:
-            print("\nPrimary reflection at (lambda = {:.3f})".format(orienting_refl[0].geometry_get().wavelength_get(0)))
+            print(
+                "\nPrimary reflection at (lambda = {:.3f})".format(
+                    orienting_refl[0].geometry_get().wavelength_get(0)
+                )
+            )
             h, k, l = ref.hkl_get()
             pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
             if len(_geom_.calc.physical_axes) == 6:
@@ -1801,7 +1873,11 @@ def pa_new():
 
     for i, ref in enumerate(sample._sample.reflections_get()):
         if orienting_refl[1] == ref:
-            print("\nSecondary reflection at (lambda = {:.3f})".format(orienting_refl[1].geometry_get().wavelength_get(0)))
+            print(
+                "\nSecondary reflection at (lambda = {:.3f})".format(
+                    orienting_refl[1].geometry_get().wavelength_get(0)
+                )
+            )
             h, k, l = ref.hkl_get()
             pos = ref.geometry_get().axis_values_get(_geom_.calc._units)
             if POLAR_DIFFRACTOMETER in _geom_.name:
@@ -1841,21 +1917,39 @@ def pa_new():
                     )
                 )
 
-
     print("\nLattice constants:")
     print("                          real space =", end=" ")
-    print(*sample.lattice, sep=", ")    
+    print(*sample.lattice, sep=", ")
     print("                    reciprocal space =", end=" ")
-    print("{:>3.3f}, {:3.3f}, {:>3.3f}, {:3.3f}, {:>3.3f}, {:3.3f} ".format(sample.reciprocal[0],sample.reciprocal[1],sample.reciprocal[2],sample.reciprocal[3],sample.reciprocal[4],sample.reciprocal[5]))
-    if current_mode == 'psi constant horizontal' or current_mode == 'psi constant vertical':
+    print(
+        "{:>3.3f}, {:3.3f}, {:>3.3f}, {:3.3f}, {:>3.3f}, {:3.3f} ".format(
+            sample.reciprocal[0],
+            sample.reciprocal[1],
+            sample.reciprocal[2],
+            sample.reciprocal[3],
+            sample.reciprocal[4],
+            sample.reciprocal[5],
+        )
+    )
+    if (
+        current_mode == "psi constant horizontal"
+        or current_mode == "psi constant vertical"
+    ):
         _h2, _k2, _l2, psi = _geom_.calc._engine.engine.parameters_values_get(1)
         print("\nAzimuthal reference:")
-        print("                               H K L = {:2.0f}{:2.0f}{:2.0f}".format(_h2,_k2,_l2))
-        #print("                               Psi frozen to {}".format(psi))
-
+        print(
+            "                               H K L = {:2.0f}{:2.0f}{:2.0f}".format(
+                _h2, _k2, _l2
+            )
+        )
+        # print("                               Psi frozen to {}".format(psi))
 
     print("\nMonochromator:")
-    print("                 Energy (wavelength) = {:3.3f} ({:3.3f})".format(_geom_.calc.energy, _geom_.calc.wavelength))
+    print(
+        "                 Energy (wavelength) = {:3.3f} ({:3.3f})".format(
+            _geom_.calc.energy, _geom_.calc.wavelength
+        )
+    )
 
 
 def setlat(*args):
@@ -1924,9 +2018,7 @@ def setaz(*args):
             raise ValueError(
                 "either no arguments or h, k, l need to be provided."
             )
-        _geom_.calc._engine.engine.parameters_values_set(
-            [h2, k2, l2], 1
-        )
+        _geom_.calc._engine.engine.parameters_values_set([h2, k2, l2], 1)
         _geom_for_psi_.calc._engine.engine.parameters_values_set(
             [h2, k2, l2], 1
         )
@@ -1942,15 +2034,13 @@ def setaz(*args):
             h2 = int((input("H = ({})? ".format(_h2))) or _h2)
             k2 = int((input("K = ({})? ".format(_k2))) or _k2)
             l2 = int((input("L = ({})? ".format(_l2))) or _l2)
-            #_geom_.calc._engine.engine.parameters_values_set([h2, k2, l2], 1)
-            #_geom_.calc.engine.mode = mode_temp
+            # _geom_.calc._engine.engine.parameters_values_set([h2, k2, l2], 1)
+            # _geom_.calc.engine.mode = mode_temp
         else:
             raise ValueError(
                 "either no arguments or h, k, l need to be provided."
             )
-        _geom_.calc._engine.engine.parameters_values_set(
-            [h2, k2, l2], 1
-        )
+        _geom_.calc._engine.engine.parameters_values_set([h2, k2, l2], 1)
         _geom_for_psi_.calc._engine.engine.parameters_values_set(
             [h2, k2, l2], 1
         )
@@ -1967,7 +2057,10 @@ def setaz(*args):
 def freeze(*args):
     _geom_ = current_diffractometer()
     _check_geom_selected()
-    if _geom_.calc.engine.mode == "psi constant horizontal" or  _geom_.calc.engine.mode == "psi_constant" :
+    if (
+        _geom_.calc.engine.mode == "psi constant horizontal"
+        or _geom_.calc.engine.mode == "psi_constant"
+    ):
         h2, k2, l2, psi = _geom_.calc._engine.engine.parameters_values_get(1)
         if len(args) == 1:
             psi = args[0]
@@ -2149,6 +2242,7 @@ def read_config(method="File"):
             else:
                 print("Config file not read!")
 
+
 def show_constraints():
     """
     Show constraints and freeze angles (value)
@@ -2176,20 +2270,16 @@ def set_constraints(*args):
     if len(args) == 12:
         i = -1
         for axis in axes:
-            i+=2
-            low = args[i-1]
+            i += 2
+            low = args[i - 1]
             high = args[i]
             angle = _geom_.get_axis_constraints(axis).value
-            _geom_.apply_constraints(
-                {axis: Constraint(low, high, angle, True)}
-        )
-        
+            _geom_.apply_constraints({axis: Constraint(low, high, angle, True)})
+
     elif len(args) == 3:
         axis, low, high = args
         angle = _geom_.get_axis_constraints(axis).value
-        _geom_.apply_constraints(
-            {axis: Constraint(low, high, angle, True)}
-        )
+        _geom_.apply_constraints({axis: Constraint(low, high, angle, True)})
     elif len(args) == 1:
         axis = args[0]
         print(axis)
@@ -2224,11 +2314,7 @@ def set_constraints(*args):
                 value = value.replace(",", " ").split(" ")
             _geom_.apply_constraints(
                 {axis: Constraint(value[0], value[1], angle, True)}
-        )
-
-
-select_diffractometer(huber_euler)
-select_engine_for_psi(huber_euler_psi)
+            )
 
 
 class whClass:
@@ -2258,11 +2344,13 @@ class sampleListClass:
 
 sampleList = sampleListClass()
 
+
 class Sync_UB_Matrix:
     """Copy the UB matrix from source to target diffractometers."""
 
     _geom_ = current_diffractometer()
     _geom_for_psi_ = engine_for_psi()
+
     def __init__(self, source: Diffractometer, target: Diffractometer):
         self.source = source
         self.target = target
@@ -2279,7 +2367,7 @@ class Sync_UB_Matrix:
         if value is None:
             raise RuntimeError(f"sync_callback: {value=!r}  {kwargs=!r}")
         ub_source = value
-        #print(f"Copy UB={ub_source=} from {self.source.name} to {self.target.name}")
+        # print(f"Copy UB={ub_source=} from {self.source.name} to {self.target.name}")
         print(f"Copy UB from {self.source.name} to {self.target.name}")
         self.target.UB.put(ub_source)
 
@@ -2299,7 +2387,7 @@ def restore_huber_from_scan(
 
     if diffractometer is None:
         diffractometer = current_diffractometer()
-  
+
     if diffractometer.name not in info.keys():
         if force == True:
             print(
@@ -2324,8 +2412,7 @@ def restore_huber_from_scan(
         restore_sample(inp, diffractometer)
     except ValueError as exc:
         raise ValueError(
-            f"{exc} Use the sample_name keyword argument to change "
-            "the name."
+            f"{exc} Use the sample_name keyword argument to change " "the name."
         )
     restore_constraints(inp, diffractometer)
     restore_reflections(inp, diffractometer)

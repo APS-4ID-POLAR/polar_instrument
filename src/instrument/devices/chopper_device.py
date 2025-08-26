@@ -2,19 +2,14 @@
 Chopper
 """
 
-__all__ = ["chopper"]
-
-
 from ophyd import (
     Component,
     FormattedComponent,
     Device,
     EpicsSignal,
     EpicsSignalRO,
-    EpicsMotor
+    EpicsMotor,
 )
-from ..utils._logging_setup import logger
-logger.info(__file__)
 
 
 class ChopperDevice(Device):
@@ -35,6 +30,3 @@ class ChopperDevice(Device):
     wheel = Component(EpicsSignal, "WheelSet", string=True, kind="config")
     sync = Component(EpicsSignal, "SyncSourceSet", string=True, kind="config")
     mode = Component(EpicsSignal, "ModeSet", string=True, kind="config")
-
-
-chopper = ChopperDevice("4idChopper:", name="chopper", labels=("4idb",))

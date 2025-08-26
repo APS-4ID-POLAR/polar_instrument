@@ -2,12 +2,10 @@
 QuadEMs for POLAR
 """
 
-from ophyd import Component, QuadEM, EpicsSignalRO, Device
+from ophyd import Component, QuadEM, EpicsSignalRO, Device, Signal
 from ophyd.quadem import QuadEMPort
 from collections import OrderedDict
 from .ad_mixins import ImagePlugin, StatsPlugin
-from ..utils._logging_setup import logger
-logger.info(__file__)
 
 
 class StatsPluginQuadEM(StatsPlugin):
@@ -71,17 +69,19 @@ class TetrAMM(QuadEMPOLAR):
     # to check if changes are needed to the trigger procedure.
 
 
-class QuadEMRO_mixins:
+class QuadEMRO_mixins(Device):
     # Disables preset_monitor and trigger
+
+    dummy = Component(Signal, value=0, kind="omitted")
+
+    @property
+    def preset_monitor(self):
+        return self.dummy
 
     def trigger(self):
         self._status = self._status_type(self)
         self._status.set_finished()
         return self._status
-
-    @property
-    def preset_monitor(self, value):
-        pass
 
     def stage(self):
         Device.stage(self)
@@ -110,33 +110,33 @@ class SydorEMRO(QuadEMRO_mixins, QuadEMPOLAR):
     def default_settings(self):
         # Remove all these from read_attrs
         for item in (
-            'conf',
-            'current_names',
-            'current_names.ch1',
-            'current_names.ch2',
-            'current_names.ch3',
-            'current_names.ch4',
-            'current_offsets',
-            'current_offsets.ch1',
-            'current_offsets.ch2',
-            'current_offsets.ch3',
-            'current_offsets.ch4',
-            'current_offset_calcs',
-            'current_offset_calcs.ch1',
-            'current_offset_calcs.ch2',
-            'current_offset_calcs.ch3',
-            'current_offset_calcs.ch4',
-            'current_scales',
-            'current_scales.ch1',
-            'current_scales.ch2',
-            'current_scales.ch3',
-            'current_scales.ch4',
-            'position_offset_x',
-            'position_offset_y',
-            'position_offset_calc_x',
-            'position_offset_calc_y',
-            'position_scale_x',
-            'position_scale_y'
+            "conf",
+            "current_names",
+            "current_names.ch1",
+            "current_names.ch2",
+            "current_names.ch3",
+            "current_names.ch4",
+            "current_offsets",
+            "current_offsets.ch1",
+            "current_offsets.ch2",
+            "current_offsets.ch3",
+            "current_offsets.ch4",
+            "current_offset_calcs",
+            "current_offset_calcs.ch1",
+            "current_offset_calcs.ch2",
+            "current_offset_calcs.ch3",
+            "current_offset_calcs.ch4",
+            "current_scales",
+            "current_scales.ch1",
+            "current_scales.ch2",
+            "current_scales.ch3",
+            "current_scales.ch4",
+            "position_offset_x",
+            "position_offset_y",
+            "position_offset_calc_x",
+            "position_offset_calc_y",
+            "position_scale_x",
+            "position_scale_y",
         ):
             getattr(self, item).kind = "config"
 
@@ -148,33 +148,33 @@ class TetrAMMRO(QuadEMRO_mixins, TetrAMM):
     def default_settings(self):
         # Remove all these from read_attrs
         for item in (
-            'conf',
-            'current_names',
-            'current_names.ch1',
-            'current_names.ch2',
-            'current_names.ch3',
-            'current_names.ch4',
-            'current_offsets',
-            'current_offsets.ch1',
-            'current_offsets.ch2',
-            'current_offsets.ch3',
-            'current_offsets.ch4',
-            'current_offset_calcs',
-            'current_offset_calcs.ch1',
-            'current_offset_calcs.ch2',
-            'current_offset_calcs.ch3',
-            'current_offset_calcs.ch4',
-            'current_scales',
-            'current_scales.ch1',
-            'current_scales.ch2',
-            'current_scales.ch3',
-            'current_scales.ch4',
-            'position_offset_x',
-            'position_offset_y',
-            'position_offset_calc_x',
-            'position_offset_calc_y',
-            'position_scale_x',
-            'position_scale_y'
+            "conf",
+            "current_names",
+            "current_names.ch1",
+            "current_names.ch2",
+            "current_names.ch3",
+            "current_names.ch4",
+            "current_offsets",
+            "current_offsets.ch1",
+            "current_offsets.ch2",
+            "current_offsets.ch3",
+            "current_offsets.ch4",
+            "current_offset_calcs",
+            "current_offset_calcs.ch1",
+            "current_offset_calcs.ch2",
+            "current_offset_calcs.ch3",
+            "current_offset_calcs.ch4",
+            "current_scales",
+            "current_scales.ch1",
+            "current_scales.ch2",
+            "current_scales.ch3",
+            "current_scales.ch4",
+            "position_offset_x",
+            "position_offset_y",
+            "position_offset_calc_x",
+            "position_offset_calc_y",
+            "position_scale_x",
+            "position_scale_y",
         ):
             getattr(self, item).kind = "config"
 

@@ -4,8 +4,9 @@ Diffractometer magnet
 
 from apstools.devices import PVPositionerSoftDone
 from ophyd import Component, EpicsSignal, EpicsSignalRO, Device
-from ..utils._logging_setup import logger
-logger.info(__file__)
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 
 class KepcoDevice(Device):
@@ -35,7 +36,7 @@ class KepcoDevice(Device):
         "",
         readback_pv="interpAtoT_y1.VAL",
         setpoint_pv="interpTtoA_x.VAL",
-        tolerance=0.01
+        tolerance=0.01,
     )
 
     voltage = Component(EpicsSignalRO, "measvolt", kind="config")
@@ -45,7 +46,7 @@ class KepcoDevice(Device):
         "",
         readback_pv="meascurr",
         setpoint_pv="setcurr",
-        tolerance=0.1
+        tolerance=0.1,
     )
 
     mode = Component(
@@ -109,6 +110,3 @@ class KepcoDevice(Device):
     def stop_auto_mode(self):
         for _sub in self._auto_mode_subs:
             self.unsubscribe(_sub)
-
-
-magnet2t = KepcoDevice("4idkepco:", name="magnet2t", labels=("magnet", "4idg"))

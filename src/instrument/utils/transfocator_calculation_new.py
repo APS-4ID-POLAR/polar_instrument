@@ -21,10 +21,7 @@ LENS_SETTINGS = (
 )
 
 
-def read_delta(
-    energy,
-    path=BE_REFR_INDEX_FILE
-):
+def read_delta(energy, path=BE_REFR_INDEX_FILE):
     if energy < 2700 or energy > 27000:
         raise ValueError("Energy {} out of range [2700, 27000].".format(energy))
 
@@ -34,7 +31,7 @@ def read_delta(
 
 def _lens_matrix(f):
     """Return the transfer matrix for a thin lens with focal length f."""
-    return array([[1, 0], [-1/f, 1]])
+    return array([[1, 0], [-1 / f, 1]])
 
 
 def _propagation_matrix(d):
@@ -78,7 +75,7 @@ def _find_optimal_combination(lenses, f_eff):
 
     # Find the best combination of lens packages
     best_combination = None
-    min_error = float('inf')
+    min_error = float("inf")
 
     for r in range(len(lenses_list), 0, -1):
         for lens_combination in combinations(lenses_list, r):
@@ -114,7 +111,7 @@ def transfocator_calculation(
     reference_distance: float = 2591,
     distance_only: bool = False,
     selected_lenses: list = None,
-    verbose: bool = True
+    verbose: bool = True,
 ):
     """
     Calculate the transfocator position and lenses set.
@@ -124,16 +121,20 @@ def transfocator_calculation(
         energy : float
             Beamline energy in keV.
         optimize_position : float
-            CRL motor Z position that will be used to optimize the lenses for the calculation, in mm.
+            CRL motor Z position that will be used to optimize the lenses for
+            the calculation, in mm.
         experiment : "diffractometer" or "magnet"
             Name of the experimental configuration to focus.
         reference_distance : float
-            Distance between CRL and sample when the CRL Z motor is at zero. This will normally not
+            Distance between CRL and sample when the CRL Z motor is at zero.
+            This will normally not
             change. In mm.
         distance_only : bool
-            If True it will only calculate the optimal distance, and won't try to switch lenses.
+            If True it will only calculate the optimal distance, and won't try
+            to switch lenses.
         selected_lenses : iterable
-            If distance_only == True, then this is the lenses you want to use for the calculation.
+            If distance_only == True, then this is the lenses you want to use
+            for the calculation.
         verbose : bool
             Toggle to print information.
     """
@@ -145,9 +146,7 @@ def transfocator_calculation(
         )
 
     if (optimize_position < -150) or (optimize_position > 150):
-        raise ValueError(
-            "CRL Z {} out of range [-150, 150].".format(energy)
-        )
+        raise ValueError("CRL Z {} out of range [-150, 150].".format(energy))
 
     if energy < 2.6 or energy > 27:
         raise ValueError(
@@ -172,19 +171,25 @@ def transfocator_calculation(
             "(diffractometer) or 73.3 m (magnet)."
         )
 
-    delta = read_delta(energy*1e3)  # delta table uses eV.
+    delta = read_delta(energy * 1e3)  # delta table uses eV.
 
     # Effective focal point for the desired distance
 
-    optimize_distance = (optimize_position + reference_distance)*1e3  # in microns
+    optimize_distance = (
+        optimize_position + reference_distance
+    ) * 1e3  # microns
 
     source_crl_distance = source_sample_distance - optimize_distance
-    f_eff = source_crl_distance * optimize_distance / (source_crl_distance + optimize_distance)
+    f_eff = (
+        source_crl_distance
+        * optimize_distance
+        / (source_crl_distance + optimize_distance)
+    )
 
     lenses = read_csv(LENS_SETTINGS, skiprows=1).set_index("index")
 
-    lenses["focus"] = (
-        lenses["single_lens_radius"] / (2 * lenses["number_of_lenses"] * delta)
+    lenses["focus"] = lenses["single_lens_radius"] / (
+        2 * lenses["number_of_lenses"] * delta
     )
 
     if not distance_only:
@@ -201,16 +206,17 @@ def transfocator_calculation(
     # The calculation is based on the center of the selected stack which may
     # not be the same as the center of the transfocator.
     _selected = lenses.loc[best_combination]
-    power = _selected["number_of_lenses"]*2/_selected["single_lens_radius"]
-    effective_center = (power*_selected["distance"]).sum()/power.sum()
-    
+    power = _selected["number_of_lenses"] * 2 / _selected["single_lens_radius"]
+    effective_center = (power * _selected["distance"]).sum() / power.sum()
+
     crl_center = source_crl_distance + effective_center
     best_sample_distance = (
-        best_focal_length*crl_center/(crl_center-best_focal_length)
+        best_focal_length * crl_center / (crl_center - best_focal_length)
     )
-
-    effective_reference_distance = reference_distance - effective_center/1e3 # correct for lens selection
-    crlz_position = effective_reference_distance - best_sample_distance/1e3  # get relative position
+    # correct for lens selection
+    effective_reference_distance = reference_distance - effective_center / 1e3
+    # get relative position
+    crlz_position = effective_reference_distance - best_sample_distance / 1e3
 
     if verbose:
         print("-" * 65)
@@ -220,9 +226,9 @@ def transfocator_calculation(
         else:
             print("Optimal lens packages = {}".format(best_combination))
 
-        print("Effective radius = {:3.1f} \u03bcm".format(
-            best_effective_radius
-        ))
+        print(
+            "Effective radius = {:3.1f} \u03bcm".format(best_effective_radius)
+        )
         print("CRL Z position = {:6.1f} mm".format(crlz_position))
         print("-" * 65)
         print(
@@ -236,12 +242,16 @@ def transfocator_calculation(
             )
         )
         fh = (
-            21.8 * 2.35 * best_sample_distance /
-            (source_sample_distance - best_sample_distance)
+            21.8
+            * 2.35
+            * best_sample_distance
+            / (source_sample_distance - best_sample_distance)
         )  # convert rms source size to FWHM
         fv = (
-            4.1 * 2.35 * best_sample_distance /
-            (source_sample_distance - best_sample_distance)
+            4.1
+            * 2.35
+            * best_sample_distance
+            / (source_sample_distance - best_sample_distance)
         )
         print(
             "Approximate focus size in brightness mode "

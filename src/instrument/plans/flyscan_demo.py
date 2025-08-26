@@ -2,9 +2,7 @@
 Flyscan using area detector
 """
 
-from bluesky.preprocessors import (
-    stage_decorator, run_decorator, subs_decorator
-)
+from bluesky.preprocessors import stage_decorator, run_decorator, subs_decorator
 from bluesky.plan_stubs import rd, null, move_per_step, sleep
 from bluesky.plan_patterns import outer_product, inner_product
 from apstools.utils import (
@@ -17,19 +15,30 @@ from pathlib import Path
 from json import dumps
 from warnings import warn
 from dm import ObjectNotFound
+from apsbits.utils.config_loaders import get_config
+from apsbits.core.instrument_init import oregistry
+from logging import getLogger
+
 from .local_scans import mv
 from .workflow_plan import run_workflow
-from ..devices.pva_control import positioner_stream
-from ..devices.softgluezynq import sgz
-from ..devices.data_management import dm_experiment
-from ..utils._logging_setup import logger
-from ..utils.config import iconfig
-from ..utils.run_engine import RE
 from ..callbacks.nexus_data_file_writer import nxwriter
+from ..utils.run_engine import RE
 from ..utils.dm_utils import (
-    dm_get_experiment_data_path, dm_upload, dm_upload_wait
+    dm_get_experiment_data_path,
+    dm_upload,
+    dm_upload_wait,
 )
+
+# TODO: what to do with this?
+from ..devices.pva_control import positioner_stream
+
+iconfig = get_config()
+
+logger = getLogger(__name__)
 logger.info(__file__)
+
+sgz = oregistry.find("sgz", allow_none=True)
+dm_experiment = oregistry.find("dm_experiment", allow_none=True)
 
 __all__ = "flyscan_snake flyscan_1d flyscan_cycler".split()
 
@@ -37,56 +46,56 @@ HDF1_NAME_FORMAT = Path(iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"])
 
 
 def flyscan_snake(
-        detectors,
-        stepping_motor,
-        stepping_motor_start,
-        stepping_motor_end,
-        stepping_motor_number_of_points,
-        flying_motor,
-        flying_motor_start,
-        flying_motor_end,
-        flying_motor_speed,
-        detector_trigger_period: float = 0.02,
-        detector_collection_time: float = 0.01,
-        file_name_base: str = "scan",
-        master_file_templates: list = [],
-        md: dict = {},
-        # internal kwargs ----------------------------------------
-        dm_concise: bool = False,
-        dm_wait: bool = False,
-        dm_reporting_period: float = 10*60,  # TODO: change?
-        dm_reporting_time_limit: float = 10**6,  # TODO: change?
-        nxwriter_warn_missing: bool = False,
-        wf_run: bool = False,
-        wf_settings_file_path: str = None,
-        # everything else is passed to the DM workflow ---------------------------------
-        **wf_kwargs,
+    detectors,
+    stepping_motor,
+    stepping_motor_start,
+    stepping_motor_end,
+    stepping_motor_number_of_points,
+    flying_motor,
+    flying_motor_start,
+    flying_motor_end,
+    flying_motor_speed,
+    detector_trigger_period: float = 0.02,
+    detector_collection_time: float = 0.01,
+    file_name_base: str = "scan",
+    master_file_templates: list = [],
+    md: dict = {},
+    # internal kwargs ----------------------------------------
+    dm_concise: bool = False,
+    dm_wait: bool = False,
+    dm_reporting_period: float = 10 * 60,  # TODO: change?
+    dm_reporting_time_limit: float = 10**6,  # TODO: change?
+    nxwriter_warn_missing: bool = False,
+    wf_run: bool = False,
+    wf_settings_file_path: str = None,
+    # everything else is passed to the DM workflow ------------------------
+    **wf_kwargs,
 ):
-
     """
     Flyscan using a "snake" trajectory.
 
-    Note the first motor in *args will step and the second will fly (by doing a two
-    point step).
+    Note the first motor in *args will step and the second will fly (by doing a
+    two point step).
 
     Parameters
     ----------
     eiger : Eiger detector instance
-        Currently sort of hardwired for the Eiger, but this will be removed in the
-        future to match with the POLAR standard of defaulting to our `counters` class.
+        Currently sort of hardwired for the Eiger, but this will be removed in
+        the future to match with the POLAR standard of defaulting to our
+        `counters` class.
     *args :
-        The first motor is the outer loop that will step, with the second motor flying
-        between the ends. Thus the first motor needs a number of steps.
+        The first motor is the outer loop that will step, with the second motor
+        flying between the ends. Thus the first motor needs a number of steps.
         .. code-block:: python
             motor1, start1, stop1, number of point, motor2, start2, stop
     speed : float, default to 10
-        Velocity of the flying motor. This will be passed to `motor2.velocity` through
-        staging.
+        Velocity of the flying motor. This will be passed to `motor2.velocity`
+        through staging.
     trigger_time : float, default to 0.02 seconds
         Time between detector triggers.
     collection_time : float, default to 0.01 seconds
-        Time that detector spend collecting the image. It must be smaller or equal to
-        the trigger_time otherwise a ValueError is raised.
+        Time that detector spend collecting the image. It must be smaller or
+        equal to the trigger_time otherwise a ValueError is raised.
     md : dictionary, optional
         Metadata to be added to the run start.
 
@@ -111,7 +120,7 @@ def flyscan_snake(
         flying_motor_start,
         flying_motor_end,
         2,
-        True
+        True,
     )
 
     _md = {
@@ -131,7 +140,7 @@ def flyscan_snake(
             "file_name_base": file_name_base,
             "master_file_templates": master_file_templates,
             "nxwriter_warn_missing": nxwriter_warn_missing,
-        }
+        },
     }
 
     _md.update(md)
@@ -146,7 +155,7 @@ def flyscan_snake(
         master_file_templates=master_file_templates,
         file_name_base=file_name_base,
         md=_md,
-        # internal kwargs ----------------------------------------
+        # internal kwargs ------------------------------------------------------
         dm_concise=dm_concise,
         dm_wait=dm_wait,
         dm_reporting_period=dm_reporting_period,  # TODO: change?
@@ -154,32 +163,32 @@ def flyscan_snake(
         nxwriter_warn_missing=nxwriter_warn_missing,
         wf_run=wf_run,
         wf_settings_file_path=wf_settings_file_path,
-        # everything else is passed to the DM workflow ---------------------------------
+        # everything else is passed to the DM workflow -------------------------
         **wf_kwargs,
     )
 
 
 def flyscan_1d(
-        detectors,
-        motor,
-        start,
-        end,
-        speed,
-        detector_trigger_period: float = 0.02,
-        detector_collection_time: float = 0.01,
-        master_file_templates: list = [],
-        file_name_base: str = "scan",
-        md: dict = {},
-        # internal kwargs ----------------------------------------
-        dm_concise: bool = False,
-        dm_wait: bool = False,
-        dm_reporting_period: float = 10*60,  # TODO: change?
-        dm_reporting_time_limit: float = 10**6,  # TODO: change?
-        nxwriter_warn_missing: bool = False,
-        wf_run: bool = False,
-        wf_settings_file_path: str = None,
-        # everything else is passed to the DM workflow ---------------------------------
-        **wf_kwargs,
+    detectors,
+    motor,
+    start,
+    end,
+    speed,
+    detector_trigger_period: float = 0.02,
+    detector_collection_time: float = 0.01,
+    master_file_templates: list = [],
+    file_name_base: str = "scan",
+    md: dict = {},
+    # internal kwargs ------------------------------------------------------
+    dm_concise: bool = False,
+    dm_wait: bool = False,
+    dm_reporting_period: float = 10 * 60,  # TODO: change?
+    dm_reporting_time_limit: float = 10**6,  # TODO: change?
+    nxwriter_warn_missing: bool = False,
+    wf_run: bool = False,
+    wf_settings_file_path: str = None,
+    # everything else is passed to the DM workflow -------------------------
+    **wf_kwargs,
 ):
     """
     Flyscan in 1 dimension.
@@ -187,23 +196,24 @@ def flyscan_1d(
     Parameters
     ----------
     eiger : Eiger detector instance
-        Currently sort of hardwired for the Eiger, but this will be removed in the
-        future to match with the POLAR standard of defaulting to our `counters` class.
+        Currently sort of hardwired for the Eiger, but this will be removed in
+        the future to match with the POLAR standard of defaulting to our
+        `counters` class.
     motor : ophyd motor object
-        Ideally it is a motor with a custom unstaging that removes "velocity" from the
-        stage_sigs, see ../devices/nanopositioners.py
+        Ideally it is a motor with a custom unstaging that removes "velocity"
+        from the stage_sigs, see ../devices/nanopositioners.py
     start : float
         Initial motor position
     end : float
         Final motor position
     speed : float, default to 10
-        Velocity of the flying motor. This will be passed to `motor.velocity` through
-        staging.
+        Velocity of the flying motor. This will be passed to `motor.velocity`
+        through staging.
     trigger_time : float, default to 0.02 seconds
         Time between detector triggers.
     collection_time : float, default to 0.01 seconds
-        Time that detector spend collecting the image. It must be smaller or equal to
-        the trigger_time otherwise a ValueError is raised.
+        Time that detector spend collecting the image. It must be smaller or
+        equal to the trigger_time otherwise a ValueError is raised.
     md : dictionary, optional
         Metadata to be added to the run start.
 
@@ -233,7 +243,7 @@ def flyscan_1d(
             "file_name_base": file_name_base,
             "master_file_templates": master_file_templates,
             "nxwriter_warn_missing": nxwriter_warn_missing,
-        }
+        },
     }
     _md.update(md)
 
@@ -246,7 +256,7 @@ def flyscan_1d(
         master_file_templates=master_file_templates,
         file_name_base=file_name_base,
         md=_md,
-        # internal kwargs ----------------------------------------
+        # internal kwargs ------------------------------------------------------
         dm_concise=dm_concise,
         dm_wait=dm_wait,
         dm_reporting_period=dm_reporting_period,  # TODO: change?
@@ -254,32 +264,31 @@ def flyscan_1d(
         nxwriter_warn_missing=nxwriter_warn_missing,
         wf_run=wf_run,
         wf_settings_file_path=wf_settings_file_path,
-        # everything else is passed to the DM workflow ---------------------------------
+        # everything else is passed to the DM workflow -------------------------
         **wf_kwargs,
     )
 
 
 def flyscan_cycler(
-        detectors: list,
-        cycler,
-        speeds: list,
-        detector_trigger_period: float = 0.02,
-        detector_collection_time: float = 0.01,
-        master_file_templates: list = [],
-        file_name_base: str = "scan",
-        md: dict = {},
-        # internal kwargs --------------------------------------------------------------
-        dm_concise: bool = False,
-        dm_wait: bool = False,
-        dm_reporting_period: float = 10*60,
-        dm_reporting_time_limit: float = 10**6,
-        nxwriter_warn_missing: bool = False,
-        wf_run: bool = False,
-        wf_settings_file_path: str = None,
-        # everything else is passed to the DM workflow ---------------------------------
-        **wf_kwargs,
+    detectors: list,
+    cycler,
+    speeds: list,
+    detector_trigger_period: float = 0.02,
+    detector_collection_time: float = 0.01,
+    master_file_templates: list = [],
+    file_name_base: str = "scan",
+    md: dict = {},
+    # internal kwargs ------------------------------------------------------
+    dm_concise: bool = False,
+    dm_wait: bool = False,
+    dm_reporting_period: float = 10 * 60,
+    dm_reporting_time_limit: float = 10**6,
+    nxwriter_warn_missing: bool = False,
+    wf_run: bool = False,
+    wf_settings_file_path: str = None,
+    # everything else is passed to the DM workflow -------------------------
+    **wf_kwargs,
 ):
-
     """
     Flyscan using a generic path.
 
@@ -288,20 +297,21 @@ def flyscan_cycler(
     Parameters
     ----------
     detectors : list of ophyd detectors
-        Currently sort of hardwired for the Eiger, which must be the first item in the
-        list. But this will be removed in the future to match with the POLAR standard of
-        defaulting to our `counters` class.
+        Currently sort of hardwired for the Eiger, which must be the first item
+        in the list. But this will be removed in the future to match with the
+        POLAR standard of defaulting to our `counters` class.
     cycler : Cycler
         cycler.Cycler object mapping movable interfaces to positions.
     speeds : list
-        Velocity of the motors, this is particularly useful for the flying motor. If
-        `None`, then the speed will not be changed. The speed will be passed to
-        `motor.velocity` through staging (see ../devices/nanopositioners.py).
+        Velocity of the motors, this is particularly useful for the flying
+        motor. If `None`, then the speed will not be changed. The speed will be
+        passed to `motor.velocity` through staging (see
+        ../devices/nanopositioners.py).
     trigger_time : float, default to 0.02 seconds
         Time between detector triggers.
     collection_time : float, default to 0.01 seconds
-        Time that detector spend collecting the image. It must be smaller or equal to
-        the trigger_time otherwise a ValueError is raised.
+        Time that detector spend collecting the image. It must be smaller or
+        equal to the trigger_time otherwise a ValueError is raised.
     md : dictionary, optional
         Metadata to be added to the run start.
 
@@ -319,14 +329,14 @@ def flyscan_cycler(
         validate_experiment_dataDirectory(dm_experiment.get())
     except ObjectNotFound:
         raise ValueError(
-            f"Cannot find an experiment named: {dm_experiment.get()} in DM. Please see"
-            "and run the setup_user function."
+            f"Cannot find an experiment named: {dm_experiment.get()} in DM. "
+            "Please see and run the setup_user function."
         )
 
     if detector_collection_time > detector_trigger_period:
         raise ValueError(
-            f"The collection time ({detector_collection_time}) cannot be larger than "
-            f"the time between triggers ({detector_trigger_period})."
+            f"The collection time ({detector_collection_time}) cannot be larger"
+            " than the time between triggers ({detector_trigger_period})."
         )
 
     # Sample metadata will be used to sort data
@@ -350,7 +360,9 @@ def flyscan_cycler(
     # TODO: simplify
     # Master file
     _master_fullpath = str(HDF1_NAME_FORMAT) % (
-        str(_base_path), file_name_base, _scan_id
+        str(_base_path),
+        file_name_base,
+        _scan_id,
     )
     _master_fullpath += "_master.hdf"
 
@@ -361,15 +373,16 @@ def flyscan_cycler(
     for det in list(detectors) + [positioner_stream]:
         _setup_images = getattr(det, "setup_images", None)
         if _setup_images:
-            _dets_file_paths[det.name], _rel_dets_paths[det.name] = _setup_images(
-                file_name_base, _scan_id, flyscan=True
+            _dets_file_paths[det.name], _rel_dets_paths[det.name] = (
+                _setup_images(file_name_base, _scan_id, flyscan=True)
             )
 
     # Check if any of these files exists
     for _fname in [Path(_master_fullpath)] + list(_dets_file_paths.values()):
         if _fname.is_file():
             raise FileExistsError(
-                f"The file {_fname} already exists! Will not overwrite, quitting."
+                f"The file {_fname} already exists! Will not overwrite, "
+                "quitting."
             )
 
     #################################################
@@ -388,7 +401,8 @@ def flyscan_cycler(
     #     ["/entry/eiger_file_path=", str(_rel_eiger_path)],
     #     ["/entry/softglue_file_path=", str(_rel_ps_path)],
     # ]
-    md[nxwriter.template_key] = dumps(master_file_templates)  # <-- adds the templates
+    # adds the templates
+    md[nxwriter.template_key] = dumps(master_file_templates)
 
     nxwriter.warn_on_missing_content = nxwriter_warn_missing
 
@@ -414,7 +428,7 @@ def flyscan_cycler(
         },
         master_file_path=str(_master_fullpath),
         # TODO: a similar scan with a monitor (scaler...)
-        hints=dict(monitor=None, detectors=[], scan_type="flyscan")
+        hints=dict(monitor=None, detectors=[], scan_type="flyscan"),
     )
 
     for _name, _fpath in _dets_file_paths.items():
@@ -424,7 +438,7 @@ def flyscan_cycler(
         _md[f"{_name}_relative_file_path"] = str(_fpath)
 
     for item in detectors:
-        _md['hints']['detectors'].extend(item.hints['fields'])
+        _md["hints"]["detectors"].extend(item.hints["fields"])
 
     dimensions = [(motor.hints["fields"], "primary") for motor in motors]
     _md["hints"].setdefault("dimensions", dimensions)
@@ -436,7 +450,7 @@ def flyscan_cycler(
             dm_reporting_period=dm_reporting_period,
             dm_reporting_time_limit=dm_reporting_time_limit,
             settings_file_path=wf_settings_file_path,
-            **wf_kwargs
+            **wf_kwargs,
         )
 
     _md.update(md)
@@ -499,9 +513,9 @@ def flyscan_cycler(
         # This will wait for a full new set of packets.
         # TODO: It's an overkill, maybe Keenan's code can broadcast a signal?
         n = yield from rd(sgz.div_by_n_count.n)
-        _time_per_point = n/1e7
-        _number_of_events_per_packet = 1e5/8
-        yield from sleep(_time_per_point*_number_of_events_per_packet + 0.1)
+        _time_per_point = n / 1e7
+        _number_of_events_per_packet = 1e5 / 8
+        yield from sleep(_time_per_point * _number_of_events_per_packet + 0.1)
 
         yield from sgz.stop_softglue()
 
@@ -532,7 +546,9 @@ def flyscan_cycler(
             destDirectory=f"{RE.md['sample']}",
             reprocessFiles=False,
         )
-        logger.info(f"DM upload of vortex files started, id = {upload_info['id']}.")
+        logger.info(
+            f"DM upload of vortex files started, id = {upload_info['id']}."
+        )
 
     #############################
     # START THE APS DM WORKFLOW #
@@ -547,7 +563,7 @@ def flyscan_cycler(
             dm_reporting_period=dm_reporting_period,
             dm_reporting_time_limit=dm_reporting_time_limit,
             settings_file_path=wf_settings_file_path,
-            **wf_kwargs
+            **wf_kwargs,
         )
 
     logger.info("Finished!")

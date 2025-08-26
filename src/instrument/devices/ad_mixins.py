@@ -1,8 +1,17 @@
-""" AD mixins """
+"""AD mixins"""
 
-from ophyd import ADComponent, EpicsSignal, Signal, Component, BlueskyInterface
+from ophyd import (
+    ADComponent,
+    EpicsSignal,
+    Signal,
+    Component,
+    BlueskyInterface,
+    OphydObject
+)
 from ophyd.areadetector import (
-    EigerDetectorCam, Xspress3DetectorCam, EpicsSignalWithRBV
+    EigerDetectorCam,
+    Xspress3DetectorCam,
+    EpicsSignalWithRBV,
 )
 from ophyd.areadetector.plugins import (
     PluginBase_V34,
@@ -16,20 +25,24 @@ from ophyd.areadetector.plugins import (
     ROIStatNPlugin_V25,
     AttributePlugin_V34,
     ProcessPlugin_V34,
-    TransformPlugin_V34
+    TransformPlugin_V34,
 )
 from ophyd.areadetector.filestore_mixins import FileStoreBase
+from ophyd.areadetector.trigger_mixins import (
+    ADTriggerStatus as ophyd_ADTriggerStatus
+)
 from apstools.devices import CamMixin_V34
 from os.path import isfile
 from itertools import count
 from pathlib import Path
-from ..utils.config import iconfig
-from ..utils._logging_setup import logger
-logger.info(__file__)
+from collections import OrderedDict
+from logging import getLogger
+from time import sleep, time as ttime
 
+logger = getLogger(__name__)
 
-USE_DM_PATH = iconfig["DM_USE_PATH"]
-DM_ROOT_PATH = iconfig["DM_ROOT_PATH"]
+USE_DM_PATH = True
+DM_ROOT_PATH = "/gdata/dm/4IDD"
 
 
 class PluginMixin(PluginBase_V34):
@@ -56,8 +69,10 @@ class ProcessPlugin(PluginMixin, ProcessPlugin_V34):
 
 class ROIPlugin(PluginMixin, ROIPlugin_V34):
     """Remove property attribute found in AD IOCs now."""
+
     _default_configuration_attrs = (
-        ROIPlugin_V34._default_configuration_attrs + (
+        ROIPlugin_V34._default_configuration_attrs
+        + (
             "driver_version",
             "data_type",
             "color_mode",
@@ -65,74 +80,74 @@ class ROIPlugin(PluginMixin, ROIPlugin_V34):
             "enable_scale",
             "scale",
             "collapse_dims",
-            'dimensions',
-            'data_type_out',
-            'name_',
-            'roi_enable',
-            'bin_',
-            'min_xyz',
-            'size',
-            'reverse',
+            "dimensions",
+            "data_type_out",
+            "name_",
+            "roi_enable",
+            "bin_",
+            "min_xyz",
+            "size",
+            "reverse",
         )
     )
 
 
 class StatsPlugin(PluginMixin, StatsPlugin_V34):
     """Remove property attribute found in AD IOCs now."""
+
     _default_configuration_attrs = (
-        StatsPlugin_V34._default_configuration_attrs + (
-            'array_size',
-            'blocking_callbacks',
-            'color_mode',
-            'data_type',
-            'dimensions',
-            'enable',
-            'driver_version',
-            'compute_statistics',
-            'bgd_width',
-            'compute_centroid',
-            'centroid_threshold',
-            'compute_profiles',
-            'profile_average',
-            'profile_centroid',
-            'profile_cursor',
-            'profile_size',
-            'profile_threshold',
-            'cursor',
-            'compute_histogram',
-            'hist_entropy',
-            'hist_max',
-            'hist_min',
-            'hist_size',
-            'histogram',
-            'hist_above',
-            'hist_below',
-            'histogram_x',
+        StatsPlugin_V34._default_configuration_attrs
+        + (
+            "array_size",
+            "blocking_callbacks",
+            "color_mode",
+            "data_type",
+            "dimensions",
+            "enable",
+            "driver_version",
+            "compute_statistics",
+            "bgd_width",
+            "compute_centroid",
+            "centroid_threshold",
+            "compute_profiles",
+            "profile_average",
+            "profile_centroid",
+            "profile_cursor",
+            "profile_size",
+            "profile_threshold",
+            "cursor",
+            "compute_histogram",
+            "hist_entropy",
+            "hist_max",
+            "hist_min",
+            "hist_size",
+            "histogram",
+            "hist_above",
+            "hist_below",
+            "histogram_x",
         )
     )
 
-    _default_read_attrs = (
-        StatsPlugin_V34._default_read_attrs + (
-            'max_value',
-            'max_xy.x',
-            'max_xy.y',
-            'mean_value',
-            'min_value',
-            'min_xy.x',
-            'min_xy.y',
-            'net',
-            'total',
-            'centroid.x',
-            'centroid.y',
-            'sigma_xy',
-            'sigma.x',
-            'sigma.y',
-            'orientation',
-            'kurtosis',
-            'skew',
-            'centroid_total',
-            'eccentricity',
-        )
+    _default_read_attrs = StatsPlugin_V34._default_read_attrs + (
+        "max_value",
+        "max_xy.x",
+        "max_xy.y",
+        "mean_value",
+        "min_value",
+        "min_xy.x",
+        "min_xy.y",
+        "net",
+        "total",
+        "centroid.x",
+        "centroid.y",
+        "sigma_xy",
+        "sigma.x",
+        "sigma.y",
+        "orientation",
+        "kurtosis",
+        "skew",
+        "centroid_total",
+        "eccentricity",
     )
 
     # These generates confusion as it's the exact same as sigma.x and .y
@@ -158,7 +173,7 @@ class StatsPlugin(PluginMixin, StatsPlugin_V34):
             "compute_statistics",
             "compute_centroid",
             "compute_profiles",
-            "compute_histogram"
+            "compute_histogram",
         ):
             getattr(self, item).unsubscribe_all()
 
@@ -176,7 +191,7 @@ class StatsPlugin(PluginMixin, StatsPlugin_V34):
             "total",
             "net",
             "mean_value",
-            "sigma_value"
+            "sigma_value",
         )
         k = "normal" if value == "Yes" else "omitted"
         for item in items:
@@ -189,13 +204,13 @@ class StatsPlugin(PluginMixin, StatsPlugin_V34):
             "centroid.y",
             "sigma_xy",
             "sigma",
-            'sigma.x',
-            'sigma.y',
-            'centroid_total',
-            'eccentricity',
-            'orientation',
-            'kurtosis',
-            'skew'
+            "sigma.x",
+            "sigma.y",
+            "centroid_total",
+            "eccentricity",
+            "orientation",
+            "kurtosis",
+            "skew",
         )
         k = "normal" if value == "Yes" else "omitted"
         for item in items:
@@ -228,6 +243,7 @@ class ROIStatNPlugin(PluginMixin, ROIStatNPlugin_V25):
 
 class AttributePlugin(PluginMixin, AttributePlugin_V34):
     """Remove property attribute found in AD IOCs now."""
+
     ts_acquiring = None
     ts_control = None
     ts_current_point = None
@@ -317,13 +333,13 @@ class FileStorePluginBaseEpicsName(FileStoreBase):
         full_path = self.file_template.get() % (
             str(path) + "/",
             self.file_name.get(),
-            int(self.file_number.get())
+            int(self.file_number.get()),
         )
 
         relative_path = self.file_template.get() % (
             f"{self.parent.name}/",
             self.file_name.get(),
-            int(self.file_number.get())
+            int(self.file_number.get()),
         )
 
         return str(path), full_path, relative_path
@@ -411,43 +427,43 @@ class HDF5Plugin(PluginMixin, HDF5Plugin_V34):
 
 
 class PolarHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
-
     """
     Using the filename from EPICS.
     """
+
     _default_configuration_attrs = HDF5Plugin._default_configuration_attrs + (
-            'auto_increment',
-            'auto_save',
-            'file_format',
-            'file_name',
-            'file_number',
-            'file_path',
-            'file_path_exists',
-            'file_template',
-            'file_write_mode',
-            'array_size',
-            'color_mode',
-            'data_type',
-            'dimensions',
-            'enable',
-            'plugin_type',
-            'compression',
-            'szip_num_pixels',
-            'store_attr',
-            'store_perform',
-            'zlevel',
-            'xml_file_name',
-            'swmr_active',
-            'swmr_cb_counter',
-            'swmr_mode',
-            'swmr_supported',
-            'driver_version',
-            'blosc_compressor',
-            'blosc_level',
-            'blosc_shuffle',
-            'autosave'
+        "auto_increment",
+        "auto_save",
+        "file_format",
+        "file_name",
+        "file_number",
+        "file_path",
+        "file_path_exists",
+        "file_template",
+        "file_write_mode",
+        "array_size",
+        "color_mode",
+        "data_type",
+        "dimensions",
+        "enable",
+        "plugin_type",
+        "compression",
+        "szip_num_pixels",
+        "store_attr",
+        "store_perform",
+        "zlevel",
+        "xml_file_name",
+        "swmr_active",
+        "swmr_cb_counter",
+        "swmr_mode",
+        "swmr_supported",
+        "driver_version",
+        "blosc_compressor",
+        "blosc_level",
+        "blosc_shuffle",
+        "autosave",
     )
-    _default_read_attrs = HDF5Plugin._default_read_attrs + ('full_file_name',)
+    _default_read_attrs = HDF5Plugin._default_read_attrs + ("full_file_name",)
 
     autosave = ADComponent(Signal, value="off", kind="config")
 
@@ -457,6 +473,7 @@ class PolarHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
             *args, write_path_template=write_path_template, **kwargs
         )
         # self.enable.subscribe(self._setup_kind, run=False)
+        self._warmup_signals = []
 
     def _setup_kind(self, value, **kwargs):
         if value in (True, 1, "on", "Enable"):
@@ -474,6 +491,43 @@ class PolarHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWriteEpicsName):
             self.parent.save_images_off()
         super().unstage()
 
+    @property
+    def warmup_signals(self):
+        return OrderedDict(self._warmup_signals)
+    
+    @warmup_signals.setter
+    def warmup_signals(self, values):
+        try:
+            for (sig, _) in list(values):
+                if not isinstance(sig, OphydObject):
+                    raise ValueError(
+                        "warmup signal must be a list of "
+                        "(OphydObject, value) tuples."
+                    )
+            self._warmup_signals = values
+        except TypeError:
+            raise TypeError(
+                "warmup signal must be a list of (signal, value) tuples."
+            )
+
+    def warmup(self):
+        if len(self.warmup_signals) == 0:
+            logger.warning(
+                f"The there are no warmup signals for {self.parent.name}"
+            )
+
+        original_vals = {sig: sig.get() for sig in self.warmup_signals}
+
+        for sig, val in self.warmup_signals.items():
+            sleep(0.1)  # abundance of caution
+            sig.set(val).wait()
+
+        sleep(2)  # wait for acquisition
+
+        for sig, val in reversed(list(original_vals.items())):
+            sleep(0.1)
+            sig.set(val).wait()
+
 
 class TriggerBase(BlueskyInterface):
     """Base class for trigger mixin classes
@@ -484,11 +538,11 @@ class TriggerBase(BlueskyInterface):
     """
 
     def __init__(
-            self,
-            *args,
-            acquisition_signal_dev="cam.acquire",
-            acquire_busy_signal_dev="cam.acquire_busy",
-            **kwargs
+        self,
+        *args,
+        acquisition_signal_dev="cam.acquire",
+        acquire_busy_signal_dev="cam.acquire_busy",
+        **kwargs,
     ):
         super().__init__(*args, **kwargs)
         # settings
@@ -513,3 +567,41 @@ class TriggerBase(BlueskyInterface):
     @property
     def _acquire_busy_signal(self):
         return getattr(self, self._acquire_busy_signal_dev)
+
+
+class ADTriggerStatus(ophyd_ADTriggerStatus):
+    def _notify_watchers(self, value, *args, **kwargs):
+        # *args and **kwargs catch extra inputs from pyepics, not needed here
+        if self.done:
+            self.device.cam.array_counter.clear_sub(self._notify_watchers)
+        if not self._watchers:
+            return
+        # Always start progress bar at 0 regardless of starting value of
+        # array_counter.
+        current = value - self._initial_count
+        target = self._target_count
+        initial = 0
+        time_elapsed = ttime() - self.start_ts
+        try:
+            fraction = 1 - (current - initial) / (target - initial)
+        except ZeroDivisionError:
+            fraction = 0
+        except Exception:
+            fraction = None
+            time_remaining = None
+        else:
+            time_remaining = (
+                None if fraction == 0 else time_elapsed / fraction
+            )
+        for watcher in self._watchers:
+            watcher(
+                name=self._name,
+                current=current,
+                initial=initial,
+                target=target,
+                unit="images",
+                precision=0,
+                fraction=fraction,
+                time_elapsed=time_elapsed,
+                time_remaining=time_remaining,
+            )

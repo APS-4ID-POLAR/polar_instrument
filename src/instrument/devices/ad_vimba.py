@@ -4,39 +4,32 @@ Vimba cameras
 
 from ophyd import EpicsSignal, EpicsSignalRO, Staged
 from ophyd.areadetector import (
-    CamBase, DetectorBase, ADComponent, EpicsSignalWithRBV
+    CamBase,
+    DetectorBase,
+    ADComponent,
+    EpicsSignalWithRBV,
 )
-from ophyd.areadetector.trigger_mixins import ADTriggerStatus
 from pathlib import Path
 from time import time as ttime
-from .ad_mixins import PolarHDF5Plugin, StatsPlugin, ROIPlugin, TriggerBase
-from ..utils.config import iconfig
-from ..utils._logging_setup import logger
-logger.info(__file__)
-
-
-ad_iconfig = iconfig["AREA_DETECTOR"]
-HDF1_NAME_TEMPLATE = ad_iconfig["HDF5_FILE_TEMPLATE"]
-HDF1_FILE_EXTENSION = ad_iconfig["HDF5_FILE_EXTENSION"]
-HDF1_NAME_FORMAT = HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION
-
-vimba_iconfig = ad_iconfig["VIMBA"]
-IOC_FILES_ROOT = Path(vimba_iconfig["IOC_FILES_ROOT"])
-DEFAULT_FOLDER = IOC_FILES_ROOT / vimba_iconfig["RELATIVE_DEFAULT_FOLDER"]
-
-MAX_IMAGES = 65535
-
+from .ad_mixins import (
+    PolarHDF5Plugin,
+    StatsPlugin,
+    ROIPlugin,
+    TriggerBase,
+    ADTriggerStatus
+)
 
 class Trigger(TriggerBase):
     """
     This trigger mixin class takes one acquisition per trigger.
     """
+
     _status_type = ADTriggerStatus
 
     def __init__(self, *args, image_name=None, **kwargs):
         super().__init__(*args, **kwargs)
         if image_name is None:
-            image_name = '_'.join([self.name, 'image'])
+            image_name = "_".join([self.name, "image"])
         self._image_name = image_name
         # self._flysetup = False
         self._status = None
@@ -81,8 +74,10 @@ class Trigger(TriggerBase):
 
     def trigger(self):
         if self._staged != Staged.yes:
-            raise RuntimeError("This detector is not ready to trigger."
-                               "Call the stage() method before triggering.")
+            raise RuntimeError(
+                "This detector is not ready to trigger."
+                "Call the stage() method before triggering."
+            )
 
         # Click the Acquire_button
         self._status = self._status_type(self)
@@ -117,7 +112,7 @@ class VimbaCam(CamBase):
         "gain_auto",
         "wait_for_plugins",
         "color_mode",
-        "data_type"
+        "data_type",
     )
 
     # NOTE: There are A LOT of camera-specific EPICS features that are not added
@@ -146,20 +141,12 @@ class VimbaCam(CamBase):
     trigger_exposure_mode = ADComponent(
         EpicsSignalWithRBV, "ExposureMode", string=True
     )
-    trigger_button = ADComponent(
-        EpicsSignal, "TriggerSoftware", kind="omitted"
-    )
+    trigger_button = ADComponent(EpicsSignal, "TriggerSoftware", kind="omitted")
 
     # Exposure
-    exposure_auto = ADComponent(
-        EpicsSignalWithRBV, "ExposureAuto", string=True
-    )
-    frame_rate = ADComponent(
-        EpicsSignalWithRBV, "FrameRate", string=True
-    )
-    image_mode = ADComponent(
-        EpicsSignalWithRBV, "ImageMode", string=True
-    )
+    exposure_auto = ADComponent(EpicsSignalWithRBV, "ExposureAuto", string=True)
+    frame_rate = ADComponent(EpicsSignalWithRBV, "FrameRate", string=True)
+    image_mode = ADComponent(EpicsSignalWithRBV, "ImageMode", string=True)
 
     # Detector state
     acquire_busy = ADComponent(EpicsSignal, "AcquireBusy")
@@ -178,18 +165,18 @@ class VimbaCam(CamBase):
     temperature = ADComponent(EpicsSignalRO, "TemperatureActual")
 
     # Gain
-    gain_auto = ADComponent(
-        EpicsSignalWithRBV, "GainAuto", string=True
-    )
+    gain_auto = ADComponent(EpicsSignalWithRBV, "GainAuto", string=True)
 
 
 class VimbaDetector(Trigger, DetectorBase):
 
-    _default_configuration_attrs = (
-        'cam', 'roi1', 'roi2', 'roi3', 'roi4'
-    )
+    _default_configuration_attrs = ("cam", "roi1", "roi2", "roi3", "roi4")
     _default_read_attrs = (
-        'hdf1', 'stats1', 'stats2', 'stats3', 'stats4',
+        "hdf1",
+        "stats1",
+        "stats2",
+        "stats3",
+        "stats4",
     )
 
     cam = ADComponent(VimbaCam, "cam1:")
@@ -206,7 +193,19 @@ class VimbaDetector(Trigger, DetectorBase):
     stats4 = ADComponent(StatsPlugin, "Stats4:")
     stats5 = ADComponent(StatsPlugin, "Stats5:")  # This is the full detector
 
-    def __init__(self, *args, **kwargs):
+    def __init__(
+        self,
+        *args,
+        default_folder="",
+        hdf1_name_template="%s/%s_%6.6d",
+        hdf1_file_extension="h5",
+        max_num_images=65535,
+        **kwargs,
+    ):
+        self.default_folder = default_folder
+        self.hdf1_name_format = hdf1_name_template + "." + hdf1_file_extension
+        self.max_num_images = max_num_images
+
         super().__init__(*args, **kwargs)
 
     def wait_for_connection(self, all_signals=False, timeout=2):
@@ -221,7 +220,7 @@ class VimbaDetector(Trigger, DetectorBase):
     def align_on(self, time=0.1):
         """Start detector in alignment mode"""
         self.save_images_off()
-        self.cam.num_images.set(MAX_IMAGES).wait(timeout=10)
+        self.cam.num_images.set(self.max_num_images).wait(timeout=10)
         self.cam.image_mode.set("Continuous").wait(timeout=10)
         self.preset_monitor.set(time).wait(timeout=10)
         self.cam.acquire.set(1).wait(timeout=10)
@@ -248,12 +247,13 @@ class VimbaDetector(Trigger, DetectorBase):
         self.cam.image_mode.put("Single")
         self.cam.acquire.put(0)
 
-        self.hdf1.file_template.put(HDF1_NAME_FORMAT)
-        self.hdf1.file_path.put(str(DEFAULT_FOLDER))
+        self.hdf1.file_template.put(self.hdf1_name_format)
+        self.hdf1.file_path.put(str(self.default_folder))
         self.hdf1.create_directory.put(-2)
         self.hdf1.num_capture.put(0)
 
-        self.hdf1.stage_sigs.pop("enable")
+        if "enable" in self.hdf1.stage_sigs.keys():
+            self.hdf1.stage_sigs.pop("enable")
         self.hdf1.stage_sigs["num_capture"] = 0
         self.hdf1.stage_sigs["capture"] = 1
 
@@ -262,6 +262,15 @@ class VimbaDetector(Trigger, DetectorBase):
         self.auto_save_off()
         self.plot_roi1()
         self.hdf1.enable.subscribe(self.hdf1._setup_kind, run=False)
+
+        self.hdf1.warmup_signals = [
+            (self.hdf1.enable, 1),
+            (self.hdf1.file_name, "warmup_file"),
+            (self.hdf1.parent.cam.array_callbacks, 1),  # set by number
+            (self.hdf1.parent.cam.image_mode, 0),  # Single, set by number
+            (self.hdf1.parent.cam.acquire_time, 0.01),
+            (self.hdf1.parent.cam.acquire, 1),  # set by number
+        ]
 
     def plot_select(self, rois):
         """
@@ -275,7 +284,7 @@ class VimbaDetector(Trigger, DetectorBase):
             List with the ROIs numbers to be plotted.
         """
 
-        for i in range(1, 5+1):
+        for i in range(1, 5 + 1):
             getattr(self, f"stats{i}").total.kind = (
                 "hinted" if i in rois else "normal"
             )
@@ -299,7 +308,7 @@ class VimbaDetector(Trigger, DetectorBase):
         self.plot_select([5])
 
     def setup_images(
-            self, base_path, name_template, file_number, flyscan=False
+        self, base_path, name_template, file_number, flyscan=False
     ):
 
         self.hdf1.file_number.set(file_number).wait(timeout=10)
@@ -324,7 +333,7 @@ class VimbaDetector(Trigger, DetectorBase):
 
     @property
     def label_option_map(self):
-        return {f"ROI{i} Total": i for i in range(1, 5+1)}
+        return {f"ROI{i} Total": i for i in range(1, 5 + 1)}
 
     @property
     def plot_options(self):

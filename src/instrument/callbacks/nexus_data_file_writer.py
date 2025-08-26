@@ -9,17 +9,17 @@ See the note about waiting for the nxwriter to finish AFTER EACH ACQUISITION!
 https://bcda-aps.github.io/apstools/dev/api/_filewriters.html#apstools.callbacks.nexus_writer.NXWriter
 """
 
-__all__ = ["nxwriter"]
-
 import h5py
 from apstools.callbacks import NXWriterAPS
 from numpy import array
 from datetime import datetime
-from ..utils.config import iconfig
-from ..utils._logging_setup import logger
+from apsbits.utils.config_loaders import get_config
+from logging import getLogger
 
-# from ..framework.initialize import RE
-logger.info(__file__)
+iconfig = get_config()
+
+logger = getLogger(__name__)
+logger.bsdev(__file__)
 
 # LAYOUT_VERSION = "APS-POLAR-2024-06"
 LAYOUT_VERSION = "APS-POLAR-2024-10"
@@ -49,8 +49,8 @@ class MyNXWriter(NXWriterAPS):
         for name, path in self.external_files.items():
             link_path = (
                 "/stream"
-                if name == "positioner_stream" else
-                "/entry/instrument"
+                if name == "positioner_stream"
+                else "/entry/instrument"
             )
             h5addr = f"/entry/externals/{name}"
             self.root[h5addr] = h5py.ExternalLink(
@@ -123,9 +123,21 @@ class MyNXWriter(NXWriterAPS):
         return bluesky
 
 
+# TODO: This won't work for us because we need to be able to change the
+# file name for each scan.
+# def nxwriter_init(RE):
+"""Initialize the Nexus data file writer callback."""
 nxwriter = MyNXWriter()  # create the callback instance
-_nx_config = iconfig.get("NEXUS_DATA_FILE", None)
-if _nx_config is not None:
-    nxwriter.warn_on_missing_content = _nx_config.get(
-        "NEXUS_WARN_MISSING_CONTENT", False
-    )
+"""The NeXus file writer object."""
+
+# if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
+#     RE.subscribe(nxwriter.receiver)  # write data to NeXus files
+
+nxwriter.file_extension = iconfig.get("NEXUS_DATA_FILES", {}).get(
+    "FILE_EXTENSION", "hdf"
+)
+
+warn_missing = iconfig.get("NEXUS_DATA_FILES", {}).get("WARN_MISSING", False)
+nxwriter.warn_on_missing_content = warn_missing
+
+# return nxwriter

@@ -8,8 +8,6 @@ from ophyd import Component, Device, Signal, EpicsSignal, EpicsSignalRO
 from ophyd.status import Status, StatusBase
 from typing import Any, Callable
 from numpy import abs
-from ..utils._logging_setup import logger
-logger.info(__file__)
 
 
 class PolarUndulatorPositioner(UndulatorPositioner):
@@ -22,10 +20,12 @@ class PolarUndulatorPositioner(UndulatorPositioner):
         moved_cb: Callable = None,
         wait: bool = False,
     ) -> StatusBase:
-        # If position is within the deadband --> do nothing.
+        # If position is within the deadband --> move, but do not wait
+        # for it?
         if (
-            abs(new_position - self.readback.get()) <
-            self.parent.energy_deadband.get()*self.parent.harmonic_value.get()
+            abs(new_position - self.readback.get())
+            < self.parent.energy_deadband.get()
+            * self.parent.harmonic_value.get()
         ):
             _status = Status()
             _status.set_finished()
@@ -37,9 +37,12 @@ class PolarUndulatorPositioner(UndulatorPositioner):
 
 
 class PolarUndulator(STI_Undulator):
-    tracking = Component(TrackingSignal, value=False, kind='config')
-    offset = Component(Signal, value=0, kind='config')
-    energy_deadband = Component(Signal, value=0.003, kind='config')
+    # TODO: The energy should really follow the gap 1 um deadband...
+
+    tracking = Component(TrackingSignal, value=False, kind="config")
+    energy_offset = Component(Signal, value=0, kind="config")
+    energy_deadband = Component(Signal, value=0.001, kind="config")
+    # energy_deadband = Component(Signal, value=0.003, kind='config')
     energy = Component(PolarUndulatorPositioner, "Energy")
     version_hpmu = None
 
@@ -71,8 +74,3 @@ class PolarUndulatorPair(Device):
     us = Component(PolarUndulator, "USID:", labels=("track_energy",))
     ds = Component(PolarUndulator, "DSID:", labels=("track_energy",))
     phase_shifter = Component(PhaseShifterDevice, "ILPS:")
-
-
-undulators = PolarUndulatorPair(
-    "S04ID:", name="undulators", labels=("energy", "source")
-)

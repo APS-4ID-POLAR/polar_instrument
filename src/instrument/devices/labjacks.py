@@ -2,18 +2,9 @@
 Labjacks
 """
 
-__all__ = [
-    "labjack_4idb",
-    "labjack_4ida"
-]
-
 from apstools.devices import LabJackT7
-from apstools.devices.labjack import (
-    KIND_CONFIG_OR_NORMAL, DigitalIO, Output
-)
+from apstools.devices.labjack import KIND_CONFIG_OR_NORMAL, DigitalIO, Output
 from ophyd import DynamicDeviceComponent, EpicsSignalRO, Component, EpicsSignal
-from ..utils._logging_setup import logger
-logger.info(__file__)
 
 
 class AnalogOutput(Output):
@@ -41,7 +32,9 @@ def make_analog_outputs(num_aos: int):
     defn = {}
     for n in range(num_aos):
         defn[f"ao{n}"] = (
-            AnalogOutput, f"Ao{n}", dict(kind=KIND_CONFIG_OR_NORMAL)
+            AnalogOutput,
+            f"Ao{n}",
+            dict(kind=KIND_CONFIG_OR_NORMAL),
         )
     return defn
 
@@ -59,7 +52,9 @@ def make_digital_ios(channels_list: list):
     defn = {}
     for n in channels_list:
         defn[f"dio{n}"] = (
-            DigitalIO, "", dict(ch_num=n, kind=KIND_CONFIG_OR_NORMAL)
+            DigitalIO,
+            "",
+            dict(ch_num=n, kind=KIND_CONFIG_OR_NORMAL),
         )
 
     # Add the digital word outputs
@@ -81,20 +76,13 @@ class CustomLabJackT7(LabJackT7):
 
     digital_ios = DynamicDeviceComponent(
         make_digital_ios(list(range(0, 16)) + list(range(20, 23))),
-        kind=KIND_CONFIG_OR_NORMAL
+        kind=KIND_CONFIG_OR_NORMAL,
     )
 
-
-labjack_4idb = CustomLabJackT7(
-    "4idLabJackT7_1:", name="labjack_4idb", labels=("4idb",)
-)
-
-labjack_4ida = CustomLabJackT7(
-    "4idaSoft:LJ:", name="labjack_4ida", labels=("4ida",)
-)
-labjack_4ida.analog_outputs.kind = "normal"
-labjack_4ida.waveform_digitizer.kind = "omitted"
-labjack_4ida.digital_ios.kind = "omitted"
-labjack_4ida.analog_inputs.kind = "omitted"
-for i in range(4):
-    getattr(labjack_4ida.analog_outputs, f"ao{i}").kind = "normal"
+    def default_settings(self):
+        self.analog_outputs.kind = "normal"
+        self.waveform_digitizer.kind = "omitted"
+        self.digital_ios.kind = "omitted"
+        self.analog_inputs.kind = "omitted"
+        for i in range(4):
+            getattr(self.analog_outputs, f"ao{i}").kind = "normal"

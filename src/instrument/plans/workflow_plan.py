@@ -7,10 +7,15 @@ from apstools.utils import share_bluesky_metadata_with_dm
 from databroker.core import BlueskyRun
 from pathlib import Path
 from yaml import load as yload, Loader as yloader
+from logging import getLogger
+from apsbits.core.instrument_init import oregistry
 from .local_scans import mv
-from ..devices.data_management import dm_workflow, dm_experiment
-from ..utils._logging_setup import logger
-from ..utils.catalog import full_cat
+from ..utils.run_engine import cat
+
+dm_workflow = oregistry.find("dm_workflow")
+dm_experiment = oregistry.find("dm_experiment")
+
+logger = getLogger(__name__)
 logger.info(__file__)
 
 EXPECTED_KWARGS = {}
@@ -31,7 +36,7 @@ EXPECTED_KWARGS["ptychodus"] = [
     "numGpus",
     "settings",
     "demand",
-    "name"
+    "name",
 ]
 
 EXPECTED_KWARGS["ptycho-xrf"] = [
@@ -95,12 +100,12 @@ def run_workflow(
     # internal kwargs ----------------------------------------------------------
     dm_concise: bool = False,
     dm_wait: bool = False,
-    dm_reporting_period: float = 10*60,
+    dm_reporting_period: float = 10 * 60,
     dm_reporting_time_limit: float = 10**6,
     # Option to import DM workflow kwargs from a file --------------------------
     settings_file_path: str = None,
     # Or you can enter the kwargs that will be just be passed to the workflow --
-    **_kwargs
+    **_kwargs,
 ):
 
     # Option to import workflow parameters from file.
@@ -139,12 +144,13 @@ def run_workflow(
     if len(missing) > 0:
         raise ValueError(
             "The following arguments were not found, but are required for the "
-            f"{workflow} workflow: {missing}.")
+            f"{workflow} workflow: {missing}."
+        )
 
     # Check that the bluesky_id works.
     if isinstance(bluesky_id, (str, int)):
         try:
-            run = full_cat[bluesky_id]
+            run = cat[bluesky_id]
         except KeyError:
             raise KeyError(
                 "Could not find a Bluesky run associated with the "
@@ -160,19 +166,17 @@ def run_workflow(
         run = None
 
     # Start workflow
-    logger.info(
-        f"DM workflow {workflow}."
-    )
+    logger.info(f"DM workflow {workflow}.")
 
     yield from mv(
-        dm_workflow.concise_reporting, dm_concise,
-        dm_workflow.reporting_period, dm_reporting_period,
+        dm_workflow.concise_reporting,
+        dm_concise,
+        dm_workflow.reporting_period,
+        dm_reporting_period,
     )
 
     yield from dm_workflow.run_as_plan(
-        wait=dm_wait,
-        timeout=dm_reporting_time_limit,
-        **kwargs
+        wait=dm_wait, timeout=dm_reporting_time_limit, **kwargs
     )
 
     yield from sleep(0.1)

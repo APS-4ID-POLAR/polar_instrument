@@ -1,8 +1,6 @@
-""" Eiger 1M setup """
+"""Vortex 4 element with Dante electronics"""
 
-from ophyd import (
-    ADComponent, Staged, SignalRO, DynamicDeviceComponent
-)
+from ophyd import ADComponent, Staged, SignalRO, DynamicDeviceComponent
 from ophyd.mca import EpicsMCARecord
 from ophyd.areadetector import DetectorBase
 from ophyd.areadetector.trigger_mixins import ADTriggerStatus
@@ -11,23 +9,8 @@ from collections import OrderedDict
 from time import time as ttime
 from .ad_mixins import TriggerBase
 from .vortex_dante_parts import DanteCAM, DanteHDF1Plugin, DanteSCA
-from ..utils.config import iconfig
-from ..utils._logging_setup import logger
-logger.info(__file__)
 
-__all__ = ["vortex"]
-
-# Bluesky and IOC have the same path root.
-# IOC_FILES_ROOT = Path(iconfig["AREA_DETECTOR"]["VORTEX"]["IOC_FILES_ROOT"])
-IOC_FILES_ROOT = Path("")
-
-DEFAULT_FOLDER = Path(iconfig["AREA_DETECTOR"]["VORTEX"]["DEFAULT_FOLDER"])
-
-HDF1_NAME_TEMPLATE = iconfig["AREA_DETECTOR"]["HDF5_FILE_TEMPLATE"]
-HDF1_FILE_EXTENSION = iconfig["AREA_DETECTOR"]["HDF5_FILE_EXTENSION"]
-HDF1_NAME_FORMAT = HDF1_NAME_TEMPLATE + "." + HDF1_FILE_EXTENSION
-
-MAX_TIME = 60*60  # time used in align mode
+MAX_TIME = 60 * 60  # time used in align mode
 MAX_ROIS = 32
 
 
@@ -35,6 +18,7 @@ class Trigger(TriggerBase):
     """
     This trigger mixin class takes one acquisition per trigger.
     """
+
     _status_type = ADTriggerStatus
     # _status_type = DeviceStatus
 
@@ -43,11 +27,11 @@ class Trigger(TriggerBase):
             *args,
             acquisition_signal_dev="cam.acquire_start",
             acquire_busy_signal_dev="cam.acquire_busy",
-            **kwargs
+            **kwargs,
         )
 
         if image_name is None:
-            image_name = '_'.join([self.name, 'image'])
+            image_name = "_".join([self.name, "image"])
         self._image_name = image_name
         # self._acquisition_signal = self.cam.acquire_start
         self._acquisition_signal_stop = self.cam.acquire_stop
@@ -100,8 +84,10 @@ class Trigger(TriggerBase):
 
     def trigger(self):
         if self._staged != Staged.yes:
-            raise RuntimeError("This detector is not ready to trigger."
-                               "Call the stage() method before triggering.")
+            raise RuntimeError(
+                "This detector is not ready to trigger."
+                "Call the stage() method before triggering."
+            )
 
         # Click the Acquire_button
         self._status = self._status_type(self)
@@ -124,7 +110,7 @@ class Trigger(TriggerBase):
 
 
 class TotalCorrectedSignal(SignalRO):
-    """ Signal that returns the deadtime corrected total counts """
+    """Signal that returns the deadtime corrected total counts"""
 
     def __init__(self, prefix, roi_index=0, **kwargs):
         self.roi_index = roi_index
@@ -132,11 +118,13 @@ class TotalCorrectedSignal(SignalRO):
 
     def get(self, **kwargs):
         value = 0
-        for ch_num in range(1, self.root._num_channels+1):
-            roi = getattr(self.root.mcas, f'mca{ch_num}.rois.roi{self.roi_index}')
+        for ch_num in range(1, self.root._num_channels + 1):
+            roi = getattr(
+                self.root.mcas, f"mca{ch_num}.rois.roi{self.roi_index}"
+            )
             sca = getattr(self.root.scas, f"sca{ch_num}")
             _ocr = sca.ocr.get(**kwargs)
-            correction = 1.0 if _ocr == 0 else sca.icr.get(**kwargs)/_ocr
+            correction = 1.0 if _ocr == 0 else sca.icr.get(**kwargs) / _ocr
             value += roi.count.get(**kwargs) * correction
         return value
 
@@ -145,35 +133,32 @@ def _totals(attr_fix, id_range):
     defn = OrderedDict()
     for k in id_range:
         _kind = "normal" if k == 0 else "omitted"
-        defn['{}{:d}'.format(attr_fix, k)] = (
-            TotalCorrectedSignal, '', {'roi_index': k, 'kind': _kind}
+        defn["{}{:d}".format(attr_fix, k)] = (
+            TotalCorrectedSignal,
+            "",
+            {"roi_index": k, "kind": _kind},
         )
     return defn
 
 
 def _mcas(num_channels):
     defn = OrderedDict()
-    for k in range(1, num_channels+1):
-        defn[f'mca{k}'] = (EpicsMCARecord, f'mca{k}', {})
+    for k in range(1, num_channels + 1):
+        defn[f"mca{k}"] = (EpicsMCARecord, f"mca{k}", {})
     return defn
 
 
 def _scas(num_channels):
     defn = OrderedDict()
-    for k in range(1, num_channels+1):
-        defn[f'sca{k}'] = (DanteSCA, f'dante{k}:', {})
+    for k in range(1, num_channels + 1):
+        defn[f"sca{k}"] = (DanteSCA, f"dante{k}:", {})
     return defn
 
 
-class DanteDetector(Trigger, DetectorBase):
+class VortexDante4(Trigger, DetectorBase):
 
-    _default_configuration_attrs = ('cam',)
-    _default_read_attrs = (
-        'hdf1',
-        'mcas',
-        'scas',
-        'total'
-    )
+    _default_configuration_attrs = ("cam",)
+    _default_read_attrs = ("hdf1", "mcas", "scas", "total")
 
     _read_rois = [1]
     _num_channels = 4
@@ -184,16 +169,25 @@ class DanteDetector(Trigger, DetectorBase):
     mcas = DynamicDeviceComponent(_mcas(_num_channels))
     scas = DynamicDeviceComponent(_scas(_num_channels))
 
-    total = DynamicDeviceComponent(_totals('roi', range(MAX_ROIS)))
+    total = DynamicDeviceComponent(_totals("roi", range(MAX_ROIS)))
 
-    hdf1 = ADComponent(
-        DanteHDF1Plugin,
-        "HDF1:",
-        ioc_path_root=IOC_FILES_ROOT,
-    )
+    hdf1 = ADComponent(DanteHDF1Plugin, "HDF1:")
 
     # TODO: TEMPORARY!
     _local_folder = "/local/home/dpuser/sector4/"
+
+    def __init__(
+        self,
+        *args,
+        default_folder=Path(
+            "/net/s4data/export/sector4/4idd/bluesky_images/vortex"
+        ),
+        hdf1_file_format="%s/%s_%6.6d.h5",
+        **kwargs,
+    ):
+        self.default_folder = default_folder
+        self.hdf1_file_format = hdf1_file_format
+        super().__init__(*args, **kwargs)
 
     # Make this compatible with other detectors
     @property
@@ -229,8 +223,8 @@ class DanteDetector(Trigger, DetectorBase):
 
     def default_settings(self):
 
-        self.hdf1.file_template.put(HDF1_NAME_FORMAT)
-        self.hdf1.file_path.put(str(DEFAULT_FOLDER))
+        self.hdf1.file_template.put(self.hdf1_file_format)
+        self.hdf1.file_path.put(str(self.default_folder))
         self.hdf1.num_capture.put(0)
 
         if "enable" in self.hdf1.stage_sigs.keys():
@@ -251,11 +245,7 @@ class DanteDetector(Trigger, DetectorBase):
             for roi in mca.rois.component_names:
                 d = getattr(mca, f"rois.{roi}")
                 for c in d.component_names:
-                    k = (
-                        "normal"
-                        if c in self._mca_rois_read_attrs
-                        else "config"
-                    )
+                    k = "normal" if c in self._mca_rois_read_attrs else "config"
                     getattr(d, c).kind = k
 
     # TODO: Probably need to take another look at read_rois.setter and
@@ -295,7 +285,7 @@ class DanteDetector(Trigger, DetectorBase):
                 getattr(self.total, f"roi{i}").kind = "omitted"
 
         # change ROISTAT kinds
-        for pixel in range(1, self.num_channels+1):
+        for pixel in range(1, self.num_channels + 1):
             pix = getattr(self.mcas, f"mca{pixel}")
             for i in range(MAX_ROIS):
                 k = "normal" if i in rois else "omitted"
@@ -306,9 +296,9 @@ class DanteDetector(Trigger, DetectorBase):
     def select_roi(self, rois):
         for i in range(MAX_ROIS):
             k = (
-                "hinted" if i in rois else
-                "normal" if i in self.read_rois else
-                "omitted"
+                "hinted"
+                if i in rois
+                else "normal" if i in self.read_rois else "omitted"
             )
 
             getattr(self.total, f"roi{i}").kind = k
@@ -333,7 +323,7 @@ class DanteDetector(Trigger, DetectorBase):
 
     @property
     def label_option_map(self):
-        return {f"ROI{i} Total": i for i in range(1, 8+1)}
+        return {f"ROI{i} Total": i for i in range(0, 8)}
 
     @property
     def plot_options(self):
@@ -345,7 +335,7 @@ class DanteDetector(Trigger, DetectorBase):
         self.select_roi(chans)
 
     def setup_images(
-            self, base_folder, file_name_base, file_number, flyscan=False
+        self, base_folder, file_name_base, file_number, flyscan=False
     ):
 
         self.hdf1.file_name.set(file_name_base).wait(timeout=10)
@@ -370,6 +360,3 @@ class DanteDetector(Trigger, DetectorBase):
         _hdf1_auto = True if self.hdf1.autosave.get() == "on" else False
         _hdf1_on = True if self.hdf1.enable.get() == "Enable" else False
         return _hdf1_on or _hdf1_auto
-
-
-vortex = DanteDetector("dp_dante8_xrd4:", name="vortex", labels=("detector",))

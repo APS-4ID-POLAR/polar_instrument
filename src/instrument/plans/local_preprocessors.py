@@ -1,14 +1,18 @@
-""" Local decorators """
+"""Local decorators"""
 
 from bluesky.utils import make_decorator
 from bluesky.preprocessors import finalize_wrapper
-from bluesky.plan_stubs import mv, null, subscribe, unsubscribe
+from bluesky.plan_stubs import mv, null, subscribe, unsubscribe, rd
 from ophyd import Kind
+from logging import getLogger
+from apsbits.core.instrument_init import oregistry
+
 from ..callbacks.dichro_stream import plot_dichro_settings, dichro_bec
-from ..devices import counters
-from ..devices.phaseplates import pr_setup
+from ..utils.counters_class import counters
+from ..utils.pr_setup import pr_setup
 from ..utils.run_engine import bec
-from ..utils._logging_setup import logger
+
+logger = getLogger(__name__)
 logger.info(__file__)
 
 
@@ -58,25 +62,47 @@ def configure_counts_wrapper(plan, detectors, count_time):
         messages from plan, with 'set' messages inserted
     """
     original_times = {}
-    original_monitor = []
 
     def setup():
         if count_time < 0:
-            raise ValueError('count_time cannot be < 0.')
-        elif count_time > 0:
-            for det in detectors:
-                yield from mv(det.preset_monitor, count_time)
-        else:
-            raise ValueError('count_time cannot be zero.')
+            if counters.monitor == "Time":
+                raise ValueError(
+                    'count_time cannot be < 0 because "Time" is the monitor.'
+                    "Run counters.plotselect() to change the monitor to a"
+                    "scaler channel."
+                )
 
-    # def reset():
-    #     for det, time in original_times.items():
-    #         yield from mv(det.preset_monitor, time)
+            scaler = counters.monitor_detector
+
+            scaler_channel = getattr(
+                scaler.channels, scaler.channels_name_map[counters.monitor]
+            )
+
+            # Changing the preset already forces the gate to the "Y"
+            yield from mv(scaler_channel.preset, abs(count_time))
+
+        elif count_time > 0:
+            args = ()
+            for det in detectors:
+                original_times[det.preset_monitor] = yield from rd(
+                    det.preset_monitor
+                )
+                args += (det.preset_monitor, count_time)
+            yield from mv(*args)
+
+        else:
+            raise ValueError("count_time cannot be zero.")
+
     def reset():
-        for det, time in original_times.items():
-            yield from mv(det.preset_monitor, time)
-            if det == counters.default_scaler and len(original_monitor) == 1:
-                det.monitor = original_monitor[0]
+        if count_time < 0:
+            scaler = counters.monitor_detector
+            scaler_channel = getattr(
+                scaler.channels, scaler.channels_name_map[counters.monitor]
+            )
+            yield from mv(scaler_channel.gate, "N")
+        else:
+            for mon, time in original_times.items():
+                yield from mv(mon, time)
 
     def _inner_plan():
         yield from setup()
@@ -107,48 +133,70 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
         messages from plan, with 'subscribe' and 'unsubscribe' messages
         inserted and appended
     """
-    _current_scaler_plot = []
+    _hinted_devices = []
+    _lockin_devices = []
     _dichro_token = [None, None]
 
     def _stage():
-
         if dichro and lockin:
-            raise ValueError('Cannot have both dichro and lockin = True.')
+            raise ValueError("Cannot have both dichro and lockin = True.")
 
         if lockin:
-            for chan in counters.default_scaler.channels.component_names:
-                scaler_channel = getattr(counters.default_scaler.channels, chan)
-                if scaler_channel.kind.value >= 5:
-                    _current_scaler_plot.append(scaler_channel.s.name)
+            for det in counters.detectors:
+                hints = det.hints["fields"]
+                for name in hints:
+                    dev = oregistry.find(name.replace("_", "."))
+                    _hinted_devices.append(dev)
+                    dev.kind = "normal"
 
-            counters.default_scaler.select_plot_channels(['LockDC', 'LockAC'])
+            for scaler in counters._available_scalers:
+                for ch in ["LockDC", "LockAC"]:
+                    if ch in scaler.channels_name_map.keys():
+                        device = getattr(
+                            scaler.channels, scaler.channels_name_map[ch]
+                        ).s
+                        device.kind = "hinted"
+                        _lockin_devices.append(device)
 
             if pr_setup.positioner is None:
-                raise ValueError('Phase retarder was not selected.')
+                raise ValueError("Phase retarder was not selected.")
 
-            if 'th' in pr_setup.positioner.name:
-                raise TypeError('Theta motor cannot be used in lock in! \
-                                Please run pr_setup.config() and choose \
-                                pzt.')
+            if "th" in pr_setup.positioner.name:
+                raise TypeError(
+                    "Theta motor cannot be used in lock in!"
+                    "Please run pr_setup.config() and choose pzt."
+                )
 
             yield from mv(pr_setup.positioner.parent.selectAC, 1)
-            # yield from mv(pr_setup.positioner.parent.ACstatus, 2)
 
         if dichro:
+            for i in range(len(positioner)):
+                setattr(
+                    plot_dichro_settings.settings,
+                    f"positioner{i+1}",
+                    None if positioner[i] is None else positioner[i].name,
+                )
 
-            # TODO: This will only work for 1 motor and 1 detector!
-            plot_dichro_settings.settings.positioner = (
-                "None" if positioner is None else positioner[0].name
-            )
+            if len(counters.plot_names) != 0:
+                if len(counters.plot_names) > 1:
+                    msg = (
+                        "There is more than one plotting detector selected, "
+                        "but only one can be used. Will use the first one: "
+                        f"{counters.plot_names[0]}."
+                    )
+                    logger.warning(msg)
+                    print(f"\n=== Warning: {msg} ===")
+
+                plot_dichro_settings.settings.detector = counters.plot_names[0]
+
+            plot_dichro_settings.settings.monitor = counters.monitor
 
             dichro_bec.enable_plots()
             bec.disable_plots()
 
-            _dichro_token[0] = yield from subscribe(
-                "all", plot_dichro_settings
-            )
+            _dichro_token[0] = yield from subscribe("all", plot_dichro_settings)
             # move PZT to center.
-            if 'pzt' in pr_setup.positioner.name:
+            if "pzt" in pr_setup.positioner.name:
                 yield from mv(
                     pr_setup.positioner, pr_setup.positioner.parent.center.get()
                 )
@@ -156,16 +204,22 @@ def stage_dichro_wrapper(plan, dichro, lockin, positioner):
     def _unstage():
 
         if lockin:
-            counters.default_scaler.select_plot_channels(_current_scaler_plot)
+            for dev in _lockin_devices:
+                dev.kind = "normal"
+
+            for dev in _hinted_devices:
+                dev.kind = "hinted"
+
             yield from mv(pr_setup.positioner.parent.selectDC, 1)
-            # yield from mv(pr_setup.positioner.parent.ACstatus, 0)
 
         if dichro:
             # move PZT to off center.
-            if 'pzt' in pr_setup.positioner.name:
-                yield from mv(pr_setup.positioner,
-                              pr_setup.positioner.parent.center.get() +
-                              pr_setup.offset.get())
+            if "pzt" in pr_setup.positioner.name:
+                yield from mv(
+                    pr_setup.positioner,
+                    pr_setup.positioner.parent.center.get()
+                    + pr_setup.offset.get(),
+                )
 
             yield from unsubscribe(_dichro_token[0])
             dichro_bec.disable_plots()

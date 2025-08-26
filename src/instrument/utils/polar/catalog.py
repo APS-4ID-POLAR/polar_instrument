@@ -9,9 +9,10 @@ Databroker catalog, provides ``cat``.
 import logging
 from polartools.load_data import load_catalog
 import databroker
-from .config import iconfig
+from apsbits.utils.config_loaders import get_config
 from .spe_handler import SPEHandler
 
+iconfig = get_config()
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
